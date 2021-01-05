@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import accountIcon from '../../images/icon-account.svg';
 import arrowAuth from '../../images/icon-authorized.svg';
 import iconKeys from '../../images/icon-keys.svg';
+import personasIcon from '../../images/masks.png'
 import { Translate } from 'react-localize-redux';
 import { ENABLE_FULL_ACCESS_KEYS } from '../../utils/wallet';
 
@@ -56,6 +57,7 @@ const UserLinks = ({ accountId }) => (
     <Container className='user-links'>
         <UserLink icon={accountIcon} to='/profile'><Translate id='link.profile'/></UserLink>
         <UserLink icon={arrowAuth} to='/authorized-apps'><Translate id='link.authorizedApps'/></UserLink>
+        <UserLink icon ={personasIcon} to='/add-fields'><Translate id = 'link.addFields'/></UserLink>
         {ENABLE_FULL_ACCESS_KEYS && <UserLink icon={iconKeys} to='/full-access-keys'><Translate id='link.fullAccessKeys'/></UserLink>}
     </Container>
 )
