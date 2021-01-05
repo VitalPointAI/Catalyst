@@ -19,9 +19,10 @@ function getConfig(env) {
       networkId: 'testnet',
       nodeUrl: 'https://rpc.testnet.near.org',
       contractName: CONTRACT_NAME,
-      walletUrl: 'https://wallet.testnet.near.org',
+     // walletUrl: 'https://wallet.testnet.near.org',
+      walletUrl: 'http://localhost:1234',
       helperUrl: 'https://helper.testnet.near.org',
-      explorerUrl: 'https://explorer.testnet.near.org',
+      explorerUrl: 'https://explorer.testnet.near.org'
     }
   case 'betanet':
     return {
@@ -60,7 +61,8 @@ function getConfig(env) {
       networkId: 'testnet',
       nodeUrl: 'https://rpc.testnet.near.org',
       contractName: CONTRACT_NAME,
-      walletUrl: 'https://wallet.testnet.near.org',
+    //  walletUrl: 'https://wallet.testnet.near.org',
+      walletUrl: 'http://localhost:1234',
       helperUrl: 'https://helper.testnet.near.org',
       explorerUrl: 'https://explorer.testnet.near.org',
     }

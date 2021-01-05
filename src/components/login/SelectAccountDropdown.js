@@ -120,7 +120,7 @@ const SelectAccountDropdown = ({
                 basic
                 onClick={!disabled ? handleOnClick : () => { }}
                 className={disabled && 'disabled'}
-                title={!dropdown ? (!disabled ? translate('selectAccountDropdown.switchAccount') : translate('selectAccountDropdown.switchAccounthNotAllowed')) : ''}
+                title={!dropdown ? (!disabled ? translate('selectAccountDropdown.personaSwitchAccount') : translate('selectAccountDropdown.personaSwitchAccountNotAllowed')) : ''}
             >
                 <Segment basic>
                     <div className='item list-title'>
@@ -136,20 +136,20 @@ const SelectAccountDropdown = ({
                                         onClick={() => handleSelectAccount(a)}
                                         className='item'
                                         key={a}
-                                        title={translate('selectAccountDropdown.selectAccount')}
+                                        title={translate('selectAccountDropdown.personaSelectAccount')}
                                     >{a}</div>
                                 ))}
                             {availableAccounts.length < 2 &&
-                                <div className='item'>{translate('selectAccountDropdown.noOtherAccounts')}</div>
+                                <div className='item'>{translate('selectAccountDropdown.personaNoOtherAccounts')}</div>
                             }
                         </div>
                         {!DISABLE_CREATE_ACCOUNT &&
                             <div
                                 onClick={redirectCreateAccount}
                                 className='item list-create color-seafoam-blue'
-                                title={translate('selectAccountDropdown.createAccount')}
+                                title={translate('selectAccountDropdown.personaCreateAccount')}
                             >
-                                {translate('selectAccountDropdown.createAccount')}
+                                {translate('selectAccountDropdown.personaCreateAccount')}
                             </div>
                         }
                     </div>

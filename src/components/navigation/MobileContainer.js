@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
-import Logo from './Logo';
+import MobileLogo from './MobileLogo';
 import UserBalance from './UserBalance';
 import UserName from './UserName';
 import MenuButton from './MenuButton';
@@ -18,7 +18,7 @@ const Container = styled.div`
     color: white;
     font-size: 15px;
     margin-bottom: 20px;
-   // background-color: #24272a;
+    background-color: #24272a;
     height: 70px;
     position: relative;
     padding: 0 15px;
@@ -159,7 +159,7 @@ class MobileContainer extends Component {
         return (
             <Container className={menuOpen ? 'show' : ''} id='mobile-menu'>
                 <Collapsed>
-                    <Logo/>
+                <MobileLogo/>
                     {showNavLinks &&
                         <>
                             <User>
@@ -183,7 +183,7 @@ class MobileContainer extends Component {
                             <LanguageToggle />
                         </Lang>
                         <LowerSection>
-                            <h6><Translate id='link.switchAccount'/></h6>
+                            <h6><Translate id='link.personaSwitchAccount'/></h6>
                             <UserAccounts
                                 accounts={availableAccounts}
                                 accountId={account.accountId}

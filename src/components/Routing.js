@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { useEffect, useState } from 'react'
 import { connect } from 'react-redux'
 import PropTypes from 'prop-types'
 import styled, { ThemeProvider } from 'styled-components'
@@ -13,6 +13,7 @@ import translations_zh_hant from '../translations/zh-hant.global.json'
 import ScrollToTop from '../utils/ScrollToTop'
 import GlobalAlert from './responsive/GlobalAlert'
 import '../index.css'
+import Dao from './dao/dao'
 import Navigation from './navigation/Navigation'
 import Footer from './common/Footer'
 import NetworkBanner from './common/NetworkBanner'
@@ -45,7 +46,7 @@ import { StakingContainer } from './staking/StakingContainer'
 import { DISABLE_SEND_MONEY, WALLET_CREATE_NEW_ACCOUNT_FLOW_URLS } from '../utils/wallet'
 import { refreshAccount, handleRefreshUrl, clearAlert, clear, handleRedirectUrl, handleClearUrl, promptTwoFactor } from '../actions/account'
 import LedgerConfirmActionModal from './accounts/ledger/LedgerConfirmActionModal';
-
+import { initiateAppDB, initiateDB } from '../utils/threadsDB'
 import GlobalStyle from './GlobalStyle'
 import { SetupSeedPhraseWithRouter } from './accounts/SetupSeedPhrase'
 import { SetupImplicitWithRouter } from './accounts/SetupImplicit'
@@ -75,103 +76,106 @@ const Container = styled.div`
         }
     }
 `
-class Routing extends Component {
-    constructor(props) {
-        super(props)
-        const languages = [
-            { name: "English", code: "en" },
-            { name: "Русский", code: "ru" },
-            { name: "简体中文", code: "zh-hans" },
-            { name: "繁體中文", code: "zh-hant" }
-        ]
-        
-        const activeLang = localStorage.getItem("languageCode") || languages[0].code
+function Routing(props) {
 
-        this.props.initialize({
-            languages,
-            options: {
-                defaultLanguage: 'en',
-                renderToStaticMarkup: false,
-                renderInnerHtml: true,
-                onMissingTranslation
-            }
-        })
-        
-        // TODO: Figure out how to load only necessary translations dynamically
-        this.props.addTranslationForLanguage(translations_en, "en")
-        this.props.addTranslationForLanguage(translations_ru, "ru")
-        this.props.addTranslationForLanguage(translations_zh_hans, "zh-hans")
-        this.props.addTranslationForLanguage(translations_zh_hant, "zh-hant")
+    const { 
+        refreshAccount, handleRefreshUrl,
+        history, clearAlert,
+        clear, handleRedirectUrl, handleClearUrl
+    } = props
 
-        this.props.setActiveLanguage(activeLang)
-        // this.addTranslationsForActiveLanguage(defaultLanguage)
-    }
+    const languages = [
+        { name: "English", code: "en" },
+        { name: "Русский", code: "ru" },
+        { name: "简体中文", code: "zh-hans" },
+        { name: "繁體中文", code: "zh-hant" }
+    ]
+    
+    const activeLang = localStorage.getItem("languageCode") || languages[0].code
 
-    componentDidMount = async () => {
-        const { 
-            refreshAccount, handleRefreshUrl,
-            history, clearAlert,
-            clear, handleRedirectUrl, handleClearUrl
-        } = this.props
+    useEffect(
+        () => {
+            props.initialize({
+                languages,
+                options: {
+                    defaultLanguage: 'en',
+                    renderToStaticMarkup: false,
+                    renderInnerHtml: true,
+                    onMissingTranslation
+                }
+            })
         
-        handleRefreshUrl()
-        refreshAccount()
+            // TODO: Figure out how to load only necessary translations dynamically
+            props.addTranslationForLanguage(translations_en, "en")
+            props.addTranslationForLanguage(translations_ru, "ru")
+            props.addTranslationForLanguage(translations_zh_hans, "zh-hans")
+            props.addTranslationForLanguage(translations_zh_hant, "zh-hant")
         
-        history.listen(async () => {
-            handleRedirectUrl(this.props.router.location)
-            handleClearUrl()
-            if (!WALLET_CREATE_NEW_ACCOUNT_FLOW_URLS.find((path) => this.props.router.location.pathname.indexOf(path) > -1)) {
-                await refreshAccount()
+            props.setActiveLanguage(activeLang)
+            // this.addTranslationsForActiveLanguage(defaultLanguage)
+
+            async function fetchData() {
+                handleRefreshUrl()
+                refreshAccount()
+                await initiateDB()
+                await initiateAppDB()
+               
             }
 
-            const { state: { globalAlertPreventClear } = {} } = history.location
-            if (!globalAlertPreventClear && !this.props.account.globalAlertPreventClear) {
-                clearAlert()
-            }
+            fetchData()
+                .then((res) => {
+                })
+            
+            history.listen(async () => {
+                handleRedirectUrl(props.router.location)
+                handleClearUrl()
+                if (!WALLET_CREATE_NEW_ACCOUNT_FLOW_URLS.find((path) => props.router.location.pathname.indexOf(path) > -1)) {
+                    await refreshAccount()
+                }
+    
+                const { state: { globalAlertPreventClear } = {} } = history.location
+                if (!globalAlertPreventClear && !props.account.globalAlertPreventClear) {
+                    clearAlert()
+                }
+    
+                clear()
+            })
 
-            clear()
-        })
-    }
+            // const prevLangCode = prevProps.activeLanguage && prevProps.activeLanguage.code
+            // const curLangCode = props.activeLanguage && props.activeLanguage.code
+            // const hasLanguageChanged = prevLangCode !== curLangCode
 
-    componentDidUpdate(prevProps) {
-        const prevLangCode = prevProps.activeLanguage && prevProps.activeLanguage.code
-        const curLangCode = this.props.activeLanguage && this.props.activeLanguage.code
-        const hasLanguageChanged = prevLangCode !== curLangCode
+            // if (hasLanguageChanged) {
+            //     // this.addTranslationsForActiveLanguage(curLangCode)
+            //     localStorage.setItem("languageCode", curLangCode)
+            // }
 
-        if (hasLanguageChanged) {
-            // this.addTranslationsForActiveLanguage(curLangCode)
-            localStorage.setItem("languageCode", curLangCode)
-        }
-    }
+        },
+        []
+    )
 
-    // addTranslationsForActiveLanguage(activeLang) {
-    //     import(`../translations/${activeLang}.global.json`).then(
-    //         translations => {
-    //             console.log(translations)
-    //             this.props.addTranslationForLanguage(translations, activeLang);
-    //         }
-    //     );
-    // }
-
-    render() {
-        const { search } = this.props.router.location
+    
+   
+const { search } = props.router.location
+   
+        
         return (
             <Container className='App' id='app-container'>
                 <GlobalStyle />
-                <ConnectedRouter basename={PATH_PREFIX} history={this.props.history}>
+                <ConnectedRouter basename={PATH_PREFIX} history={props.history}>
                     <ThemeProvider theme={theme}>
                         <ScrollToTop/>
                         <NetworkBanner 
-                            account={this.props.account}
+                            account={props.account}
                         />
                         <Navigation/>
                         <GlobalAlert/>
                         <LedgerConfirmActionModal/>
                         { 
-                            this.props.account.requestPending !== null &&
+                            props.account.requestPending !== null &&
                             <TwoFactorVerifyModal
                                 onClose={(verified, error) => {
-                                    const { account, promptTwoFactor } = this.props
+                                    const { account, promptTwoFactor } = props
                                     // requestPending will resolve (verified == true) or reject the Promise being awaited in the method that dispatched promptTwoFactor
                                     account.requestPending(verified, error)
                                     // clears requestPending and closes the modal
@@ -179,7 +183,7 @@ class Routing extends Component {
                                 }}
                             />
                         }
-                        {this.props.account.loader === false && (
+                        {props.account.loader === false && (
                             <Switch>
                                 <Redirect from="//*" to={{
                                     pathname: '/*',
@@ -188,7 +192,7 @@ class Routing extends Component {
                                 <Route
                                     exact
                                     path='/' 
-                                    component={!this.props.account.accountId ? GuestLanding : DashboardDetailWithRouter}
+                                    component={!props.account.accountId ? GuestLanding : DashboardDetailWithRouter}
                                 />
                                 <Route
                                     exact
@@ -312,11 +316,17 @@ class Routing extends Component {
                                     component={NodeDetailsWithRouter}
                                 />
                                 <PrivateRoute
+                                    exact
+                                    path='/proposals'
+                                    component={Dao}
+                                   
+                                />
+                                <PrivateRoute
                                     path='/staking'
                                     component={StakingContainer}
                                     render={() => (
                                         <StakingContainer
-                                            history={this.props.history}
+                                            history={props.history}
                                         />
                                     )}
                                 />
@@ -335,7 +345,7 @@ class Routing extends Component {
                 </ConnectedRouter>
             </Container>
         )
-    }
+    
 }
 
 Routing.propTypes = {

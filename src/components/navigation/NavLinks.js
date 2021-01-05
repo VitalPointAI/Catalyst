@@ -97,6 +97,7 @@ const NavLinks = () => (
         }
         <NavLink icon={arrowIcon} className='rotate-down' to='/receive-money'><Translate id='link.receive'/></NavLink>
         <NavLink icon={stakingIcon} to='/staking'><Translate id='link.staking'/></NavLink>
+        <NavLink icon={stakingIcon} to='/proposals'><Translate id='link.dao'/></NavLink>
     </Container>
 )
 
