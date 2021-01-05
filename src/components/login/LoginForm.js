@@ -51,9 +51,9 @@ const LoginForm = ({
                 >
                     {!accountConfirmationForm && (
                         <Fragment>
-                            <div><b>{appTitle || <Translate id='sign.unknownApp' />}</b></div>
-                            <div className='h2'><Translate id='login.form.isRequestingTo' /> </div>
-                            <div className='h2'><Translate id='login.form.accessYourAccount' /></div>
+                           
+                            <div className='h2'><Translate id='login.form.personaIsRequestingTo' /> </div>
+                            
                         </Fragment>
                     )}
                     {accountConfirmationForm && (
@@ -74,7 +74,7 @@ const LoginForm = ({
                     className='color-black'
                 >
                     {!accountConfirmationForm && (
-                        <div><Translate id='login.form.thisDoesNotAllow' /></div>
+                        <div><Translate id='login.form.personaBeginNotAllow' /><b>{appTitle}</b> <Translate id='login.form.personaEndNotAllow' /></div>
                     )}
                     {accountConfirmationForm && (
                         <div><Translate id='login.form.thisProvidesAccess' /></div>

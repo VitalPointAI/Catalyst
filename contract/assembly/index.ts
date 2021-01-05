@@ -1,6 +1,6 @@
   
 
-import { Context, storage, logging, env, u128, ContractPromise, PersistentVector, PersistentMap } from "near-sdk-as"
+import { Context, storage, logging, env, u128, ContractPromise, PersistentVector, PersistentMap, ContractPromiseBatch } from "near-sdk-as"
 
 import { 
   personaAccount,
@@ -300,6 +300,22 @@ export function getPersonaData(personaId: string): Array<string> {
   return personaData;
 }
 
+export function getAllPersonas(): personasArray {
+  logging.log('retrieving personas');
+  let _personaList = new Array<string[]>();
+  logging.log(personas);
+  for(let i: i32 = 0; i < personas.length; i++) {
+    let _persona = getPersonaData(personas[i]);
+    logging.log(_persona)
+    _personaList.push(_persona);
+  }
+  let ml = new personasArray();
+  ml.personas = _personaList;
+  ml.len = _personaList.length;
+  logging.log(ml)
+  return ml;
+}
+
 // *********************
 // COMMENT FUNCTIONALITY
 // *********************
@@ -394,6 +410,4 @@ export function getProposalComments(proposalId: string): Array<Comment> {
   }
   return _commentList;
 }
-  
-  
   

@@ -126,6 +126,7 @@ export const allowLogin = () => async (dispatch, getState) => {
     await dispatch(addAccessKey(account.accountId, url.contract_id, url.public_key))
 
     const { success_url, public_key } = url
+    
     if (success_url) {
         dispatch(clearAlert())
         const availableKeys = await wallet.getAvailableKeys();
@@ -134,6 +135,8 @@ export const allowLogin = () => async (dispatch, getState) => {
         parsedUrl.searchParams.set('account_id', account.accountId)
         parsedUrl.searchParams.set('public_key', public_key)
         parsedUrl.searchParams.set('all_keys', allKeys.join(','))
+
+        
         window.location = parsedUrl.href
     } else {
         await dispatch(push({ pathname: '/authorized-apps' }))

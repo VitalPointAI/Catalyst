@@ -38,7 +38,7 @@ const Button = styled(Link)`
 
 const AccessAccountBtn = () => (
     <Button to='/recover-account'>
-        <Translate id='button.addAccount'/>
+        <Translate id='button.personaAddAccount'/>
     </Button>
 )
 

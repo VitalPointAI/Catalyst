@@ -122,8 +122,8 @@ const Button = styled(Link)`
 const RecoverAccount = () => {
     return (
         <StyledContainer>
-            <h1><Translate id='recoverAccount.pageTitle'/></h1>
-            <h2><Translate id='recoverAccount.pageText'/></h2>
+            <h1><Translate id='recoverAccount.personaPageTitle'/></h1>
+            <h2><Translate id='recoverAccount.personaPageText'/></h2>
             <Options>
                 <Option>
                     <Header icon={EmailIcon}><Translate id='recoverAccount.email.title'/><br/><Translate id='recoverAccount.actionType'/></Header>
@@ -140,7 +140,7 @@ const RecoverAccount = () => {
                 <Option>
                     <Header icon={PhraseIcon}><Translate id='recoverAccount.phrase.title'/><br/><Translate id='recoverAccount.actionType'/></Header>
                     <P><Translate id='recoverAccount.phrase.desc'/></P>
-                    <Button to='/recover-seed-phrase'><Translate id='button.recoverAccount' /></Button>
+                    <Button to='/recover-seed-phrase'><Translate id='button.personaRecoverAccount' /></Button>
                 </Option>
                 <Option>
                     <Header icon={HardwareDeviceIcon}><Translate id='recoverAccount.ledger.title'/><br/><Translate id='recoverAccount.actionType'/></Header>

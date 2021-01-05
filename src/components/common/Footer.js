@@ -153,7 +153,7 @@ class Footer extends Component {
                     </Grid.Column>
                     <Grid.Column
                         only='computer'
-                        computer={5}
+                        computer={4}
                         className='learn-more'
                         verticalAlign='middle'
                     >

@@ -1,0 +1,13 @@
+.badgeposition {
+    font-size: 150%;
+    padding-top: 2%;
+}
+
+div.row.memberCardRow {
+    padding-top: 6% !important;
+}
+
+span.date {
+    font-size:85%;
+    padding-bottom: 2%;
+}

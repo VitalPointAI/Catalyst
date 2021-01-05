@@ -37,7 +37,7 @@ const Button = styled(Link)`
 
 const CreateAccountBtn = () => (
     <Button to='/create'>
-        <Translate id='button.createNewAccount'/>
+        <Translate id='button.personaCreateNewAccount'/>
     </Button>
 )
 

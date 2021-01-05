@@ -22,6 +22,7 @@
 # misc
 .DS_Store
 .env*
+.credential
 
 # npm / yarn
 npm-debug.log*
