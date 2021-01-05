@@ -49,7 +49,7 @@ import LedgerConfirmActionModal from './accounts/ledger/LedgerConfirmActionModal
 import GlobalStyle from './GlobalStyle'
 import { SetupSeedPhraseWithRouter } from './accounts/SetupSeedPhrase'
 import { SetupImplicitWithRouter } from './accounts/SetupImplicit'
-
+import  AddFields from './schema-builder/AddFields'
 const theme = {}
 
 const PATH_PREFIX = process.env.PUBLIC_URL
@@ -219,6 +219,11 @@ class Routing extends Component {
                                     exact
                                     path='/setup-ledger/:accountId'
                                     component={SetupLedgerWithRouter}
+                                />
+                                <Route
+                                    exact
+                                    path='/add-fields'
+                                    component={AddFields}
                                 />
                                 <PrivateRoute
                                     exact
