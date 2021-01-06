@@ -337,7 +337,8 @@
         "authorizedApps": "Authorized Apps",
         "switchAccount": "Switch account",
         "noAccount": "You have no other accounts",
-        "fullAccessKeys": "Full Access Keys"
+        "fullAccessKeys": "Full Access Keys", 
+        "addFields": "Add Persona Fields"
     },
 
     "input": {
