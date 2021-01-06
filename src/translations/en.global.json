@@ -351,6 +351,7 @@
         "switchAccount": "Switch account",
         "personaSwitchAccount": "Switch personas",
         "noAccount": "You have no other accounts",
+        "addFields": "Add Persona Fields",
         "personaNoAccount": "You have no other personas",
         "fullAccessKeys": "Full Access Keys"
     },
