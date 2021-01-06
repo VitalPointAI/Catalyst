@@ -59,6 +59,9 @@ class Login extends Component {
         const { account: { url }, match, appTitle } = this.props
         const accountConfirmationForm = !url?.contract_id || url?.contract_id.endsWith(`.${LOCKUP_ACCOUNT_ID_SUFFIX}`)
 
+        
+    console.log('url', url)
+
         return (
             <LoginContainer>
                 <Route

@@ -55,7 +55,7 @@ const DesktopMenu = ({ show, accountId, accounts, selectAccount }) => {
             <Menu id='desktop-menu'>
                 <UserLinks accountId={accountId}/>
                 <LowerSection>
-                    <h6><Translate id='link.switchAccount'/></h6>
+                    <h6><Translate id='link.personaSwitchAccount'/></h6>
                     <UserAccounts
                         accounts={accounts}
                         accountId={accountId}

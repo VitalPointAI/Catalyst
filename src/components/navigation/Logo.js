@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 //import NearLogo from '../svg/NearLogo';
-import PersonasLogo from '../../images/personas-logo-1.png'
+import PersonasLogo from '../../images/personas-logo-big.png'
 
 const StyledLogo = styled(Link)`
     margin-top: 5px;

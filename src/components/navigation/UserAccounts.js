@@ -39,7 +39,7 @@ const UserAccounts = ({ accounts, accountId, selectAccount }) => (
                 {account}
             </Account>
         ))}
-        {accounts.length < 2 && <div><Translate id='link.noAccount'/></div>}
+        {accounts.length < 2 && <div><Translate id='link.personaNoAccount'/></div>}
     </Wrapper>
 )
 

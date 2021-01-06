@@ -6,6 +6,7 @@ import userIcon from '../../images/user-icon-grey.svg';
 import languagesIcon from '../../images/icon-languages.svg';
 import Logo from './Logo';
 import NavLinks from './NavLinks';
+import LeftSideDrawer from './LeftSideDrawer';
 import UserBalance from './UserBalance';
 import UserName from './UserName';
 import DesktopMenu from './DesktopMenu';
@@ -236,6 +237,7 @@ class DesktopContainer extends Component {
 
         return (
             <Container>
+            <LeftSideDrawer />
                 <Logo/>
                 {showNavLinks &&
                     <NavLinks />

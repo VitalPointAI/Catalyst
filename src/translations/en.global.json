@@ -6,8 +6,11 @@
         },
         "recoverAccount": {
             "success": "Recover using Seed Phrase is complete.<br/><b>${numberOfAccounts} account(s)</b> have been successfully recovered.<br/>The last one is set as active.",
+            "personaSuccess": "Recover using Seed Phrase is complete.<br/><b>${numberOfAccounts} persona(s)</b> have been successfully recovered.<br/>The last one is set as active.",
             "error": "Failed to recover account. No accounts were found for this seed phrase.",
-            "errorInvalidSeedPhrase": "No accounts were found for this seed phrase."
+            "personaError": "Failed to recover persona. No personas were found for this seed phrase.",
+            "errorInvalidSeedPhrase": "No accounts were found for this seed phrase.",
+            "personaErrorInvalidSeedPhrase": "No personas were found for this seed phrase."
         },
         "create": {
             "success": "Congrats! ${accountId} is available.",
@@ -134,10 +137,15 @@
 
     "selectAccountDropdown": {
         "switchAccount": "Switch Account",
+        "personaSwitchAccount": "Switch Personas",
         "selectAccount": "Select Account",
+        "personaSelectAccount": "Select Persona",
         "switchAccounthNotAllowed": "This app doesn't allow account changes",
+        "personaSwitchAccountNotAllowed": "This app doesn't allow persona changes",
         "createAccount": "Create New Account",
-        "noOtherAccounts": "You have no other accounts"
+        "personaCreateAccount": "Create New Persona",
+        "noOtherAccounts": "You have no other accounts",
+        "personaNoOtherAccounts": "You have no other personas"
     },
 
     "recoverWithLink": {
@@ -291,6 +299,7 @@
         "browseApps": "BROWSE APPS",
         "createAccountCapital": "CREATE ACCOUNT",
         "findMyAccount": "FIND MY ACCOUNT",
+        "personaFindMyAccount": "FIND MY PERSONA",
         "protectAccount": "PROTECT ACCOUNT",
         "protectPersona": "PROTECT PERSONA",
         "setupPhrase": "SETUP RECOVERY PHRASE",
@@ -313,9 +322,12 @@
         "addFunds": "ADD FUNDS",
         "deauthorize": "DEAUTHORIZE",
         "recoverAccount": "RECOVER ACCOUNT",
+        "personaRecoverAccount": "RECOVER PERSONA",
         "goBack": "Go back",
         "createNewAccount": "CREATE NEW ACCOUNT",
+        "personaCreateNewAccount": "CREATE NEW PERSONA",
         "addAccount": "ADD ACCOUNT",
+        "personaAddAccount": "ADD PERSONA",
         "moreInformation": "More information",
         "dismiss": "Dismiss",
         "cancelOperation": "Cancel Operation",
@@ -332,13 +344,16 @@
         "send": "SEND",
         "receive": "RECEIVE",
         "staking": "STAKING",
+        "dao": "PROPOSALS",
         "help": "HELP",
         "profile": "Profile",
         "authorizedApps": "Authorized Apps",
         "switchAccount": "Switch account",
+        "personaSwitchAccount": "Switch personas",
         "noAccount": "You have no other accounts",
-        "fullAccessKeys": "Full Access Keys", 
-        "addFields": "Add Persona Fields"
+        "addFields": "Add Persona Fields",
+        "personaNoAccount": "You have no other personas",
+        "fullAccessKeys": "Full Access Keys"
     },
 
     "input": {
@@ -355,7 +370,9 @@
 
     "recoverAccount": {
         "pageTitle": "Import Account",
+        "personaPageTitle": "Import Persona",
         "pageText": "If you’ve setup one or more account recovery methods, follow the instructions below to import your account.",
+        "personaPageText": "If you’ve setup one or more persona recovery methods, follow the instructions below to import your persona.",
         "email": {
             "title": "Email",
             "desc": "Check your email for a message from nearprotocol.com with the subject:",
@@ -413,6 +430,7 @@
     "recoverSeedPhrase": {
         "pageTitle": "Recover using Seed Phrase",
         "pageText": "Enter the backup seed phrase associated with the account.",
+        "personaPageText": "nter the backup seed phrase associated with the persona.",
         "seedPhraseInput": {
             "title": "Seed Phrase (12 words)",
             "placeholder": "correct horse battery staple..."
@@ -489,10 +507,13 @@
     "login": {
         "form": {
             "isRequestingTo": "is requesting to",
+            "personaIsRequestingTo": "Choose the persona you want to use with this app.",
             "accessYourAccount": "access your account.",
             "isRequestingFullAccess": "is requesting <b>full access</b>",
             "toYourAccount": "to your account.",
-            "thisDoesNotAllow": "This does not allow the app to transfer any tokens.",
+            "personaBeginNotAllow": "This request is coming from ",
+            "thisDoesNotAllow": "and does not allow the app to transfer any tokens.",
+            "personaEndNotAllow": "and does not allow the app to transfer any tokens.",
             "thisProvidesAccess": "This provides access to <b>all of your tokens</b>.<br />Proceed with caution!"
         },
         "confirm": {
