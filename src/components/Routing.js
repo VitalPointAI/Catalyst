@@ -50,7 +50,7 @@ import { initiateAppDB, initiateDB } from '../utils/threadsDB'
 import GlobalStyle from './GlobalStyle'
 import { SetupSeedPhraseWithRouter } from './accounts/SetupSeedPhrase'
 import { SetupImplicitWithRouter } from './accounts/SetupImplicit'
-
+import  AddFields from './schema-builder/AddFields'
 const theme = {}
 
 const PATH_PREFIX = process.env.PUBLIC_URL
@@ -223,6 +223,11 @@ const { search } = props.router.location
                                     exact
                                     path='/setup-ledger/:accountId'
                                     component={SetupLedgerWithRouter}
+                                />
+                                <Route
+                                    exact
+                                    path='/add-fields'
+                                    component={AddFields}
                                 />
                                 <PrivateRoute
                                     exact
