@@ -88,15 +88,20 @@ const useStyles = makeStyles((theme) => ({
 
   
 export default function TokenData(props) {
+
     const [graphData, setGraphData] = useState([])
-    const [guildExpanded, setGuildExpanded] = useState(false);
-    const [escrowExpanded, setEscrowExpanded] = useState(false);
+    const [sharesLabel, setSharesLabel] = useState('Shares: 0')
+    const [lootLabel, setLootLabel] = useState('Loot: 0')
+    const [memberIcon, setMemberIcon] = useState(<NotInterestedIcon />)
+    const [guildBalanceChip, setGuildBalanceChip] = useState()
+    const [escrowBalanceChip, setEscrowBalanceChip] = useState()
     
     const classes = useStyles()
     
-
     const {      
       tabValue,
+      getCurrentPeriod,
+      refreshProposalEvents,
       handleTabValueState, 
       accountId,
       memberStatus,
@@ -113,63 +118,61 @@ export default function TokenData(props) {
       handleGuildBalanceChanges,
       handleEscrowBalanceChanges,
       handleUserBalanceChanges,
-      summoner,
       currentPeriod,
       periodDuration,
       tokenName,
-      userBalance, 
       minSharePrice,
       proposalComments,
       contract,
       daoContract,
-      handleInitChange } = props
+      handleInitChange,
+      allMemberInfo } = props
 
-    const handleEscrowExpandClick = () => {
-      setEscrowExpanded(!escrowExpanded);
-    };
+      useEffect(
+        () => {
+            async function fetchData() {
+              if(memberStatus && memberInfo) {
+                setMemberIcon(<CheckCircleIcon />)
+                setSharesLabel('Shares: ' + (memberInfo[0].shares > 0 ? memberInfo[0].shares : '0'))
+                setLootLabel('Loot: ' + (memberInfo[0].loot > 0 ? memberInfo[0].loot + ' Ⓝ': 'Loot: 0 Ⓝ'))
+              }
 
-    const handleGuildExpandClick = () => {
-      setGuildExpanded(!guildExpanded);
-    };
+              let guildRow
+                if(guildBalance) {
+                  for (let i = 0; i < guildBalance.length; i++) {
+                    guildRow = (<>{guildBalance[i].balance} {guildBalance[i].token}</>
+                    )
+                  }
+                } else {
+                  guildRow = '0 Ⓝ'
+                }
+                setGuildBalanceChip(<>{guildRow}</>)
 
+              let escrowRow
+                if(escrowBalance) {
+                  for (let i = 0; i < escrowBalance.length; i++) {
+                    escrowRow = (<>{escrowBalance[i].balance} {escrowBalance[i].token}</>)
+                  }
+                } else {
+                  escrowRow = '0 Ⓝ'
+                }
+                setEscrowBalanceChip(<>{escrowRow}</>)
+            }
 
-
-    let guildRow
-    if(guildBalance) {
-    for (let i = 0; i < guildBalance.length; i++) {
-      guildRow = (
-        <>{guildBalance[i].balance} {guildBalance[i].token}</>
+            fetchData()
+              .then((res) => {
+                console.log(res)
+              })
+        }, [memberStatus, memberInfo]
       )
-    }
-  } else {
-    guildRow = '0 Ⓝ'
-  }
-    const thisGuildBalance = (<>{guildRow}</>)
-
-
-    let escrowRow
-    if(escrowBalance) {
-    for (let i = 0; i < escrowBalance.length; i++) {
-      escrowRow = (
-        <>{escrowBalance[i].balance} {escrowBalance[i].token}</>
-      )
-    }
-  } else {
-    escrowRow = '0 Ⓝ'
-  }
-    const thisEscrowBalance = (<>{escrowRow}</>)
-  
-    const memberIcon = memberStatus ? <CheckCircleIcon /> : <NotInterestedIcon />
-    const sharesLabel = memberInfo ? 'Shares: ' + memberInfo[0].shares : 'Shares: 0'
-    const lootLabel = memberInfo ? 'Loot: ' + memberInfo[0].loot + ' Ⓝ': 'Loot: 0 Ⓝ'
-    const userBalanceLabel = 'Balances'
+   
 
     return (
        <>
         <Grid container className={classes.root}>
-        <Grid item xs={12}>
-      
+        
           <Grid container className={classes.centered}>
+
             <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
               <ActionSelector 
                 handleProposalEventChange={handleProposalEventChange}
@@ -183,69 +186,63 @@ export default function TokenData(props) {
                 minSharePrice={minSharePrice}
                 contract={contract}
                 daoContract={daoContract}
+                proposalDeposit={proposalDeposit}
               />
-            
-            </Grid> 
+            </Grid>
+
             <Grid item xs={5} sm={5} md={5} lg={5} xl={5}>
               <Chip variant="outlined" avatar={
                 <Avatar aria-label="guild-balances" className={classes.avatar}>
                   F
                 </Avatar>
-              } label={thisGuildBalance} style={{float: 'right', marginTop: '5px', marginRight: '2px'}} />
+              } label={guildBalanceChip} style={{float: 'right', marginTop: '5px', marginRight: '2px'}} />
               <Chip variant="outlined" avatar={
                 <Avatar aria-label="escrow-balances" className={classes.avatar}>
                   E
                 </Avatar>
-              } label={thisEscrowBalance} style={{float: 'right', marginTop: '5px', marginRight: '2px'}} />
-              <Chip variant="outlined" icon={<AccessTimeIcon />} label={'Period: ' + currentPeriod} style={{float: 'right', marginTop: '5px', marginRight: '2px'}}/>
-               
-            
+              } label={escrowBalanceChip} style={{float: 'right', marginTop: '5px', marginRight: '2px'}} />
             </Grid>
+
             <Grid item xs={5} sm={5} md={5} lg={5} xl={5}>
-             
-              <div style={{clear: 'both'}}/>
               <div style={{float:'right'}}><RightSideDrawer handleInitChange={handleInitChange} accountId={accountId} contract={contract}/></div>
+              <Chip variant="outlined" icon={<AccessTimeIcon />} label={'Period: ' + currentPeriod} style={{float: 'right', marginTop: '5px', marginRight: '2px'}}/>
               <Chip variant="outlined" label={sharesLabel} style={{float: 'right', marginTop: '5px', marginRight: '5px'}} />
               <Chip variant="outlined" label={lootLabel} style={{float: 'right', marginTop: '5px', marginRight: '2px'}} />
               <Chip variant="outlined" label="Member" icon={memberIcon} style={{float: 'right', marginTop: '5px', marginRight: '2px'}}/>
             </Grid>
+
           </Grid>
-           
 
-           
-        
-            <Grid container>
-              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                <ProposalList 
-                  accountId={accountId} 
-                  guildBalance={guildBalance}
-                  handleTabValueState={handleTabValueState}
-                  tabValue={tabValue}
-                  handleProposalEventChange={handleProposalEventChange}
-                  handleGuildBalanceChanges={handleGuildBalanceChanges}
-                  handleEscrowBalanceChanges={handleEscrowBalanceChanges}
-                  handleUserBalanceChanges={handleUserBalanceChanges}
-                  proposalEvents={proposalEvents}
-                  memberStatus={memberStatus}
-                  proposalDeposit={proposalDeposit}
-                  depositToken={depositToken}
-                  tributeToken={tributeToken}
-                  tributeOffer={tributeOffer}
-                  processingReward={processingReward}
-                  currentPeriod={currentPeriod}
-                  periodDuration={periodDuration}
-                  proposalComments={proposalComments}
-                  contract={contract}
-                  daoContract={daoContract}
-                />
-              </Grid>
-            </Grid> 
+          <Grid container>
+            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+              <ProposalList 
+                accountId={accountId} 
+                guildBalance={guildBalance}
+                handleTabValueState={handleTabValueState}
+                tabValue={tabValue}
+                handleProposalEventChange={handleProposalEventChange}
+                handleGuildBalanceChanges={handleGuildBalanceChanges}
+                handleEscrowBalanceChanges={handleEscrowBalanceChanges}
+                proposalEvents={proposalEvents}
+                memberStatus={memberStatus}
+                proposalDeposit={proposalDeposit}
+                depositToken={depositToken}
+                tributeToken={tributeToken}
+                tributeOffer={tributeOffer}
+                processingReward={processingReward}
+                currentPeriod={currentPeriod}
+                periodDuration={periodDuration}
+                proposalComments={proposalComments}
+                contract={contract}
+                daoContract={daoContract}
+                allMemberInfo={allMemberInfo}
+                getCurrentPeriod={getCurrentPeriod}
+                refreshProposalEvents={refreshProposalEvents}
+              />
+            </Grid>
+          </Grid>
 
- 
-    
-     </Grid>
-   </Grid>
-  
+        </Grid>
       </>
     )
     

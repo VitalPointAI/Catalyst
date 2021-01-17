@@ -168,20 +168,12 @@ export default function ProposalsTable(props) {
            await handleUserBalanceChanges()
       };
 
-    async function handleCancelAction(proposalIdentifier, shares, tribute) {
-     //   let contractAccount = await daoContractSend.loadAccountSigner(process.env.DAO_CONTRACT)
-     //   console.log('contract account ', contractAccount)
-     //   await contractAccount.sendMoney(accountId, utils.format.parseNearAmount((parseInt(shares)+parseInt(tribute)).toString()))
-
-     //   let daoContract = await daoContractSend.loadDAO()
-        console.log('daocontractsend', daoContract)
-        console.log('shares', shares)
-        console.log('tribute', tribute)
+    async function handleCancelAction(proposalIdentifier, tribute) {
+       
         await daoContract.cancelProposal({
             pI: proposalIdentifier
-            
-            }, process.env.DEFAULT_GAS_VALUE, utils.format.parseNearAmount((parseInt(shares)+parseInt(tribute)).toString()))
-            console.log('amount to cancel', utils.format.parseNearAmount((parseInt(shares)+parseInt(tribute)).toString()))
+            }, process.env.DEFAULT_GAS_VALUE, utils.format.parseNearAmount((parseInt(proposalDeposit)+parseInt(tribute)).toString()))
+           
             await handleProposalEventChange()
             await handleEscrowBalanceChanges()
             await handleGuildBalanceChanges()
@@ -235,7 +227,7 @@ export default function ProposalsTable(props) {
                             {row[0].status == 'Submitted' && accountId == row[0].proposer ? <Typography variant="caption" display="block">Awaiting Sponsor</Typography> : null}
                             {(accountId != row[0].proposer && accountId != row[0].applicant) && row[0].status=='Submitted' ? <Button variant="contained" color="primary" onClick={(e) => handleSponsorAction(row[0].requestId, e)}>Sponsor</Button> : null}
                         </div></TableCell>
-                            {(accountId == row[0].proposer || (accountId == row[0].applicant && row[0].proposalType != 'GuildKick')) && row[0].status=='Submitted' ? <TableCell className={classes.cell} align="center"><div className={classes.cellText}><Button variant="contained" color="primary" onClick={() => handleCancelAction(row[0].requestId, row[0].shares, row[0].tribute)}>Cancel</Button> </div></TableCell>: null } 
+                            {(accountId == row[0].proposer || (accountId == row[0].applicant && row[0].proposalType != 'GuildKick')) && row[0].status=='Submitted' ? <TableCell className={classes.cell} align="center"><div className={classes.cellText}><Button variant="contained" color="primary" onClick={() => handleCancelAction(row[0].requestId, row[0].tribute)}>Cancel</Button> </div></TableCell>: null } 
                         </TableRow>
                     ))}
                 </TableBody>

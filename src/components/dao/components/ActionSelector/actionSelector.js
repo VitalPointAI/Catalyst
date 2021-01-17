@@ -5,6 +5,7 @@ import FundingProposal from '../FundingProposal/fundingProposal'
 import WhiteListProposal from '../WhiteListProposal/whitelistProposal'
 import GuildKickProposal from '../GuildKickProposal/guildKickProposal'
 import MemberProposal from '../MemberProposal/memberProposal'
+import VotingProposal from '../VotingRights/votingRightsProposal'
 
 // Material UI Components
 import Accordion from '@material-ui/core/Accordion'
@@ -23,6 +24,7 @@ import EmojiPeopleIcon from '@material-ui/icons/EmojiPeople';
 import MonetizationOnIcon from '@material-ui/icons/MonetizationOn';
 import ThumbUpAltIcon from '@material-ui/icons/ThumbUpAlt';
 import RemoveCircleIcon from '@material-ui/icons/RemoveCircle';
+import HowToVoteIcon from '@material-ui/icons/HowToVote';
 
 
 const StyledMenu = withStyles({
@@ -73,6 +75,7 @@ export default function ActionSelector(props) {
   const [fundingProposalClicked, setFundingProposalClicked] = useState(false)
   const [whiteListClicked, setWhiteListClicked] = useState(false)
   const [guildKickClicked, setGuildKickClicked] = useState(false)
+  const [votingProposalClicked, setVotingProposalClicked] = useState(false)
   const [expanded, setExpanded] = useState(false)
   
   const { 
@@ -84,34 +87,45 @@ export default function ActionSelector(props) {
     depositToken,
     tokenName,
     minSharePrice,
+    proposalDeposit,
     contract } = props
 
   const handleFundingProposalClick = () => {
     handleExpanded()
-    handleTabValueState('1')
+    handleTabValueState('2')
     setFundingProposalClicked(true)
+  };
+
+  const handleVotingProposalClick = () => {
+    handleExpanded()
+    handleTabValueState('2')
+    setVotingProposalClicked(true)
   };
 
   const handleWhiteListClick = () => {
     handleExpanded()
-    handleTabValueState('1')
+    handleTabValueState('2')
     setWhiteListClicked(true)
   };
 
   const handleGuildKickClick = () => {
     handleExpanded()
-    handleTabValueState('1')
+    handleTabValueState('2')
     setGuildKickClicked(true)
   };
 
   const handleMemberProposalClick = () => {
     handleExpanded()
-    handleTabValueState('1')
+    handleTabValueState('2')
     setMemberProposalClicked(true)
   };
 
   function handleWhiteListClickState(property) {
     setWhiteListClicked(property)
+  }
+
+  function handleVotingProposalClickState(property) {
+    setVotingProposalClicked(property)
   }
 
   function handleGuildKickClickState(property) {
@@ -153,12 +167,13 @@ export default function ActionSelector(props) {
         open={Boolean(anchorEl)}
         onClose={handleExpanded}
       >
+         
           <StyledMenuItem button onClick={handleMemberProposalClick}>
-            <ListItemIcon>
-              <EmojiPeopleIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary="Member Proposal" />
-          </StyledMenuItem>
+          <ListItemIcon>
+            <EmojiPeopleIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="New Member Proposal" />
+        </StyledMenuItem>
           <StyledMenuItem button onClick={handleFundingProposalClick}>
             <ListItemIcon>
               <MonetizationOnIcon fontSize="small" />
@@ -187,6 +202,18 @@ export default function ActionSelector(props) {
       handleWhiteListClickState={handleWhiteListClickState}  
       handleTabValueState={handleTabValueState}/> : null }
 
+      {votingProposalClicked ? <VotingProposal
+      contract={contract} 
+      handleProposalEventChange={handleProposalEventChange}
+      handleGuildBalanceChanges={handleGuildBalanceChanges}
+      handleEscrowBalanceChanges={handleEscrowBalanceChanges}
+      handleVotingProposalClickState={handleVotingProposalClickState} 
+      handleTabValueState={handleTabValueState} 
+      accountId={accountId} 
+      depositToken={depositToken}
+      tokenName={tokenName}
+      proposalDeposit={proposalDeposit}/> : null  }
+
       {guildKickClicked ? <GuildKickProposal
       contract={contract}
       handleProposalEventChange={handleProposalEventChange}
@@ -213,6 +240,7 @@ export default function ActionSelector(props) {
       accountId={accountId} 
       depositToken={depositToken}
       tokenName={tokenName}
+      proposalDeposit={proposalDeposit}
       minSharePrice={minSharePrice}/> : null }
     </>
   );

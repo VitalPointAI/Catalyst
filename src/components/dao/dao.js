@@ -30,7 +30,7 @@ const useStyles = makeStyles((theme) => ({
 export default function Dao(props) {
 
   // state setup
-  const [initialized, setInit] = useState(false)
+  const [initialized, setInit] = useState()
   const [done, setDone] = useState(false)
   const [accountId, setAccountId] = useState()  
   const [tabValue, setTabValue] = useState('1')
@@ -51,6 +51,7 @@ export default function Dao(props) {
   const [proposalComments, setProposalComments] = useState([])
   const [contract, setContract] = useState()
   const [daoContractSender, setDaoContractSender] = useState()
+  const [allMemberInfo, setAllMemberInfo] = useState()
 
   const classes = useStyles()
 
@@ -75,10 +76,21 @@ export default function Dao(props) {
     }
   }
 
+  async function refreshProposalEvents() {
+    try {
+      let requests = await contract.getAllProposalEvents()
+      if(requests.length != 0) {
+          setProposalEvents(requests)
+      }
+    } catch (err) {
+      console.log('error retrieving proposal events')
+    }
+  }
+
   async function handleProposalEventChange() {
     try {
       let currentProposalEvents = await contract.getAllProposalEvents()
-      if(currentProposalEvents){
+      if(currentProposalEvents.length > proposalEvents.length){
         setProposalEvents(currentProposalEvents)
       }
       return true
@@ -158,6 +170,8 @@ export default function Dao(props) {
             let isInit = await contract.getInit({})
             if(isInit == 'done') {
               handleInitChange(true)
+            } else {
+              handleInitChange(false)
             }
           } catch (err) {
             console.log('initilization not complete', err)
@@ -169,6 +183,12 @@ export default function Dao(props) {
           await fetchContract()
 
           await fetchInit()
+
+            try {
+              let result = await getCurrentPeriod()
+            } catch (err) {
+              console.log('no ready yet')
+            }
           
             try {
               let result = await contract.getMemberStatus({member: accountId})
@@ -222,6 +242,15 @@ export default function Dao(props) {
               console.log('no member info yet')
               
             }
+
+            try {
+              let result2 = await contract.getAllMemberInfo()
+              console.log('result2', result2)
+              setAllMemberInfo(result2)
+            } catch (err) {
+              console.log('no list of members yet', err)
+              
+            }
             
             try {
               let owner = await contract.getSummoner()
@@ -255,7 +284,7 @@ export default function Dao(props) {
             try {
               let requests = await contract.getAllProposalEvents()
               if(requests.length != 0) {
-                setProposalEvents(requests)
+                  setProposalEvents(requests)
               }
             } catch (err) {
               console.log('error retrieving proposal events')
@@ -276,12 +305,12 @@ export default function Dao(props) {
 
     // The second argument to useEffect tells React when to re-run the effect
     // it compares current value and if different - re-renders
-    [done, initialized]
+    [done, initialized, currentPeriod]
   )
 
   
   if(done && initialized) {
-    window.setInterval(getCurrentPeriod, 1000)
+    window.setInterval(getCurrentPeriod, 30000)
   }
 
   // if not done loading all the data, show a progress bar, otherwise show the content
@@ -295,7 +324,7 @@ export default function Dao(props) {
     )
   }
   
-  if(done && !initialized) {
+  if(done && (initialized != undefined  && !initialized)) {
       return (
         <Initialize
           accountId={accountId}
@@ -336,6 +365,9 @@ export default function Dao(props) {
           contract={contract}
           daoContract={daoContractSender}
           handleInitChange={handleInitChange}
+          allMemberInfo={allMemberInfo}
+          getCurrentPeriod={getCurrentPeriod}
+          refreshProposalEvents={refreshProposalEvents}
           />
       )
   }

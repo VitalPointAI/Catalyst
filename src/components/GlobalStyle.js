@@ -160,7 +160,7 @@ export default createGlobalStyle`
         color: #4a4f54 !important;
         font-weight: 300 !important;
         background-color: #f8f8f8 !important;
-        position: relative !important;
+       // position: relative !important;
         margin-top: 8px !important;
         outline: none;
         appearance: none;

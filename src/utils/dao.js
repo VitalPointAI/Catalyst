@@ -41,7 +41,8 @@ class DAO {
                 'getIdentity',
                 'getCommentLength',
                 'getAllComments',
-                'getProposalComments'
+                'getProposalComments',
+                'getAllMemberInfo'
             ],
             // Change methods can modify the state. But you don't receive the returned value when called.
             changeMethods: [
@@ -79,6 +80,7 @@ class DAO {
         let loadAccount = await this.loadAccountObject()
         const account = await wallet.getAccount(loadAccount.accountId)
         let daoContract = await this.initDAOContract(account)
+        
         return daoContract
     }
 
