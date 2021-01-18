@@ -51,12 +51,14 @@
     "styled-components": "^5.2.0",
     "timeago.js": "^4.0.2",
     "tweetnacl": "^1.0.3",
-    "wampy": "^5.0.2"
+    "wampy": "^5.0.2",
+    "parcel-bundler": "^1.12.4",
+    "parcel-plugin-bundle-visualiser": "^1.2.0"
   },
   "scripts": {
     "predeploy": "npm run build",
     "update:static": "cp src/wasm/multisig.wasm dist/multisig.wasm && cp src/wasm/main.wasm dist/main.wasm",
-    "start": "./node_modules/parcel-bundler/bin/cli.js src/index.html",
+    "start": "parcel src/index.html --open",
     "startup": "echo The app is starting! It will automatically open in your browser when ready && env-cmd -f ./.env parcel src/index.html --open",
     "prebuild": "rm -rf dist/",
     "build": "npm run build:web",
