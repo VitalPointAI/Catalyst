@@ -58,7 +58,7 @@
   "scripts": {
     "predeploy": "npm run build",
     "update:static": "cp src/wasm/multisig.wasm dist/multisig.wasm && cp src/wasm/main.wasm dist/main.wasm",
-    "start": "parcel src/index.html --open",
+    "start": "parcel index.html",
     "startup": "echo The app is starting! It will automatically open in your browser when ready && env-cmd -f ./.env parcel src/index.html --open",
     "prebuild": "rm -rf dist/",
     "build": "npm run build:web",
