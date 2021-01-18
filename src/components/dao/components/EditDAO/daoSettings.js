@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { Redirect } from 'react-dom'
 import { makeStyles } from '@material-ui/core/styles'
 import { useForm } from 'react-hook-form'
-import LogoutButton from '../../components/common/LogoutButton/logoutButton'
 
 // Material UI components
 import TextField from '@material-ui/core/TextField'
@@ -11,26 +9,12 @@ import Typography from '@material-ui/core/Typography'
 import Button from '@material-ui/core/Button'
 import LinearProgress from '@material-ui/core/LinearProgress'
 import Grid from '@material-ui/core/Grid'
-import Paper from '@material-ui/core/Paper'
-import Card from '@material-ui/core/Card'
-import { Contract } from 'near-api-js'
 
 import './daoSettings.css'
 
 const useStyles = makeStyles((theme) => ({
   root: {
       padding: '10px'
-  },
-  paper: {
-    padding: theme.spacing(2),
-    textAlign: 'center',
-    color: theme.palette.text.secondary,
-  },
-  customCard: {
-    maxWidth: 300,
-    minWidth: 275,
-    margin: 'auto',
-    padding: 20
   },
   rootForm: {
       marginTop: '10px',
@@ -56,14 +40,12 @@ export default function EditInitSettings(props) {
     const[gracePeriodLength, setGracePeriodLength] = useState('')
     const[proposalDeposit, setProposalDeposit] = useState('')
     const[dilutionBound, setDilutionBound] = useState('')
-    const[processingReward, setProcessingReward] = useState('')
+    const [finished, setFinish] = useState(true)
 
     const classes = useStyles()
     const { register, handleSubmit, watch, errors } = useForm()
 
     const { contract, handleEditSettingsClick } = props
-    
-    const [finished, setFinish] = useState(true)
 
     useEffect(
       () => {
@@ -75,7 +57,6 @@ export default function EditInitSettings(props) {
                 result[0][3] ? setGracePeriodLength(result[0][3]) : setGracePeriodLength('')
                 result[0][4] ? setProposalDeposit(result[0][4]) : setProposalDeposit('')
                 result[0][5] ? setDilutionBound(result[0][5]) : setDilutionBound('')
-                result[0][6] ? setProcessingReward(result[0][6]) : setProcessingReward('')
                 setInitSettings(result[0])
                 return true
             } catch (err) {
@@ -97,7 +78,6 @@ export default function EditInitSettings(props) {
         initSettings[3] ? setGracePeriodLength(initSettings[3]) : setGracePeriodLength('')
         initSettings[4] ? setProposalDeposit(initSettings[4]) : setProposalDeposit('')
         initSettings[5] ? setDilutionBound(initSettings[5]) : setDilutionBound('')
-        initSettings[6] ? setProcessingReward(initSettings[6]) : setProcessingReward('')
     }
 
     const handlePeriodDurationChange = (event) => {
@@ -124,11 +104,6 @@ export default function EditInitSettings(props) {
         let value = event.target.value;
         setDilutionBound(value)
     }
-
-    const handleProcessingRewardChange = (event) => {
-        let value = event.target.value;
-        setProcessingReward(value)
-    }
   
     const onSubmit = async (values) => {
         event.preventDefault()
@@ -139,8 +114,7 @@ export default function EditInitSettings(props) {
                             _votingPeriodLength: parseInt(votingPeriodLength),
                             _gracePeriodLength: parseInt(gracePeriodLength),
                             _proposalDeposit: proposalDeposit,
-                            _dilutionBound: parseInt(dilutionBound),
-                            _processingReward: processingReward
+                            _dilutionBound: parseInt(dilutionBound)                           
                         }, process.env.DEFAULT_GAS_VALUE)
         if(finished) {
           setFinish(finished)
@@ -234,22 +208,6 @@ export default function EditInitSettings(props) {
                     value={dilutionBound}
                     onChange={handleDilutionBoundChange}
                   
-                    inputRef={register({
-                        required: true, 
-                    })}
-                    InputProps={{
-                      endAdornment: <InputAdornment position="end">Ⓝ</InputAdornment>,
-                      }}
-                    />
-
-                    <TextField
-                    id="processing-reward"
-                    variant="outlined"
-                    name="processingReward"
-                    label="Processing Reward"
-                    value={processingReward}
-                    onChange={handleProcessingRewardChange}
-                    
                     inputRef={register({
                         required: true, 
                     })}

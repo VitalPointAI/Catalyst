@@ -89,8 +89,8 @@ export default function MemberProposal(props) {
     handleProposalEventChange,
     handleGuildBalanceChanges,
     handleEscrowBalanceChanges,
+    refreshProposalEvents,
     tokenName, 
-    minSharePrice, 
     depositToken,
     proposalDeposit,
     contract } = props
@@ -137,6 +137,7 @@ export default function MemberProposal(props) {
     let changed = await handleProposalEventChange()
     await handleGuildBalanceChanges()
     await handleEscrowBalanceChanges()
+    await refreshProposalEvents()
     
     if(finished && changed) {
       setFinished(true)

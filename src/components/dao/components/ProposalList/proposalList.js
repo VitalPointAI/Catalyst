@@ -126,7 +126,7 @@ export default function ProposalList(props) {
       })
     }
 
-  },[proposalEvents, currentPeriod, allMemberInfo, sponsorFinish, cancelFinish])
+  },[allMemberInfo, sponsorFinish, cancelFinish])
 
   const handleTabChange = (event, newValue) => {
       handleTabValueState(newValue);
@@ -139,19 +139,19 @@ export default function ProposalList(props) {
   const handleSponsorConfirmationClick = (requestId) => {
     handleExpanded()
     setProposalIdentifier(requestId)
-    handleTabValueState('2')
+    handleTabValueState(tabValue)
     setSponsorConfirmationClicked(true)
   }
 
   const handleMemberProposalDetailsClick = async (id, applicant) => {
     if(accountId != applicant) {
         handleExpanded()
-        handleTabValueState('2')
+        handleTabValueState(tabValue)
         setMemberProposalId(id)
         setMemberProposalDetailsClicked(true)
     } else {
         handleExpanded()
-        handleTabValueState('2')
+        handleTabValueState(tabValue)
         setMemberProposalId(id)
         setMemberProposalDetailsEmptyClicked(true)
     }
@@ -173,12 +173,12 @@ export default function ProposalList(props) {
   const handleFundingProposalDetailsClick = async (id, applicant) => {
     if(accountId != applicant) {
         handleExpanded()
-        handleTabValueState('2')
+        handleTabValueState(tabValue)
         setFundingProposalId(id)
         setFundingProposalDetailsClicked(true)
     } else {
         handleExpanded()
-        handleTabValueState('2')
+        handleTabValueState(tabValue)
         setFundingProposalId(id)
         setFundingProposalDetailsEmptyClicked(true)
     }
@@ -231,31 +231,38 @@ export default function ProposalList(props) {
   }
 
   async function handleProcessAction(proposalIdentifier) {
-    await daoContract.processProposal({
+    let finished = await daoContract.processProposal({
          pI: proposalIdentifier
          }, process.env.DEFAULT_GAS_VALUE)
+    if(finished){
     await handleProposalEventChange()
     await handleGuildBalanceChanges()
     await handleEscrowBalanceChanges()
-    await getCurrentPeriod()
+    await refreshProposalEvents()
+    }
   }
 
   async function handleYesVotingAction(proposalIdentifier) {
-    await contract.submitVote({
+    let finished = await contract.submitVote({
         pI: proposalIdentifier,
         vote: 'yes'
         }, process.env.DEFAULT_GAS_VALUE)
+    if(finished) {
     await handleProposalEventChange()
     await refreshProposalEvents()
+  
+    }
   }
 
 async function handleNoVotingAction(proposalIdentifier) {
-    await contract.submitVote({
+    let finished = await contract.submitVote({
         pI: proposalIdentifier,
         vote: 'no'
         }, process.env.DEFAULT_GAS_VALUE)
-        await handleProposalEventChange()
-        await refreshProposalEvents()
+    if(finished) {
+      await handleProposalEventChange()
+      await refreshProposalEvents()
+    }
 }
 
   function getStatus(flags) {
@@ -351,8 +358,8 @@ async function handleNoVotingAction(proposalIdentifier) {
     let processedProposals = []
     
     if (requests.length > 0) {
+      console.log('requests', requests)
       requests.map((fr) => {
-        console.log('requests', requests)
         status = getStatus(fr.f)
         proposalType = getProposalType(fr.f)
         let isVotingPeriod = getVotingPeriod(fr.sP, fr.vP)
@@ -365,7 +372,8 @@ async function handleNoVotingAction(proposalIdentifier) {
             blockTimeStamp: fr.pS,
             date: makeTime(fr.pS),
             applicant: fr.a, 
-            proposer: fr.dK, 
+            proposer: fr.dK,
+            sponsor: fr.s,
             requestId: parseInt(fr.pI), 
             shares: fr.sR, 
             loot: fr.lR, 
@@ -391,7 +399,8 @@ async function handleNoVotingAction(proposalIdentifier) {
             blockTimeStamp: fr.pS,
             date: makeTime(fr.pS), 
             applicant: fr.a, 
-            proposer: fr.dK, 
+            proposer: fr.dK,
+            sponsor: fr.s,
             requestId: parseInt(fr.pI), 
             shares: fr.sR, 
             loot: fr.lR, 
@@ -412,13 +421,14 @@ async function handleNoVotingAction(proposalIdentifier) {
           }])
         }
 
-        if(status == 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && currentPeriod > fr.sP && isVotingPeriod == false && isGracePeriod == false){
+        if(status == 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && currentPeriod > parseInt(fr.sP) && isVotingPeriod == false && isGracePeriod == false){
         
           queueProposals.push({
             blockTimeStamp: fr.pS,
             date: makeTime(fr.pS),
             applicant: fr.a, 
-            proposer: fr.dK, 
+            proposer: fr.dK,
+            sponsor: fr.s,
             requestId: parseInt(fr.pI),
             shares: fr.sR, 
             loot: fr.lR, 
@@ -444,7 +454,8 @@ async function handleNoVotingAction(proposalIdentifier) {
             blockTimeStamp: fr.pS,
             date: makeTime(fr.pS),
             applicant: fr.a, 
-            proposer: fr.dK, 
+            proposer: fr.dK,
+            sponsor: fr.s,
             requestId: parseInt(fr.pI), 
             shares: fr.sR, 
             loot: fr.lR, 
@@ -476,10 +487,9 @@ async function handleNoVotingAction(proposalIdentifier) {
     if(propObject.queueProposals && propObject.queueProposals.length > 0){
       for(let i=0; i < propObject.queueProposals.length; i++) {
         try{
-          console.log('queue length', propObject.queueProposals.length)
-          console.log('queue', propObject.queueProposals)
-          console.log('PI', propObject.queueProposals[i].requestId)
+          if(propObject.queueProposals[i].status !== 'Processed' && propObject.queueProposals[i].status !== 'Passed' && propObject.queueProposals[i].status !== 'Not Passed'){
           await handleProcessAction(propObject.queueProposals[i].requestId)
+          }
         } catch (err) {
           console.log(err)
         }
@@ -490,11 +500,13 @@ async function handleNoVotingAction(proposalIdentifier) {
 
   let Members
   if (allMemberInfo && allMemberInfo.length > 0 && tabValue == '1') {
-    allMemberInfo.map((fr) => {
-      Members = (
+    Members = allMemberInfo.map((fr, i) => {
+      return (
         <MemberCard 
+          key={i}
           name={fr.delegateKey}
           shares={fr.shares}
+          memberCount={memberCount}
           joined={makeTime(parseInt(fr.joined))}
         />
       )
@@ -504,8 +516,6 @@ async function handleNoVotingAction(proposalIdentifier) {
   let Proposals
   if (proposalList && proposalList.length > 0 && tabValue == '2') {
     Proposals = proposalList.map((fr) => {
-      console.log('proposallist', proposalList)
-      console.log('fr', fr)
       return (
         <ProposalCard
           key={fr[0].requestId} 
@@ -515,6 +525,7 @@ async function handleNoVotingAction(proposalIdentifier) {
           yesVotes={fr[0].yesVotes}
           proposalType={fr[0].proposalType}
           proposer={fr[0].proposer}
+          sponsor={fr[0].sponsor}
           requestId={fr[0].requestId}
           shares={fr[0].shares}
           tribute={fr[0].tribute}
@@ -523,6 +534,7 @@ async function handleNoVotingAction(proposalIdentifier) {
           accountId={accountId}
           cancelFinish={cancelFinish}
           sponsorFinish={sponsorFinish}
+          tributeToken={tributeToken}
           getCurrentPeriod={getCurrentPeriod}
           handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
           handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
@@ -545,6 +557,7 @@ async function handleNoVotingAction(proposalIdentifier) {
           yesVotes={fr[0].yesVotes}
           proposalType={fr[0].proposalType}
           proposer={fr[0].proposer}
+          sponsor={fr[0].sponsor}         
           requestId={fr[0].requestId}
           shares={fr[0].shares}
           tribute={fr[0].tribute}
@@ -572,9 +585,7 @@ async function handleNoVotingAction(proposalIdentifier) {
 
   let Processed
   if (processedList && processedList.length > 0 && tabValue == '4') {
-    console.log('processlist', processedList)
     Processed = processedList.map((fr) => {
-      console.log('pl', fr)
       return (
         <ProposalCard 
           key={fr[0].requestId} 
@@ -584,6 +595,7 @@ async function handleNoVotingAction(proposalIdentifier) {
           yesVotes={fr[0].yesVotes}
           proposalType={fr[0].proposalType}
           proposer={fr[0].proposer}
+          sponsor={fr[0].sponsor}
           requestId={fr[0].requestId}
           shares={fr[0].shares}
           tribute={fr[0].tribute}

@@ -131,10 +131,11 @@ export default function TokenData(props) {
       useEffect(
         () => {
             async function fetchData() {
-              if(memberStatus && memberInfo) {
+              if(memberStatus && memberInfo !== undefined) {
+                console.log('memberinfo', memberInfo)
                 setMemberIcon(<CheckCircleIcon />)
-                setSharesLabel('Shares: ' + (memberInfo[0].shares > 0 ? memberInfo[0].shares : '0'))
-                setLootLabel('Loot: ' + (memberInfo[0].loot > 0 ? memberInfo[0].loot + ' Ⓝ': 'Loot: 0 Ⓝ'))
+                setSharesLabel('Shares: ' + memberInfo[0].shares)
+                setLootLabel('Loot: ' + memberInfo[0].loot + ' Ⓝ')
               }
 
               let guildRow
@@ -187,6 +188,7 @@ export default function TokenData(props) {
                 contract={contract}
                 daoContract={daoContract}
                 proposalDeposit={proposalDeposit}
+                refreshProposalEvents={refreshProposalEvents}
               />
             </Grid>
 

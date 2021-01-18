@@ -83,6 +83,7 @@ export default function ActionSelector(props) {
     handleGuildBalanceChanges,
     handleEscrowBalanceChanges,
     handleTabValueState,
+    refreshProposalEvents,
     accountId,
     depositToken,
     tokenName,
@@ -236,7 +237,8 @@ export default function ActionSelector(props) {
       handleGuildBalanceChanges={handleGuildBalanceChanges}
       handleEscrowBalanceChanges={handleEscrowBalanceChanges}
       handleMemberProposalClickState={handleMemberProposalClickState} 
-      handleTabValueState={handleTabValueState} 
+      handleTabValueState={handleTabValueState}
+      refreshProposalEvents={refreshProposalEvents}
       accountId={accountId} 
       depositToken={depositToken}
       tokenName={tokenName}

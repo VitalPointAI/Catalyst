@@ -8,6 +8,7 @@ import { makeStyles } from '@material-ui/core/styles'
 // Material UI imports
 import Typography from '@material-ui/core/Typography'
 import LinearWithValueLabel from './components/common/LinearProgressWithLabel/linearProgressWithLabel'
+import Grid from '@material-ui/core/Grid'
 
 // DApp component imports
 import Initialize from './components/Initialize/initialize'
@@ -45,7 +46,6 @@ export default function Dao(props) {
   const [memberInfo, setMemberInfo] = useState()
   const [proposalDeposit, setProposalDeposit] = useState()
   const [tributeToken, setTributeToken] = useState()
-  const [processingReward, setProcessingReward] = useState()
   const [tributeOffer, setTributeOffer] = useState()
   const [periodDuration, setPeriodDuration] = useState()
   const [proposalComments, setProposalComments] = useState([])
@@ -67,14 +67,14 @@ export default function Dao(props) {
     setSummoner(newSummoner)
   }
 
-  async function getCurrentPeriod() {
-    try {
-      let period = await contract.getCurrentPeriod()
-      setCurrentPeriod(period)
-    } catch (err) {
-      console.log('get period issue', err)
-    }
-  }
+  // async function getCurrentPeriod() {
+  //   try {
+  //     let period = await contract.getCurrentPeriod()
+  //     setCurrentPeriod(period)
+  //   } catch (err) {
+  //     console.log('get period issue', err)
+  //   }
+  // }
 
   async function refreshProposalEvents() {
     try {
@@ -84,6 +84,12 @@ export default function Dao(props) {
       }
     } catch (err) {
       console.log('error retrieving proposal events')
+    }
+    try {
+      let period = await contract.getCurrentPeriod()
+      setCurrentPeriod(period)
+    } catch (err) {
+      console.log('get period issue', err)
     }
   }
 
@@ -183,12 +189,6 @@ export default function Dao(props) {
           await fetchContract()
 
           await fetchInit()
-
-            try {
-              let result = await getCurrentPeriod()
-            } catch (err) {
-              console.log('no ready yet')
-            }
           
             try {
               let result = await contract.getMemberStatus({member: accountId})
@@ -209,14 +209,6 @@ export default function Dao(props) {
               setProposalDeposit(deposit)
             } catch (err) {
               console.log('no proposal deposit yet')
-            }
-
-            try {
-              let reward = await contract.getProcessingReward()
-              setProcessingReward(reward)
-            } catch (err) {
-              console.log('no processing reward yet')
-              
             }
 
             try {
@@ -299,28 +291,30 @@ export default function Dao(props) {
             console.log('done', done)
             console.log('initialized', initialized)
         })
-        
+        return function cleanup() {}
   //    }
     },
 
     // The second argument to useEffect tells React when to re-run the effect
     // it compares current value and if different - re-renders
-    [done, initialized, currentPeriod]
+    [done, initialized]
   )
 
   
   if(done && initialized) {
-    window.setInterval(getCurrentPeriod, 30000)
+    window.setInterval(refreshProposalEvents, 30000)
   }
 
   // if not done loading all the data, show a progress bar, otherwise show the content
 
   if(!done) {
     return (
-      <div>
-      <Typography component="h2">Just setting things up, please wait a moment.</Typography>
-      <LinearWithValueLabel />
-      </div>
+      <Grid container alignItems="center" justify="center">
+        <Grid item xs={6} sm={6} md={6} lg={6} xl={6} >
+          <Typography component="h2">Just setting things up, please wait a moment.</Typography>
+          <LinearWithValueLabel />
+        </Grid>
+      </Grid>
     )
   }
   
@@ -358,7 +352,6 @@ export default function Dao(props) {
           depositToken={depositToken}
           tributeToken={tributeToken}
           tributeOffer={tributeOffer}
-          processingReward={processingReward}
           proposalDeposit={proposalDeposit}
           proposalComments={proposalComments}
           summoner={summoner}
@@ -366,7 +359,7 @@ export default function Dao(props) {
           daoContract={daoContractSender}
           handleInitChange={handleInitChange}
           allMemberInfo={allMemberInfo}
-          getCurrentPeriod={getCurrentPeriod}
+         // getCurrentPeriod={getCurrentPeriod}
           refreshProposalEvents={refreshProposalEvents}
           />
       )

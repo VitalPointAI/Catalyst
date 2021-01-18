@@ -5,8 +5,8 @@ import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
 import CardHeader from '@material-ui/core/CardHeader'
-import IconButton from '@material-ui/core/IconButton'
-import MoreVertIcon from '@material-ui/icons/MoreVert'
+import Chip from '@material-ui/core/Chip'
+import Grid from '@material-ui/core/Grid'
 import Avatar from '@material-ui/core/Avatar'
 import Typography from '@material-ui/core/Typography'
 import { red } from '@material-ui/core/colors'
@@ -16,7 +16,7 @@ const useStyles = makeStyles((theme) => ({
         marginTop: 0,
     },
     card: {
-      marginTop: '15px',
+      marginTop: '10px'
     },
     avatar: {
       backgroundColor: red[500],
@@ -27,7 +27,7 @@ export default function MemberCard(props) {
 
     const classes = useStyles();
 
-    const { name, shares, joined } = props
+    const { name, shares, joined, memberCount } = props
 
     useEffect(
         () => {
@@ -38,22 +38,26 @@ export default function MemberCard(props) {
 
     return(
         <>
-        <Card raised={true} className={classes.card}>
-            <CardHeader
-                avatar={<Avatar className={classes.avatar}>M</Avatar>}
-                action={
-                    <IconButton aria-label="settings">
-                      <MoreVertIcon />
-                    </IconButton>
-                }
-                  title={name}
-                  subheader={joined}
-            />            
-            <CardContent>
-                <Typography className={classes.pos} color="textSecondary">
-                    {shares} {shares > 1 ? 'shares' : 'share'}
-                </Typography>
-            </CardContent>
+        <Card raised={true} className={classes.card} >
+          <CardHeader
+            title={<Chip
+              avatar={<Avatar alt="Member" src="../../../../images/default-profile.png" />}
+              label={name}
+              variant="outlined"
+            />}
+            subheader={<Typography variant="overline" align="center">Since: {joined}</Typography>}
+          />
+ 
+          <CardContent>
+            <Grid container alignItems="center" style={{marginTop: '-20px', marginBottom:'20px'}}>
+              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                <Typography variant="overline" align="center">{shares > 1 ? shares + ' shares' : shares + ' share' }</Typography>
+              </Grid>
+              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                <Typography variant="overline">{`Voting Power: ${shares && memberCount ? (shares / memberCount)*100 : '100'}%`}</Typography>
+              </Grid>
+            </Grid>
+          </CardContent>
         </Card>
         </>
     )

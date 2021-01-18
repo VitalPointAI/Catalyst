@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { Redirect } from 'react-dom'
 import { makeStyles } from '@material-ui/core/styles'
 import { useForm } from 'react-hook-form'
-import LogoutButton from '../../components/common/LogoutButton/logoutButton'
 
 // Material UI components
 import TextField from '@material-ui/core/TextField'
@@ -17,7 +15,6 @@ import Card from '@material-ui/core/Card'
 
 const useStyles = makeStyles((theme) => ({
   root: {
-   
     marginTop: 50
   },
   paper: {
@@ -49,6 +46,7 @@ export default function Initialize(props) {
     const[done, setDone] = useState(props.done)
     const classes = useStyles()
     const { register, handleSubmit, watch, errors } = useForm()
+
     const { handleInitChange, accountId, contract, initialized } = props
     
     const [finished, setFinish] = useState(false)
@@ -57,22 +55,6 @@ export default function Initialize(props) {
    
     useEffect(
       () => {
-            // async function fetchInit() {         
-            //   try {
-            //     let isInit = await contract.getInit({})
-            //     if(isInit) {
-            //       setLoaded(true)
-            //     }
-            //   } catch (err) {
-            //     console.log('initilization not complete', err)
-            //     return false 
-            //   }
-            // }
-
-            // fetchInit()
-            //   .then((res) => {
-
-            //   })
          
       }, [])
   
@@ -87,8 +69,7 @@ export default function Initialize(props) {
                             _votingPeriodLength: parseInt(votingPeriodLength),
                             _gracePeriodLength: parseInt(gracePeriodLength),
                             _proposalDeposit: proposalDeposit,
-                            _dilutionBound: parseInt(dilutionBound),
-                            _processingReward: processingReward
+                            _dilutionBound: parseInt(dilutionBound)
                         }, process.env.DEFAULT_GAS_VALUE)
         if(finisher) {
           setFinish(finisher)
@@ -98,10 +79,12 @@ export default function Initialize(props) {
 
     if(!done) {
       return(
-      <div>
-      <Typography component="h2">Just setting things up, please wait a moment.</Typography>
-      <LinearWithValueLabel />
-      </div>
+        <Grid container alignItems="center" justify="center">
+          <Grid item xs={6} sm={6} md={6} lg={6} xl={6} >
+            <Typography component="h2">Just setting things up, please wait a moment.</Typography>
+            <LinearWithValueLabel />
+          </Grid>
+        </Grid>
       )
     } else {
       return (       
@@ -177,20 +160,6 @@ export default function Initialize(props) {
                     name="dilutionBound"
                     label="Dilution Bound"
                     placeholder="3"
-                    inputRef={register({
-                        required: true, 
-                    })}
-                    InputProps={{
-                      endAdornment: <InputAdornment position="end">Tokens</InputAdornment>,
-                      }}
-                    />
-
-                    <TextField
-                    id="processing-reward"
-                    variant="outlined"
-                    name="processingReward"
-                    label="Processing Reward"
-                    placeholder="1"
                     inputRef={register({
                         required: true, 
                     })}

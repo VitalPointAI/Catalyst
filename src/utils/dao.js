@@ -33,7 +33,6 @@ class DAO {
                 'getProposalDeposit',
                 'getTributeToken',
                 'getTributeOffer',
-                'getProcessingReward',
                 'getPeriodDuration',
                 'getMemberShares',
                 'getMemberLoot',
