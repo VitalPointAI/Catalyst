@@ -20,7 +20,8 @@ function getConfig(env) {
       nodeUrl: 'https://rpc.testnet.near.org',
       contractName: CONTRACT_NAME,
      // walletUrl: 'https://wallet.testnet.near.org',
-      walletUrl: 'http://localhost:1234',
+     // walletUrl: 'http://localhost:1234',
+     wallerUrl: 'https://vitalpointguild.herokuapp.com/',
       helperUrl: 'https://helper.testnet.near.org',
       explorerUrl: 'https://explorer.testnet.near.org'
     }
