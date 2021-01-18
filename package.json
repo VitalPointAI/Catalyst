@@ -62,6 +62,7 @@
     "startup": "echo The app is starting! It will automatically open in your browser when ready && env-cmd -f ./.env parcel src/index.html --open",
     "prebuild": "rm -rf dist/",
     "build": "npm run build:web",
+    "heroku-postbuild" : "parcel build src/index.html",
     "build:contract": "node contract/compile.js",
     "build:web": "parcel build src/index.html --public-url ./ --no-source-maps",
     "test": "jest",
