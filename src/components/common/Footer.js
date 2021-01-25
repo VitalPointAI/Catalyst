@@ -171,7 +171,7 @@ class Footer extends Component {
                         <List floated='right'>
                             <List.Item as='h3'><Translate id='footer.needHelp' /></List.Item>
                             <List.Item as='h3' className='color'>
-                                <a href='https://near.chat'>
+                                <a href='https://discord.gg/YRD8GWQ'>
                                     <Translate id='footer.contactSupport' />
                                 </a>
                             </List.Item>
