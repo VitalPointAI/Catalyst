@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { retrieveAppRecord, retrieveRecord } from '../../../../utils/threadsDB'
 
 // Material UI Components
 import { makeStyles, withStyles } from '@material-ui/core/styles'
@@ -52,11 +53,15 @@ const useStyles = makeStyles((theme) => ({
 
 export default function ProposalCard(props) {
 
+    const[hasVoted, setHasVoted] = useState(props.voted)
+    const[isDone, setIsDone] = useState(props.done)
+    const[title, setTitle] = useState('Enter Short Title')
+
 
     const classes = useStyles();
 
-    const { applicant, created, noVotes, yesVotes, proposalType, proposer, requestId, tribute, vote, loot, shares, status, accountId,
-        isVotingPeriod, isGracePeriod, voted, gracePeriod, votingPeriod, currentPeriod, periodDuration, cancelFinish, sponsorFinish, sponsor,
+    const { applicant, created, noVotes, yesVotes, proposalType, proposer, requestId, tribute, vote, loot, shares, status, accountId, funding,
+        isVotingPeriod, isGracePeriod, voted, gracePeriod, votingPeriod, currentPeriod, periodDuration, cancelFinish, sponsor, done,
         handleMemberProposalDetailsClick,
         handleFundingProposalDetailsClick,
         handleSponsorConfirmationClick,
@@ -65,13 +70,28 @@ export default function ProposalCard(props) {
         handleNoVotingAction,
         handleRageQuitClick
     } = props
-
+console.log('request id', requestId)
     useEffect(
         () => {
+          let isMounted = true
 
-    }, [status, voted]
+          async function fetchData() {
+          let result = await retrieveAppRecord(requestId.toString(), 'MemberProposal')
+            if(!result){
+              let result = await retrieveRecord(requestId.toString(), 'MemberProposal')
+            }
+            if(result){
+              result.title ? setTitle(result.title) : null
+            }
+          }
+
+          fetchData()
+            .then((res) => {
+
+            })
+          return () => { isMounted = false } // use effect cleanup to set flag false if unmounted
+    }, []
     )
-
 
     return(
         <>
@@ -85,13 +105,48 @@ export default function ProposalCard(props) {
                 label={applicant}
                 variant="outlined"
               />}
-              subheader={<><Typography variant="overline">Proposed: {created}</Typography><Typography variant="overline" color="textSecondary">Sponsor: {sponsor}</Typography></>}
+              subheader={
+                <Grid container alignItems="center" justify="space-evenly">
+                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                    <Typography variant="overline">Proposed: {created}</Typography>
+                  </Grid>
+                  {status == 'Sponsored' ? (
+                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                    <Typography variant="overline" color="textSecondary">Sponsor: {sponsor}</Typography>
+                  </Grid>
+                  ) : null }
+                </Grid>
+                }
             /></>
           ) : null }
 
+          {proposalType === 'GuildKick' ? (
+            <> <Typography variant="h6" align="center" color="textSecondary">{proposalType} Proposal</Typography>
+          
+             <CardHeader
+               title={<Chip
+                 avatar={<Avatar alt="Member" src="../../../images/default-profile.png" />}
+                 label={applicant}
+                 variant="outlined"
+               />}
+               subheader={
+                 <Grid container alignItems="center" justify="space-evenly">
+                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                     <Typography variant="overline">Proposed: {created}</Typography>
+                   </Grid>
+                   {status == 'Sponsored' ? (
+                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                     <Typography variant="overline" color="textSecondary">Sponsor: {sponsor}</Typography>
+                   </Grid>
+                   ) : null }
+                 </Grid>
+                 }
+             /></>
+           ) : null }
+
           {proposalType === 'Funding' ? (
             <> <Typography variant="h6" align="center" color="textSecondary">{proposalType} Proposal</Typography>
-             <Typography variant="overline" align="center" color="textSecondary">Sponsored by: {sponsor}</Typography>
+            {status == 'Sponsored' ? <Typography variant="overline" align="center" color="textSecondary">Sponsored by: {sponsor}</Typography> : null }
             <CardHeader
               title={<Chip
                 avatar={<Avatar alt="Funding" src="../../../images/dollar.png" />}
@@ -103,21 +158,56 @@ export default function ProposalCard(props) {
           ) : null }
 
             <CardContent>
+
+            {proposalType == 'Member' ? (
               <Grid container alignItems="center" justify="space-evenly" style={{marginTop: '-20px', marginBottom:'20px'}}>
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                <Typography variant="h6" color="initial" noWrap={true} style={{border: '1px solid', padding: '2px'}} align="center"
+                onClick={(e) => handleMemberProposalDetailsClick(requestId, applicant, status, proposer, proposalType, e)}
+                >{title}</Typography>
+              </Grid>  
+              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                   <Typography variant="overline">Shares: {shares}</Typography>
                 </Grid>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                   <Typography variant="overline">{`Tribute: ${tribute} Ⓝ`}</Typography>
                 </Grid>
               </Grid>
-              <Grid container alignItems="center" justify="space-evenly" spacing={1}>
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                  {proposalType === 'Member' ? (
+            ) : null }
+
+            {proposalType == 'GuildKick' ? (
+              <Grid container alignItems="center" justify="space-evenly" style={{marginTop: '-20px', marginBottom:'20px'}}>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                  <Typography variant="h6" noWrap={true} style={{border: '1px solid', padding: '2px', textAlign: 'center', fontWeight: '800', color: 'black'}}
+                  onClick={(e) => handleMemberProposalDetailsClick(requestId, applicant, status, proposer, proposalType, e)}
+                  >{title}</Typography>
+                </Grid>  
+              </Grid>
+            ) : null }
+
+            {proposalType == 'Funding' ? (
+              <Grid container alignItems="center" justify="space-evenly" style={{marginTop: '-20px', marginBottom:'20px'}}>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                  <Typography variant="h6" noWrap={true} style={{border: '1px solid', padding: '2px', textAlign: 'center', fontWeight: '800', color: 'black'}}
+                  onClick={(e) => handleFundingProposalDetailsClick(requestId, applicant, status, e)}
+                  >{title}</Typography>
+                </Grid>    
+              <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                  <Typography variant="h5" align="center" style={{marginBottom: '10px'}}>Funding Requested</Typography>
+                </Grid>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                  <Typography variant="h5" align="center">{`${funding} Ⓝ`}</Typography>
+                </Grid>
+              </Grid>
+            ) : null }
+
+              <Grid container alignItems="center" justify="space-evenly" spacing={0}>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                  {proposalType === 'Member' || proposalType === 'GuildKick' ? (
                     <><Button 
-                        variant="contained" 
+                        variant="contained"
                         color="primary" 
-                        onClick={(e) => handleMemberProposalDetailsClick(requestId, applicant, e)}>
+                        onClick={(e) => handleMemberProposalDetailsClick(requestId, applicant, status, proposer, proposalType, e)}>
                           Proposal Details
                       </Button>
                     </>) : null }
@@ -126,7 +216,7 @@ export default function ProposalCard(props) {
                     <><Button 
                         variant="contained" 
                         color="primary" 
-                        onClick={(e) => handleFundingProposalDetailsClick(requestId, applicant, e)}>
+                        onClick={(e) => handleFundingProposalDetailsClick(requestId, applicant, status, e)}>
                           Proposal Details
                       </Button>
                     </>) : null }
@@ -142,11 +232,12 @@ export default function ProposalCard(props) {
               {status == 'Sponsored' && isVotingPeriod && !isGracePeriod ? (
                 <Grid container alignItems="center" justify="space-evenly" spacing={1}>
                   <Grid item xs={4} sm={4} md={4} lg={4} xl={4}>
-                      <StyledBadge badgeContent={yesVotes} color="primary">
+                     {done ? ( <StyledBadge badgeContent={yesVotes} color="primary">
                         <IconButton onClick={(e) => handleYesVotingAction(requestId, e)} disabled={voted}>
                           <ThumbUpIcon fontSize='large' color="primary" />
                         </IconButton>
                       </StyledBadge>
+                      ) : <CircularProgress /> }
                   </Grid>
                   <Grid item xs={4} sm={4} md={4} lg={4} xl={4} >
                     <Typography variant="body2" align="center">
@@ -154,11 +245,12 @@ export default function ProposalCard(props) {
                     </Typography>
                   </Grid>
                   <Grid item xs={4} sm={4} md={4} lg={4} xl={4} className={classes.votes} >
-                      <StyledBadge badgeContent={noVotes} color="secondary">
+                  {done ? ( <StyledBadge badgeContent={noVotes} color="secondary">
                         <IconButton onClick={(e) => handleNoVotingAction(requestId, e)} disabled={voted}>
                           <ThumbDownIcon fontSize='large' color="secondary" />
                         </IconButton>
                       </StyledBadge>
+                      ) : <CircularProgress /> }
                   </Grid>
                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                     <Typography variant="caption" display="block">Voting Ends in {(((votingPeriod - currentPeriod)+1) * periodDuration / 60).toFixed(2)} minutes</Typography>
@@ -172,7 +264,7 @@ export default function ProposalCard(props) {
                     <Button
                       variant="contained"
                       color="secondary"
-                      className={classes.button}
+                      align="center"
                       startIcon={<PanToolIcon />}
                       onClick={handleRageQuitClick}
                     >
@@ -180,7 +272,7 @@ export default function ProposalCard(props) {
                     </Button>
                   </Grid>
                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                    <Typography variant="caption" display="block">RageQuit ends in {(((gracePeriod - currentPeriod)+1) * periodDuration / 60).toFixed(2)} {(((gracePeriod - currentPeriod)+1) * periodDuration / 60) > 1 ? 'minutes':'minute'}</Typography>
+                    <Typography variant="caption" display="block" align="center">RageQuit ends in {(((gracePeriod - currentPeriod)+1) * periodDuration / 60).toFixed(2)} {(((gracePeriod - currentPeriod)+1) * periodDuration / 60) > 1 ? 'minutes':'minute'}</Typography>
                   </Grid>
                 </Grid>
               ) : null }
@@ -211,7 +303,7 @@ export default function ProposalCard(props) {
                
                 
                
-                {(accountId != proposer && accountId != applicant) && status=='Submitted' ? sponsorFinish ? <><Button color="primary" onClick={(e) => handleSponsorConfirmationClick(requestId, e)}>Sponsor</Button></> : <LinearProgress /> : null}
+                {(accountId != proposer && accountId != applicant) && status=='Submitted' ? <><Button color="primary" onClick={(e) => handleSponsorConfirmationClick(requestId, e)}>Sponsor</Button></> : <LinearProgress /> }
                
                 {(accountId == proposer || (accountId == applicant && proposalType != 'GuildKick')) && status=='Submitted' ? cancelFinish ? <><Button color="primary" onClick={() => handleCancelAction(requestId, tribute)}>Cancel</Button> </>: <LinearProgress /> : null } 
                 

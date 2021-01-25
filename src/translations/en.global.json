@@ -843,7 +843,8 @@
     "lockedBalance": "This NEAR is locked in a lockup contract, and cannot be withdrawn. You may still delegate or stake this NEAR. Once the NEAR is unlocked, you can view it in your Unlocked Balance, and chose to withdraw it (moving to your Available Balance).",
     "unlockedBalance": "This NEAR is still in a lockup contract, and is ready to be withdrawn. If you choose to withdraw this NEAR, it will appear in your Available Balance.",
     "memberProposalInfoShares": "Shares reflect a member's voting power and ownership of the community fund relative to their contribution. Typical request is a 1:1 match of shares to contribution. For example, if a member receives 10 shares for contributing 10 NEAR to the fund with current balance of 100 NEAR, then that member has 10% ownership and 10% of the voting power.",
-    "memberProposalInfoContribution": "The amout of NEAR the member is contributing to the community fund. This fund is used to fund proposals that benefit the community in some way that members vote on and decide collectively to pass.",
+    "memberProposalInfoContribution": "The amount of NEAR the member is contributing to the community fund. This fund is used to fund proposals that benefit the community in some way that members vote on and decide collectively to pass.",
+    "fundingProposalInfo": "The amount of NEAR the applicant is requesting to fund their proposal.  The proposal should be benefitting the community in some way.",
 
     "transaction": {
         "status": {

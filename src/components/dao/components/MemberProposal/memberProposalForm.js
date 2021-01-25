@@ -91,6 +91,7 @@ export default function MemberProposalForm(props) {
     const [proposalAvatar, setMemberProposalAvatar] = useState(imageName)
     const [proposalPublished, setMemberProposalPublished] = useState(false)
     const [proposalComments, setProposalComments] = useState()
+    const [proposalTitle, setMemberProposalTitle] = useState('')
 
     const { register, handleSubmit, watch, errors } = useForm()
 
@@ -98,7 +99,9 @@ export default function MemberProposalForm(props) {
         memberProposalId,
         accountId,
         handleProposalDetailsEmptyClickState,
-        contract
+        memberProposalType,
+        contract,
+        status,
     } = props
     console.log('memberproposalid', memberProposalId)
     const classes = useStyles()
@@ -114,6 +117,7 @@ export default function MemberProposalForm(props) {
                 result.intro ? setMemberProposalIntro(result.intro) : setMemberProposalIntro('')
                 result.proposer ? setMemberProposalProposer(result.proposer) : setMemberProposalProposer(accountId)
                 result.published ? setMemberProposalPublished(result.published) : setMemberProposalPublished(false)
+                result.title ? setMemberProposalTitle(result.title) : setMemberProposalTitle('')
             }
 
             let comments = await contract.getProposalComments({proposalId: proposalId.toString()})
@@ -149,6 +153,11 @@ export default function MemberProposalForm(props) {
         setMemberProposalPublished(published)
     }
 
+    const handleTitleChange = (event) => {
+      let value = event.target.value;
+      setMemberProposalTitle(value)
+    }
+
     const handleIntroChange = (content, delta, source, editor) => {
         console.log('content', content)
         console.log('delta', delta)
@@ -164,6 +173,7 @@ export default function MemberProposalForm(props) {
         let record = {
             _id: proposalId.toString(),
             applicant: proposalApplicant,
+            title: proposalTitle,
             intro: proposalIntro,
             proposer: proposalProposer,
             submitDate: new Date().getTime(),
@@ -181,7 +191,8 @@ export default function MemberProposalForm(props) {
             await createRecord('MemberProposal', record) 
         } else {
             const updatedRecord = result
-            updatedRecord.applicant = proposalApplicant
+            updatedRecord.applicant = proposalApplicant,
+            updatedRecord.title = proposalTitle,
             updatedRecord.intro = proposalIntro
             updatedRecord.proposer = proposalProposer
             updatedRecord.submitDate = new Date().getTime()
@@ -202,6 +213,7 @@ export default function MemberProposalForm(props) {
             } else {
                 const updatedRecord = result
                 updatedRecord.applicant = proposalApplicant
+                updatedRecord.title = proposalTitle
                 updatedRecord.intro = proposalIntro
                 updatedRecord.proposer = proposalProposer
                 updatedRecord.submitDate = new Date().getTime()
@@ -266,33 +278,75 @@ export default function MemberProposalForm(props) {
         'list', 'bullet', 'indent','align',
         'link', 'image', 'video'
     ];
+
+    const label = memberProposalType == 'Member' ? 'Applicant' : 'Member to Kick'
     
         return (
             <div>
             <div>
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-              <DialogTitle id="form-dialog-title">Membership Proposal Details</DialogTitle>
+              <DialogTitle id="form-dialog-title">{memberProposalType} Proposal Details</DialogTitle>
               <DialogContent>
                   <DialogContentText style={{marginBottom: 10}}>
                   Provide as much detail as possible to assist with voting decisions.
                   </DialogContentText>
-                    <div>
+                  
+                  <FormControlLabel
+                    control={<Switch checked={proposalPublished} onChange={handlePublishToggle} color="primary" />}
+                    label="Published"
+                  />
+                
+                  <Grid container alignItems="center" justify="space-evenly" spacing={1}>
+                    <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                       <TextField
-                          autoFocus
-                          margin="dense"
-                          id="membership-proposal-applicant"
-                          variant="outlined"
-                          name="memberProposalApplicant"
-                          label="Applicant"
-                          placeholder="someApplicant.testnet"
-                          value={proposalApplicant}
-                          onChange={handleApplicantChange}
-                          inputRef={register({
-                              required: true                              
-                          })}
+                        autoFocus
+                        margin="dense"
+                        id="membership-proposal-applicant"
+                        variant="outlined"
+                        name="memberProposalApplicant"
+                        label={label}
+                        placeholder="someApplicant.testnet"
+                        value={proposalApplicant}
+                        onChange={handleApplicantChange}
+                        inputRef={register({
+                            required: true                              
+                        })}
                       />
-                    {errors.proposalApplicant && <p style={{color: 'red'}}>You must identify the applicant.</p>}
-                  </div>
+                      {errors.proposalApplicant && <p style={{color: 'red'}}>You must identify the applicant.</p>}
+                    </Grid>
+                    <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
+                      <ImageUploader
+                          withIcon={false}
+                          buttonText="Upload Avatar"
+                          onChange={onDropAvatar}
+                          imgExtension={[".jpg", ".gif", ".png"]}
+                          maxFileSize={5242880}
+                          withPreview={false}
+                          singleImage={true}
+                          inputRef={register()}
+                      />
+                    </Grid>
+                    <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
+                        <Avatar src={proposalAvatar} className={classes.large} />
+                    </Grid>
+                  </Grid>
+                  <div>
+                  <TextField
+                      autoFocus
+                      margin="dense"
+                      id="member-proposal-title"
+                      variant="outlined"
+                      name="memberProposalTitle"
+                      label="Proposal Title"
+                      placeholder="Enter a short title"
+                      value={proposalTitle}
+                      onChange={handleTitleChange}
+                      inputRef={register({
+                          required: true                              
+                      })}
+                  />
+                {errors.memberProposalTitle && <p style={{color: 'red'}}>You must give your proposal a short title.</p>}
+              </div>
                   <div>
                   <ReactQuill
                     theme="snow"
@@ -307,37 +361,15 @@ export default function MemberProposalForm(props) {
                     })}
                   />
                   </div>
-                  
-                  <Grid container spacing={1}>
-                    <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
-                        <Avatar src={proposalAvatar} className={classes.large} />
-                    </Grid>
-                    <Grid item xs={10} sm={10} md={10} lg={10} xl={10}>
-                        <ImageUploader
-                            withIcon={true}
-                            buttonText="Applicant Picture or Avatar"
-                            onChange={onDropAvatar}
-                            imgExtension={[".jpg", ".gif", ".png"]}
-                            maxFileSize={5242880}
-                            withPreview={true}
-                            singleImage={true}
-                            inputRef={register()}
-                        />
-                    </Grid>
-                  </Grid>
                  
-                  <div>
-                  <FormControlLabel
-                    control={<Switch checked={proposalPublished} onChange={handlePublishToggle} color="primary" />}
-                    label="Published"
-                />
-                  </div>
                 </DialogContent>
               {!finished ? <LinearProgress className={classes.progress} style={{marginBottom: '25px' }}/> : (
               <DialogActions>
+              { status != 'Not Passed' && status != 'Passed' ? (
               <Button onClick={handleSubmit(onSubmit)} color="primary" type="submit">
                   Submit Details
                 </Button>
+              ) : <Typography variant="body1">You cannot change these details - proposal has been processed.</Typography>}
                 <Button onClick={handleClose} color="primary">
                   Cancel
                 </Button>
@@ -357,12 +389,14 @@ export default function MemberProposalForm(props) {
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                   {Comments}
               </Grid>
+              { status != 'Not Passed' && status != 'Passed' ? (
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
               <Typography variant="h5" style={{marginLeft: '10px'}}>Leave a Comment/Ask a Question</Typography>
                   <CommentForm
                     proposalId = {proposalId}
                   />
               </Grid>
+              ) : null }
               </Grid>
               </AccordionDetails>
             </Accordion>

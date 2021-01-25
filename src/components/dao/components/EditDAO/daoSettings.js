@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { useForm } from 'react-hook-form'
+import { listAppDBs, listUserDBs} from '../../../../utils/threadsDB'
+import { summonEvent } from '../../../../utils/summonEvents'
 
 // Material UI components
 import TextField from '@material-ui/core/TextField'
@@ -41,15 +43,17 @@ export default function EditInitSettings(props) {
     const[proposalDeposit, setProposalDeposit] = useState('')
     const[dilutionBound, setDilutionBound] = useState('')
     const [finished, setFinish] = useState(true)
+    const[appDBList, setAppDBList] = useState([])
 
     const classes = useStyles()
     const { register, handleSubmit, watch, errors } = useForm()
 
-    const { contract, handleEditSettingsClick } = props
+    const { contract, handleEditSettingsClick, accountId } = props
 
     useEffect(
       () => {
           async function fetchSettings () {
+           
             try {
                 let result = await contract.getInitSettings({})
                 result[0][1] ? setPeriodDuration(result[0][1]) : setPeriodDuration('')
@@ -63,6 +67,8 @@ export default function EditInitSettings(props) {
                 console.log('failure fetching init settings')
                 return false
             }
+            
+         
           }
 
           fetchSettings().then((res) => {
@@ -116,8 +122,13 @@ export default function EditInitSettings(props) {
                             _proposalDeposit: proposalDeposit,
                             _dilutionBound: parseInt(dilutionBound)                           
                         }, process.env.DEFAULT_GAS_VALUE)
+        let currentId = await contract.getInitEventsLength()
+        let id = currentId + 1
+        let summonTime = await contract.getSummonTime()
+        await summonEvent.recordSummonEvent(id.toString(), accountId, ['Ⓝ'], summonTime, periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound, finished)
+        
         if(finished) {
-          setFinish(finished)
+          setFinish(true)
           handleEditSettingsClick()
         }
     }

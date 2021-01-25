@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import LogoutButton from '../../components/common/LogoutButton/logoutButton'
+import LogoutButton from '../common/LogoutButton/logoutButton'
 import ActionSelector from '../ActionSelector/actionSelector'
 import ProposalList from '../ProposalList/proposalList'
 import BalanceChart from '../BalanceGraphs/balanceGraph'
 import RightSideDrawer from './RightSideDrawer'
-//import Footer from '../common/Footer/footer'
+import InfoPopup from '../../../common/InfoPopup'
+import { Translate } from 'react-localize-redux'
 
 // Material UI imports
 import { makeStyles } from '@material-ui/core/styles'
@@ -33,6 +34,8 @@ import FavoriteIcon from '@material-ui/icons/Favorite';
 import ShareIcon from '@material-ui/icons/Share';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import NotInterestedIcon from '@material-ui/icons/NotInterested';
+
+const axios = require('axios').default
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -80,6 +83,10 @@ const useStyles = makeStyles((theme) => ({
     expandOpen: {
       transform: 'rotate(180deg)',
     },
+    top: {
+      marginBottom: '10px',
+      fontSize: '24px'
+    },
     avatar: {
       backgroundColor: blue[500],
       fontColor: '#FFFFFF'
@@ -87,7 +94,7 @@ const useStyles = makeStyles((theme) => ({
   }));
 
   
-export default function TokenData(props) {
+export default function AppFramework(props) {
 
     const [graphData, setGraphData] = useState([])
     const [sharesLabel, setSharesLabel] = useState('Shares: 0')
@@ -95,13 +102,12 @@ export default function TokenData(props) {
     const [memberIcon, setMemberIcon] = useState(<NotInterestedIcon />)
     const [guildBalanceChip, setGuildBalanceChip] = useState()
     const [escrowBalanceChip, setEscrowBalanceChip] = useState()
+    const [nearPrice, setNearPrice] = useState()
     
     const classes = useStyles()
     
     const {      
       tabValue,
-      getCurrentPeriod,
-      refreshProposalEvents,
       handleTabValueState, 
       accountId,
       memberStatus,
@@ -126,16 +132,20 @@ export default function TokenData(props) {
       contract,
       daoContract,
       handleInitChange,
+      summoner,
+      totalShares,
       allMemberInfo } = props
 
       useEffect(
         () => {
+          let isMounted = true; // note this flag denote mount status
             async function fetchData() {
               if(memberStatus && memberInfo !== undefined) {
-                console.log('memberinfo', memberInfo)
+              if(isMounted) {
                 setMemberIcon(<CheckCircleIcon />)
                 setSharesLabel('Shares: ' + memberInfo[0].shares)
-                setLootLabel('Loot: ' + memberInfo[0].loot + ' Ⓝ')
+                setLootLabel('Loot: ' + memberInfo[0].loot)
+              }
               }
 
               let guildRow
@@ -147,7 +157,9 @@ export default function TokenData(props) {
                 } else {
                   guildRow = '0 Ⓝ'
                 }
+                if(isMounted){
                 setGuildBalanceChip(<>{guildRow}</>)
+                }
 
               let escrowRow
                 if(escrowBalance) {
@@ -157,65 +169,79 @@ export default function TokenData(props) {
                 } else {
                   escrowRow = '0 Ⓝ'
                 }
+                if(isMounted) {
                 setEscrowBalanceChip(<>{escrowRow}</>)
+                }
+
+              let getNearPrice = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd')
+              if(isMounted){
+                setNearPrice(getNearPrice.data.near.usd)
+              }
             }
 
             fetchData()
               .then((res) => {
-                console.log(res)
+               
               })
-        }, [memberStatus, memberInfo]
+              return () => { isMounted = false } // use effect cleanup to set flag false if unmounted
+        }, [escrowBalance, guildBalance]
       )
-   
-
+  
     return (
-       <>
-        <Grid container className={classes.root}>
+            <>
+            <Grid container style={{padding:'5px'}}>
+            <Grid container justify="space-evenly" alignItems="center" style={{marginBottom:'15px'}} spacing={0}>
+              <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+              <div style={{marginLeft: '10px'}}>
+                <ActionSelector 
+                  handleProposalEventChange={handleProposalEventChange}
+                  handleEscrowBalanceChanges={handleEscrowBalanceChanges}
+                  handleGuildBalanceChanges={handleGuildBalanceChanges}
+                  handleUserBalanceChanges={handleUserBalanceChanges}
+                  handleTabValueState={handleTabValueState}
+                  accountId={accountId}
+                  tokenName={tokenName}
+                  depositToken={depositToken}
+                  minSharePrice={minSharePrice}
+                  contract={contract}
+                  daoContract={daoContract}
+                  proposalDeposit={proposalDeposit}
+                />
+              </div>
+              </Grid>
+              <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+              <div style={{float:'right'}}>
+              {summoner == accountId ?<div style={{float:'right',marginTop:'-5px',marginLeft:'5px'}}><RightSideDrawer handleInitChange={handleInitChange} accountId={accountId} contract={contract}/></div>: null }
+                <Chip variant="outlined" label="Member" icon={memberIcon} />
+                <Chip variant="outlined" label={lootLabel}  />
+                <Chip variant="outlined" label={sharesLabel}  />
+                <Chip variant="outlined" icon={<AccessTimeIcon />} label={'Period: ' + currentPeriod} />
+               
+                </div>
+              </Grid>
+            </Grid>
         
-          <Grid container className={classes.centered}>
-
-            <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
-              <ActionSelector 
-                handleProposalEventChange={handleProposalEventChange}
-                handleEscrowBalanceChanges={handleEscrowBalanceChanges}
-                handleGuildBalanceChanges={handleGuildBalanceChanges}
-                handleUserBalanceChanges={handleUserBalanceChanges}
-                handleTabValueState={handleTabValueState}
-                accountId={accountId}
-                tokenName={tokenName}
-                depositToken={depositToken}
-                minSharePrice={minSharePrice}
-                contract={contract}
-                daoContract={daoContract}
-                proposalDeposit={proposalDeposit}
-                refreshProposalEvents={refreshProposalEvents}
-              />
+          <Grid container justify="center" alignItems="center" spacing={1} className={classes.top}> 
+            <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
+              <Typography variant="h6" color="textPrimary" align="center">Fund: {guildBalanceChip} {guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '($' + (parseInt(guildBalance[0].balance) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : null } </Typography>
             </Grid>
-
-            <Grid item xs={5} sm={5} md={5} lg={5} xl={5}>
-              <Chip variant="outlined" avatar={
-                <Avatar aria-label="guild-balances" className={classes.avatar}>
-                  F
-                </Avatar>
-              } label={guildBalanceChip} style={{float: 'right', marginTop: '5px', marginRight: '2px'}} />
-              <Chip variant="outlined" avatar={
-                <Avatar aria-label="escrow-balances" className={classes.avatar}>
-                  E
-                </Avatar>
-              } label={escrowBalanceChip} style={{float: 'right', marginTop: '5px', marginRight: '2px'}} />
+            <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
+              <Typography variant="h6" color="textPrimary" align="center">Escrow: {escrowBalanceChip} {escrowBalance.length > 0 ? escrowBalance[0].balance > 0 ? '($' + (parseInt(escrowBalance[0].balance) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : null }</Typography>
             </Grid>
-
-            <Grid item xs={5} sm={5} md={5} lg={5} xl={5}>
-              <div style={{float:'right'}}><RightSideDrawer handleInitChange={handleInitChange} accountId={accountId} contract={contract}/></div>
-              <Chip variant="outlined" icon={<AccessTimeIcon />} label={'Period: ' + currentPeriod} style={{float: 'right', marginTop: '5px', marginRight: '2px'}}/>
-              <Chip variant="outlined" label={sharesLabel} style={{float: 'right', marginTop: '5px', marginRight: '5px'}} />
-              <Chip variant="outlined" label={lootLabel} style={{float: 'right', marginTop: '5px', marginRight: '2px'}} />
-              <Chip variant="outlined" label="Member" icon={memberIcon} style={{float: 'right', marginTop: '5px', marginRight: '2px'}}/>
+            <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
+              <Typography variant="h6" color="textPrimary" align="center">Total Shares: {totalShares}</Typography>
             </Grid>
-
+            <Grid item xs={12} sm={12} md={2} lg={2} xl={2}>
+              <Typography variant="h6" color="textPrimary" align="center">Share Value: {guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '$' + ((guildBalance[0].balance/totalShares)*nearPrice).toFixed(2) + ' USD' : '$0.00 USD' : null }</Typography>
+            </Grid>
           </Grid>
+          
 
-          <Grid container>
+          <Divider variant="middle" align="center" style={{width:'75%', margin: 'auto'}}/>
+
+        
+
+          <Grid container justify="space-evenly" alignItems="center" spacing={1}>
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
               <ProposalList 
                 accountId={accountId} 
@@ -238,14 +264,12 @@ export default function TokenData(props) {
                 contract={contract}
                 daoContract={daoContract}
                 allMemberInfo={allMemberInfo}
-                getCurrentPeriod={getCurrentPeriod}
-                refreshProposalEvents={refreshProposalEvents}
               />
             </Grid>
           </Grid>
-
         </Grid>
-      </>
+        </>
+      
     )
     
 }

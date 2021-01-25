@@ -1,35 +1,40 @@
-export const memberProposalSchema = {
+export const memberSchema = {
     $id: 'https://example.com/post.schema.json',
     $schema: 'http://json-schema.org/draft-07/schema#',
-    title: 'MemberProposal',
+    title: 'Members',
     type: 'object',
     required: ['_id'],
     properties: {
       _id: {
         type: 'string',
       },
-      applicant: {
+      delegateKey: {
         type: 'string',
       },
-      title: {
+      shares: {
         type: 'string',
       },
-      intro: {
+      loot: {
         type: 'string',
       },
-      proposer: {
-        type: 'string',
+      existing: {
+        type: 'boolean',
       },
-      submitDate: {
+      highestIndexYesVote: {
         type: 'number',
         minimum: 0,
       },
-      avatar: {
-        type: 'string',
-        contentEncoding: 'base64',
+      jailed: {
+        type: 'number',
+        minimum: 0,
       },
-      published: {
-        type: 'boolean'
+      joined: {
+        type: 'number',
+        minimum: 0,
       },
+      updated: {
+        type: 'number',
+        minimum: 0,
+      }
     },
 }

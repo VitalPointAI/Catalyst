@@ -22,7 +22,7 @@ import Chip from '@material-ui/core/Chip'
 import Divider from '@material-ui/core/Divider'
 
 // Textile ThreadsDB components
-import { retrieveRecord } from '../../../../utils/threadsDB';
+import { retrieveRecord, retrieveAppRecord } from '../../../../utils/threadsDB';
 
 // CSS Styles
 
@@ -80,13 +80,17 @@ export default function MemberProposalDetails(props) {
         handleProposalDetailsClickState,
         memberProposalId,
         memberStatus,
+        status,
         contract
     } = props
 
     useEffect(() => {
         async function fetchData() {
             setFinished(false)
-            let result = await retrieveRecord(memberProposalId.toString(), 'MemberProposal')
+            let result = await retrieveAppRecord(memberProposalId.toString(), 'MemberProposal')
+            if(!result){
+              let result = await retrieveRecord(memberProposalId.toString(), 'MemberProposal')
+            }
             if(result){
             setMemberProposalId(memberProposalId.toString())
             result.applicant ? setMemberProposalApplicant(result.applicant) : setMemberProposalApplicant('')
@@ -183,12 +187,14 @@ export default function MemberProposalDetails(props) {
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                   {Comments}
               </Grid>
+              {status != 'Passed' && status != 'Not Passed' ? (
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
               <Typography variant="h5" style={{marginLeft: '10px'}}>Leave a Comment/Ask a Question</Typography>
                   <CommentForm
                     proposalId = {proposalId}
                   />
               </Grid>
+              ) : null }
               </Grid>
               </AccordionDetails>
             </Accordion>

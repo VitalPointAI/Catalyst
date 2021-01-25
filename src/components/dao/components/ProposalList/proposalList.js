@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { utils } from 'near-api-js'
+import { proposalEvent } from '../../../../utils/proposalEvents'
+import { memberEvent } from '../../../../utils/memberEvent'
 import MemberCard from '../MemberCard/memberCard'
 import ProposalCard from '../ProposalCard/proposalCard'
 import MemberProposalForm from '../MemberProposal/memberProposalForm'
@@ -21,7 +23,9 @@ import Badge from '@material-ui/core/Badge'
 import PeopleAltIcon from '@material-ui/icons/PeopleAlt'
 import ListAltIcon from '@material-ui/icons/ListAlt'
 import HowToVoteIcon from '@material-ui/icons/HowToVote'
-import AssignmentTurnedInIcon from '@material-ui/icons/AssignmentTurnedIn';
+import AssignmentTurnedInIcon from '@material-ui/icons/AssignmentTurnedIn'
+import Snackbar from '@material-ui/core/Snackbar'
+import MuiAlert from '@material-ui/lab/Alert'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -61,12 +65,22 @@ export default function ProposalList(props) {
   const [memberProposalId, setMemberProposalId] = useState('')
   const [fundingProposalDetailsClicked, setFundingProposalDetailsClicked] = useState(false)
   const [fundingProposalDetailsEmptyClicked, setFundingProposalDetailsEmptyClicked] = useState(false)
+  const [fundingProposalId, setFundingProposalId] = useState('')
   const [sponsorConfirmationClicked, setSponsorConfirmationClicked] = useState(false)
   const [proposalIdentifier, setProposalIdentifier] = useState()
   const [expanded, setExpanded] = useState(false)
   const [rageQuitClicked, setRageQuitClicked] = useState(false)
   const [cancelFinish, setCancelFinish] = useState(true)
-  const [sponsorFinish, setSponsorFinish] = useState(true)
+  const [fundingProposalStatus, setFundingProposalStatus] = useState()
+  const [memberProposalStatus, setMemberProposalStatus] = useState()
+  const [snackBarOpen, setSnackBarOpen] = useState(false)
+  const [errorMessage, setErrorMessage] = useState()
+  const [severity, setSeverity] = useState()
+  const [successMessage, setSuccessMessage] = useState()
+  const [done, setDone] = useState(true)
+  const [memberProposalType, setMemberProposalType] = useState()
+  
+
 
   const classes = useStyles()
   const theme = useTheme()
@@ -84,7 +98,6 @@ export default function ProposalList(props) {
     depositToken,
     tributeToken,
     tributeOffer,
-    processingReward,
     proposalDeposit,
     currentPeriod,
     periodDuration,
@@ -92,20 +105,26 @@ export default function ProposalList(props) {
     contract,
     daoContract,
     allMemberInfo,
-    getCurrentPeriod,
-    refreshProposalEvents,
+    getCurrentPeriod
   } = props
 
   useEffect(() => {
+    let isMounted = true
     async function fetchData() {
       let i = 0
       while (i < proposalEvents.length) {
-          let result = await getUserVote(proposalEvents[i].pI)
+          let result
+          try{
+            result = await getUserVote(proposalEvents[i]._id)
+          } catch (err) {
+            console.log('problem getting user vote', err)
+          }
           proposalEvents[i].vote = result
           proposalEvents[i].voted = result == 'yes' || result == 'no'? true : false
           i++
       }
         let newLists = await resolveStatus(proposalEvents)
+        if(isMounted){
         setProposalList(newLists.allProposals)
         setVotingList(newLists.votingProposals)
         setQueueList(newLists.queueProposals)
@@ -113,10 +132,10 @@ export default function ProposalList(props) {
         setProposalCount(newLists.allProposals.length)
         setVoteCount(newLists.votingProposals.length)
         setProcessedCount(newLists.processedProposals.length)
-
         if(allMemberInfo){
           setMemberCount(allMemberInfo.length)
         }
+      }
     }
     
     if(proposalEvents.length > 0){
@@ -125,8 +144,8 @@ export default function ProposalList(props) {
        
       })
     }
-
-  },[allMemberInfo, sponsorFinish, cancelFinish])
+    return () => { isMounted = false } // use effect cleanup to set flag false if unmounted
+  },[proposalEvents, currentPeriod])
 
   const handleTabChange = (event, newValue) => {
       handleTabValueState(newValue);
@@ -137,23 +156,28 @@ export default function ProposalList(props) {
   }
 
   const handleSponsorConfirmationClick = (requestId) => {
-    handleExpanded()
     setProposalIdentifier(requestId)
     handleTabValueState(tabValue)
     setSponsorConfirmationClicked(true)
   }
 
-  const handleMemberProposalDetailsClick = async (id, applicant) => {
-    if(accountId != applicant) {
-        handleExpanded()
+  const handleMemberProposalDetailsClick = async (id, applicant, status, proposer, proposalType) => {
+    setMemberProposalStatus(status)
+    setMemberProposalType(proposalType)
+    if(accountId != applicant && proposalType == 'Member') {
         handleTabValueState(tabValue)
         setMemberProposalId(id)
         setMemberProposalDetailsClicked(true)
-    } else {
-        handleExpanded()
+    }
+    if(accountId == applicant){
         handleTabValueState(tabValue)
         setMemberProposalId(id)
         setMemberProposalDetailsEmptyClicked(true)
+    }
+    if(accountId != applicant && accountId == proposer && proposalType == 'GuildKick'){
+      handleTabValueState(tabValue)
+      setMemberProposalId(id)
+      setMemberProposalDetailsEmptyClicked(true)
     }
   };
 
@@ -170,12 +194,15 @@ export default function ProposalList(props) {
   setMemberProposalDetailsEmptyClicked(property)
   }
 
-  const handleFundingProposalDetailsClick = async (id, applicant) => {
+  const handleFundingProposalDetailsClick = async (id, applicant, status) => {
+    console.log('click status', status)
+    setFundingProposalStatus(status)
     if(accountId != applicant) {
         handleExpanded()
         handleTabValueState(tabValue)
         setFundingProposalId(id)
         setFundingProposalDetailsClicked(true)
+        
     } else {
         handleExpanded()
         handleTabValueState(tabValue)
@@ -200,69 +227,206 @@ export default function ProposalList(props) {
       setRageQuitClicked(property)
   }
 
-  async function handleSponsorAction(proposalIdentifier) {
-    setSponsorFinish(false)
-    let finished = await contract.sponsorProposal({
-        pI: proposalIdentifier,
-        proposalDeposit: proposalDeposit,
-        depositToken: depositToken
-        }, process.env.DEFAULT_GAS_VALUE, utils.format.parseNearAmount((parseInt(proposalDeposit)).toString()))
-    if(finished) {
-      await handleProposalEventChange()
-      await handleEscrowBalanceChanges()
-      await handleGuildBalanceChanges()
-      await refreshProposalEvents()
-      setSponsorFinish(true)
-    }
+  function handleErrorMessage(message, severity) {
+    setErrorMessage(message)
+    setSeverity(severity)
   }
+
+  function handleSuccessMessage(message, severity) {
+    setSuccessMessage(message)
+    setSeverity(severity)
+  }
+
+  function handleSnackBarOpen(property) {
+    setSnackBarOpen(property)
+  }
+ 
+  const snackBarHandleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackBarOpen(false);
+  };
+
+  function Alert(props) {
+    return <MuiAlert elevation={6} variant="filled" {...props} />
+  }
+
 
   async function handleCancelAction(proposalIdentifier, tribute) {
     setCancelFinish(false)
-    let finished = await daoContract.cancelProposal({
+    let finished
+    try{
+    finished = await daoContract.cancelProposal({
         pI: proposalIdentifier
         }, process.env.DEFAULT_GAS_VALUE, utils.format.parseNearAmount((parseInt(proposalDeposit)+parseInt(tribute)).toString()))
+        try{
+        let proposal = await contract.getProposal({proposalId: parseInt(proposalIdentifier)})
+        let updated = await proposalEvent.recordEvent(
+          proposal.pI, proposal.a, proposal.p, proposal.s, proposal.sR, proposal.lR, proposal.tO, proposal.tT, proposal.pR, proposal.pT, 
+          proposal.sP, proposal.yV, proposal.nV, proposal.f, proposal.mT, proposal.pS, proposal.vP, proposal.gP, proposal.voteFinalized)
+          if(updated){
+            handleSuccessMessage('Successfully cancelled proposal.', 'success')
+            handleSnackBarOpen(true)
+          } else {
+            handleErrorMessage('There was a problem cancelling the proposal.', 'error')
+            handleSnackBarOpen(true)
+          }
+        } catch (err) {
+          console.log('problem deleteing proposal record event', err)
+          handleErrorMessage('There was a problem cancelling the proposal.', 'error')
+          handleSnackBarOpen(true)
+        }
+    } catch (err) {
+      console.log('problem cancelling proposal', err)
+      handleErrorMessage('There was a problem cancelling the proposal.', 'error')
+      handleSnackBarOpen(true)
+    }
     if(finished) {
       await handleProposalEventChange()
       await handleEscrowBalanceChanges()
       await handleGuildBalanceChanges()
-      await refreshProposalEvents()
       setCancelFinish(true)
     }
   }
 
-  async function handleProcessAction(proposalIdentifier) {
-    let finished = await daoContract.processProposal({
-         pI: proposalIdentifier
-         }, process.env.DEFAULT_GAS_VALUE)
-    if(finished){
-    await handleProposalEventChange()
-    await handleGuildBalanceChanges()
-    await handleEscrowBalanceChanges()
-    await refreshProposalEvents()
-    }
+  async function handleProcessAction(proposalIdentifier, proposalType) {
+    let finished
+    try{
+      finished = await daoContract.processProposal({
+        pI: proposalIdentifier
+        }, process.env.DEFAULT_GAS_VALUE)
+          try{
+          let proposal = await contract.getProposal({proposalId: parseInt(proposalIdentifier)})
+          let updated = await proposalEvent.recordEvent(
+            proposal.pI, proposal.a, proposal.p, proposal.s, proposal.sR, proposal.lR, proposal.tO, proposal.tT, proposal.pR, proposal.pT, 
+            proposal.sP, proposal.yV, proposal.nV, proposal.f, proposal.mT, proposal.pS, proposal.vP, proposal.gP, proposal.voteFinalized)
+          
+            let member = await contract.getMemberInfo({member: accountId})
+            console.log('member processed', member)
+            let memberUpdated = await memberEvent.updateMemberEvent(
+            member[0].delegateKey, member[0].shares, member[0].loot, member[0].existing, member[0].highestIndexYesVote, member[0].jailed, member[0].joined, member[0].updated)
+              
+            if(proposalType == 'Member'){
+              let member = await contract.getMemberInfo({member: proposal.a})
+              let totalMembers = await contract.getTotalMembers()
+              let id = parseInt(totalMembers)
+              let memberAdded = await memberEvent.recordMemberEvent(
+                id, member[0].delegateKey, member[0].shares, member[0].loot, member[0].existing, member[0].highestIndexYesVote, member[0].jailed, member[0].joined, member[0].updated) 
+            }
+
+            if(updated && memberUpdated){
+              handleSuccessMessage('Successfully processed proposal.', 'success')
+              handleSnackBarOpen(true)
+            } else {
+              handleErrorMessage('There was a problem processing the proposal.', 'error')
+              handleSnackBarOpen(true)
+            }
+          } catch (err) {
+            console.log('problem recording the process proposal event', err)
+            handleErrorMessage('There was a problem processing the proposal.', 'error')
+            handleSnackBarOpen(true)
+          }
+      } catch (err) {
+        console.log('problem processing proposal', err)
+        handleErrorMessage('There was a problem processing the proposal.', 'error')
+        handleSnackBarOpen(true)
+      }
+      if(finished) {
+        await handleProposalEventChange()
+        await handleEscrowBalanceChanges()
+        await handleGuildBalanceChanges()
+      }
   }
 
   async function handleYesVotingAction(proposalIdentifier) {
-    let finished = await contract.submitVote({
+    setDone(false)
+    let finished
+    try{
+      finished = await contract.submitVote({
         pI: proposalIdentifier,
         vote: 'yes'
         }, process.env.DEFAULT_GAS_VALUE)
-    if(finished) {
-    await handleProposalEventChange()
-    await refreshProposalEvents()
-  
-    }
+          try{
+          let proposal = await contract.getProposal({proposalId: parseInt(proposalIdentifier)})
+          console.log('proposal in yes vote', proposal)
+          let updated = await proposalEvent.recordEvent(
+            proposal.pI, proposal.a, proposal.p, proposal.s, proposal.sR, proposal.lR, proposal.tO, proposal.tT, proposal.pR, proposal.pT, 
+            proposal.sP, proposal.yV, proposal.nV, proposal.f, proposal.mT, proposal.pS, proposal.vP, proposal.gP, proposal.voteFinalized)
+          
+          let member = await contract.getMemberInfo({member: accountId})
+          console.log('member from yes vote', member)
+          let memberUpdated = await memberEvent.updateMemberEvent(
+          member[0].delegateKey, member[0].shares, member[0].loot, member[0].existing, member[0].highestIndexYesVote, member[0].jailed, member[0].joined, member[0].updated)
+
+            if(updated && memberUpdated){
+              handleSuccessMessage('Successfully voted.', 'success')
+              handleSnackBarOpen(true)
+            } else {
+              handleErrorMessage('There was a problem with voting.', 'error')
+              handleSnackBarOpen(true)
+            }
+          } catch (err) {
+            console.log('problem recording the vote event', err)
+            handleErrorMessage('There was a problem with voting.', 'error')
+            handleSnackBarOpen(true)
+          }
+      } catch (err) {
+        console.log('problem with vote', err)
+        handleErrorMessage('There was a problem with voting.', 'error')
+        handleSnackBarOpen(true)
+      }
+      if(finished) {
+        setDone(true)
+        await handleProposalEventChange()
+        await handleEscrowBalanceChanges()
+        await handleGuildBalanceChanges()
+      }
   }
 
 async function handleNoVotingAction(proposalIdentifier) {
-    let finished = await contract.submitVote({
+    setDone(false)
+    let finished
+    try{
+      finished = await contract.submitVote({
         pI: proposalIdentifier,
         vote: 'no'
         }, process.env.DEFAULT_GAS_VALUE)
-    if(finished) {
-      await handleProposalEventChange()
-      await refreshProposalEvents()
-    }
+          try{
+          let proposal = await contract.getProposal({proposalId: parseInt(proposalIdentifier)})
+          console.log('proposal in no vote', proposal)
+          let updated = await proposalEvent.recordEvent(
+            proposal.pI, proposal.a, proposal.p, proposal.s, proposal.sR, proposal.lR, proposal.tO, proposal.tT, proposal.pR, proposal.pT, 
+            proposal.sP, proposal.yV, proposal.nV, proposal.f, proposal.mT, proposal.pS, proposal.vP, proposal.gP, proposal.voteFinalized)
+          
+          let member = await contract.getMemberInfo({member: accountId})
+          console.log('member from no vote', member)
+          let memberUpdated = await memberEvent.updateMemberEvent(
+          member[0].delegateKey, member[0].shares, member[0].loot, member[0].existing, member[0].highestIndexYesVote, member[0].jailed, member[0].joined, member[0].updated)
+          
+            if(updated && memberUpdated){
+              handleSuccessMessage('Successfully voted.', 'success')
+              handleSnackBarOpen(true)
+            } else {
+              handleErrorMessage('There was a problem with voting.', 'error')
+              handleSnackBarOpen(true)
+            }
+          } catch (err) {
+            console.log('problem recording the vote event', err)
+            handleErrorMessage('There was a problem with voting.', 'error')
+            handleSnackBarOpen(true)
+          }
+      } catch (err) {
+        console.log('problem with vote', err)
+        handleErrorMessage('There was a problem with voting.', 'error')
+        handleSnackBarOpen(true)
+      }
+      if(finished) {
+        setDone(true)
+        await handleProposalEventChange()
+        await handleEscrowBalanceChanges()
+        await handleGuildBalanceChanges()
+      }
 }
 
   function getStatus(flags) {
@@ -318,7 +482,8 @@ async function handleNoVotingAction(proposalIdentifier) {
   }
 
   async function getUserVote(proposalIdentifier) {
-    let result = await contract.getMemberProposalVote({memberAddress: accountId, pI: proposalIdentifier})
+    console.log('prposal id here', parseInt(proposalIdentifier))
+    let result = await contract.getMemberProposalVote({memberAddress: accountId, pI: parseInt(proposalIdentifier)})
     return result
   }
 
@@ -358,33 +523,34 @@ async function handleNoVotingAction(proposalIdentifier) {
     let processedProposals = []
     
     if (requests.length > 0) {
-      console.log('requests', requests)
       requests.map((fr) => {
-        status = getStatus(fr.f)
-        proposalType = getProposalType(fr.f)
-        let isVotingPeriod = getVotingPeriod(fr.sP, fr.vP)
-        let isGracePeriod = getGracePeriod(fr.vP, fr.gP)
+        console.log('fr', fr)
+        status = getStatus(fr.flags)
+        proposalType = getProposalType(fr.flags)
+        let isVotingPeriod = getVotingPeriod(fr.startingPeriod, fr.votingPeriod)
+        let isGracePeriod = getGracePeriod(fr.votingPeriod, fr.gracePeriod)
         let disabled
         let isDisabled = isVotingPeriod ? disabled = false : disabled = true       
 
         if(status != 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled'){
           allProposals.push([{
-            blockTimeStamp: fr.pS,
-            date: makeTime(fr.pS),
-            applicant: fr.a, 
-            proposer: fr.dK,
-            sponsor: fr.s,
-            requestId: parseInt(fr.pI), 
-            shares: fr.sR, 
-            loot: fr.lR, 
-            tribute: fr.tO, 
-            flags: fr.f,
-            yesVotes: fr.yV,
-            noVotes: fr.nV,
-            votingPeriod: parseInt(fr.vP),
-            gracePeriod: parseInt(fr.gP),
+            blockTimeStamp: fr.proposalSubmission,
+            date: makeTime(fr.proposalSubmission),
+            applicant: fr.applicant, 
+            proposer: fr.proposer,
+            sponsor: fr.sponsor,
+            requestId: parseInt(fr._id), 
+            shares: fr.sharesRequested, 
+            loot: fr.lootRequested, 
+            tribute: fr.tributeOffered, 
+            flags: fr.flags,
+            yesVotes: fr.yesVote,
+            noVotes: fr.noVote,
+            funding: fr.paymentRequested,
+            votingPeriod: parseInt(fr.votingPeriod),
+            gracePeriod: parseInt(fr.gracePeriod),
             status: status,
-            startingPeriod: parseInt(fr.sP),
+            startingPeriod: parseInt(fr.startingPeriod),
             proposalType: proposalType,
             isGracePeriod: isGracePeriod,
             isVotingPeriod: isVotingPeriod,
@@ -396,22 +562,23 @@ async function handleNoVotingAction(proposalIdentifier) {
 
         if(status == 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && (isVotingPeriod==true || isGracePeriod==true)){
           votingProposals.push([{
-            blockTimeStamp: fr.pS,
-            date: makeTime(fr.pS), 
-            applicant: fr.a, 
-            proposer: fr.dK,
-            sponsor: fr.s,
-            requestId: parseInt(fr.pI), 
-            shares: fr.sR, 
-            loot: fr.lR, 
-            tribute: fr.tO, 
-            flags: fr.f,
-            yesVotes: fr.yV,
-            noVotes: fr.nV,
-            votingPeriod: parseInt(fr.vP),
-            gracePeriod: parseInt(fr.gP),
+            blockTimeStamp: fr.proposalSubmission,
+            date: makeTime(fr.proposalSubmission), 
+            applicant: fr.applicant, 
+            proposer: fr.proposer,
+            sponsor: fr.sponsor,
+            requestId: parseInt(fr._id), 
+            shares: fr.sharesRequested, 
+            loot: fr.lootRequested, 
+            tribute: fr.tributeOffered, 
+            flags: fr.flags,
+            yesVotes: fr.yesVote,
+            noVotes: fr.noVote,
+            funding: fr.paymentRequested,
+            votingPeriod: parseInt(fr.votingPeriod),
+            gracePeriod: parseInt(fr.gracePeriod),
             status: status,
-            startingPeriod: parseInt(fr.sP),
+            startingPeriod: parseInt(fr.startingPeriod),
             proposalType: proposalType,
             isGracePeriod: isGracePeriod,
             isVotingPeriod: isVotingPeriod,
@@ -421,25 +588,26 @@ async function handleNoVotingAction(proposalIdentifier) {
           }])
         }
 
-        if(status == 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && currentPeriod > parseInt(fr.sP) && isVotingPeriod == false && isGracePeriod == false){
+        if(status == 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && currentPeriod > parseInt(fr.startingPeriod) && isVotingPeriod == false && isGracePeriod == false){
         
           queueProposals.push({
-            blockTimeStamp: fr.pS,
-            date: makeTime(fr.pS),
-            applicant: fr.a, 
-            proposer: fr.dK,
-            sponsor: fr.s,
-            requestId: parseInt(fr.pI),
-            shares: fr.sR, 
-            loot: fr.lR, 
-            tribute: fr.tO, 
-            flags: fr.f,
-            yesVotes: fr.yV,
-            noVotes: fr.nV,
-            votingPeriod: parseInt(fr.vP),
-            gracePeriod: parseInt(fr.gP),
+            blockTimeStamp: fr.proposalSubmission,
+            date: makeTime(fr.proposalSubmission),
+            applicant: fr.applicant, 
+            proposer: fr.proposer,
+            sponsor: fr.sponsor,
+            requestId: parseInt(fr._id),
+            shares: fr.sharesRequested, 
+            loot: fr.lootRequested, 
+            tribute: fr.tributeOffered, 
+            flags: fr.flags,
+            yesVotes: fr.yesVote,
+            funding: fr.paymentRequested,
+            noVotes: fr.noVote,
+            votingPeriod: parseInt(fr.votingPeriod),
+            gracePeriod: parseInt(fr.gracePeriod),
             status: status,
-            startingPeriod: parseInt(fr.sP),
+            startingPeriod: parseInt(fr.startingPeriod),
             proposalType: proposalType,
             isGracePeriod: isGracePeriod,
             isVotingPeriod: isVotingPeriod,
@@ -451,22 +619,23 @@ async function handleNoVotingAction(proposalIdentifier) {
 
         if(status == 'Processed' || status != 'Cancelled' && (status =='Passed' || status == 'Not Passed')){
           processedProposals.push([{
-            blockTimeStamp: fr.pS,
-            date: makeTime(fr.pS),
-            applicant: fr.a, 
-            proposer: fr.dK,
-            sponsor: fr.s,
-            requestId: parseInt(fr.pI), 
-            shares: fr.sR, 
-            loot: fr.lR, 
-            tribute: fr.tO, 
-            flags: fr.f,
-            yesVotes: fr.yV,
-            noVotes: fr.nV,
-            votingPeriod: parseInt(fr.vP),
-            gracePeriod: parseInt(fr.gP),
+            blockTimeStamp: fr.proposalSubmission,
+            date: makeTime(fr.proposalSubmission),
+            applicant: fr.applicant, 
+            proposer: fr.proposer,
+            sponsor: fr.sponsor,
+            requestId: parseInt(fr._id), 
+            shares: fr.sharesRequested, 
+            loot: fr.lootRequested, 
+            tribute: fr.tributeOffered,
+            funding: fr.paymentRequested, 
+            flags: fr.flags,
+            yesVotes: fr.yesVote,
+            noVotes: fr.noVote,
+            votingPeriod: parseInt(fr.votingPeriod),
+            gracePeriod: parseInt(fr.gracePeriod),
             status: status,
-            startingPeriod: parseInt(fr.sP),
+            startingPeriod: parseInt(fr.startingPeriod),
             proposalType: proposalType,
             isGracePeriod: isGracePeriod,
             isVotingPeriod: isVotingPeriod,
@@ -485,10 +654,11 @@ async function handleNoVotingAction(proposalIdentifier) {
     }
     // process queued proposals
     if(propObject.queueProposals && propObject.queueProposals.length > 0){
+      console.log('queue', propObject.queueProposals)
       for(let i=0; i < propObject.queueProposals.length; i++) {
         try{
           if(propObject.queueProposals[i].status !== 'Processed' && propObject.queueProposals[i].status !== 'Passed' && propObject.queueProposals[i].status !== 'Not Passed'){
-          await handleProcessAction(propObject.queueProposals[i].requestId)
+          await handleProcessAction(propObject.queueProposals[i].requestId, propObject.queueProposals[i].proposalType)
           }
         } catch (err) {
           console.log(err)
@@ -503,7 +673,7 @@ async function handleNoVotingAction(proposalIdentifier) {
     Members = allMemberInfo.map((fr, i) => {
       return (
         <MemberCard 
-          key={i}
+          key={fr._id}
           name={fr.delegateKey}
           shares={fr.shares}
           memberCount={memberCount}
@@ -516,6 +686,7 @@ async function handleNoVotingAction(proposalIdentifier) {
   let Proposals
   if (proposalList && proposalList.length > 0 && tabValue == '2') {
     Proposals = proposalList.map((fr) => {
+      console.log('next fr', fr)
       return (
         <ProposalCard
           key={fr[0].requestId} 
@@ -529,13 +700,13 @@ async function handleNoVotingAction(proposalIdentifier) {
           requestId={fr[0].requestId}
           shares={fr[0].shares}
           tribute={fr[0].tribute}
+          funding={fr[0].funding}
           loot={fr[0].loot}
           status={fr[0].status}
           accountId={accountId}
           cancelFinish={cancelFinish}
-          sponsorFinish={sponsorFinish}
           tributeToken={tributeToken}
-          getCurrentPeriod={getCurrentPeriod}
+          currentPeriod={currentPeriod}
           handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
           handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
@@ -561,6 +732,7 @@ async function handleNoVotingAction(proposalIdentifier) {
           requestId={fr[0].requestId}
           shares={fr[0].shares}
           tribute={fr[0].tribute}
+          funding={fr[0].funding}
           loot={fr[0].loot}
           status={fr[0].status}
           accountId={accountId}
@@ -571,6 +743,7 @@ async function handleNoVotingAction(proposalIdentifier) {
           votingPeriod={fr[0].votingPeriod}
           currentPeriod={currentPeriod}
           periodDuration={periodDuration}
+          done={done}
           handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
           handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
@@ -596,6 +769,7 @@ async function handleNoVotingAction(proposalIdentifier) {
           proposalType={fr[0].proposalType}
           proposer={fr[0].proposer}
           sponsor={fr[0].sponsor}
+          funding={fr[0].funding}
           requestId={fr[0].requestId}
           shares={fr[0].shares}
           tribute={fr[0].tribute}
@@ -676,9 +850,19 @@ async function handleNoVotingAction(proposalIdentifier) {
       </TabPanel>
     </TabContext>
 
+       
+    <Snackbar open={snackBarOpen} autoHideDuration={4000} onClose={snackBarHandleClose}>
+    <Alert onClose={snackBarHandleClose} severity={severity}>
+      {severity=='success' ? successMessage : errorMessage}
+    </Alert>
+    </Snackbar>
+
+    
     {memberProposalDetailsEmptyClicked ? <MemberProposalForm
       contract={contract}
       memberProposalId={memberProposalId}
+      memberProposalType={memberProposalType}
+      status={memberProposalStatus}
       accountId={accountId}
       handleProposalDetailsEmptyClickState={handleMemberProposalDetailsEmptyClickState}  
       handleTabValueState={handleTabValueState}/> : null }
@@ -686,7 +870,9 @@ async function handleNoVotingAction(proposalIdentifier) {
     {memberProposalDetailsClicked ? <MemberProposalDetails
       contract={contract}
       memberStatus={memberStatus}
+      memberProposalType={memberProposalType}
       memberProposalId={memberProposalId}
+      status={memberProposalStatus}
       proposalComments={proposalComments}
       handleProposalDetailsClickState={handleMemberProposalDetailsClickState}  
       handleTabValueState={handleTabValueState}/> : null }
@@ -694,6 +880,7 @@ async function handleNoVotingAction(proposalIdentifier) {
     {fundingProposalDetailsEmptyClicked ? <FundingProposalForm
       contract={contract}
       fundingProposalId={fundingProposalId}
+      status={fundingProposalStatus}
       accountId={accountId}
       handleProposalDetailsEmptyClickState={handleFundingProposalDetailsEmptyClickState}  
       handleTabValueState={handleTabValueState}/> : null }
@@ -703,6 +890,7 @@ async function handleNoVotingAction(proposalIdentifier) {
       memberStatus={memberStatus}
       fundingProposalId={fundingProposalId}
       proposalComments={proposalComments}
+      status={fundingProposalStatus}
       handleProposalDetailsClickState={handleFundingProposalDetailsClickState}  
       handleTabValueState={handleTabValueState}/> : null }
 
@@ -712,13 +900,14 @@ async function handleNoVotingAction(proposalIdentifier) {
       handleGuildBalanceChanges={handleGuildBalanceChanges}
       handleEscrowBalanceChanges={handleEscrowBalanceChanges}
       handleSponsorConfirmationClickState={handleSponsorConfirmationClickState} 
-      handleSponsorAction={handleSponsorAction}
-      sponsorFinish={sponsorFinish}
       handleTabValueState={handleTabValueState} 
       accountId={accountId} 
       depositToken={depositToken}
       getCurrentPeriod={getCurrentPeriod}
       proposalIdentifier={proposalIdentifier}
+      handleSnackBarOpen={handleSnackBarOpen}
+      handleErrorMessage={handleErrorMessage}
+      handleSuccessMessage={handleSuccessMessage}
       proposalDeposit={proposalDeposit}/> : null }
 
     {rageQuitClicked ? <RageQuit

@@ -19,7 +19,6 @@ class DAO {
                 'getTokenCount',
                 'getInit',
                 'getCurrentPeriod',
-                'getAllProposalEvents',
                 'getSummoner',
                 'getProposalFlags',
                 'getGuildTokenBalances',
@@ -41,7 +40,13 @@ class DAO {
                 'getCommentLength',
                 'getAllComments',
                 'getProposalComments',
-                'getAllMemberInfo'
+                'getAllMemberInfo',
+                'getTotalShares',
+                'getProposalsLength',
+                'getInitEventsLength',
+                'getTotalMembers',
+                'getProposal',
+                'getSummonTime'
             ],
             // Change methods can modify the state. But you don't receive the returned value when called.
             changeMethods: [

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { useForm } from 'react-hook-form'
+import { summonEvent } from '../../../../utils/summonEvents'
+import { memberEvent } from '../../../../utils/memberEvent'
 
 // Material UI components
 import TextField from '@material-ui/core/TextField'
@@ -47,11 +49,9 @@ export default function Initialize(props) {
     const classes = useStyles()
     const { register, handleSubmit, watch, errors } = useForm()
 
-    const { handleInitChange, accountId, contract, initialized } = props
+    const { handleInitChange, accountId, contract } = props
     
     const [finished, setFinish] = useState(false)
-    const [loaded, setLoaded] = useState(false)
-
    
     useEffect(
       () => {
@@ -61,18 +61,22 @@ export default function Initialize(props) {
     const onSubmit = async (values) => {
         event.preventDefault()
         setFinish(false)
-        const { periodDuration, votingPeriodLength, gracePeriodLength, dilutionBound, proposalDeposit, processingReward } = values
+        const { periodDuration, votingPeriodLength, gracePeriodLength, dilutionBound, proposalDeposit } = values
         console.log('values', values)
      
-        let finisher = await contract.init({
+        let summonTime = await contract.init({
                             _periodDuration: parseInt(periodDuration),
                             _votingPeriodLength: parseInt(votingPeriodLength),
                             _gracePeriodLength: parseInt(gracePeriodLength),
                             _proposalDeposit: proposalDeposit,
                             _dilutionBound: parseInt(dilutionBound)
                         }, process.env.DEFAULT_GAS_VALUE)
-        if(finisher) {
-          setFinish(finisher)
+        let totalMembers = await contract.getTotalMembers()
+        let id = parseInt(totalMembers)
+        if(summonTime && id) {
+          await summonEvent.recordSummonEvent('1', accountId, ['Ⓝ'], summonTime, periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound, summonTime)
+          await memberEvent.recordMemberEvent(id, accountId, '1', '0', true, 0, 0, summonTime, summonTime)
+          setFinish(true)
           handleInitChange(true)
         }
     }
@@ -81,7 +85,7 @@ export default function Initialize(props) {
       return(
         <Grid container alignItems="center" justify="center">
           <Grid item xs={6} sm={6} md={6} lg={6} xl={6} >
-            <Typography component="h2">Just setting things up, please wait a moment.</Typography>
+            <Typography component="h2">Getting things ready, please wait a moment.</Typography>
             <LinearWithValueLabel />
           </Grid>
         </Grid>

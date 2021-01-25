@@ -28,6 +28,26 @@
     SHOW_PRERELEASE_WARNING = "no"
     MIXPANEL_TOKEN = "4a10180da7af8d6d0728154d535aa7bb"
     SENTRY_PROJECT = "mainnet-wallet"
+    CONTRACT_NAME = personas1.vitalpointai.testnet
+    PERSONAS_CONTRACT = personas1.vitalpointai.testnet
+    DID_CONTRACT = did.vitalpointai.testnet
+    DAO_CONTRACT = near-dao.vitalpointai.testnet
+    DAO_CONTRACT_PRIV_KEY = ed25519:3MRkm1wadRdzZoxDm1MqJJ33zQ27yVS5wbwnCHiuh3T8bpdGQjwmCkWhMQuV9g4xNW5UL5M4LJS3MMvE1z2pSU9J
+    DEFAULT_GAS_VALUE = 300000000000000
+    NODE_ENV = testnet
+
+    APP_ID = vp-personas
+    THREADDB_APPIDENTITY_STRING = appid
+    THREADDB_APP_THREADID = apptId
+    THREADDB_APPTOKEN_STRING = apptok
+
+    THREADDB_IDENTITY_STRING = id
+    THREADDB_USER_THREADID = tId
+    THREADDB_TOKEN_STRING = tok
+
+    APPID = vp-personas
+    APP_TITLE = Vital Point Personas
+    APP_TITLE_ID = vppersona-memberId
 
 [[headers]]
     for = "/*"

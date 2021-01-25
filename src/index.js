@@ -3,7 +3,7 @@ import "regenerator-runtime/runtime";
 import React from 'react'
 import ReactDOM from 'react-dom'
 
-import { initSentry } from './utils/sentry'
+//import { initSentry } from './utils/sentry'
 
 import { createStore } from 'redux'
 import { Provider } from 'react-redux'
@@ -15,7 +15,7 @@ import createMiddleware from './middleware'
 
 import Routing from './components/Routing'
 
-initSentry();
+//initSentry();
 
 const history = createBrowserHistory()
 

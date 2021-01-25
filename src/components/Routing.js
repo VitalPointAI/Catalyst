@@ -51,6 +51,7 @@ import GlobalStyle from './GlobalStyle'
 import { SetupSeedPhraseWithRouter } from './accounts/SetupSeedPhrase'
 import { SetupImplicitWithRouter } from './accounts/SetupImplicit'
 import  AddFields from './schema-builder/AddFields'
+import { handleClearAlert} from '../utils/alerts'
 const theme = {}
 
 const PATH_PREFIX = process.env.PUBLIC_URL
@@ -93,8 +94,12 @@ function Routing(props) {
     
     const activeLang = localStorage.getItem("languageCode") || languages[0].code
 
+   
     useEffect(
         () => {
+            let isMounted = true; // note this flag denote mount status
+
+            if(isMounted){
             props.initialize({
                 languages,
                 options: {
@@ -112,34 +117,34 @@ function Routing(props) {
             props.addTranslationForLanguage(translations_zh_hant, "zh-hant")
         
             props.setActiveLanguage(activeLang)
-            // this.addTranslationsForActiveLanguage(defaultLanguage)
-
-            async function fetchData() {
+            //this.addTranslationsForActiveLanguage(defaultLanguage)
+            }
+           
                 handleRefreshUrl()
                 refreshAccount()
-                await initiateDB()
-                await initiateAppDB()
-               
-            }
-
-            fetchData()
-                .then((res) => {
-                })
+           
+                async function fetchData() {
+               //     await initiateDB()
+               //     await initiateAppDB()
+                   
+                }
+    
+                fetchData()
+                    .then((res) => {
+                    })
             
             history.listen(async () => {
+               
                 handleRedirectUrl(props.router.location)
                 handleClearUrl()
                 if (!WALLET_CREATE_NEW_ACCOUNT_FLOW_URLS.find((path) => props.router.location.pathname.indexOf(path) > -1)) {
                     await refreshAccount()
                 }
-    
-                const { state: { globalAlertPreventClear } = {} } = history.location
-                if (!globalAlertPreventClear && !props.account.globalAlertPreventClear) {
-                    clearAlert()
-                }
-    
-                clear()
+                
+               handleClearAlert()
+                
             })
+
 
             // const prevLangCode = prevProps.activeLanguage && prevProps.activeLanguage.code
             // const curLangCode = props.activeLanguage && props.activeLanguage.code
@@ -149,7 +154,7 @@ function Routing(props) {
             //     // this.addTranslationsForActiveLanguage(curLangCode)
             //     localStorage.setItem("languageCode", curLangCode)
             // }
-
+            return () => { isMounted = false } // use effect cleanup to set flag false if unmounted
         },
         []
     )
@@ -319,7 +324,6 @@ const { search } = props.router.location
                                     exact
                                     path='/proposals'
                                     component={Dao}
-                                   
                                 />
                                 <PrivateRoute
                                     path='/staking'

@@ -2,8 +2,13 @@ import 'regenerator-runtime/runtime'
 //import 'fontsource-roboto';
 import React, { useState, useEffect } from 'react'
 import { dao } from '../../utils/dao'
+import { proposalEvent } from '../../utils/proposalEvents'
+import { summonEvent } from '../../utils/summonEvents'
+import { memberEvent } from '../../utils/memberEvent'
 import { daoContractSend } from '../../utils/daoContractSender'
 import { makeStyles } from '@material-ui/core/styles'
+import { TaskTimer } from 'tasktimer'
+import { initiateDB, initiateAppDB } from '../../utils/threadsDB'
 
 // Material UI imports
 import Typography from '@material-ui/core/Typography'
@@ -12,7 +17,7 @@ import Grid from '@material-ui/core/Grid'
 
 // DApp component imports
 import Initialize from './components/Initialize/initialize'
-import TokenData from './components/TokenData/tokenData'
+import AppFramework from './components/AppFramework/appFramework'
 
 // import stylesheets
 import './global.css'
@@ -52,8 +57,12 @@ export default function Dao(props) {
   const [contract, setContract] = useState()
   const [daoContractSender, setDaoContractSender] = useState()
   const [allMemberInfo, setAllMemberInfo] = useState()
+  const [totalShares, setTotalShares] = useState()
+  const [initEvents, setInitEvents] = useState()
 
   const classes = useStyles()
+
+  const timer = new TaskTimer(1000)
 
   function handleInitChange(newState) {
     setInit(newState)
@@ -67,14 +76,14 @@ export default function Dao(props) {
     setSummoner(newSummoner)
   }
 
-  // async function getCurrentPeriod() {
-  //   try {
-  //     let period = await contract.getCurrentPeriod()
-  //     setCurrentPeriod(period)
-  //   } catch (err) {
-  //     console.log('get period issue', err)
-  //   }
-  // }
+  async function refreshCurrentPeriod() {
+    try {
+      let period = await contract.getCurrentPeriod()
+      setCurrentPeriod(period)
+    } catch (err) {
+      console.log('get period issue', err)
+    }
+  }
 
   async function refreshProposalEvents() {
     try {
@@ -84,23 +93,43 @@ export default function Dao(props) {
       }
     } catch (err) {
       console.log('error retrieving proposal events')
-    }
+    } 
+  }
+
+  async function refreshEscrowBalance() {
     try {
-      let period = await contract.getCurrentPeriod()
-      setCurrentPeriod(period)
+      let currentEscrowBalance = await contract.getEscrowTokenBalances()
+      if(currentEscrowBalance) {
+        setEscrowBalance(currentEscrowBalance)
+      }
+      return true
     } catch (err) {
-      console.log('get period issue', err)
+      return false
+    }
+  }
+
+  async function refreshGuildBalance() {
+    try {
+      let currentGuildBalance = await contract.getGuildTokenBalances()
+      if(currentGuildBalance) {
+        setGuildBalance(currentGuildBalance)
+      }
+      return true
+    } catch (err) {
+      return false
     }
   }
 
   async function handleProposalEventChange() {
     try {
-      let currentProposalEvents = await contract.getAllProposalEvents()
-      if(currentProposalEvents.length > proposalEvents.length){
-        setProposalEvents(currentProposalEvents)
-      }
+      let proposalLength = await contract.getProposalsLength()
+      let currentProposalEvents = await proposalEvent.retrieveAllEvents(proposalLength, 'ProposalEvents')
+      //let currentProposalEvents = await contract.getAllProposalEvents()
+      console.log('currentproposalevents', currentProposalEvents)
+      setProposalEvents(currentProposalEvents)
       return true
     } catch (err) {
+      console.log('error retrieving proposal events', err)
       return false
     }
   }
@@ -158,152 +187,290 @@ export default function Dao(props) {
       // in this case, we only care to query the contract when signed in
      //if (wallet.connection.isSignedIn()) {
         
-      //  setLoginState(true)
+      //  setLoginState(true)      
+        let isMounted = true; // note this flag denote mount status
 
-        async function fetchContract() {
+        async function fetchData() {
+
+          await initiateDB()
+          await initiateAppDB()
+
           let accountObj = await dao.loadAccountObject()
+          let accountId = accountObj.accountId
+          if(isMounted) {
           setAccountId(accountObj.accountId)
-          let daoContract = await dao.loadDAO()
-          handleContractChange(daoContract)
+          }
+          let contract = await dao.loadDAO()
+          if(isMounted) {
+          handleContractChange(contract)
+          }
 
           let daoContractSender = await daoContractSend.loadDAO()
+          if(isMounted) {
           setDaoContractSender(daoContractSender)
-          return true
-        }
+          }
 
-        async function fetchInit() {         
           try {
             let isInit = await contract.getInit({})
             if(isInit == 'done') {
+              if(isMounted) {
               handleInitChange(true)
+              }
             } else {
+              if(isMounted) {
               handleInitChange(false)
+              }
             }
           } catch (err) {
             console.log('initilization not complete', err)
           }
-        }
 
-        async function fetchData() {
-
-          await fetchContract()
-
-          await fetchInit()
           
+          if(currentPeriod == undefined || currentPeriod == 0){
+            try {
+              let period = await contract.getCurrentPeriod()
+              if(isMounted) {
+                setCurrentPeriod(period)
+              }
+            } catch (err) {
+              console.log('get period issue', err)
+            }
+          }
+
+          try{
+
             try {
               let result = await contract.getMemberStatus({member: accountId})
+              if(isMounted) {
               setMemberStatus(result)
+              }
             } catch (err) {
               console.log('no member status yet')
+             
             }
 
             try {
               let token = await contract.getDepositToken()
+              if(isMounted) {
               setDepositToken(token)
+              }
             } catch (err) {
               console.log('no deposit token yet')
+             
             }
                 
             try {
               let deposit = await contract.getProposalDeposit()
+              if(isMounted) {
               setProposalDeposit(deposit)
+              }
             } catch (err) {
               console.log('no proposal deposit yet')
+             
             }
 
             try {
               let duration = await contract.getPeriodDuration()
+              if(isMounted) {
               setPeriodDuration(duration)
+              }
             } catch (err) {
               console.log('no period duration yet')
-              
+             
             }
                 
             try {
               let result1 = await contract.getUserTokenBalance({user: accountId, token: depositToken})
+              if(isMounted) {
               setUserBalance(result1)
+              }
             } catch (err) {
               console.log('no user token balance yet')
-              
+             
             }
 
             try {
               let result2 = await contract.getMemberInfo({member: accountId})
+              if(isMounted) {
               setMemberInfo(result2)
+              }
             } catch (err) {
               console.log('no member info yet')
-              
+             
             }
 
-            try {
-              let result2 = await contract.getAllMemberInfo()
-              console.log('result2', result2)
-              setAllMemberInfo(result2)
-            } catch (err) {
-              console.log('no list of members yet', err)
-              
-            }
+            // try {
+            //   let result2 = await contract.getAllMemberInfo()
+            //   if(isMounted) {
+            //   setAllMemberInfo(result2)
+            //   }
+            // } catch (err) {
+            //   console.log('no list of members yet', err)
+             
+            // }
             
             try {
               let owner = await contract.getSummoner()
+              if(isMounted) {
               setSummoner(owner)
+              }
             } catch (err) {
               console.log('no summoner yet')
-              
+             
+            }
+
+            try {
+              let shares = await contract.getTotalShares()
+              console.log('shares', shares)
+              if(isMounted) {
+              setTotalShares(shares)
+              }
+            } catch (err) {
+              console.log('no total shares yet')
+             
             }
 
             try {
               let balance = await contract.getEscrowTokenBalances()
+              if(isMounted) {
               setEscrowBalance(balance)
+              }
             } catch (err) {
               console.log('no escrow balance')
+             
             }
 
             try{
               let allComments = await contract.getAllComments()
+              if(isMounted) {
               setProposalComments(allComments)
+              }
             } catch (err) {
                 console.log('no comments')
+               
             }
 
             try {
               let balance = await contract.getGuildTokenBalances()
+              if(isMounted) {
               setGuildBalance(balance)
+              }
             } catch (err) {
               console.log('no guild balance')
+            
             }
 
             try {
-              let requests = await contract.getAllProposalEvents()
-              if(requests.length != 0) {
-                  setProposalEvents(requests)
+              let proposalLength = await contract.getProposalsLength()
+              console.log('proposals length', proposalLength)
+
+              let currentProposalEvents = await proposalEvent.retrieveAllEvents(proposalLength)
+              console.log('proposal events', currentProposalEvents)
+
+              if(currentProposalEvents.length != 0) {
+                if(isMounted) {
+                  setProposalEvents(currentProposalEvents)
+                }
               }
             } catch (err) {
-              console.log('error retrieving proposal events')
+              console.log('error retrieving proposal events', err)
             }
-            return true
-         
-        }
 
+            try {
+              let initEventsLength = await contract.getInitEventsLength()
+              console.log('init events length', initEventsLength)
+
+              let currentInitEvents = await summonEvent.retrieveAllSummonEvents(initEventsLength)
+              console.log('init events', currentInitEvents)
+
+              if(currentInitEvents.length != 0) {
+                if(isMounted) {
+                  setInitEvents(currentInitEvents)
+                }
+              }
+            } catch (err) {
+              console.log('error retrieving init events', err)
+            }
+
+            try {
+              let memberEventsLength = await contract.getTotalMembers()
+              console.log('member events length', parseInt(memberEventsLength))
+
+              let currentMemberEvents = await memberEvent.retrieveAllMemberEvents(parseInt(memberEventsLength))
+              console.log('member events', currentMemberEvents)
+
+              if(currentMemberEvents.length != 0) {
+                if(isMounted) {
+                  setAllMemberInfo(currentMemberEvents)
+                }
+              }
+            } catch (err) {
+              console.log('error retrieving member events', err)
+            }
+
+            return true
+          } catch (err) {
+            console.log('not done', err)
+            return false
+          }
+          return true
+        }
+        
+       
         fetchData()
           .then((res) => {
+            if(isMounted) {
             res ? setDone(true) : setDone(false)
-            console.log('done', done)
-            console.log('initialized', initialized)
-        })
-        return function cleanup() {}
-  //    }
+            
+            }
+          })
+
+
+        return () => { isMounted = false } // use effect cleanup to set flag false if unmounted
+
     },
 
     // The second argument to useEffect tells React when to re-run the effect
     // it compares current value and if different - re-renders
-    [done, initialized]
+    [initialized]
   )
 
-  
+
   if(done && initialized) {
-    window.setInterval(refreshProposalEvents, 30000)
+    // if(periodDuration == undefined){
+    //   let periodDuration = 10
+    // }
+    // timer.add([
+    //   {
+    //     id: 'refreshCurrentPeriod',
+    //     tickInterval: periodDuration,
+    //     totalRuns: 0,
+    //     callback(task) {
+    //       refreshCurrentPeriod()
+    //     }
+    //   }
+    // ])
+    // timer.start()
+    let i = 1
+    setTimeout(async function refreshCurrentPeriod() {
+      let start = true
+      try {
+        let period = await contract.getCurrentPeriod()
+        setCurrentPeriod(period)
+      } catch (err) {
+        console.log('get period issue', err)
+      }
+      start = false
+      i++
+      if(start == false){
+      setTimeout(refreshCurrentPeriod, 30000)
+      }
+    }, 30000)
+
+
   }
+  
+  
 
   // if not done loading all the data, show a progress bar, otherwise show the content
 
@@ -330,7 +497,7 @@ export default function Dao(props) {
       )
   } else {
       return (
-        <TokenData
+        <AppFramework
           handleSummonerChange={handleSummonerChange}
           done={done}
           guildBalance={guildBalance}
@@ -359,8 +526,8 @@ export default function Dao(props) {
           daoContract={daoContractSender}
           handleInitChange={handleInitChange}
           allMemberInfo={allMemberInfo}
-         // getCurrentPeriod={getCurrentPeriod}
-          refreshProposalEvents={refreshProposalEvents}
+          totalShares={totalShares}
+          initEvents={initEvents}
           />
       )
   }

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
+import { proposalEvent } from '../../../../utils/proposalEvents'
+import { utils } from 'near-api-js'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -11,18 +13,6 @@ import DialogContent from '@material-ui/core/DialogContent'
 import DialogContentText from '@material-ui/core/DialogContentText'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import LinearProgress from '@material-ui/core/LinearProgress'
-import Stepper from '@material-ui/core/Stepper'
-import Step from '@material-ui/core/Step'
-import StepLabel from '@material-ui/core/StepLabel'
-import StepContent from '@material-ui/core/StepContent'
-import Typography from '@material-ui/core/Typography'
-import Card from '@material-ui/core/Card'
-import CardActions from '@material-ui/core/CardActions'
-import CardHeader from '@material-ui/core/CardHeader'
-import CardContent from '@material-ui/core/CardContent'
-import Chip from '@material-ui/core/Chip'
-import Paper from '@material-ui/core/Paper'
-
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -40,6 +30,11 @@ const useStyles = makeStyles((theme) => ({
       marginTop: theme.spacing(2),
     },
   },
+  rootForm: {
+    '& > *': {
+      margin: theme.spacing(1),
+    },
+    },
   actionsContainer: {
     marginBottom: theme.spacing(2),
   },
@@ -50,80 +45,124 @@ const useStyles = makeStyles((theme) => ({
 
 
 export default function GuildKickProposal(props) {
-  const [open, setOpen] = useState(true)
-  const [finished, setFinished] = useState(true)
+  const[open, setOpen] = useState(true)
+  const[finish, setFinish] = useState(true)
+  const[memberKick, setMemberToKick] = useState('')
 
   const classes = useStyles()
   const { register, handleSubmit, watch, errors } = useForm()
+
   const { 
     handleGuildKickClickState, 
     handleProposalEventChange,
+    handleGuildBalanceChanges,
+    handleEscrowBalanceChanges,
+    handleSnackBarOpen,
+    handleErrorMessage,
+    handleSuccessMessage,
     accountId,
+    proposalDeposit,
+    depositToken,
+    daoContract,
     contract } = props
-
-  const handleClickOpen = () => {
-    setOpen(true)
-  };
 
   const handleClose = () => {
     handleGuildKickClickState(false)
-    setOpen(false)
-  };
+  }
+
+  const handleMemberToKickChange = (event) => {
+    setMemberToKick(event.target.value.toString())
+  }
+
+  async function handleCancelAction(proposalIdentifier) {
+    let finished = await daoContract.cancelProposal({
+        pI: proposalIdentifier
+        }, process.env.DEFAULT_GAS_VALUE, utils.format.parseNearAmount((parseInt(proposalDeposit)).toString()))
+    try{
+      let recorded = await proposalEvent.recordEvent(
+        finished.pI, finished.a, finished.p, finished.s, finished.sR, finished.lR, finished.tO, finished.tT, finished.pR, finished.pT, 
+        finished.sP, finished.yV, finished.nV, finished.f, finished.mT, finished.pS, finished.vP, finished.gP, finished.voteFinalized)
+        handleSuccessMessage('Successfully cancelled guild kick proposal.', 'success')
+        handleSnackBarOpen(true)
+      } catch (err) {
+        handleErrorMessage('There was a problem cancelling the guild kick proposal.', 'error')
+        handleSnackBarOpen(true)
+      }
+  }
+
 
   const onSubmit = async (values) => {
-    event.preventDefault()
-    console.log(errors)
-    setFinished(false)
-    const { memberToKick } = values
-    console.log('values', values)
- 
-    let finished = await contract.submitGuildKickProposal({
-                    memberToKick: memberToKick,
-                    }, process.env.DEFAULT_GAS_VALUE)
+    setFinish(false)
+    console.log('proposaldeposit', proposalDeposit)
+    let finished
+    try {
+     
+      finished = await contract.submitGuildKickProposal({
+                    memberToKick: memberKick, 
+                    proposalDeposit: proposalDeposit,
+                    depositToken: depositToken
+                    }, process.env.DEFAULT_GAS_VALUE, utils.format.parseNearAmount((parseInt(proposalDeposit)).toString()))
+      try {
+        let recorded = await proposalEvent.recordEvent(
+          finished.pI, finished.a, finished.p, finished.s, finished.sR, finished.lR, finished.tO, finished.tT, finished.pR, finished.pT, 
+          finished.sP, finished.yV, finished.nV, finished.f, finished.mT, finished.pS, finished.vP, finished.gP, finished.voteFinalized)
+          console.log('recorded', recorded)
+          if(recorded) {
+            handleSuccessMessage('Successfully submitted guild kick proposal.', 'success')
+            handleSnackBarOpen(true)
+          } else {
+            console.log('error recording guild kick')
+            await handleCancelAction(finished.pI)
+          }
+        } catch (err) {
+          console.log('error storing guild kick log', err)
+          await handleCancelAction(finished.pI)
+        }
+    } catch (err) {
+      handleErrorMessage('There was a problem adding the guild kick proposal.', 'error')
+      handleSnackBarOpen(true)
+    }
 
-    let changed = await handleProposalEventChange()
-    
-    if(finished && changed) {
-      setFinished(true)
+    if(finished) {
+      setFinish(true)
+      await handleProposalEventChange()
+      await handleGuildBalanceChanges()
+      await handleEscrowBalanceChanges()
       setOpen(false)
-      handleGuildKickClickState(false)
+      handleClose()
     }
 }
 
   return (
     <div>
      
-      <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" className={classes.root}>
+      <Dialog open={open} aria-labelledby="form-dialog-title">
         <DialogTitle id="form-dialog-title">Propose Member to Kick</DialogTitle>
-        <DialogContent>
-        {!finished ? <LinearProgress className={classes.progress} /> : (
-          <DialogContentText style={{marginBottom: 10}}>
-          Enter the account name of the member you wish to kick out.
-          </DialogContentText>)}
-            <div>
-          <TextField
-            margin="dense"
-            id="guildkick-proposal"
-            variant="outlined"
-            name="memberToKick"
-            label="Member to Kick Out"
-            placeholder="e.g. somemember.testnet"
-            inputRef={register({
-                required: true, 
-            })}
+        <DialogContent  className={classes.rootForm}>
+          <div>
+            <TextField
+              autoFocus
+              margin="dense"
+              id="guildkick-proposal"
+              variant="outlined"
+              name="memberKick"
+              label="Member to Kick"
+              helperText="enter NEAR account name of member you propose to kick out"
+              placeholder="someaccount.near"
+              value={memberKick}
+              onChange={handleMemberToKickChange}
+              inputRef={register({
+                  required: true,                        
+              })}
             />
-            {errors.memberToKick && <p style={{color: 'red'}}>You must enter a member account.</p>}
-            </div>
+        {errors.memberToKick && <p style={{color: 'red'}}>You must provide a valid NEAR account.</p>}
+        </div>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleSubmit(onSubmit)} color="primary" type="submit">
-            Submit Guild Kick Proposal
-          </Button>
-          <Button onClick={handleClose} color="primary">
-            Cancel
-          </Button>
+        {finish ? <><Button onClick={handleSubmit(onSubmit)} color="primary" type="submit">Submit Proposal</Button></> : <LinearProgress className={classes.progress} />}
+        {finish ? <><Button onClick={handleClose} color="primary">Cancel</Button></> : null }
         </DialogActions>
       </Dialog>
     </div>
-  );
+  )
 }

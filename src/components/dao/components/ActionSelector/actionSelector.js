@@ -8,9 +8,7 @@ import MemberProposal from '../MemberProposal/memberProposal'
 import VotingProposal from '../VotingRights/votingRightsProposal'
 
 // Material UI Components
-import Accordion from '@material-ui/core/Accordion'
-import AccordionSummary from '@material-ui/core/AccordionSummary'
-import AccordionDetails from '@material-ui/core/AccordionDetails'
+
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
@@ -24,7 +22,9 @@ import EmojiPeopleIcon from '@material-ui/icons/EmojiPeople';
 import MonetizationOnIcon from '@material-ui/icons/MonetizationOn';
 import ThumbUpAltIcon from '@material-ui/icons/ThumbUpAlt';
 import RemoveCircleIcon from '@material-ui/icons/RemoveCircle';
-import HowToVoteIcon from '@material-ui/icons/HowToVote';
+import HowToVoteIcon from '@material-ui/icons/HowToVote'
+import Snackbar from '@material-ui/core/Snackbar'
+import MuiAlert from '@material-ui/lab/Alert'
 
 
 const StyledMenu = withStyles({
@@ -76,19 +76,22 @@ export default function ActionSelector(props) {
   const [whiteListClicked, setWhiteListClicked] = useState(false)
   const [guildKickClicked, setGuildKickClicked] = useState(false)
   const [votingProposalClicked, setVotingProposalClicked] = useState(false)
-  const [expanded, setExpanded] = useState(false)
+  const [snackBarOpen, setSnackBarOpen] = useState(false)
+  const [errorMessage, setErrorMessage] = useState()
+  const [severity, setSeverity] = useState()
+  const [successMessage, setSuccessMessage] = useState()
+  
   
   const { 
     handleProposalEventChange,
     handleGuildBalanceChanges,
     handleEscrowBalanceChanges,
     handleTabValueState,
-    refreshProposalEvents,
     accountId,
     depositToken,
     tokenName,
-    minSharePrice,
     proposalDeposit,
+    daoContract,
     contract } = props
 
   const handleFundingProposalClick = () => {
@@ -118,7 +121,7 @@ export default function ActionSelector(props) {
   const handleMemberProposalClick = () => {
     handleExpanded()
     handleTabValueState('2')
-    setMemberProposalClicked(true)
+    handleMemberProposalClickState(true)
   };
 
   function handleWhiteListClickState(property) {
@@ -141,14 +144,38 @@ export default function ActionSelector(props) {
     setMemberProposalClicked(property)
   }
 
+  function handleErrorMessage(message, severity) {
+    setErrorMessage(message)
+    setSeverity(severity)
+  }
+
+  function handleSuccessMessage(message, severity) {
+    setSuccessMessage(message)
+    setSeverity(severity)
+  }
+
+  function handleSnackBarOpen(property) {
+    setSnackBarOpen(property)
+  }
+
   function handleExpanded() {
-  //  setExpanded(!expanded)
     setAnchorEl(null)
   }
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
+  
+  const snackBarHandleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackBarOpen(false);
+  };
+
+  function Alert(props) {
+    return <MuiAlert elevation={6} variant="filled" {...props} />
+  }
 
   return (
     <>
@@ -181,12 +208,6 @@ export default function ActionSelector(props) {
             </ListItemIcon>
             <ListItemText primary="Request Funding" />
           </StyledMenuItem>
-          <StyledMenuItem button onClick={handleWhiteListClick}>
-            <ListItemIcon>
-              <ThumbUpAltIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary="Whitelist Token" />
-          </StyledMenuItem>
           <StyledMenuItem button onClick={handleGuildKickClick}>
             <ListItemIcon>
               <RemoveCircleIcon fontSize="small" />
@@ -195,7 +216,12 @@ export default function ActionSelector(props) {
           </StyledMenuItem>
       </StyledMenu>
        
-    
+      <Snackbar open={snackBarOpen} autoHideDuration={4000} onClose={snackBarHandleClose}>
+      <Alert onClose={snackBarHandleClose} severity={severity}>
+        {severity=='success' ? successMessage : errorMessage}
+      </Alert>
+      </Snackbar>
+  
 
       {whiteListClicked ? <WhiteListProposal
       contract={contract}
@@ -218,7 +244,15 @@ export default function ActionSelector(props) {
       {guildKickClicked ? <GuildKickProposal
       contract={contract}
       handleProposalEventChange={handleProposalEventChange}
-      handleGuildKickClickState={handleGuildKickClickState} 
+      handleGuildKickClickState={handleGuildKickClickState}
+      handleGuildBalanceChanges={handleGuildBalanceChanges}
+      handleEscrowBalanceChanges={handleEscrowBalanceChanges}
+      depositToken={depositToken}
+      proposalDeposit={proposalDeposit}
+      daoContract={daoContract}
+      handleSnackBarOpen={handleSnackBarOpen}
+      handleErrorMessage={handleErrorMessage}
+      handleSuccessMessage={handleSuccessMessage}
       handleTabValueState={handleTabValueState}/> : null }
 
       {fundingProposalClicked ? <FundingProposal
@@ -229,6 +263,12 @@ export default function ActionSelector(props) {
       handleFundingProposalClickState={handleFundingProposalClickState}
       handleTabValueState={handleTabValueState}
       depositToken={depositToken}
+      proposalDeposit={proposalDeposit}
+      tokenName={tokenName}
+      handleSnackBarOpen={handleSnackBarOpen}
+      handleErrorMessage={handleErrorMessage}
+      handleSuccessMessage={handleSuccessMessage}
+      daoContract={daoContract}
       accountId={accountId}/> : null }
 
       {memberProposalClicked ? <MemberProposal
@@ -238,12 +278,14 @@ export default function ActionSelector(props) {
       handleEscrowBalanceChanges={handleEscrowBalanceChanges}
       handleMemberProposalClickState={handleMemberProposalClickState} 
       handleTabValueState={handleTabValueState}
-      refreshProposalEvents={refreshProposalEvents}
       accountId={accountId} 
       depositToken={depositToken}
       tokenName={tokenName}
-      proposalDeposit={proposalDeposit}
-      minSharePrice={minSharePrice}/> : null }
+      handleSnackBarOpen={handleSnackBarOpen}
+      handleErrorMessage={handleErrorMessage}
+      handleSuccessMessage={handleSuccessMessage}
+      daoContract={daoContract}
+      proposalDeposit={proposalDeposit}/> : null }
     </>
   );
 }

@@ -23,7 +23,7 @@ import Chip from '@material-ui/core/Chip'
 import Divider from '@material-ui/core/Divider'
 
 // Textile ThreadsDB components
-import { retrieveRecord } from '../../../../utils/threadsDB';
+import { retrieveRecord, retrieveAppRecord } from '../../../../utils/threadsDB';
 
 // CSS Styles
 
@@ -80,22 +80,27 @@ export default function FundingProposalDetails(props) {
         handleProposalDetailsClickState,
         fundingProposalId,
         memberStatus,
+        status,
         contract
     } = props
-
+console.log('status', status)
     useEffect(() => {
         async function fetchData() {
             setFinished(false)
-            let result = await retrieveRecord(fundingProposalId.toString(), 'FundingProposal')
+            let result = await retrieveAppRecord(fundingProposalId.toString(), 'FundingProposal')
+            if(!result){
+              let result = await retrieveRecord(fundingProposalId.toString(), 'FundingProposal')
+            }
+            if(result){
             setProposalId(fundingProposalId.toString())
             result.title ? setFundingProposalTitle(result.title) : setFundingProposalTitle('')
             result.details ? setFundingProposalDetails(result.details) : setFundingProposalDetails('')
             result.proposer ? setFundingProposalProposer(result.proposer) : setFundingProposalProposer(accountId)
             result.published ? setFundingProposalPublished(result.published) : setFundingProposalPublished(false)
+            }
 
             let comments = await contract.getProposalComments({proposalId: fundingProposalId.toString()})
             setProposalComments(comments)
-          console.log('proposalcomments ', proposalComments)
         }
        
         fetchData()
@@ -159,11 +164,6 @@ export default function FundingProposalDetails(props) {
                             <div dangerouslySetInnerHTML={{ __html: proposalDetails}}></div>
                         </Grid>
                     </Grid>
-                    <Grid container spacing={1}>
-                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                        {Comments}
-                    </Grid>
-                    </Grid>
                     </>)}
                 </DialogContent>
               <DialogActions>
@@ -186,12 +186,14 @@ export default function FundingProposalDetails(props) {
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                   {Comments}
               </Grid>
-              <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-              <Typography variant="h5" style={{marginLeft: '10px'}}>Leave a Comment/Ask a Question</Typography>
-                  <CommentForm
-                    proposalId = {proposalId}
-                  />
-              </Grid>
+              { status != 'Not Passed' && status != 'Passed' ? (
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                <Typography variant="h5" style={{marginLeft: '10px'}}>Leave a Comment/Ask a Question</Typography>
+                    <CommentForm
+                      proposalId = {proposalId}
+                    />
+                </Grid>
+              ) : null }
               </Grid>
               </AccordionDetails>
             </Accordion>

@@ -5,6 +5,7 @@ import Big from 'big.js'
 import { utils } from 'near-api-js'
 import InfoPopup from '../../../common/InfoPopup'
 import { Translate } from 'react-localize-redux'
+import { proposalEvent } from '../../../../utils/proposalEvents'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -22,6 +23,7 @@ import CardContent from '@material-ui/core/CardContent'
 import Grid from '@material-ui/core/Grid'
 import WarningIcon from '@material-ui/icons/WarningTwoTone'
 import Checkbox from '@material-ui/core/Checkbox'
+
 
 const BOATLOAD_OF_GAS = Big(3).times(10 ** 14).toFixed()
 
@@ -89,23 +91,21 @@ export default function MemberProposal(props) {
     handleProposalEventChange,
     handleGuildBalanceChanges,
     handleEscrowBalanceChanges,
-    refreshProposalEvents,
-    tokenName, 
+    handleSnackBarOpen,
+    handleErrorMessage,
+    handleSuccessMessage,
+    tokenName,
+    daoContract,
     depositToken,
     proposalDeposit,
     contract } = props
 
-  const handleClickOpen = () => {
-    setOpen(true)
-  };
-
   const handleClose = () => {
     handleMemberProposalClickState(false)
-    setOpen(false)
   };
 
   const handleApplicantChange = (event) => {
-    setShares(event.target.value.toString());
+    setApplicant(event.target.value.toString());
   };
 
   const handleSharesRequestedChange = (event) => {
@@ -120,35 +120,70 @@ export default function MemberProposal(props) {
     setConfirm(event.target.checked);
   };
 
+  async function handleCancelAction(proposalIdentifier, tribute) {
+    let finished = await daoContract.cancelProposal({
+        pI: proposalIdentifier
+        }, process.env.DEFAULT_GAS_VALUE, utils.format.parseNearAmount((parseInt(proposalDeposit)+parseInt(tribute)).toString()))
+    try{
+      let recorded = await proposalEvent.recordEvent(
+        finished.pI, finished.a, finished.p, finished.s, finished.sR, finished.lR, finished.tO, finished.tT, finished.pR, finished.pT, 
+        finished.sP, finished.yV, finished.nV, finished.f, finished.mT, finished.pS, finished.vP, finished.gP, finished.voteFinalized)
+        handleSuccessMessage('Successfully cancelled membership proposal.', 'success')
+        handleSnackBarOpen(true)
+      } catch (err) {
+        handleErrorMessage('There was a problem cancelling the membership proposal.', 'error')
+        handleSnackBarOpen(true)
+      }
+  }
+
   const onSubmit = async (values) => {
-    event.preventDefault()
     setFinished(false)
-    
-    let finished = await contract.submitProposal({
-                    a: applicant,
-                    sR: shares,
-                    lR: '0',
-                    tO: tribute,
-                    tT: depositToken,
-                    pR: '0',
-                    pT: depositToken
-                    }, BOATLOAD_OF_GAS, utils.format.parseNearAmount((parseInt(tribute) + parseInt(proposalDeposit)).toString()))
-                  
-    let changed = await handleProposalEventChange()
-    await handleGuildBalanceChanges()
-    await handleEscrowBalanceChanges()
-    await refreshProposalEvents()
-    
-    if(finished && changed) {
+    let finished
+    try{
+      finished = await contract.submitProposal({
+                      a: applicant,
+                      sR: shares,
+                      lR: '0',
+                      tO: tribute,
+                      tT: depositToken,
+                      pR: '0',
+                      pT: depositToken
+                      }, BOATLOAD_OF_GAS, utils.format.parseNearAmount((parseInt(tribute) + parseInt(proposalDeposit)).toString()))
+
+      console.log('finished', finished)
+      try{
+        let recorded = await proposalEvent.recordEvent(
+          finished.pI, finished.a, finished.p, finished.s, finished.sR, finished.lR, finished.tO, finished.tT, finished.pR, finished.pT, 
+          finished.sP, finished.yV, finished.nV, finished.f, finished.mT, finished.pS, finished.vP, finished.gP, finished.voteFinalized)
+          if(recorded) {
+            handleSuccessMessage('Successfully added member proposal.', 'success')
+            handleSnackBarOpen(true)
+          } else {
+            console.log('error recording proposal - reverting')
+            await handleCancelAction(finished.pI, finished.tO)
+          }
+        } catch (err) {
+          console.log('error storing proposal log - reverting', err)
+          await handleCancelAction(finished.pI, finished.tO)
+        }
+    } catch (err) {
+      handleErrorMessage('There was a problem adding the member proposal.', 'error')
+      handleSnackBarOpen(true)
+    }
+
+    if(finished) {
       setFinished(true)
+      await handleProposalEventChange()
+      await handleGuildBalanceChanges()
+      await handleEscrowBalanceChanges()
       setOpen(false)
-      handleMemberProposalClickState(false)
+      handleClose()
     }
 }
 
   return (
     <div>
-      <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+      <Dialog open={open} aria-labelledby="form-dialog-title">
         <DialogTitle id="form-dialog-title">Request Membership For</DialogTitle>
         <DialogContent className={classes.rootForm}>
           <div>
@@ -181,10 +216,7 @@ export default function MemberProposal(props) {
                     value={shares}
                     onChange={handleSharesRequestedChange}
                     inputRef={register({
-                        required: true,
-                        min: 1,
-                        max: 10
-                        
+                        required: true                        
                     })}
                     InputProps={{
                         endAdornment: <>
@@ -193,7 +225,7 @@ export default function MemberProposal(props) {
                         </>,
                     }}
                 />
-                {errors.sharesRequested && <p style={{color: 'red'}}>You must provide a number between 1 and 10.</p>}
+                {errors.sharesRequested && <p style={{color: 'red'}}>You must provide a number.</p>}
             </div>
             <div>
               <TextField
@@ -277,6 +309,7 @@ export default function MemberProposal(props) {
         {finished ? <><Button onClick={handleClose} color="primary">Cancel</Button></> : null }
         </DialogActions>
       </Dialog>
+      
     </div>
   );
 }

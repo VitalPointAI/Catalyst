@@ -3,8 +3,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import Big from 'big.js'
 import { utils } from 'near-api-js'
-import InfoPopup from '../../../common/InfoPopup'
-import { Translate } from 'react-localize-redux'
+import { proposalEvent } from '../../../../utils/proposalEvents'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -68,9 +67,6 @@ const useStyles = makeStyles((theme) => ({
 export default function SponsorConfirmation(props) {
   const [open, setOpen] = useState(true)
   const [finished, setFinished] = useState(true)
-  const [applicant, setApplicant] = useState(props.accountId)
-  const [shares, setShares] = useState('')
-  const [tribute, setTribute] = useState('')
   const [confirm, setConfirm] = useState(false)
   
 
@@ -81,11 +77,9 @@ export default function SponsorConfirmation(props) {
     handleProposalEventChange,
     handleGuildBalanceChanges,
     handleEscrowBalanceChanges,
-    handleSponsorAction,
-    getCurrentPeriod,
-    sponsorFinish,
-    tokenName, 
-    minSharePrice, 
+    handleSuccessMessage,
+    handleErrorMessage,
+    handleSnackBarOpen,
     depositToken,
     proposalDeposit,
     proposalIdentifier,
@@ -97,7 +91,6 @@ export default function SponsorConfirmation(props) {
 
   const handleClose = () => {
     handleSponsorConfirmationClickState(false)
-    setOpen(false)
   };
 
   const handleConfirmChange = (event) => {
@@ -107,32 +100,48 @@ export default function SponsorConfirmation(props) {
   const onSubmit = async (values) => {
     event.preventDefault()
     setFinished(false)
-    await handleSponsorAction(proposalIdentifier)
-    
-    // let finished = await contract.sponsorProposal({
-    //        pI: proposalIdentifier,
-    //        proposalDeposit: proposalDeposit,
-    //        depositToken: depositToken
-    //        }, process.env.DEFAULT_GAS_VALUE, utils.format.parseNearAmount((parseInt(proposalDeposit)).toString()))
-    //       await handleProposalEventChange()
-    //       await handleEscrowBalanceChanges()
-    //       await handleGuildBalanceChanges()
-                  
-    // let changed = await handleProposalEventChange()
-    // await handleGuildBalanceChanges()
-    // await handleEscrowBalanceChanges()
-    
-    if(sponsorFinish) {
-      setFinished(true)
-    //  await getCurrentPeriod()
-      setOpen(false)
-      handleSponsorConfirmationClickState(false)
-    }
+    let finished
+    try{
+      finished = await contract.sponsorProposal({
+        pI: proposalIdentifier,
+        proposalDeposit: proposalDeposit,
+        depositToken: depositToken
+        }, process.env.DEFAULT_GAS_VALUE, utils.format.parseNearAmount((parseInt(proposalDeposit)).toString()))
+          try{
+          let proposal = await contract.getProposal({proposalId: parseInt(proposalIdentifier)})
+          let updated = await proposalEvent.recordEvent(
+            proposal.pI, proposal.a, proposal.p, proposal.s, proposal.sR, proposal.lR, proposal.tO, proposal.tT, proposal.pR, proposal.pT, 
+            proposal.sP, proposal.yV, proposal.nV, proposal.f, proposal.mT, proposal.pS, proposal.vP, proposal.gP, proposal.voteFinalized)
+            if(updated){
+              handleSuccessMessage('Successfully sponsored proposal.', 'success')
+              handleSnackBarOpen(true)
+            } else {
+              handleErrorMessage('There was a problem sponsoring the proposal.', 'error')
+              handleSnackBarOpen(true)
+            }
+          } catch (err) {
+            console.log('problem recording sponsoring proposal event', err)
+            handleErrorMessage('There was a problem sponsoring the proposal.', 'error')
+            handleSnackBarOpen(true)
+          }
+      } catch (err) {
+        console.log('problem sponsoring proposal', err)
+        handleErrorMessage('There was a problem sponsoring the proposal.', 'error')
+        handleSnackBarOpen(true)
+      }
+      if(finished) {
+        await handleProposalEventChange()
+        await handleEscrowBalanceChanges()
+        await handleGuildBalanceChanges()
+        setFinished(true)
+        setOpen(false)
+        handleClose()
+      }
 }
 
   return (
     <div>
-      <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+      <Dialog open={open} aria-labelledby="form-dialog-title">
         <DialogTitle id="form-dialog-title">Sponsorship Confirmation</DialogTitle>
         <DialogContent className={classes.rootForm}>
               <Card>

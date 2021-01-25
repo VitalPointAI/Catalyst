@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
+import { memberEvent } from '../../../../utils/memberEvent'
 import Big from 'big.js'
 
 // Material UI components
@@ -12,18 +13,8 @@ import DialogContent from '@material-ui/core/DialogContent'
 import DialogContentText from '@material-ui/core/DialogContentText'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import LinearProgress from '@material-ui/core/LinearProgress'
-import Stepper from '@material-ui/core/Stepper'
-import Step from '@material-ui/core/Step'
-import StepLabel from '@material-ui/core/StepLabel'
-import StepContent from '@material-ui/core/StepContent'
 import Typography from '@material-ui/core/Typography'
 import InputAdornment from '@material-ui/core/InputAdornment'
-import Card from '@material-ui/core/Card'
-import CardActions from '@material-ui/core/CardActions'
-import CardHeader from '@material-ui/core/CardHeader'
-import CardContent from '@material-ui/core/CardContent'
-import Chip from '@material-ui/core/Chip'
-import Paper from '@material-ui/core/Paper'
 
 const BOATLOAD_OF_GAS = Big(3).times(10 ** 14).toFixed()
 
@@ -70,7 +61,6 @@ export default function RageQuit(props) {
     handleGuildBalanceChanges,
     handleEscrowBalanceChanges,
     tokenName, 
-    minSharePrice,
     accountId,
     depositToken,
     contract } = props
@@ -96,7 +86,6 @@ export default function RageQuit(props) {
 
   const handleClose = () => {
     handleRageQuitClickState(false)
-    setOpen(false)
   };
 
   const handleSharesToBurnChange = (event) => {
@@ -110,19 +99,41 @@ export default function RageQuit(props) {
   const onSubmit = async (values) => {
     event.preventDefault()
     setFinished(false)
-    
-    let finished = await contract.ragequit({
-                    sharesToBurn: parseInt(shares),
-                    lootToBurn: parseInt(loot)
-                    }, BOATLOAD_OF_GAS)
-                  
-    let changed = await handleProposalEventChange()
-    
-    if(finished && changed) {
-      setFinished(true)
-      setOpen(false)
-      handleRageQuitClickState(false)
-    }
+    let finished
+    try{
+      finished = await contract.ragequit({
+        sharesToBurn: parseInt(shares),
+        lootToBurn: parseInt(loot)
+        }, BOATLOAD_OF_GAS)
+          try{
+          let member = await contract.getMemberInfo({member: accountId})
+          let updated = await memberEvent.updateMemberEvent(
+            member[0].delegateKey, member[0].shares, member[0].loot, member[0].existing, member[0].highestIndexYesVote, member[0].jailed, member[0].joined, member[0].updated) 
+            if(updated){
+              handleSuccessMessage('Successful rage quit.', 'success')
+              handleSnackBarOpen(true)
+            } else {
+              handleErrorMessage('There was a problem with the rage quit.', 'error')
+              handleSnackBarOpen(true)
+            }
+          } catch (err) {
+            console.log('problem recording the rage quit event', err)
+            handleErrorMessage('There was a problem recording the rage quit event.', 'error')
+            handleSnackBarOpen(true)
+          }
+      } catch (err) {
+        console.log('problem with rage quit', err)
+        handleErrorMessage('There was a problem with the rage quit.', 'error')
+        handleSnackBarOpen(true)
+      }
+      if(finished) {
+        setFinished(true)
+        await handleProposalEventChange()
+        await handleEscrowBalanceChanges()
+        await handleGuildBalanceChanges()
+        setOpen(false)
+        handleClose()
+      }
   }
 
   const isShares = shares.length > 0
@@ -136,11 +147,11 @@ export default function RageQuit(props) {
         <DialogContent>
         {!finished ? <LinearProgress className={classes.progress} /> : (
             <DialogContentText style={{marginBottom: 10}}>
-            You can burn and then withdraw up to the following:
-            <Typography component="h5">Shares: {memberShares}</Typography>
-            <Typography component="h5">Loot: {memberLoot}</Typography>
+            <Typography variant="body1">You can burn and then withdraw up to the following:</Typography>
+            <Typography variant="h5">Shares: {memberShares}</Typography>
+            <Typography variant="h5">Loot: {memberLoot}</Typography>
             </DialogContentText>)}
-            <Typography component="h5" style={{marginBottom: 20}}>{applicant}</Typography>
+            <Typography variant="h5" style={{marginBottom: 20}}>{applicant}</Typography>
               <div>
                 <TextField
                     autoFocus
@@ -149,10 +160,11 @@ export default function RageQuit(props) {
                     variant="outlined"
                     name="shares"
                     label="Shares to Burn"
-                    placeholder="10"
+                    placeholder="0"
                     value={shares}
                     onChange={handleSharesToBurnChange}
                     inputRef={register({              
+                      required: true,
                     })}
                     InputProps={{
                         endAdornment: <InputAdornment position="end">Shares</InputAdornment>,
@@ -166,9 +178,12 @@ export default function RageQuit(props) {
               variant="outlined"
               name="loot"
               label="Loot To Burn"
-              placeholder="1"
+              placeholder="0"
               value={loot}
               onChange={handleLootChange}
+              inputRef={register({              
+                required: true,
+              })}
               InputProps={{
                 endAdornment: <InputAdornment position="end">{tokenName}</InputAdornment>,
                 }}

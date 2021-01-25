@@ -93,9 +93,10 @@ export default function FundingProposalForm(props) {
         fundingProposalId,
         accountId,
         handleProposalDetailsEmptyClickState,
-        contract
+        contract,
+        status,
     } = props
-    console.log('Fundingproposalid', proposalId)
+  
     const classes = useStyles()
 
     useEffect(() => {
@@ -271,7 +272,7 @@ export default function FundingProposalForm(props) {
                               required: true                              
                           })}
                       />
-                    {errors.proposalApplicant && <p style={{color: 'red'}}>You must identify the applicant.</p>}
+                    {errors.fundingProposalTitle && <p style={{color: 'red'}}>You must give your proposal a title.</p>}
                   </div>
                   <div>
                   <ReactQuill
@@ -296,12 +297,15 @@ export default function FundingProposalForm(props) {
                   </div>
                 </DialogContent>
               <DialogActions>
-              <Button onClick={handleSubmit(onSubmit)} color="primary" type="submit">
+              { status != 'Not Passed' && status != 'Passed' ? (
+                <Button onClick={handleSubmit(onSubmit)} color="primary" type="submit">
                   Submit Details
                 </Button>
+                ) : <Typography variant="body1">You cannot change details - this proposal has been processed</Typography> }
                 <Button onClick={handleClose} color="primary">
                   Cancel
                 </Button>
+             
               </DialogActions>
               <Divider style={{marginBottom: 10}}/>
               

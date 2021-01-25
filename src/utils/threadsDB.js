@@ -1,4 +1,4 @@
-import { Client, ThreadID, PrivateKey } from '@textile/hub';
+import { Client, ThreadID, PrivateKey, Where } from '@textile/hub';
 import { encryptSecretBox, decryptSecretBox, parseEncryptionKeyNear } from './encryption'
 import { wallet } from './wallet'
 import { personas } from './personas'
@@ -592,6 +592,23 @@ export async function retrieveAppRecord(id, collection) {
   return obj
 }
 
+export async function retrieveAppMemberRecord(member, collection) {
+  
+  let obj
+  try {
+      console.log('member', member)
+      const query = new Where('delegateKey').eq(member)
+      console.log('query', query)
+      let r = await appDatabase.find(ThreadID.fromString(localStorage.getItem(appId + ":" + process.env.THREADDB_APP_THREADID)), collection, query)
+      console.log('member record retrieved', r);
+      obj = r
+  } catch (err) {
+      console.log('error', err)
+      console.log('member does not exist')
+  }
+  return obj
+}
+
 
 export async function retrieveRecord(id, collection) {
 
@@ -700,4 +717,37 @@ export async function deleteRecord(id, collection) {
         console.log('error', err)
         console.log('there was an error deleting the record')
     }
+}
+
+export async function listAppDBs(){
+  try{
+    console.log(appDatabase)
+    await appDatabase.listCollections()
+  } catch (err) {
+      console.log('problem listing databases', err)
+  }
+}
+
+export async function deleteAppDB(threadID){
+  try{
+    await appDatabase.deleteDB(threadID)
+  } catch (err) {
+      console.log('problem deleting database', err)
+  }
+}
+
+export async function listUserDBs(){
+  try{
+    await userDatabase.listDBs()
+  } catch (err) {
+      console.log('problem listing databases', err)
+  }
+}
+
+export async function deleteUserDB(threadID){
+  try{
+    await userDatabase.deleteDB(threadID)
+  } catch (err) {
+      console.log('problem deleting database', err)
+  }
 }
