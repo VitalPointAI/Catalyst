@@ -4,6 +4,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import Big from 'big.js'
 import { utils } from 'near-api-js'
 import { proposalEvent } from '../../../../utils/proposalEvents'
+import { refreshAccount } from '../../../../actions/account'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -133,6 +134,7 @@ export default function SponsorConfirmation(props) {
         await handleProposalEventChange()
         await handleEscrowBalanceChanges()
         await handleGuildBalanceChanges()
+        refreshAccount()
         setFinished(true)
         setOpen(false)
         handleClose()

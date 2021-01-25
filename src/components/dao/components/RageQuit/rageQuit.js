@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { memberEvent } from '../../../../utils/memberEvent'
+import { refreshAccount } from '../../../../actions/account'
 import Big from 'big.js'
 
 // Material UI components
@@ -131,6 +132,7 @@ export default function RageQuit(props) {
         await handleProposalEventChange()
         await handleEscrowBalanceChanges()
         await handleGuildBalanceChanges()
+        refreshAccount()
         setOpen(false)
         handleClose()
       }
