@@ -140,7 +140,7 @@ export default function MemberProposal(props) {
   const onSubmit = async (values) => {
     setFinished(false)
     let finished
-    try{
+  //  try{
       finished = await contract.submitProposal({
                       a: applicant,
                       sR: shares,
@@ -167,10 +167,10 @@ export default function MemberProposal(props) {
           console.log('error storing proposal log - reverting', err)
           await handleCancelAction(finished.pI, finished.tO)
         }
-    } catch (err) {
-      handleErrorMessage('There was a problem adding the member proposal.', 'error')
-      handleSnackBarOpen(true)
-    }
+    // } catch (err) {
+    //   handleErrorMessage('There was a problem adding the member proposal.', 'error')
+    //   handleSnackBarOpen(true)
+    // }
 
     if(finished) {
       setFinished(true)
