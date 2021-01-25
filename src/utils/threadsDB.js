@@ -56,7 +56,7 @@ async function getAppIdentity(appId, contract) {
                   parseEncryptionKeyNear(appId, type, encryptionKey);
                   let retrieveId = await contract.personaContract.getAppIdentity({appId: appId});
                   let identity = decryptSecretBox(retrieveId.identity);
-  
+                   
                   localStorage.setItem(appId + ":" + process.env.THREADDB_APPIDENTITY_STRING, identity.toString())
                   localStorage.setItem(appId + ":" + process.env.THREADDB_APP_THREADID, retrieveId.threadId);
                   return PrivateKey.fromString(identity); 
@@ -423,10 +423,10 @@ const loginWithChallenge = (identity) => {
     let type = 'app';
     let appId = process.env.APPID
    
-    const identity = await getAppIdentity(appId, contract);
-  
-    const threadId = await getAppThreadId(appId, contract);
-  
+    //const identity = await getAppIdentity(appId, contract);
+    const identity = process.env.APP_IDENTITY
+   // const threadId = await getAppThreadId(appId, contract);
+   const threadId = process.env.APP_THREAD_ID
     const appdb = await tokenWakeUp(type)
  
   

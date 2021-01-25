@@ -4,7 +4,7 @@
 
 [build.environment]
     DISABLE_PHONE_RECOVERY = "no"
-    REACT_APP_NETWORK_ID = "default"
+    REACT_APP_NETWORK_ID = "testnet"
     REACT_APP_ACCOUNT_HELPER_URL = "https://helper.testnet.near.org"
     CONTRACT_HELPER_URL = "https://helper.testnet.near.org" # TODO: Consolidate to single env variable with REACT_APP_ACCOUNT_HELPER_URL
     REACT_APP_NODE_URL = "https://rpc.testnet.near.org"
