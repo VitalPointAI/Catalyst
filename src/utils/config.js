@@ -21,7 +21,7 @@ function getConfig(env) {
      //nodeUrl: 'https://near-testnet--rpc.datahub.figment.io/apikey/7ef1d04e4d713b536b972f317f9a12b5/health',
       contractName: CONTRACT_NAME,
      // walletUrl: 'https://wallet.testnet.near.org',
-      walletUrl: 'http://localhost:1234',
+      walletUrl: 'https://naughty-tereshkova-fbab93.netlify.app/',
      //wallerUrl: 'https://vitalpointguild.herokuapp.com/',
       helperUrl: 'https://helper.testnet.near.org',
       explorerUrl: 'https://explorer.testnet.near.org'
@@ -65,7 +65,7 @@ function getConfig(env) {
     //  nodeUrl: 'https://near-testnet--rpc.datahub.figment.io/apikey/7ef1d04e4d713b536b972f317f9a12b5/health',
       contractName: CONTRACT_NAME,
     //  walletUrl: 'https://wallet.testnet.near.org',
-      walletUrl: 'http://localhost:1234',
+      walletUrl: 'https://naughty-tereshkova-fbab93.netlify.app/',
       helperUrl: 'https://helper.testnet.near.org',
       explorerUrl: 'https://explorer.testnet.near.org',
     }
