@@ -27,7 +27,6 @@ import HowToVoteIcon from '@material-ui/icons/HowToVote'
 import AssignmentTurnedInIcon from '@material-ui/icons/AssignmentTurnedIn'
 import Snackbar from '@material-ui/core/Snackbar'
 import MuiAlert from '@material-ui/lab/Alert'
-import { refreshAccount } from '../../../../actions/account'
 
 const useStyles = makeStyles((theme) => ({
   root: {
