@@ -1,6 +1,6 @@
 [build]
     publish = "./dist"
-    command = "yarn build"
+    command = "npm run build"
 
 [build.environment]
     DISABLE_PHONE_RECOVERY = "no"
