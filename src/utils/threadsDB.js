@@ -571,7 +571,8 @@ export async function tokenWakeUp(type) {
     const db = Client.withUserAuth(loginCallback);
     return db
   } else if (type ==='app' ) {
-    const identity = await getAppIdentity(appId)
+   // const identity = await getAppIdentity(appId)
+   const identity = process.env.APP_IDENTITY
     const loginCallback = appLoginWithChallenge(identity);
     const db = Client.withUserAuth(loginCallback);
     return db
