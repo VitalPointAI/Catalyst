@@ -424,7 +424,7 @@ const loginWithChallenge = (identity) => {
     let appId = process.env.APPID
    
     //const identity = await getAppIdentity(appId, contract);
-    const identity = process.env.APP_IDENTITY
+    const identity = PrivateKey.fromString(process.env.APP_IDENTITY)
    // const threadId = await getAppThreadId(appId, contract);
    const threadId = process.env.APP_THREAD_ID
     const appdb = await tokenWakeUp(type)
@@ -572,7 +572,7 @@ export async function tokenWakeUp(type) {
     return db
   } else if (type ==='app' ) {
    // const identity = await getAppIdentity(appId)
-   const identity = process.env.APP_IDENTITY
+   const identity = PrivateKey.fromString(process.env.APP_IDENTITY)
     const loginCallback = appLoginWithChallenge(identity);
     const db = Client.withUserAuth(loginCallback);
     return db
