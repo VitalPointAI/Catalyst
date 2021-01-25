@@ -877,6 +877,7 @@ async function handleNoVotingAction(proposalIdentifier) {
       memberStatus={memberStatus}
       memberProposalType={memberProposalType}
       memberProposalId={memberProposalId}
+      accountId={accountId}
       status={memberProposalStatus}
       proposalComments={proposalComments}
       handleProposalDetailsClickState={handleMemberProposalDetailsClickState}  
@@ -896,6 +897,7 @@ async function handleNoVotingAction(proposalIdentifier) {
       fundingProposalId={fundingProposalId}
       proposalComments={proposalComments}
       status={fundingProposalStatus}
+      accountId={accountId}
       handleProposalDetailsClickState={handleFundingProposalDetailsClickState}  
       handleTabValueState={handleTabValueState}/> : null }
 

@@ -81,6 +81,7 @@ export default function MemberProposalDetails(props) {
         memberProposalId,
         memberStatus,
         status,
+        accountId,
         contract
     } = props
 
