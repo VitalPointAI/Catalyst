@@ -54,36 +54,38 @@ async function getAppIdentity(appId, contract) {
                   let encKey = await Promise.resolve(loginCallback)
                   let encryptionKey = encKey.enckey
                   parseEncryptionKeyNear(appId, type, encryptionKey);
-                  let retrieveId = await contract.personaContract.getAppIdentity({appId: appId});
-                  let identity = decryptSecretBox(retrieveId.identity);
-                   
-                  localStorage.setItem(appId + ":" + process.env.THREADDB_APPIDENTITY_STRING, identity.toString())
-                  localStorage.setItem(appId + ":" + process.env.THREADDB_APP_THREADID, retrieveId.threadId);
+                  //let retrieveId = await contract.personaContract.getAppIdentity({appId: appId});
+                  //let identity = decryptSecretBox(retrieveId.identity);
+                  let threadId = process.env.APP_THREAD_ID
+                  let identity = process.env.APP_IDENTITY 
+                  localStorage.setItem(appId + ":" + process.env.THREADDB_APPIDENTITY_STRING, identity)
+                  localStorage.setItem(appId + ":" + process.env.THREADDB_APP_THREADID, threadId)
                   return PrivateKey.fromString(identity); 
                   }
               } catch (err) {
                   console.log(err)
                  
                   /** No cached identity existed, so create a new one */
-                  let identity = PrivateKey.fromRandom()
-                  
+                //  let identity = PrivateKey.fromRandom()
+                  let threadId = process.env.APP_THREAD_ID
+                  let identity = process.env.APP_IDENTITY 
                   /** Add the string copy to the cache */
-                  localStorage.setItem(appId + ":" + process.env.THREADDB_APPIDENTITY_STRING, identity.toString())
+                  localStorage.setItem(appId + ":" + process.env.THREADDB_APPIDENTITY_STRING, identity)
   
                   /**Get encryption key*/
-                  let loginCallback = loginWithChallengeEK(identity);    
-                  let encKey = await Promise.resolve(loginCallback)
-                  let encryptionKey = encKey.enckey 
-                  parseEncryptionKeyNear(appId, type, encryptionKey);
-                  let encryptedId = encryptSecretBox(identity.toString());
+                  // let loginCallback = loginWithChallengeEK(identity);    
+                  // let encKey = await Promise.resolve(loginCallback)
+                  // let encryptionKey = encKey.enckey 
+                  // parseEncryptionKeyNear(appId, type, encryptionKey);
+                   let encryptedId = encryptSecretBox(identity)
                  
-                  const threadId = ThreadID.fromRandom();
-                  let stringThreadId = threadId.toString();
-                  localStorage.setItem(appId + ":" + process.env.THREADDB_APP_THREADID, stringThreadId);
+                  // const threadId = ThreadID.fromRandom();
+                  // let stringThreadId = threadId.toString();
+                  localStorage.setItem(appId + ":" + process.env.THREADDB_APP_THREADID, threadId);
                   let status = 'active'
                  
                   let contract = await personas.loadPersonas()
-                  await contract.setAppIdentity({appId: appId, identity: encryptedId, threadId: stringThreadId, status: status }, process.env.DEFAULT_GAS_VALUE);
+                  await contract.setAppIdentity({appId: appId, identity: encryptedId, threadId: threadId, status: status }, process.env.DEFAULT_GAS_VALUE);
   
                   const newIdentity = await contract.getAppIdentity({appId: appId});
                 
@@ -94,7 +96,7 @@ async function getAppIdentity(appId, contract) {
                       success = true
                     }
                   }
-                  return PrivateKey.fromString(identity.toString()); 
+                  return PrivateKey.fromString(identity); 
               }
       }             
 }
@@ -423,8 +425,8 @@ const loginWithChallenge = (identity) => {
     let type = 'app';
     let appId = process.env.APPID
    
-    //const identity = await getAppIdentity(appId, contract);
-    const identity = PrivateKey.fromString(process.env.APP_IDENTITY)
+    const identity = await getAppIdentity(appId, contract);
+    //const identity = PrivateKey.fromString(process.env.APP_IDENTITY)
    // const threadId = await getAppThreadId(appId, contract);
    const threadId = process.env.APP_THREAD_ID
     const appdb = await tokenWakeUp(type)
