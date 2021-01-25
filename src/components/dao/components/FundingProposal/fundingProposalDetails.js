@@ -191,6 +191,7 @@ console.log('status', status)
                 <Typography variant="h5" style={{marginLeft: '10px'}}>Leave a Comment/Ask a Question</Typography>
                     <CommentForm
                       proposalId = {proposalId}
+                      contract = {contract}
                     />
                 </Grid>
               ) : null }

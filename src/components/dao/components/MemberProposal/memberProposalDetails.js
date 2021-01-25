@@ -192,6 +192,7 @@ export default function MemberProposalDetails(props) {
               <Typography variant="h5" style={{marginLeft: '10px'}}>Leave a Comment/Ask a Question</Typography>
                   <CommentForm
                     proposalId = {proposalId}
+                    contract = {contract}
                   />
               </Grid>
               ) : null }
