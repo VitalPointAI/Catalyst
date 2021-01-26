@@ -28,9 +28,10 @@ export default function CommentDetails(props) {
 
     console.log('commentdetails props', props)
     const {
-        commentId
+        commentId,
+        commentPublished
     } = props
-
+    console.log('comment props', props)
     const classes = useStyles();
     
     
@@ -38,7 +39,7 @@ export default function CommentDetails(props) {
         async function fetchData() {
             setFinished(false)
             let record
-            if(!props.published) {
+            if(!commentPublished) {
                 record = await retrieveRecord(commentId, 'Comment')
             } else {
                 record = await retrieveAppRecord(commentId, 'Comment')
