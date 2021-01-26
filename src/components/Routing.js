@@ -167,7 +167,7 @@ const { search } = props.router.location
         return (
             <Container className='App' id='app-container'>
                 <GlobalStyle />
-                <ConnectedRouter basename={PATH_PREFIX} history={props.history}>
+                <ConnectedRouter basename={PATH_PREFIX} history={props.history} >
                     <ThemeProvider theme={theme}>
                         <ScrollToTop/>
                         <NetworkBanner 
@@ -320,10 +320,14 @@ const { search } = props.router.location
                                     path='/node-details'
                                     component={NodeDetailsWithRouter}
                                 />
-                                <PrivateRoute
+                                <Route
                                     exact
                                     path='/proposals'
-                                    component={Dao}
+                                    render={() => (
+                                        <Dao 
+                                        {...props}
+                                        />
+                                    )}
                                 />
                                 <PrivateRoute
                                     path='/staking'

@@ -62,6 +62,10 @@ export default function Dao(props) {
 
   const classes = useStyles()
 
+  const {
+    refreshAccount
+  } = props
+
   const timer = new TaskTimer(1000)
 
   function handleInitChange(newState) {
@@ -139,6 +143,7 @@ export default function Dao(props) {
       let currentGuildBalance = await contract.getGuildTokenBalances()
       if(currentGuildBalance) {
         setGuildBalance(currentGuildBalance)
+        await props.refreshAccount()
       }
       return true
     } catch (err) {
@@ -163,6 +168,7 @@ export default function Dao(props) {
       let currentEscrowBalance = await contract.getEscrowTokenBalances()
       if(currentEscrowBalance) {
         setEscrowBalance(currentEscrowBalance)
+        await props.refreshAccount()
       }
       return true
     } catch (err) {
@@ -189,7 +195,7 @@ export default function Dao(props) {
         
       //  setLoginState(true)      
         let isMounted = true; // note this flag denote mount status
-
+        
         async function fetchData() {
 
           await initiateDB()

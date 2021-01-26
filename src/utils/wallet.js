@@ -47,7 +47,7 @@ export const HIDE_SIGN_IN_WITH_LEDGER_ENTER_ACCOUNT_ID_MODAL = process.env.HIDE_
 
 export const NETWORK_ID = process.env.REACT_APP_NETWORK_ID || 'default'
 const CONTRACT_CREATE_ACCOUNT_URL = `${ACCOUNT_HELPER_URL}/account`
-export const NODE_URL = process.env.REACT_APP_NODE_URL || 'https://rpc.nearprotocol.com'
+export const NODE_URL = process.env.REACT_APP_NODE_URL || 'https://rpc.testnet.near.org'
 export const WALLET_APP_MIN_AMOUNT = nearApiJs.utils.format.formatNearAmount(new BN (MIN_BALANCE_FOR_GAS).add(new BN(ACCESS_KEY_FUNDING_AMOUNT)))
 
 const KEY_UNIQUE_PREFIX = '_4:'

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { utils } from 'near-api-js'
 import { proposalEvent } from '../../../../utils/proposalEvents'
 import { memberEvent } from '../../../../utils/memberEvent'
-import { refreshAccount } from '../../../../actions/account'
 import MemberCard from '../MemberCard/memberCard'
 import ProposalCard from '../ProposalCard/proposalCard'
 import MemberProposalForm from '../MemberProposal/memberProposalForm'
@@ -287,7 +286,6 @@ export default function ProposalList(props) {
       await handleProposalEventChange()
       await handleEscrowBalanceChanges()
       await handleGuildBalanceChanges()
-      refreshAccount()
       setCancelFinish(true)
     }
   }
@@ -338,7 +336,6 @@ export default function ProposalList(props) {
         await handleProposalEventChange()
         await handleEscrowBalanceChanges()
         await handleGuildBalanceChanges()
-        refreshAccount()
       }
   }
 
@@ -384,7 +381,6 @@ export default function ProposalList(props) {
         await handleProposalEventChange()
         await handleEscrowBalanceChanges()
         await handleGuildBalanceChanges()
-        refreshAccount()
       }
   }
 
@@ -430,7 +426,6 @@ async function handleNoVotingAction(proposalIdentifier) {
         await handleProposalEventChange()
         await handleEscrowBalanceChanges()
         await handleGuildBalanceChanges()
-        refreshAccount()
       }
 }
 

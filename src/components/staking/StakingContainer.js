@@ -61,7 +61,7 @@ const StyledContainer = styled(Container)`
     }
 
     .transfer-money-icon {
-        display block;
+        display: block;
         margin: 50px auto;
     }
 

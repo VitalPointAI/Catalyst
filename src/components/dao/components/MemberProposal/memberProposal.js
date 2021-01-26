@@ -6,7 +6,7 @@ import { utils } from 'near-api-js'
 import InfoPopup from '../../../common/InfoPopup'
 import { Translate } from 'react-localize-redux'
 import { proposalEvent } from '../../../../utils/proposalEvents'
-import { refreshAccount } from '../../../../actions/account'
+
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -177,7 +177,6 @@ export default function MemberProposal(props) {
       await handleProposalEventChange()
       await handleGuildBalanceChanges()
       await handleEscrowBalanceChanges()
-      refreshAccount()
       setOpen(false)
       handleClose()
     }
