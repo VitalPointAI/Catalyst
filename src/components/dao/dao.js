@@ -473,6 +473,24 @@ export default function Dao(props) {
       }
     }, 30000)
 
+    let j = 1
+    setTimeout(async function refreshCurrentProposals() {
+      let start = true
+      try {
+        let requests = await contract.getAllProposalEvents()
+        if(requests.length != 0) {
+            setProposalEvents(requests)
+        }
+      } catch (err) {
+        console.log('error retrieving proposal events')
+      } 
+      start = false
+      j++
+      if(start == false){
+      setTimeout(refreshCurrentPeriod, 100000)
+      }
+    }, 100000)
+
 
   }
   

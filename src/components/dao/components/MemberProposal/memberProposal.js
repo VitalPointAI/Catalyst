@@ -217,7 +217,7 @@ export default function MemberProposal(props) {
                     value={shares}
                     onChange={handleSharesRequestedChange}
                     inputRef={register({
-                        required: true                        
+                        required: true,            
                     })}
                     InputProps={{
                         endAdornment: <>
