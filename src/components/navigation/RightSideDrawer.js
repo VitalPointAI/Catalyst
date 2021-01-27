@@ -121,7 +121,7 @@ const Lang = styled.div`
     }
 `
 
-export default function LeftSideDrawer(props) {
+export default function RightSideDrawer(props) {
   const classes = useStyles();
   const [state, setState] = React.useState({
     top: false,
@@ -129,7 +129,6 @@ export default function LeftSideDrawer(props) {
     bottom: false,
     right: false,
   });
-
   const {
     account,
     selectAccount,
@@ -155,7 +154,8 @@ export default function LeftSideDrawer(props) {
       role="presentation"
       onClick={toggleDrawer(anchor, false)}
       onKeyDown={toggleDrawer(anchor, false)}
-    style={{padding: '15px'}}
+
+      style={{padding: '15px'}}
     >
     
     <Typography variant='h5'>Wallet</Typography>
@@ -245,11 +245,11 @@ export default function LeftSideDrawer(props) {
   );
 
   return (
-    <div>
+    <div style={{position:'absolute', top:'10px', right:'0px'}}>
     
 
-      {['left'].map((anchor) => (
-        <React.Fragment key={anchor}>
+      {['right'].map((anchor) => (
+        <React.Fragment key={anchor} >
         <IconButton
             color="inherit"
             aria-label="open drawer"
@@ -257,7 +257,7 @@ export default function LeftSideDrawer(props) {
             edge="start"
             className={clsx(classes.menuButton, open && classes.hide)}
           >
-            <MenuIcon />
+            <MenuIcon fontSize="large"/>
           </IconButton>
           
           <Drawer anchor={anchor} open={state[anchor]} onClose={toggleDrawer(anchor, false)}>

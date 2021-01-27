@@ -134,7 +134,6 @@ function Routing(props) {
                     let accountId = accountObj.accountId
                    
                     let contract = await dao.loadDAO()
-                    console.log('contract', contract)
                    
                     let i = 1
         

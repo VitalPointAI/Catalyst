@@ -237,12 +237,17 @@ class DesktopContainer extends Component {
 
         return (
             <Container>
-            <LeftSideDrawer />
+            <LeftSideDrawer
+                account={account}
+                selectAccount={selectAccount}
+                availableAccounts={availableAccounts}
+                menuOpen={menuOpen}
+                toggleMenu={toggleMenu}
+                showNavLinks={showNavLinks}
+            />
                 <Logo/>
-                {showNavLinks &&
-                    <NavLinks />
-                }
-                <Help href='http://near.chat/' target='_blank' rel='noopener noreferrer'>
+               
+                <Help href='https://discord.gg/YRD8GWQ' target='_blank' rel='noopener noreferrer'>
                     <Translate id='link.help'/>
                 </Help>
                 <Lang>

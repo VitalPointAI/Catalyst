@@ -73,7 +73,6 @@ class MemberEvent {
             for(let i=0; i < latestMemberEvent; i++) {
                 try {
                 let result = await retrieveAppRecord((i+1).toString(), 'Members')
-                console.log('retrieve member result', result)
                 allMemberEvents.push(result)
                 } catch (err) {
                     console.log('error retrieving member record', err)

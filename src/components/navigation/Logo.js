@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 //import NearLogo from '../svg/NearLogo';
-import PersonasLogo from '../../images/personas-logo-big.png'
+import FleetsLogo from '../../images/fleets-black.png'
 
 const StyledLogo = styled(Link)`
     margin-top: 5px;
@@ -21,7 +21,7 @@ const StyledLogo = styled(Link)`
 
 const Logo = () => (
     <StyledLogo to='/' className='logo'>
-        <img src={PersonasLogo} alt="Personas Logo"/>
+        <img src={FleetsLogo} alt="Fleets Logo"/>
     </StyledLogo>
 )
 

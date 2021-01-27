@@ -312,9 +312,7 @@ export default function Dao(props) {
 
             try {
               let proposalLength = await contract.getProposalsLength()
-             
               let currentProposalEvents = await proposalEvent.retrieveAllEvents(proposalLength)
-              console.log('current proposals', currentProposalEvents)
               if(currentProposalEvents.length != 0) {
                 if(isMounted) {
                   handleSetProposalEvents(currentProposalEvents)
@@ -326,11 +324,7 @@ export default function Dao(props) {
 
             try {
               let initEventsLength = await contract.getInitEventsLength()
-              console.log('init events length', initEventsLength)
-
               let currentInitEvents = await summonEvent.retrieveAllSummonEvents(initEventsLength)
-              console.log('init events', currentInitEvents)
-
               if(currentInitEvents && currentInitEvents.length != 0) {
                 if(isMounted) {
                   setInitEvents(currentInitEvents)
@@ -342,11 +336,7 @@ export default function Dao(props) {
 
             try {
               let memberEventsLength = await contract.getTotalMembers()
-              console.log('member events length', parseInt(memberEventsLength))
-
               let currentMemberEvents = await memberEvent.retrieveAllMemberEvents(parseInt(memberEventsLength))
-              console.log('member events', currentMemberEvents)
-
               if(currentMemberEvents && currentMemberEvents.length != 0) {
                 if(isMounted) {
                   setAllMemberInfo(currentMemberEvents)

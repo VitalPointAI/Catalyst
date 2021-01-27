@@ -12,6 +12,7 @@ import LanguageToggle from '../common/LangSwitcher';
 import languagesIcon from '../../images/icon-languages.svg';
 import { Translate } from 'react-localize-redux';
 import AccessAccountBtn from './AccessAccountBtn';
+import RightSideDrawer from './RightSideDrawer';
 
 const Container = styled.div`
     display: none;
@@ -166,34 +167,24 @@ class MobileContainer extends Component {
                                 <UserName accountId={account.accountId}/>
                                 <UserBalance balance={account.balance}/>
                             </User>
-                            <MenuButton onClick={toggleMenu} open={menuOpen}/>
+                            <Lang>
+                                <LanguageToggle />
+                            </Lang>
+                            <RightSideDrawer  
+                                account={account}
+                                selectAccount={selectAccount}
+                                availableAccounts={availableAccounts}
+                                menuOpen={menuOpen}
+                                toggleMenu={toggleMenu}
+                                showNavLinks={showNavLinks}
+                                />
+                            
                         </>
                     }
-                    {!showNavLinks &&
-                        <Lang>
-                            <LanguageToggle />
-                        </Lang>
-                    }
+                   
+                
                 </Collapsed>
-                {menuOpen &&
-                    <>
-                        <NavLinks hasLockup={account.hasLockup}/>
-                        <UserLinks accountId={account.accountId}/>
-                        <Lang className="mobile-lang">
-                            <LanguageToggle />
-                        </Lang>
-                        <LowerSection>
-                            <h6><Translate id='link.personaSwitchAccount'/></h6>
-                            <UserAccounts
-                                accounts={availableAccounts}
-                                accountId={account.accountId}
-                                selectAccount={selectAccount}
-                            />
-                            <AccessAccountBtn/>
-                            <CreateAccountBtn/>
-                        </LowerSection>
-                    </>
-                }
+              
             </Container>
         )
     }
