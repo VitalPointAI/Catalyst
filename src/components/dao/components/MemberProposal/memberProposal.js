@@ -168,8 +168,11 @@ export default function MemberProposal(props) {
           await handleCancelAction(finished.pI, finished.tO)
         }
     } catch (err) {
-      handleErrorMessage('There was a problem adding the member proposal.', 'error')
+      handleErrorMessage('There was a problem adding the member proposal' + err.message, 'error')
       handleSnackBarOpen(true)
+      setFinished(true)
+      setOpen(false)
+      handleClose()
     }
 
     if(finished) {

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { connect } from 'react-redux'
 import PropTypes from 'prop-types'
 import styled, { ThemeProvider } from 'styled-components'
+import { dao } from '../utils/dao'
+import { proposalEvent } from '../utils/proposalEvents'
 
 import { Route, Switch, Redirect } from 'react-router-dom'
 import { ConnectedRouter } from 'connected-react-router'
@@ -79,6 +81,10 @@ const Container = styled.div`
 `
 function Routing(props) {
 
+    const[currentPeriod, setCurrentPeriod] = useState()
+    const[proposalsLength, setProposalsLength] = useState()
+    const[proposalEvents, setProposalEvents] = useState()
+
     const { 
         refreshAccount, handleRefreshUrl,
         history, clearAlert,
@@ -124,8 +130,51 @@ function Routing(props) {
                 refreshAccount()
            
                 async function fetchData() {
-               //     await initiateDB()
-               //     await initiateAppDB()
+                    let accountObj = await dao.loadAccountObject()
+                    let accountId = accountObj.accountId
+                   
+                    let contract = await dao.loadDAO()
+                    console.log('contract', contract)
+                   
+                    let i = 1
+        
+                  setTimeout(async function refreshCurrentPeriod() {
+                    let start = true
+                    try {
+                      let period = await contract.getCurrentPeriod()
+                      setCurrentPeriod(period)
+                      console.log('get period success')
+                    } catch (err) {
+                      console.log('get period issue', err)
+                    }
+                    start = false
+                    i++
+                    if(start == false){
+                    setTimeout(refreshCurrentPeriod, 10000)
+                    }
+                  }, 10000)
+              
+                  let j = 1
+                  setTimeout(async function refreshCurrentProposals() {
+                    let start = true
+                  try {
+                        let proposalLength = await contract.getProposalsLength()
+                        console.log('proposalLength', proposalLength)
+                          setProposalsLength(proposalLength)
+                          let currentProposalEvents = await proposalEvent.retrieveAllEvents(proposalLength, 'ProposalEvents')
+                          console.log('currentproposalevents', currentProposalEvents)
+                          setProposalEvents(currentProposalEvents)
+                        
+                      } catch (err) {
+                        console.log('error retrieving proposal events', err)
+                        return false
+                      }
+                    start = false
+                    j++
+                    if(start == false){
+                    setTimeout(refreshCurrentProposals, 30000)
+                    }
+                  }, 30000)
                    
                 }
     
@@ -145,6 +194,8 @@ function Routing(props) {
                 
             })
 
+            
+
 
             // const prevLangCode = prevProps.activeLanguage && prevProps.activeLanguage.code
             // const curLangCode = props.activeLanguage && props.activeLanguage.code
@@ -158,7 +209,31 @@ function Routing(props) {
         },
         []
     )
-
+    function handleSetCurrentPeriod(currentPeriod) {
+        setCurrentPeriod(currentPeriod)
+      }
+    
+      function handleSetProposalsLength(proposalLength){
+        setProposalsLength(proposalLength)
+      }
+    
+      function handleSetProposalEvents(proposalEvents){
+        setProposalEvents(proposalEvents)
+      }
+    
+      async function handleProposalEventChange() {
+        try {
+          let proposalLength = await contract.getProposalsLength()
+          let currentProposalEvents = await proposalEvent.retrieveAllEvents(proposalLength, 'ProposalEvents')
+          console.log('currentproposalevents', currentProposalEvents)
+          setProposalEvents(currentProposalEvents)
+          setProposalsLength(proposalLength)
+          return true
+        } catch (err) {
+          console.log('error retrieving proposal events', err)
+          return false
+        }
+      }
     
    
 const { search } = props.router.location
@@ -326,6 +401,14 @@ const { search } = props.router.location
                                     render={() => (
                                         <Dao 
                                         {...props}
+                                        proposalEvents={proposalEvents}
+                                        currentPeriod={currentPeriod}
+                                        proposalsLength={proposalsLength}
+                                        handleSetCurrentPeriod={handleSetCurrentPeriod}
+                                        handleProposalEventChange={handleProposalEventChange}
+                                        handleSetProposalEvents={handleSetProposalEvents}
+                                        handleSetProposalsLength={handleSetProposalsLength}
+                                        
                                         />
                                     )}
                                 />

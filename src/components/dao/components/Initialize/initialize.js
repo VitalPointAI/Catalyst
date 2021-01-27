@@ -3,6 +3,8 @@ import { makeStyles } from '@material-ui/core/styles'
 import { useForm } from 'react-hook-form'
 import { summonEvent } from '../../../../utils/summonEvents'
 import { memberEvent } from '../../../../utils/memberEvent'
+import { proposalEvent } from '../../../../utils/proposalEvents'
+import { deleteAppCollection } from '../../../../utils/threadsDB'
 
 // Material UI components
 import TextField from '@material-ui/core/TextField'
@@ -49,12 +51,24 @@ export default function Initialize(props) {
     const classes = useStyles()
     const { register, handleSubmit, watch, errors } = useForm()
 
-    const { handleInitChange, accountId, contract } = props
+    const { handleInitChange, accountId, contract, handleSetCurrentPeriod, handleSetProposalsLength, handleSetProposalEvents } = props
     
     const [finished, setFinish] = useState(false)
    
     useEffect(
       () => {
+        async function clearDatabase() {
+          await deleteAppCollection('Members')
+          await deleteAppCollection('FundingProposal')
+          await deleteAppCollection('MemberProposal')
+          await deleteAppCollection('SubmitProposals')
+          await deleteAppCollection('SummonEvent')
+        }
+
+        clearDatabase()
+        .then((res) => {
+
+        })
          
       }, [])
   
@@ -73,9 +87,11 @@ export default function Initialize(props) {
                         }, process.env.DEFAULT_GAS_VALUE)
         let totalMembers = await contract.getTotalMembers()
         let id = parseInt(totalMembers)
+
         if(summonTime && id) {
           await summonEvent.recordSummonEvent('1', accountId, ['Ⓝ'], summonTime, periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound, summonTime)
           await memberEvent.recordMemberEvent(id, accountId, '1', '0', true, 0, 0, summonTime, summonTime)
+
           setFinish(true)
           handleInitChange(true)
         }

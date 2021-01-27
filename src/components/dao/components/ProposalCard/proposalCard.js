@@ -70,7 +70,7 @@ export default function ProposalCard(props) {
         handleNoVotingAction,
         handleRageQuitClick
     } = props
-console.log('request id', requestId)
+
     useEffect(
         () => {
           let isMounted = true

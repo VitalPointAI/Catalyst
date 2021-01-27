@@ -7,7 +7,6 @@ import { summonEvent } from '../../utils/summonEvents'
 import { memberEvent } from '../../utils/memberEvent'
 import { daoContractSend } from '../../utils/daoContractSender'
 import { makeStyles } from '@material-ui/core/styles'
-import { TaskTimer } from 'tasktimer'
 import { initiateDB, initiateAppDB } from '../../utils/threadsDB'
 
 // Material UI imports
@@ -40,8 +39,8 @@ export default function Dao(props) {
   const [done, setDone] = useState(false)
   const [accountId, setAccountId] = useState()  
   const [tabValue, setTabValue] = useState('1')
-  const [currentPeriod, setCurrentPeriod] = useState(0)
-  const [proposalEvents, setProposalEvents] = useState([])
+  //const [currentPeriod, setCurrentPeriod] = useState(0)
+  //const [proposalEvents, setProposalEvents] = useState([])
   const [summoner, setSummoner] = useState()
   const [guildBalance, setGuildBalance] = useState()
   const [escrowBalance, setEscrowBalance] = useState()
@@ -59,14 +58,21 @@ export default function Dao(props) {
   const [allMemberInfo, setAllMemberInfo] = useState()
   const [totalShares, setTotalShares] = useState()
   const [initEvents, setInitEvents] = useState()
+ // const [proposalsLength, setProposalsLength] = useState()
+  const [appDB, setAppDB] = useState()
+  const [userDB, setUserDB] = useState()
 
   const classes = useStyles()
 
-  const {
-    refreshAccount
+  const{
+    proposalEvents,
+    currentPeriod,
+    proposalsLength,
+    handleSetProposalsLength,
+    handleSetProposalEvents,
+    handleSetCurrentPeriod,
+    handleProposalEventChange
   } = props
-
-  const timer = new TaskTimer(1000)
 
   function handleInitChange(newState) {
     setInit(newState)
@@ -78,64 +84,6 @@ export default function Dao(props) {
 
   function handleSummonerChange(newSummoner) {
     setSummoner(newSummoner)
-  }
-
-  async function refreshCurrentPeriod() {
-    try {
-      let period = await contract.getCurrentPeriod()
-      setCurrentPeriod(period)
-    } catch (err) {
-      console.log('get period issue', err)
-    }
-  }
-
-  async function refreshProposalEvents() {
-    try {
-      let requests = await contract.getAllProposalEvents()
-      if(requests.length != 0) {
-          setProposalEvents(requests)
-      }
-    } catch (err) {
-      console.log('error retrieving proposal events')
-    } 
-  }
-
-  async function refreshEscrowBalance() {
-    try {
-      let currentEscrowBalance = await contract.getEscrowTokenBalances()
-      if(currentEscrowBalance) {
-        setEscrowBalance(currentEscrowBalance)
-      }
-      return true
-    } catch (err) {
-      return false
-    }
-  }
-
-  async function refreshGuildBalance() {
-    try {
-      let currentGuildBalance = await contract.getGuildTokenBalances()
-      if(currentGuildBalance) {
-        setGuildBalance(currentGuildBalance)
-      }
-      return true
-    } catch (err) {
-      return false
-    }
-  }
-
-  async function handleProposalEventChange() {
-    try {
-      let proposalLength = await contract.getProposalsLength()
-      let currentProposalEvents = await proposalEvent.retrieveAllEvents(proposalLength, 'ProposalEvents')
-      //let currentProposalEvents = await contract.getAllProposalEvents()
-      console.log('currentproposalevents', currentProposalEvents)
-      setProposalEvents(currentProposalEvents)
-      return true
-    } catch (err) {
-      console.log('error retrieving proposal events', err)
-      return false
-    }
   }
 
   async function handleGuildBalanceChanges() {
@@ -198,8 +146,14 @@ export default function Dao(props) {
         
         async function fetchData() {
 
-          await initiateDB()
-          await initiateAppDB()
+          if(!appDB){
+           let app = await initiateAppDB()
+            setAppDB(true)
+          }
+          if(!userDB) {
+            let user = await initiateDB()
+            setUserDB(true)
+          }
 
           let accountObj = await dao.loadAccountObject()
           let accountId = accountObj.accountId
@@ -236,7 +190,7 @@ export default function Dao(props) {
             try {
               let period = await contract.getCurrentPeriod()
               if(isMounted) {
-                setCurrentPeriod(period)
+                handleSetCurrentPeriod(period)
               }
             } catch (err) {
               console.log('get period issue', err)
@@ -305,16 +259,6 @@ export default function Dao(props) {
              
             }
 
-            // try {
-            //   let result2 = await contract.getAllMemberInfo()
-            //   if(isMounted) {
-            //   setAllMemberInfo(result2)
-            //   }
-            // } catch (err) {
-            //   console.log('no list of members yet', err)
-             
-            // }
-            
             try {
               let owner = await contract.getSummoner()
               if(isMounted) {
@@ -368,14 +312,12 @@ export default function Dao(props) {
 
             try {
               let proposalLength = await contract.getProposalsLength()
-              console.log('proposals length', proposalLength)
-
+             
               let currentProposalEvents = await proposalEvent.retrieveAllEvents(proposalLength)
-              console.log('proposal events', currentProposalEvents)
-
+              console.log('current proposals', currentProposalEvents)
               if(currentProposalEvents.length != 0) {
                 if(isMounted) {
-                  setProposalEvents(currentProposalEvents)
+                  handleSetProposalEvents(currentProposalEvents)
                 }
               }
             } catch (err) {
@@ -389,7 +331,7 @@ export default function Dao(props) {
               let currentInitEvents = await summonEvent.retrieveAllSummonEvents(initEventsLength)
               console.log('init events', currentInitEvents)
 
-              if(currentInitEvents.length != 0) {
+              if(currentInitEvents && currentInitEvents.length != 0) {
                 if(isMounted) {
                   setInitEvents(currentInitEvents)
                 }
@@ -405,7 +347,7 @@ export default function Dao(props) {
               let currentMemberEvents = await memberEvent.retrieveAllMemberEvents(parseInt(memberEventsLength))
               console.log('member events', currentMemberEvents)
 
-              if(currentMemberEvents.length != 0) {
+              if(currentMemberEvents && currentMemberEvents.length != 0) {
                 if(isMounted) {
                   setAllMemberInfo(currentMemberEvents)
                 }
@@ -438,58 +380,13 @@ export default function Dao(props) {
 
     // The second argument to useEffect tells React when to re-run the effect
     // it compares current value and if different - re-renders
-    [initialized]
+    [initialized, currentPeriod]
   )
 
 
   if(done && initialized) {
-    // if(periodDuration == undefined){
-    //   let periodDuration = 10
-    // }
-    // timer.add([
-    //   {
-    //     id: 'refreshCurrentPeriod',
-    //     tickInterval: periodDuration,
-    //     totalRuns: 0,
-    //     callback(task) {
-    //       refreshCurrentPeriod()
-    //     }
-    //   }
-    // ])
-    // timer.start()
-    let i = 1
-    setTimeout(async function refreshCurrentPeriod() {
-      let start = true
-      try {
-        let period = await contract.getCurrentPeriod()
-        setCurrentPeriod(period)
-      } catch (err) {
-        console.log('get period issue', err)
-      }
-      start = false
-      i++
-      if(start == false){
-      setTimeout(refreshCurrentPeriod, 30000)
-      }
-    }, 30000)
-
-    let j = 1
-    setTimeout(async function refreshCurrentProposals() {
-      let start = true
-      try {
-        let requests = await contract.getAllProposalEvents()
-        if(requests.length != 0) {
-            setProposalEvents(requests)
-        }
-      } catch (err) {
-        console.log('error retrieving proposal events')
-      } 
-      start = false
-      j++
-      if(start == false){
-      setTimeout(refreshCurrentPeriod, 100000)
-      }
-    }, 100000)
+    
+   
 
 
   }
@@ -517,6 +414,9 @@ export default function Dao(props) {
           handleInitChange={handleInitChange} 
           initialized={initialized}
           contract={contract}
+          handleSetCurrentPeriod={handleSetCurrentPeriod}
+          handleSetProposalsLength={handleSetProposalsLength}
+          handleSetProposalEvents={handleSetProposalEvents}
         />
       )
   } else {

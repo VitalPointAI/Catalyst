@@ -1,7 +1,7 @@
 export const summonSchema = {
     $id: 'https://example.com/post.schema.json',
     $schema: 'http://json-schema.org/draft-07/schema#',
-    title: 'SummonEvent',
+    title: 'SummonEvents',
     type: 'object',
     required: ['_id'],
     properties: {

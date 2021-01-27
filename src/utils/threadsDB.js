@@ -274,9 +274,9 @@ const loginWithChallengeEK = (identity) => {
             }
           }
         }
-        
+      
       });
-
+      socket.close()
   }
 
 const loginWithChallenge = (identity) => {
@@ -351,6 +351,7 @@ const loginWithChallenge = (identity) => {
         
       })
     }
+    socket.close()
   }
 
   const appLoginWithChallenge = (identity) => {
@@ -416,8 +417,10 @@ const loginWithChallenge = (identity) => {
           }
         
         }
+        
       });
     }
+    socket.close()
   }
 
   export async function initiateAppDB() {
@@ -430,9 +433,11 @@ const loginWithChallenge = (identity) => {
    // const threadId = await getAppThreadId(appId, contract);
    const threadId = process.env.APP_THREAD_ID
     const appdb = await tokenWakeUp(type)
- 
-  
-    await appdb.getToken(identity)
+    
+   
+     await appdb.getToken(identity)
+    
+    
     appDatabase = appdb
    
     let appDbObj
@@ -470,7 +475,14 @@ export async function initiateDB() {
     const loginCallback = loginWithChallenge(identity);
     const db = Client.withUserAuth(loginCallback);
    // const db = await tokenWakeUp(type)
+
+    // /** Restore any cached textile user token first */
+    // const token = localStorage.getItem(appId + ":" + process.env.THREADDB_TOKEN_STRING)
+    // if(!token){
     await db.getToken(identity)
+    //   localStorage.setItem(appId + ":" + process.env.THREADDB_TOKEN_STRING, token)
+    // } 
+    
     userDatabase = db
     console.log('Verified on Textile API');
    
@@ -581,12 +593,20 @@ export async function tokenWakeUp(type) {
   }
 }
 
+export async function deleteAppCollection(collection) {
+  try{
+  await appDatabase.deleteCollection(ThreadID.fromString(process.env.APP_THREAD_ID), collection)
+  } catch (err) {
+    console.log('problem deleteing collection', err)
+  }
+  return true
+}
+
 export async function retrieveAppRecord(id, collection) {
   
   let obj
   try {
       let r = await appDatabase.findByID(ThreadID.fromString(localStorage.getItem(appId + ":" + process.env.THREADDB_APP_THREADID)), collection, id)
-      console.log('record retrieved', r);
       obj = r
   } catch (err) {
       console.log('error', err)
@@ -599,11 +619,8 @@ export async function retrieveAppMemberRecord(member, collection) {
   
   let obj
   try {
-      console.log('member', member)
       const query = new Where('delegateKey').eq(member)
-      console.log('query', query)
       let r = await appDatabase.find(ThreadID.fromString(localStorage.getItem(appId + ":" + process.env.THREADDB_APP_THREADID)), collection, query)
-      console.log('member record retrieved', r);
       obj = r
   } catch (err) {
       console.log('error', err)
@@ -619,7 +636,6 @@ export async function retrieveRecord(id, collection) {
     try {
      
         let r = await userDatabase.findByID(ThreadID.fromString(localStorage.getItem(appId + ":" + process.env.THREADDB_USER_THREADID)), collection, id)
-        console.log('record retrieved', r);
         obj = r
     } catch (err) {
         console.log('error', err)

@@ -138,7 +138,7 @@ export default function ProposalList(props) {
       }
     }
     
-    if(proposalEvents.length > 0){
+    if(proposalEvents && proposalEvents.length > 0){
     fetchData()
       .then((res) => {
        
@@ -301,19 +301,23 @@ export default function ProposalList(props) {
           let updated = await proposalEvent.recordEvent(
             proposal.pI, proposal.a, proposal.p, proposal.s, proposal.sR, proposal.lR, proposal.tO, proposal.tT, proposal.pR, proposal.pT, 
             proposal.sP, proposal.yV, proposal.nV, proposal.f, proposal.mT, proposal.pS, proposal.vP, proposal.gP, proposal.voteFinalized)
-          
-            let member = await contract.getMemberInfo({member: accountId})
-            console.log('member processed', member)
-            let memberUpdated = await memberEvent.updateMemberEvent(
-            member[0].delegateKey, member[0].shares, member[0].loot, member[0].existing, member[0].highestIndexYesVote, member[0].jailed, member[0].joined, member[0].updated)
-              
+          let memberAdded
+          let memberUpdated
             if(proposalType == 'Member'){
               let member = await contract.getMemberInfo({member: proposal.a})
-              let totalMembers = await contract.getTotalMembers()
-              let id = parseInt(totalMembers)
-              let memberAdded = await memberEvent.recordMemberEvent(
-                id, member[0].delegateKey, member[0].shares, member[0].loot, member[0].existing, member[0].highestIndexYesVote, member[0].jailed, member[0].joined, member[0].updated) 
+              if(member[0]) {
+                let totalMembers = await contract.getTotalMembers()
+                let id = parseInt(totalMembers)
+                memberAdded = await memberEvent.recordMemberEvent(
+                  id, member[0].delegateKey, member[0].shares, member[0].loot, member[0].existing, member[0].highestIndexYesVote, member[0].jailed, member[0].joined, member[0].updated) 
+              }
+              } else {
+            let member = await contract.getMemberInfo({member: accountId})
+            console.log('member processed', member)
+            memberUpdated = await memberEvent.updateMemberEvent(
+            member[0].delegateKey, member[0].shares, member[0].loot, member[0].existing, member[0].highestIndexYesVote, member[0].jailed, member[0].joined, member[0].updated)
             }
+           
 
             if(updated && memberUpdated){
               handleSuccessMessage('Successfully processed proposal.', 'success')
@@ -482,7 +486,6 @@ async function handleNoVotingAction(proposalIdentifier) {
   }
 
   async function getUserVote(proposalIdentifier) {
-    console.log('prposal id here', parseInt(proposalIdentifier))
     let result = await contract.getMemberProposalVote({memberAddress: accountId, pI: parseInt(proposalIdentifier)})
     return result
   }
@@ -524,7 +527,6 @@ async function handleNoVotingAction(proposalIdentifier) {
     
     if (requests.length > 0) {
       requests.map((fr) => {
-        console.log('fr', fr)
         status = getStatus(fr.flags)
         proposalType = getProposalType(fr.flags)
         let isVotingPeriod = getVotingPeriod(fr.startingPeriod, fr.votingPeriod)
@@ -686,7 +688,6 @@ async function handleNoVotingAction(proposalIdentifier) {
   let Proposals
   if (proposalList && proposalList.length > 0 && tabValue == '2') {
     Proposals = proposalList.map((fr) => {
-      console.log('next fr', fr)
       return (
         <ProposalCard
           key={fr[0].requestId} 
