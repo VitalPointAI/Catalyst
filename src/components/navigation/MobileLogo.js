@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 //import NearLogo from '../svg/NearLogo';
-import FleetsLogo from '../../images/fleets-mobile.png'
+import FleetsLogo from '../../images/fleets-black.png'
 
 const StyledLogo = styled(Link)`
     margin-top: 5px;
@@ -15,7 +15,7 @@ const StyledLogo = styled(Link)`
     }
 
     img {
-        width: 50px;
+        width: 100px;
     }
 `
 

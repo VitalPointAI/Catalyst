@@ -82,7 +82,9 @@ class DAO {
     async loadDAO() {
        
         let loadAccount = await this.loadAccountObject()
-        const account = await wallet.getAccount(loadAccount.accountId)
+        if(loadAccount){
+            const account = await wallet.getAccount(loadAccount.accountId)
+        }
         let daoContract = await this.initDAOContract(account)
         
         return daoContract

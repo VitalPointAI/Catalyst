@@ -131,7 +131,9 @@ function Routing(props) {
            
                 async function fetchData() {
                     let accountObj = await dao.loadAccountObject()
+                    if(accountObj){
                     let accountId = accountObj.accountId
+                    }
                    
                     let contract = await dao.loadDAO()
                    

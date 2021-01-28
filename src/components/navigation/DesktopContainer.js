@@ -6,6 +6,7 @@ import userIcon from '../../images/user-icon-grey.svg';
 import languagesIcon from '../../images/icon-languages.svg';
 import Logo from './Logo';
 import NavLinks from './NavLinks';
+import TopNavLinks from './TopNavLinks'
 import LeftSideDrawer from './LeftSideDrawer';
 import UserBalance from './UserBalance';
 import UserName from './UserName';
@@ -18,7 +19,7 @@ const Container = styled.div`
     position: relative;
     font-size: 14px;
     margin-bottom: 20px;
-    padding-left: 15px;
+    padding-left: 0px;
     box-shadow: 0px 5px 9px -1px rgba(0,0,0,0.17);
 
     @media (min-width: 992px) {
@@ -237,16 +238,16 @@ class DesktopContainer extends Component {
 
         return (
             <Container>
-            <LeftSideDrawer
+            {showNavLinks && <LeftSideDrawer
                 account={account}
                 selectAccount={selectAccount}
                 availableAccounts={availableAccounts}
                 menuOpen={menuOpen}
                 toggleMenu={toggleMenu}
                 showNavLinks={showNavLinks}
-            />
+            />}
                 <Logo/>
-               
+               <TopNavLinks />
                 <Help href='https://discord.gg/YRD8GWQ' target='_blank' rel='noopener noreferrer'>
                     <Translate id='link.help'/>
                 </Help>

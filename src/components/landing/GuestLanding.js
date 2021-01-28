@@ -4,7 +4,8 @@ import styled from 'styled-components'
 import LandingBackground from './LandingBackground'
 import FormButton from '../common/FormButton'
 import FeaturedImage from '../common/FeatureImage'
-import { Grid } from 'semantic-ui-react'
+
+import Grid from '@material-ui/core/Grid'
 
 const StyledContainer = styled.div`
 
@@ -138,24 +139,24 @@ export function GuestLanding() {
     return (
         <>
        <StyledContainer>
-        <LandingBackground/>
-            <Grid container columns={2} verticalAlign='middle'>
-        
-                <Grid.Row>
-                    <Grid.Column>
-                        <h1><Translate id='landing.title' /></h1>
-                        <h3><Translate id='landing.desc' /></h3>
-                        <div className='buttons'>
-                            <FormButton linkTo='/create'><Translate id='button.createPersona' /></FormButton>
-                            <span><Translate id='landing.or' /></span>
-                            <FormButton linkTo='/recover-account' className='link'><Translate id='button.importPersona' /></FormButton>
-                        </div>
-                    </Grid.Column>
-                    <Grid.Column >
-                        <FeaturedImage />
-                    </Grid.Column>
-                </Grid.Row>
+            <Grid container alignItems="left" justify="space-evenly" spacing={1}>
+                <Grid item xs={12} sm={12} md={1} lg={1} xl={1} ></Grid>
+                <Grid item xs={12} sm={12} md={6} lg={6} xl={6} >
+                    <h1><Translate id='landing.what' /></h1>
+                    <h3><Translate id='landing.answer' /></h3>
+                    <div className='buttons'>
+                        <FormButton linkTo='/create'><Translate id='button.createPersona' /></FormButton>
+                        <span><Translate id='landing.or' /></span>
+                        <FormButton linkTo='/recover-account' className='link'><Translate id='button.importPersona' /></FormButton>
+                    </div>
+                </Grid>
+                <Grid item xs={12} sm={12} md={4} lg={4} xl={4} >
+                    <FeaturedImage />      
+                </Grid>
+                <Grid item xs={12} sm={12} md={1} lg={1} xl={1} ></Grid>
             </Grid>
+        
+          
         </StyledContainer>
         
         

@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { Grid, List, Item } from 'semantic-ui-react'
 import { Translate } from 'react-localize-redux'
 import LogoFooterImage from '../../images/vital-point-ai-trans.png'
+import TwitterIcon from '@material-ui/icons/Twitter';
 
 import styled from 'styled-components'
 

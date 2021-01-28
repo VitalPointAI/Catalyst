@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-import FeatureImage from '../../images/mask-people.png'
+import FeatureImage from '../../images/earth-network.png'
 
 import styled from 'styled-components'
 

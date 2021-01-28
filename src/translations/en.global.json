@@ -342,6 +342,9 @@
     },
 
     "link": {
+        "why": "Why Fleets?",
+        "features": "Features",
+        "resources": "Resources",
         "summary": "SUMMARY",
         "send": "SEND",
         "receive": "RECEIVE",
@@ -975,16 +978,18 @@
     },
 
     "networkBanner": {
-        "title": "Personas Test-only Wallet",
-        "header": "Personas test app",
-        "desc": "This application (and network) are for testing purposes only. Personas and data do not transfer to Mainnet."
+        "title": "Fleets is currently running on NEAR Testnet",
+        "header": "Fleets test app",
+        "desc": "This application (and network) are for testing purposes only. Data does not transfer to Mainnet."
     },
     "stagingBanner": {
         "title": "Warning: This is a pre-release version of Personas. Use at your own risk!",
         "desc": "Warning: This is a pre-release version of Personas. There may be bugs, and these bugs may lead to loss of funds. By continuing to use this version, you agree that you understand and accept these risks, and understand that the Personas team will be unable to help you."
     },
     "landing": {
-        "title":"Customize who you are for where you are.",
+        "what": "What's a Fleet?",
+        "answer": "A fleet represents people coming together to form communities and manage resources towards achieving a common goal. That goal could be anything:<ul><li>Supporting an artist</li><li>Building tech solutions</li><li>Gaming guilds</li><li>Non-profits</li><li>Innovation projects</li><li>and much more...</li></ul>And by doing so, everyone in the Fleet reaps the benefits.",
+        "title":"Build and Manage Your Fleet.",
         "desc": "Personas allows you to customize and securely manage the identities and data you use to interact in digital communities.",
         "or": "or",
         "banner": "Personas is in Private Beta"
