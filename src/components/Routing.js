@@ -178,10 +178,11 @@ function Routing(props) {
                   }, 30000)
                    
                 }
-    
+                if(props.account){
                 fetchData()
                     .then((res) => {
                     })
+                }
             
             history.listen(async () => {
                
