@@ -92,6 +92,9 @@ export default function ActionSelector(props) {
     tokenName,
     proposalDeposit,
     daoContract,
+    didsContract,
+    contractIdx,
+    idx,
     contract } = props
 
   const handleFundingProposalClick = () => {
@@ -226,7 +229,9 @@ export default function ActionSelector(props) {
       {whiteListClicked ? <WhiteListProposal
       contract={contract}
       handleProposalEventChange={handleProposalEventChange}
-      handleWhiteListClickState={handleWhiteListClickState}  
+      handleWhiteListClickState={handleWhiteListClickState}
+      didsContract={didsContract}
+      idx={idx}
       handleTabValueState={handleTabValueState}/> : null }
 
       {votingProposalClicked ? <VotingProposal
@@ -239,6 +244,8 @@ export default function ActionSelector(props) {
       accountId={accountId} 
       depositToken={depositToken}
       tokenName={tokenName}
+      didsContract={didsContract}
+      idx={idx}
       proposalDeposit={proposalDeposit}/> : null  }
 
       {guildKickClicked ? <GuildKickProposal
@@ -253,6 +260,8 @@ export default function ActionSelector(props) {
       handleSnackBarOpen={handleSnackBarOpen}
       handleErrorMessage={handleErrorMessage}
       handleSuccessMessage={handleSuccessMessage}
+      didsContract={didsContract}
+      idx={idx}
       handleTabValueState={handleTabValueState}/> : null }
 
       {fundingProposalClicked ? <FundingProposal
@@ -269,6 +278,8 @@ export default function ActionSelector(props) {
       handleErrorMessage={handleErrorMessage}
       handleSuccessMessage={handleSuccessMessage}
       daoContract={daoContract}
+      didsContract={didsContract}
+      idx={idx}
       accountId={accountId}/> : null }
 
       {memberProposalClicked ? <MemberProposal
@@ -285,6 +296,9 @@ export default function ActionSelector(props) {
       handleErrorMessage={handleErrorMessage}
       handleSuccessMessage={handleSuccessMessage}
       daoContract={daoContract}
+      didsContract={didsContract}
+      contractIdx={contractIdx}
+      idx={idx}
       proposalDeposit={proposalDeposit}/> : null }
     </>
   );

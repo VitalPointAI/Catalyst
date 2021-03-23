@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { summonEvent } from '../../../../utils/summonEvents'
 import { memberEvent } from '../../../../utils/memberEvent'
 import { proposalEvent } from '../../../../utils/proposalEvents'
-import { deleteAppCollection } from '../../../../utils/threadsDB'
+import { retrieveAppIDs, deleteFleetDataFromAppCollection } from '../../../../utils/threadsDB'
 
 // Material UI components
 import TextField from '@material-ui/core/TextField'
@@ -51,18 +51,35 @@ export default function Initialize(props) {
     const classes = useStyles()
     const { register, handleSubmit, watch, errors } = useForm()
 
-    const { handleInitChange, accountId, contract, handleSetCurrentPeriod, handleSetProposalsLength, handleSetProposalEvents } = props
+    const {
+      idx,
+      handleInitChange, 
+      accountId,
+      contract, 
+      handleSetCurrentPeriod, 
+      handleSetProposalsLength, 
+      handleSetProposalEvents } = props
     
     const [finished, setFinish] = useState(false)
    
     useEffect(
       () => {
         async function clearDatabase() {
-          await deleteAppCollection('Members')
-          await deleteAppCollection('FundingProposal')
-          await deleteAppCollection('MemberProposal')
-          await deleteAppCollection('SubmitProposals')
-          await deleteAppCollection('SummonEvent')
+          let fleetMemberIds = await retrieveAppIDs('Members', accountId)
+          console.log('retreived Ids')
+          await deleteFleetDataFromAppCollection('Members', fleetMemberIds)
+
+          let fleetFundingProposalIds = await retrieveAppIDs('FundingProposal', accountId)
+          await deleteFleetDataFromAppCollection('FundingProposal', fleetFundingProposalIds)
+
+          let fleetMemberProposalIds = await retrieveAppIDs('MemberProposal', accountId)
+          await deleteFleetDataFromAppCollection('MemberProposal', fleetMemberProposalIds)
+
+          let fleetSubmitProposalIds = await retrieveAppIDs('SubmitProposals', accountId)
+          await deleteFleetDataFromAppCollection('SubmitProposals', fleetSubmitProposalIds)
+
+          let fleetSummonEventIds = await retrieveAppIDs('SummonEvent', accountId)
+          await deleteFleetDataFromAppCollection('SummonEvent', fleetSummonEventIds)
         }
 
         clearDatabase()
@@ -77,7 +94,7 @@ export default function Initialize(props) {
         setFinish(false)
         const { periodDuration, votingPeriodLength, gracePeriodLength, dilutionBound, proposalDeposit } = values
         console.log('values', values)
-     
+
         let summonTime = await contract.init({
                             _periodDuration: parseInt(periodDuration),
                             _votingPeriodLength: parseInt(votingPeriodLength),
@@ -85,13 +102,48 @@ export default function Initialize(props) {
                             _proposalDeposit: proposalDeposit,
                             _dilutionBound: parseInt(dilutionBound)
                         }, process.env.DEFAULT_GAS_VALUE)
+        
         let totalMembers = await contract.getTotalMembers()
         let id = parseInt(totalMembers)
-
+        console.log('contract id', contract.contractId)
+       
         if(summonTime && id) {
-          await summonEvent.recordSummonEvent('1', accountId, ['Ⓝ'], summonTime, periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound, summonTime)
-          await memberEvent.recordMemberEvent(id, accountId, '1', '0', true, 0, 0, summonTime, summonTime)
 
+          // Log Member Event
+          let memberEventRecord = {
+            _id: id.toString(),
+            fleetId: contract.contractId,
+            delegateKey: accountId,
+            shares: '1',
+            loot: '0',
+            existing: true,
+            highestIndexYesVote: 0,
+            jailed: 0,
+            joined: summonTime,
+            updated: summonTime
+          }
+  
+          let memberResult = await idx.set('member', memberEventRecord)
+          console.log('memberResult', memberResult)
+
+          // Log Summon Event
+          let summonEventRecord = {
+            _id: id.toString(),
+            fleetId: contract.contractId,
+            summoner: accountId,
+            tokens: ['Ⓝ'],
+            summoningTime: parseInt(summonTime),
+            periodDuration: parseInt(periodDuration),
+            votingPeriodLength: parseInt(votingPeriodLength),
+            gracePeriodLength: parseInt(gracePeriodLength),
+            proposalDeposit: proposalDeposit,
+            dilutionBound: parseInt(dilutionBound),
+            updateTime: parseInt(summonTime)
+          }
+
+          let summonResult = await idx.set('summon', summonEventRecord)
+          console.log('summon result', summonResult)
+          
           setFinish(true)
           handleInitChange(true)
         }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import ImageUploader from 'react-images-upload';
+import FileUpload from '../../common/IPFSupload/ipfsUpload'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -23,20 +24,8 @@ import Typography from '@material-ui/core/Typography';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Divider from '@material-ui/core/Divider'
 
-// Textile ThreadsDB components
-import { initiateCollection, 
-    createRecord,
-    initiateAppCollection,
-    createAppRecord,
-    retrieveRecord,
-    retrieveAppRecord,
-    updateRecord,
-    isAppCollection,
-    isUserCollection,
-    deleteAppRecord,
-    updateAppRecord } from '../../../utils/threadsDB';
 
-import { personaSchema } from '../../../../schemas/Persona';
+import { profileSchema } from '../../../schemas/profile';
 
 // ReactQuill Component
 import ReactQuill from 'react-quill';
@@ -82,41 +71,37 @@ const imageName = require('../../../images/default-profile.png') // default no-i
 export default function MasterPersonaForm(props) {
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
-    const [proposalId, setMemberProposalId] = useState(props.memberProposalId.toString())
-    const [proposalProposer, setMemberProposalProposer] = useState(props.accountId)
-    const [proposalApplicant, setMemberProposalApplicant] = useState('')
-    const [proposalIntro, setMemberProposalIntro] = useState('')
-    const [proposalAvatar, setMemberProposalAvatar] = useState(imageName)
-    const [proposalPublished, setMemberProposalPublished] = useState(false)
-    const [proposalComments, setProposalComments] = useState()
+    const [date, setDate] = useState('')
+    const [name, setName] = useState('')
+    const [avatar, setAvatar] = useState(imageName)
+    const [shortBio, setShortBio] = useState('')
+    const [fileHash, setFileHash] = useState('')
 
     const { register, handleSubmit, watch, errors } = useForm()
 
     const {
-        memberProposalId,
         accountId,
-        handleProposalDetailsEmptyClickState,
-        contract
+        curUserIdx,
+        handleLoaded,
+        handleAvatarChange,
+        refreshAccount
     } = props
-    console.log('memberproposalid', memberProposalId)
+    
     const classes = useStyles()
 
     useEffect(() => {
         async function fetchData() {
-            console.log('proposalId ', proposalId)
-            let result = await retrieveRecord(proposalId.toString(), 'MemberProposal')
+            
+            let result = await curUserIdx.get('profile', curUserIdx.id)
             console.log('result ', result)
-            if(result) {
-                result.applicant ? setMemberProposalApplicant(result.applicant) : setMemberProposalApplicant('')
-                result.avatar ? setMemberProposalAvatar(result.avatar) : setMemberProposalAvatar(imageName)
-                result.intro ? setMemberProposalIntro(result.intro) : setMemberProposalIntro('')
-                result.proposer ? setMemberProposalProposer(result.proposer) : setMemberProposalProposer(accountId)
-                result.published ? setMemberProposalPublished(result.published) : setMemberProposalPublished(false)
-            }
+             if(result) {
+                 result.date ? setDate(result.date) : setDate('')
+                 result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
+                 result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
+                 result.name ? setName(result.name) : setName('')
+              }
 
-            let comments = await contract.getProposalComments({proposalId: proposalId.toString()})
-            setProposalComments(comments)
-          console.log('proposalcomments ', proposalComments)
+          
         }
        
         fetchData()
@@ -127,126 +112,61 @@ export default function MasterPersonaForm(props) {
 
     const onDropAvatar = async (pictureFiles, pictureDataURLs) => {
         if(pictureDataURLs[0]!==null){
-       setMemberProposalAvatar(pictureDataURLs[0])
+          console.log('picture files', pictureFiles)
+       setAvatar(pictureDataURLs[0])
         } else {
-           setMemberProposalAvatar(proposalAvatar)
+           setAvatar(avatar)
         }
     }
+
+    function handleFileHash(hash) {
+      setAvatar(process.env.IPFS_PROVIDER + hash)
+    }
+
     const handleClose = () => {
-        handleProposalDetailsEmptyClickState(false)
         setOpen(false)
     }
 
-    const handleApplicantChange = (event) => {
+    const handleNameChange = (event) => {
         let value = event.target.value;
-        setMemberProposalApplicant(value)
+        setName(value)
     }
 
-    const handlePublishToggle = () => {
-        const published = !proposalPublished
-        setMemberProposalPublished(published)
+    function formatDate(timestamp) {
+      let intDate = parseInt(timestamp)
+      let options = {year: 'numeric', month: 'long', day: 'numeric'}
+      return new Date(intDate).toLocaleString('en-US', options)
     }
 
-    const handleIntroChange = (content, delta, source, editor) => {
-        console.log('content', content)
-        console.log('delta', delta)
-        console.log('source', source)
-        console.log('editor', editor)
-        setMemberProposalIntro(content)
+    const handleShortBioChange = (content, delta, source, editor) => {
+        
+        setShortBio(content)
     }
 
     const onSubmit = async (values) => {
         event.preventDefault();
         setFinished(false)
-        console.log('values ', values)
+        let now = new Date().getTime()
+       
+        let formattedDate = formatDate(now)
+      
+       
         let record = {
-            _id: proposalId.toString(),
-            applicant: proposalApplicant,
-            intro: proposalIntro,
-            proposer: proposalProposer,
-            submitDate: new Date().getTime(),
-            avatar: proposalAvatar,
-            published: proposalPublished
+            date: formattedDate,
+            name: name,
+            avatar: avatar,
+            shortBio: shortBio
         }
+      
+        let result = await curUserIdx.set('profile', record)
+       
 
-        let userCollectionExists = await isUserCollection('MemberProposal')
-        !userCollectionExists ? await initiateCollection('MemberProposal', memberProposalSchema) : null
-
-        let result = await retrieveRecord(proposalId.toString(), 'MemberProposal')
-        console.log('present user ', result)
-        console.log('user record ', result)
-        if(!result) {
-            await createRecord('MemberProposal', record) 
-        } else {
-            const updatedRecord = result
-            updatedRecord.applicant = proposalApplicant
-            updatedRecord.intro = proposalIntro
-            updatedRecord.proposer = proposalProposer
-            updatedRecord.submitDate = new Date().getTime()
-            updatedRecord.avatar = proposalAvatar
-            updatedRecord.published = proposalPublished
-            await updateRecord('MemberProposal', [updatedRecord])
-        }
-
-        if(proposalPublished) {
-            let appCollectionExists = await isAppCollection('MemberProposal')
-            !appCollectionExists ? await initiateAppCollection('MemberProposal', memberProposalSchema) : null
-
-            let result = await retrieveAppRecord(proposalId.toString(), 'MemberProposal')
-            console.log('present user ', result)
-            console.log('user record ', result)
-            if(!result) {
-                await createAppRecord('MemberProposal', record) 
-            } else {
-                const updatedRecord = result
-                updatedRecord.applicant = proposalApplicant
-                updatedRecord.intro = proposalIntro
-                updatedRecord.proposer = proposalProposer
-                updatedRecord.submitDate = new Date().getTime()
-                updatedRecord.avatar = proposalAvatar
-                updatedRecord.published = proposalPublished
-                await updateAppRecord('MemberProposal', [updatedRecord])
-            }
-        }
-
-        if(!proposalPublished) {
-          let appCollectionExists = await isAppCollection('MemberProposal')
-          !appCollectionExists ? await initiateAppCollection('MemberProposal', memberProposalSchema) : null
-
-          let result = await retrieveAppRecord(proposalId.toString(), 'MemberProposal')
-          console.log('present user ', result)
-          console.log('user record ', result)
-
-          if(result) {
-            await deleteAppRecord(proposalId.toString(), 'MemberProposal') 
-          }
-        }
       setFinished(true)
+      handleLoaded(false)
+      handleAvatarChange(avatar)
+      refreshAccount()
       setOpen(false)
-      handleProposalDetailsEmptyClickState(false)
     }
-
-    let Comments;
-    if(proposalPublished) {
-    Comments = (<Typography component="h3">Ask a question or leave a comment</Typography>)
-    
-    if (proposalComments && proposalComments.length > 0) {
-        Comments = proposalComments.map(comment => {
-            console.log('comments map', comment)
-            return (
-                    <CommentDetails
-                        key={comment.commentId}
-                        commentId={comment.commentId}
-                        comments={proposalComments}
-                        commentAuthor={comment.commentAuthor}
-                        commentParent={comment.commentParent}
-                        commentPublished={comment.published}
-                        accountId={accountId}
-                    />
-                  )
-          })
-    }
-  }
 
     const modules = {
         toolbar: [
@@ -269,66 +189,55 @@ export default function MasterPersonaForm(props) {
             <div>
             <div>
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-              <DialogTitle id="form-dialog-title">Membership Proposal Details</DialogTitle>
+              <DialogTitle id="form-dialog-title">Profile Data</DialogTitle>
               <DialogContent>
                   <DialogContentText style={{marginBottom: 10}}>
-                  Provide as much detail as possible to assist with voting decisions.
+                  Provide as much detail as you'd like.
                   </DialogContentText>
                     <div>
                       <TextField
                           autoFocus
                           margin="dense"
-                          id="membership-proposal-applicant"
+                          id="profile-name"
                           variant="outlined"
-                          name="memberProposalApplicant"
-                          label="Applicant"
-                          placeholder="someApplicant.testnet"
-                          value={proposalApplicant}
-                          onChange={handleApplicantChange}
+                          name="name"
+                          label="Name"
+                          placeholder="Billy Jo Someone"
+                          value={name}
+                          onChange={handleNameChange}
                           inputRef={register({
-                              required: true                              
+                              required: false                              
                           })}
                       />
-                    {errors.proposalApplicant && <p style={{color: 'red'}}>You must identify the applicant.</p>}
+                    {errors.name && <p style={{color: 'red'}}>You must provide a name.</p>}
                   </div>
                   <div>
                   <ReactQuill
                     theme="snow"
                     modules={modules}
                     formats={formats}
-                    name="proposalIntro"
-                    value={proposalIntro}
-                    onChange={handleIntroChange}
-                    style={{height:'400px', marginBottom:'100px'}}
+                    name="shortBio"
+                    value={shortBio}
+                    onChange={handleShortBioChange}
+                    style={{height:'200px', marginBottom:'100px'}}
                     inputRef={register({
-                        required: true
+                        required: false
                     })}
                   />
                   </div>
                   
                   <Grid container spacing={1}>
                     <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
-                        <Avatar src={proposalAvatar} className={classes.large} />
+                        <Avatar src={avatar} className={classes.large} />
                     </Grid>
                     <Grid item xs={10} sm={10} md={10} lg={10} xl={10}>
-                        <ImageUploader
-                            withIcon={true}
-                            buttonText="Applicant Picture or Avatar"
-                            onChange={onDropAvatar}
-                            imgExtension={[".jpg", ".gif", ".png"]}
-                            maxFileSize={5242880}
-                            withPreview={true}
-                            singleImage={true}
-                            inputRef={register()}
-                        />
+                      <Typography align="center" variant="h5">Upload an Avatar</Typography>
+                      <FileUpload handleFileHash={handleFileHash}/>
                     </Grid>
                   </Grid>
                  
                   <div>
-                  <FormControlLabel
-                    control={<Switch checked={proposalPublished} onChange={handlePublishToggle} color="primary" />}
-                    label="Published"
-                />
+               
                   </div>
                 </DialogContent>
               {!finished ? <LinearProgress className={classes.progress} style={{marginBottom: '25px' }}/> : (
@@ -342,28 +251,7 @@ export default function MasterPersonaForm(props) {
               </DialogActions>)}
               <Divider style={{marginBottom: 10}}/>
               
-              <Accordion>
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-                aria-controls="panel1a-content"
-                id="panel1a-header"
-              >
-              <Typography className={classes.heading}>Comments and Questions</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-              <Grid container spacing={1}>
-              <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                  {Comments}
-              </Grid>
-              <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-              <Typography variant="h5" style={{marginLeft: '10px'}}>Leave a Comment/Ask a Question</Typography>
-                  <CommentForm
-                    proposalId = {proposalId}
-                  />
-              </Grid>
-              </Grid>
-              </AccordionDetails>
-            </Accordion>
+           
             </Dialog>
           </div>
           </div>

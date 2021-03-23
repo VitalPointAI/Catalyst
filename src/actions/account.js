@@ -13,6 +13,7 @@ import { PublicKey, KeyType } from 'near-api-js/lib/utils/key_pair'
 import { WalletError } from '../utils/walletError'
 import { utils } from 'near-api-js'
 import { BN } from 'bn.js'
+const bip39 = require('bip39')
 
 export const loadRecoveryMethods = createAction('LOAD_RECOVERY_METHODS',
     wallet.getRecoveryMethods.bind(wallet),
@@ -355,7 +356,7 @@ export const fundCreateAccountLedger = (accountId, ledgerPublicKey) => async (di
 }
 
 // TODO: Refactor common code with setupRecoveryMessageNewAccount
-export const handleCreateAccountWithSeedPhrase = (accountId, recoveryKeyPair, fundingOptions) => async (dispatch) => {
+export const handleCreateAccountWithSeedPhrase = (accountId, recoveryKeyPair, fundingOptions, seedPhrase) => async (dispatch) => {
     if (DISABLE_CREATE_ACCOUNT && !fundingOptions) {
         await dispatch(fundCreateAccount(accountId, recoveryKeyPair, 'seed'))
         return
@@ -363,6 +364,8 @@ export const handleCreateAccountWithSeedPhrase = (accountId, recoveryKeyPair, fu
 
     try {
         await dispatch(createAccountWithSeedPhrase(accountId, recoveryKeyPair, fundingOptions))
+        let mnemonic = bip39.mnemonicToSeed(seedPhrase)
+        localStorage.setItem('catalyst:seed:'+accountId, Buffer.from(mnemonic).toString('base64'))
     } catch (error) {
         dispatch(redirectTo('/recover-seed-phrase', { 
             globalAlertPreventClear: true,

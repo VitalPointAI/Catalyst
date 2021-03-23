@@ -73,10 +73,6 @@ export default function ProposalList(props) {
   const [cancelFinish, setCancelFinish] = useState(true)
   const [fundingProposalStatus, setFundingProposalStatus] = useState()
   const [memberProposalStatus, setMemberProposalStatus] = useState()
-  const [snackBarOpen, setSnackBarOpen] = useState(false)
-  const [errorMessage, setErrorMessage] = useState()
-  const [severity, setSeverity] = useState()
-  const [successMessage, setSuccessMessage] = useState()
   const [done, setDone] = useState(true)
   const [memberProposalType, setMemberProposalType] = useState()
   
@@ -93,6 +89,14 @@ export default function ProposalList(props) {
     handleProposalEventChange,
     handleGuildBalanceChanges,
     handleEscrowBalanceChanges,
+    handleSnackBarOpen,
+    handleSuccessMessage,
+    handleErrorMessage,
+    snackBarOpen,
+    snackBarHandleClose,
+    severity,
+    successMessage,
+    errorMessage,
     proposalEvents,
     memberStatus,
     depositToken,
@@ -105,7 +109,14 @@ export default function ProposalList(props) {
     contract,
     daoContract,
     allMemberInfo,
-    getCurrentPeriod
+    getCurrentPeriod,
+    summoner,
+    contractIdx,
+    appIdx,
+    curUserIdx,
+    didsContract,
+    contractId,
+    appClient
   } = props
 
   useEffect(() => {
@@ -145,7 +156,7 @@ export default function ProposalList(props) {
       })
     }
     return () => { isMounted = false } // use effect cleanup to set flag false if unmounted
-  },[proposalEvents, currentPeriod])
+  },[proposalEvents, currentPeriod, allMemberInfo])
 
   const handleTabChange = (event, newValue) => {
       handleTabValueState(newValue);
@@ -226,27 +237,6 @@ export default function ProposalList(props) {
   function handleRageQuitClickState(property) {
       setRageQuitClicked(property)
   }
-
-  function handleErrorMessage(message, severity) {
-    setErrorMessage(message)
-    setSeverity(severity)
-  }
-
-  function handleSuccessMessage(message, severity) {
-    setSuccessMessage(message)
-    setSeverity(severity)
-  }
-
-  function handleSnackBarOpen(property) {
-    setSnackBarOpen(property)
-  }
- 
-  const snackBarHandleClose = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setSnackBarOpen(false);
-  };
 
   function Alert(props) {
     return <MuiAlert elevation={6} variant="filled" {...props} />
@@ -671,14 +661,23 @@ async function handleNoVotingAction(proposalIdentifier) {
   }
 
   let Members
+  console.log('allmemberinfo', allMemberInfo)
   if (allMemberInfo && allMemberInfo.length > 0 && tabValue == '1') {
     Members = allMemberInfo.map((fr, i) => {
+      console.log('fr', fr)
       return (
         <MemberCard 
-          key={fr._id}
-          name={fr.delegateKey}
+          key={fr.memberId}
+          accountName={fr.delegateKey}
           shares={fr.shares}
           memberCount={memberCount}
+          summoner={summoner}
+          curUserIdx={curUserIdx}
+          didsContract={didsContract}
+          appIdx={appIdx}
+          appClient={appClient}
+          contractId={contractId}
+          contractIdx={contractIdx}
           joined={makeTime(parseInt(fr.joined))}
         />
       )

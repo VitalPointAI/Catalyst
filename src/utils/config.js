@@ -18,13 +18,13 @@ function getConfig(env) {
     return {
       networkId: 'testnet',
       nodeUrl: 'https://rpc.testnet.near.org',
-     //nodeUrl: 'https://near-testnet--rpc.datahub.figment.io/apikey/7ef1d04e4d713b536b972f317f9a12b5/health',
       contractName: CONTRACT_NAME,
      // walletUrl: 'https://wallet.testnet.near.org',
       walletUrl: 'https://naughty-tereshkova-fbab93.netlify.app/',
-     //wallerUrl: 'https://vitalpointguild.herokuapp.com/',
+    //  walletUrl: 'http://localhost:1234/wallet'
       helperUrl: 'https://helper.testnet.near.org',
-      explorerUrl: 'https://explorer.testnet.near.org'
+      explorerUrl: 'https://explorer.testnet.near.org',
+      didRegistryContractName: 'dids.vitalpointai.testnet'
     }
   case 'betanet':
     return {

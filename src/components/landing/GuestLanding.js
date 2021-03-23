@@ -139,7 +139,7 @@ export function GuestLanding() {
     return (
         <>
        <StyledContainer>
-            <Grid container alignItems="left" justify="space-evenly" spacing={1}>
+            <Grid container alignItems="flex-start" justify="space-evenly" spacing={1}>
                 <Grid item xs={12} sm={12} md={1} lg={1} xl={1} ></Grid>
                 <Grid item xs={12} sm={12} md={6} lg={6} xl={6} >
                     <h1><Translate id='landing.what' /></h1>

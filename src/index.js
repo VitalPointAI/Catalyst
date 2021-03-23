@@ -24,7 +24,7 @@ export const store = createStore(createRootReducer(history), createMiddleware(hi
 ReactDOM.render(
     <Provider store={store}>
         <LocalizeProvider store={store}>
-            <Routing history={history} />
+           <Routing history={history} />
         </LocalizeProvider>
     </Provider>,
     document.getElementById('root')

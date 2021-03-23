@@ -8,6 +8,9 @@ export const submitProposalSchema = {
       _id: {
         type: 'string',
       },
+      fleetId: {
+        type: 'string',
+      },
       applicant: {
         type: 'string',
       },

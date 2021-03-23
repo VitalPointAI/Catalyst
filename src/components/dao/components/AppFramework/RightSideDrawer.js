@@ -33,7 +33,13 @@ export default function RightSideDrawer(props) {
   });
 
   const {
-    contract
+    contract,
+    handleErrorMessage,
+    handleSuccessMessage,
+    handleSnackBarOpen,
+    accountId,
+    hasDao,
+    factoryContract
   } = props
 
   const handleEditSettingsClick = () => {
@@ -57,7 +63,15 @@ export default function RightSideDrawer(props) {
      
     >
       <List>
-        <EditInitSettings contract={contract} handleEditSettingsClick={handleEditSettingsClick} />
+        <EditInitSettings 
+          contract={contract} 
+          handleEditSettingsClick={handleEditSettingsClick}
+          handleSnackBarOpen={handleSnackBarOpen}
+          handleSuccessMessage={handleSuccessMessage}
+          handleErrorMessage={handleErrorMessage}
+          factoryContract={factoryContract}
+          accountId={accountId}
+          hasDao={hasDao} />
       </List>
     </div>
   );

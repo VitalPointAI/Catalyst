@@ -8,6 +8,9 @@ export const memberSchema = {
       _id: {
         type: 'string',
       },
+      fleetId: {
+        type: 'string',
+      },
       delegateKey: {
         type: 'string',
       },

@@ -21,6 +21,7 @@ import isMobile from '../../utils/isMobile'
 import { Snackbar, snackbarDuration } from '../common/Snackbar'
 import Container from '../common/styled/Container.css'
 import { KeyPair } from 'near-api-js'
+const bip39 = require('bip39')
 class SetupSeedPhrase extends Component {
     state = {
         seedPhrase: '',
@@ -104,7 +105,7 @@ class SetupSeedPhrase extends Component {
             checkIsNew,
             location
         } = this.props
-        const { recoveryKeyPair } = this.state
+        const { recoveryKeyPair, seedPhrase } = this.state
 
         const isNew = await checkIsNew(accountId)
 
@@ -114,7 +115,8 @@ class SetupSeedPhrase extends Component {
         }
 
         const fundingOptions = JSON.parse(parseQuery(location.search).fundingOptions || 'null')
-        await handleCreateAccountWithSeedPhrase(accountId, recoveryKeyPair, fundingOptions)
+        await handleCreateAccountWithSeedPhrase(accountId, recoveryKeyPair, fundingOptions, seedPhrase)
+       
     }
 
     handleCopyPhrase = () => {

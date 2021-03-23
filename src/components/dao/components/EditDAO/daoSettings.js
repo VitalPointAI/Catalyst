@@ -3,6 +3,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { useForm } from 'react-hook-form'
 import { listAppDBs, listUserDBs} from '../../../../utils/threadsDB'
 import { summonEvent } from '../../../../utils/summonEvents'
+import { Translate } from 'react-localize-redux'
 
 // Material UI components
 import TextField from '@material-ui/core/TextField'
@@ -48,7 +49,16 @@ export default function EditInitSettings(props) {
     const classes = useStyles()
     const { register, handleSubmit, watch, errors } = useForm()
 
-    const { contract, handleEditSettingsClick, accountId } = props
+    const { 
+      contract, 
+      handleEditSettingsClick,
+      handleErrorMessage,
+      handleSuccessMessage,
+      handleSnackBarOpen,
+      accountId,
+      hasDao,
+      factoryContract, 
+      handleHasDao } = props
 
     useEffect(
       () => {
@@ -132,6 +142,46 @@ export default function EditInitSettings(props) {
           handleEditSettingsClick()
         }
     }
+
+    const onDeleteSubmit = async (values) => {
+      setFinish(false)
+      let finished
+
+      try {
+      let accountName = accountId.split('.')
+      console.log('accountName', accountName[0])
+      let name = accountName[0]
+      if(hasDao){
+          // create Fleet for account
+         finished = await contract.deleteDAO({
+              name: name,
+              beneficiary: accountId
+          }, process.env.DEFAULT_GAS_VALUE)
+          console.log('finished', finished)
+          if(finished) {
+              await handleHasDao(false)
+              handleSuccessMessage('Successfully deleted Fleet DAO.', 'success')
+              handleSnackBarOpen(true)
+          } else {
+              console.log('error deleting Fleet Dao')
+              handleErrorMessage('There was a problem deleting the Fleet DAO', 'error')
+              handleSnackBarOpen(true)
+              setFinished(true)
+              handleEditSettingsClick()
+          }
+      }
+      } catch (err) {
+      console.log('error deleting fleet dao', err)
+      handleErrorMessage('There was a problem deleting the Fleet DAO' + err.message, 'error')
+      handleSnackBarOpen(true)
+      setFinish(true)
+      handleEditSettingsClick()
+      }
+      if(finished) {
+          setFinish(true)
+          handleEditSettingsClick()
+      }
+  }
 
       return (
        
@@ -233,6 +283,10 @@ export default function EditInitSettings(props) {
 
                   <Button variant="contained" color="secondary" type="reset" onClick={handleReset}>
                         Reset
+                  </Button>
+
+                  <Button variant="contained" color="secondary" onClick={handleSubmit(onDeleteSubmit)}>
+                      <Translate id='button.deleteFleetDao' />
                   </Button>
 
                   </form>

@@ -8,6 +8,9 @@ export const commentSchema = {
       _id: {
         type: 'string',
       },
+      fleetId: {
+        type: 'string',
+      },
       parent: {
         type: 'string',
       },

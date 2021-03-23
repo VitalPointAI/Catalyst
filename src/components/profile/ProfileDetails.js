@@ -96,7 +96,8 @@ const ProfileDetails = ({
             available
         }
     },
-    isOwner
+    isOwner,
+    curUserIdx
 }) => (
     <CustomGrid>
         <Grid.Row>
@@ -146,6 +147,39 @@ const ProfileDetails = ({
                 </Grid.Column>
             )}
         </Grid.Row>
+        <Grid.Row className='border-top'>
+        <Grid.Column computer='4' tablet='4' mobile='7' className='title'>
+            <Translate id='profile.details.personaDID' />
+        </Grid.Column>
+        <Grid.Column computer='6' tablet='6' mobile='4' className='info-row'>
+            {curUserIdx ? curUserIdx.id : null }
+        </Grid.Column>
+        <Grid.Column computer='4' tablet='4' textAlign='center' only='tablet'>
+            <Translate id='profile.details.public' />
+        </Grid.Column>
+        {isOwner && (
+            <Grid.Column computer='2' tablet='2' mobile='5' textAlign='right'>
+                <Popup
+                    trigger={
+                        <div className='locked'>
+                            <Image src={LockImage} align='left' />
+                        </div>
+                    }
+                    hoverable
+                    position='left center'
+                >
+                    <Popup.Header><Translate id='profile.details.lockPopup3DID.title' /></Popup.Header>
+                    <Popup.Content>
+                        <Translate id='profile.details.lockPopup3DID.text' data={{'link': <Link to="/create"><Translate id='profile.details.lockPopup3DID.createAnotherAccount' /></Link>}} />
+                        {` `}
+                        {false ?
+                            <a href='/'>Learn more</a>
+                            : null}
+                    </Popup.Content>
+                </Popup>
+            </Grid.Column>
+        )}
+    </Grid.Row>
         <PublicBalanceRow titleId='profile.details.totalBalance' infoId='totalBalance' amount={total}/>
         <PublicBalanceRow titleId='profile.details.minBalance' infoId='minimumBalance' amount={stateStaked}/>
         {lockedAmount !== undefined

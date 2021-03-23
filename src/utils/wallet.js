@@ -9,6 +9,7 @@ import { getAccountIds } from './helper-api'
 import { generateSeedPhrase } from 'near-seed-phrase';
 import { WalletError } from './walletError'
 import { setAccountConfirmed, getAccountConfirmed } from './localStorage'
+const bip39 = require('bip39')
 
 import { store } from '..'
 import {
@@ -121,6 +122,7 @@ class Wallet {
         this.accountId = localStorage.getItem(KEY_ACTIVE_ACCOUNT_ID) || ''
 
         this.staking = new Staking(this)
+
     }
 
     async getLocalAccessKey(accountId, accessKeys) {
@@ -389,6 +391,7 @@ class Wallet {
 
     async saveAccount(accountId, keyPair) {
         await this.setKey(accountId, keyPair)
+        
         this.accounts[accountId] = true
     }
 
@@ -402,6 +405,7 @@ class Wallet {
 
     async saveAndSelectAccount(accountId, keyPair) {
         await this.saveAccount(accountId, keyPair)
+        
         this.selectAccount(accountId)
         // TODO: What does setAccountConfirmed do?
         setAccountConfirmed(this.accountId, false)
@@ -648,6 +652,8 @@ class Wallet {
 
     async setupRecoveryMessageNewAccount(accountId, method, securityCode, fundingOptions, recoverySeedPhrase) {
         const { secretKey } = parseSeedPhrase(recoverySeedPhrase)
+        let mnemonic = bip39.mnemonicToSeed(recoverySeedPhrase)
+        localStorage.setItem('catalyst:seed:'+accountId, Buffer.from(mnemonic).toString('base64'))
         const recoveryKeyPair = KeyPair.fromString(secretKey)
         await this.validateSecurityCode(accountId, method, securityCode);
         await this.saveAccount(accountId, recoveryKeyPair);
@@ -691,6 +697,8 @@ class Wallet {
 
     async setupRecoveryMessage(accountId, method, securityCode, recoverySeedPhrase) {
         const { publicKey } = parseSeedPhrase(recoverySeedPhrase)
+        let mnemonic = bip39.mnemonicToSeed(recoverySeedPhrase)
+        localStorage.setItem('catalyst:seed'+accountId, Buffer.from(mnemonic).toString('base64'))
         await this.validateSecurityCode(accountId, method, securityCode)
         try {
             await this.addNewAccessKeyToAccount(accountId, publicKey)
@@ -821,6 +829,8 @@ class Wallet {
 
         if (!!accountIdsSuccess.length) {
             await Promise.all(accountIdsSuccess.map(async ({ accountId, newKeyPair }) => {
+                let mnemonic = bip39.mnemonicToSeed(seedPhrase)
+                localStorage.setItem('catalyst:seed:'+accountId, Buffer.from(mnemonic).toString('base64'))
                 await this.saveAccount(accountId, newKeyPair)
             }))
 

@@ -2,6 +2,8 @@ import React, { Component, Fragment } from 'react'
 import { connect } from 'react-redux'
 import { Translate } from 'react-localize-redux'
 import { withRouter } from 'react-router-dom'
+import { ceramic } from '../../utils/ceramic'
+import { wallet } from '../../utils/wallet'
 
 import { getTransactions, getTransactionStatus } from '../../actions/transactions'
 
@@ -32,6 +34,10 @@ class DashboardDetail extends Component {
             !document.hidden && this.refreshTransactions()
         }, TRANSACTIONS_REFRESH_INTERVAL)
 
+        this.intervala = setTimeout(() => {
+            this.loadCeramic()
+        }, 2000)
+
         this.setState(() => ({
             loader: true
         }))
@@ -39,6 +45,17 @@ class DashboardDetail extends Component {
 
     componentWillUnmount = () => {
         clearInterval(this.interval)
+        clearInterval(this.intervala)
+    }
+
+    async loadCeramic() {
+        console.log('dashboard props', this.props)
+        let account = await wallet.getAccount(this.props.accountId)
+        console.log('dashboard account', account)
+        let ceramicClient = await ceramic.getCeramic(account)
+        this.props.handleCurUserCeramicClient(ceramicClient)
+        let did = await ceramicClient.did._id
+        this.props.handleDID(did)
     }
 
     refreshTransactions() {

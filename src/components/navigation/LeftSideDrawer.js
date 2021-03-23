@@ -35,7 +35,9 @@ import HowToVoteIcon from '@material-ui/icons/HowToVote'
 import ListIcon from '@material-ui/icons/List'
 import Typography from '@material-ui/core/Typography'
 import AccountBoxIcon from '@material-ui/icons/AccountBox'
-import LockOpenIcon from '@material-ui/icons/LockOpen';
+import LockOpenIcon from '@material-ui/icons/LockOpen'
+import AccountBalanceIcon from '@material-ui/icons/AccountBalance'
+import AddBoxIcon from '@material-ui/icons/AddBox'
 
 import summaryIcon from '../../images/icon-recent.svg';
 
@@ -189,10 +191,22 @@ export default function LeftSideDrawer(props) {
     </List>
     <Divider />
     
-    <Typography variant='h5'>Command</Typography>
+    <Typography variant='h5'>DAO HQ</Typography>
     <List>
-    <Link to='/proposals'>
+    <Link to='/createDao'>
       <ListItem button key={4}>
+        <ListItemIcon><AddBoxIcon /></ListItemIcon>
+        <ListItemText primary={<Translate id='link.createDao' />}/>
+      </ListItem>
+    </Link>
+    <Link to='/explore'>
+      <ListItem button key={5}>
+        <ListItemIcon><AccountBalanceIcon /></ListItemIcon>
+        <ListItemText primary={<Translate id='link.exploreDaos' />}/>
+      </ListItem>
+    </Link>
+    <Link to='/proposals'>
+      <ListItem button key={6}>
         <ListItemIcon><HowToVoteIcon /></ListItemIcon>
         <ListItemText primary={<Translate id='link.dao' />}/>
       </ListItem>
@@ -203,26 +217,26 @@ export default function LeftSideDrawer(props) {
     <Typography variant='h5'>Persona</Typography>
     <List>
     <Link to='/profile'>
-      <ListItem button key={5}>
+      <ListItem button key={7}>
         <ListItemIcon><AccountBoxIcon /></ListItemIcon>
         <ListItemText primary={<Translate id='link.profile' />}/>
       </ListItem>
     </Link>
     <Link to='/authorized-apps'>
-      <ListItem button key={6}>
+      <ListItem button key={8}>
         <ListItemIcon><LockOpenIcon /></ListItemIcon>
         <ListItemText primary={<Translate id='link.authorizedApps' />}/>
       </ListItem>
     </Link>
     <Link to='/add-fields'>
-      <ListItem button key={7}>
+      <ListItem button key={9}>
         <ListItemIcon><ListIcon /></ListItemIcon>
         <ListItemText primary={<Translate id='link.addFields' />}/>
       </ListItem>
     </Link>
     {ENABLE_FULL_ACCESS_KEYS && 
       <Link to='/full-access-keys'>
-      <ListItem button key={8}>
+      <ListItem button key={10}>
         <ListItemIcon><VpnKeyIcon /></ListItemIcon>
         <ListItemText primary={<Translate id='link.fullAccessKeys' />}/>
       </ListItem>
@@ -256,6 +270,7 @@ export default function LeftSideDrawer(props) {
             onClick={toggleDrawer(anchor, true)}
             edge="start"
             className={clsx(classes.menuButton, open && classes.hide)}
+            style={{float:'left', marginTop:'10px'}}
           >
             <MenuIcon />
           </IconButton>

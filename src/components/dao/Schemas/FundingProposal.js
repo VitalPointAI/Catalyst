@@ -8,6 +8,9 @@ export const fundingProposalSchema = {
       _id: {
         type: 'string',
       },
+      fleetId: {
+        type: 'string',
+      },
       title: {
         type: 'string',
       },

@@ -14,8 +14,8 @@ class DAOContract {
 
     constructor(){}
 
-    async initDAOContract(account) {
-        const daocontract = new nearApiJs.Contract(account, process.env.DAO_CONTRACT, {
+    async initDAOContract(account, contractId) {
+        const daocontract = new nearApiJs.Contract(account, contractId, {
             viewMethods: [
                 
             ],
@@ -28,17 +28,17 @@ class DAOContract {
             return daocontract
     }
 
-    async loadDAO() {
-        let loadAccount = await this.loadAccountObject()
-        let daoContract = await this.initDAOContract(loadAccount)
+    async loadDAO(contractId) {
+        let loadAccount = await this.loadAccountObject(contractId)
+        let daoContract = await this.initDAOContract(loadAccount, contractId)
         return daoContract
     }
 
-    async loadAccountObject() {
-        let keyPair = KeyPair.fromString(process.env.DAO_CONTRACT_PRIV_KEY)
-        let signer = await InMemorySigner.fromKeyPair(networkId, process.env.DAO_CONTRACT, keyPair)
+    async loadAccountObject(contractId) {
+        let keyPair = KeyPair.fromString(process.env.FACTORY_PRIV_KEY)
+        let signer = await InMemorySigner.fromKeyPair(networkId, contractId, keyPair)
         const near = await nearApiJs.connect(Object.assign({deps: { keyStore: signer.keyStore }}, getConfig(process.env.NODE_ENV)))
-        let loadAccount = new nearApiJs.Account(near.connection, process.env.DAO_CONTRACT)
+        let loadAccount = new nearApiJs.Account(near.connection, contractId)
         return loadAccount
     }   
     

@@ -1,18 +1,23 @@
 import 'regenerator-runtime/runtime'
 //import 'fontsource-roboto';
 import React, { useState, useEffect } from 'react'
+import FleetHQ from './components/landingPages/catalystHQ'
 import { dao } from '../../utils/dao'
+import { factory } from '../../utils/factory'
 import { proposalEvent } from '../../utils/proposalEvents'
 import { summonEvent } from '../../utils/summonEvents'
 import { memberEvent } from '../../utils/memberEvent'
 import { daoContractSend } from '../../utils/daoContractSender'
 import { makeStyles } from '@material-ui/core/styles'
 import { initiateDB, initiateAppDB } from '../../utils/threadsDB'
+import { utils } from 'near-api-js'
 
 // Material UI imports
 import Typography from '@material-ui/core/Typography'
 import LinearWithValueLabel from './components/common/LinearProgressWithLabel/linearProgressWithLabel'
 import Grid from '@material-ui/core/Grid'
+import Snackbar from '@material-ui/core/Snackbar'
+import MuiAlert from '@material-ui/lab/Alert'
 
 // DApp component imports
 import Initialize from './components/Initialize/initialize'
@@ -37,7 +42,7 @@ export default function Dao(props) {
   // state setup
   const [initialized, setInit] = useState()
   const [done, setDone] = useState(false)
-  const [accountId, setAccountId] = useState()  
+ // const [accountId, setAccountId] = useState()  
   const [tabValue, setTabValue] = useState('1')
   //const [currentPeriod, setCurrentPeriod] = useState(0)
   //const [proposalEvents, setProposalEvents] = useState([])
@@ -53,14 +58,23 @@ export default function Dao(props) {
   const [tributeOffer, setTributeOffer] = useState()
   const [periodDuration, setPeriodDuration] = useState()
   const [proposalComments, setProposalComments] = useState([])
-  const [contract, setContract] = useState()
-  const [daoContractSender, setDaoContractSender] = useState()
+ // const [contract, setContract] = useState()
+ // const [daoContractSender, setDaoContractSender] = useState()
   const [allMemberInfo, setAllMemberInfo] = useState()
   const [totalShares, setTotalShares] = useState()
   const [initEvents, setInitEvents] = useState()
  // const [proposalsLength, setProposalsLength] = useState()
   const [appDB, setAppDB] = useState()
   const [userDB, setUserDB] = useState()
+ // const [factoryContract, setFactoryContract] = useState()
+ 
+  const [accountHasDao, setAccountHasDao] = useState()
+  const [landing, setLanding] = useState(true)
+  const [daoContractId, setDaoContractId] = useState()
+  const [errorMessage, setErrorMessage] = useState()
+  const [severity, setSeverity] = useState()
+  const [successMessage, setSuccessMessage] = useState()
+  const [snackBarOpen, setSnackBarOpen] = useState(false)
 
   const classes = useStyles()
 
@@ -71,8 +85,20 @@ export default function Dao(props) {
     handleSetProposalsLength,
     handleSetProposalEvents,
     handleSetCurrentPeriod,
-    handleProposalEventChange
-  } = props
+    handleProposalEventChange,
+    factoryContract,
+    daoContractSender,
+    contract,
+    hasDao,
+    accountId, 
+    daoList,
+    idx,
+    daoIdx,
+    contractId,
+    didsContract
+  } = props  
+
+  console.log('dao daoList', daoList)
 
   function handleInitChange(newState) {
     setInit(newState)
@@ -84,6 +110,11 @@ export default function Dao(props) {
 
   function handleSummonerChange(newSummoner) {
     setSummoner(newSummoner)
+  }
+
+  async function handleHasDao(property) {
+    setAccountHasDao(property)
+    await props.refreshAccount()
   }
 
   async function handleGuildBalanceChanges() {
@@ -132,6 +163,20 @@ export default function Dao(props) {
     return BigInt(utils.format.parseNearAmount(amount.toString()))
   }
 
+  function handleErrorMessage(message, severity) {
+    setErrorMessage(message)
+    setSeverity(severity)
+  }
+
+  function handleSuccessMessage(message, severity) {
+    setSuccessMessage(message)
+    setSeverity(severity)
+  }
+
+  function handleSnackBarOpen(property) {
+    setSnackBarOpen(property)
+  }
+
   
 
   // The useEffect hook can be used to fire side-effects during render
@@ -143,49 +188,110 @@ export default function Dao(props) {
         
       //  setLoginState(true)      
         let isMounted = true; // note this flag denote mount status
+
+        // async function initFleet() {
+
+        //   // if(!appDB){
+        //   //   let app = await initiateAppDB()
+        //   //    setAppDB(true)
+        //   //  }
+        //   //  if(!userDB) {
+        //   //    let user = await initiateDB()
+        //   //    setUserDB(true)
+        //   //  }
+         
+           
+ 
+        //   //  let accountObj = await dao.loadAccountObject()
+        //   //  let accountId = accountObj.accountId
+        //   //  if(isMounted) {
+        //   //  setAccountId(accountObj.accountId)
+        //   //  }
+        //   //  let daoName = accountId.split('.')
+        //   //  let dname = daoName[0]
+        //   //  console.log('dname', dname)
+        //   //  let factoryContract = await factory.loadFactory(dname+'.'+process.env.FACTORY_CONTRACT)
+        //   //  if(isMounted) {
+        //   //    setFactoryContract(thisfactoryContract)
+        //   //    console.log('factoryContract', factoryContract)
+        //   //  }
+
+        //   //  try {
+        //   //   let accountName = accountId.split('.')
+        //   //   console.log('accountName', accountName[0])
+        //   //   let name = accountName[0]
+        //   //   let hasDao = await factoryContract.findDAO({account: name + '.' + process.env.FACTORY_CONTRACT})
+           
+        //   //   console.log('hasDao', hasDao)
+        //   //   if(isMounted && hasDao){
+        //   //     setAccountHasDao(true)
+        //   //     console.log('has Fleet?', hasDao)
+        //     //   if(!hasDao){
+        //     //     setLanding(true)
+        //     //     // setDaoContractId(name + '.' + process.env.FACTORY_CONTRACT)
+        //     //     // console.log('dao contract id', daoContractId)
+        //     //     return false
+        //     //   } else {
+        //     //     setLanding(false)
+        //     //     return true
+        //     //   }
+        //     // }
+        //   // } catch (err) {
+        //   //   console.log('error determining if account has a fleet', err)
+        //   // }
+      
+        //   // console.log('dao contract id 2', daoContractId)
+        //   // let accountName = accountId.split('.')
+        //   // console.log('accountName', accountName[0])
+        //   // let name = accountName[0]
+        //   //  let contract = await dao.loadDAO(name + '.' + process.env.FACTORY_CONTRACT)
+        //   //  if(isMounted) {
+        //   //  handleContractChange(contract)
+        //   //  }
+ 
+        //   //  let daoContractSender = await daoContractSend.loadDAO(daoContractId)
+        //   //  if(isMounted) {
+        //   //  setDaoContractSender(daoContractSender)
+        //   //  }
+        //   return true
+        // }
+        
         
         async function fetchData() {
-
-          if(!appDB){
-           let app = await initiateAppDB()
-            setAppDB(true)
-          }
-          if(!userDB) {
-            let user = await initiateDB()
-            setUserDB(true)
-          }
-
-          let accountObj = await dao.loadAccountObject()
-          let accountId = accountObj.accountId
-          if(isMounted) {
-          setAccountId(accountObj.accountId)
-          }
-          let contract = await dao.loadDAO()
-          if(isMounted) {
-          handleContractChange(contract)
-          }
-
-          let daoContractSender = await daoContractSend.loadDAO()
-          if(isMounted) {
-          setDaoContractSender(daoContractSender)
-          }
-
-          try {
-            let isInit = await contract.getInit({})
-            if(isInit == 'done') {
-              if(isMounted) {
-              handleInitChange(true)
-              }
-            } else {
-              if(isMounted) {
-              handleInitChange(false)
-              }
-            }
-          } catch (err) {
-            console.log('initilization not complete', err)
-          }
-
+          // let accountObj = await dao.loadAccountObject()
+          // let accountId = accountObj.accountId
+          // setAccountId(accountObj.accountId)
+          // let accountName = accountId.split('.')
+          // console.log('accountName', accountName[0])
+          // let name = accountName[0]
+          // let contract = await dao.loadDAO(name + '.' + process.env.FACTORY_CONTRACT)
+          // console.log('fetch data contract', contract)
+          //  if(isMounted) {
+          //  handleContractChange(contract)
+          //  }
+          console.log('dao contract', props.contract)
+          console.log('dao contract sender', props.daoContractSender)
+          console.log('factory contract', props.factoryContract)
+          console.log('dao has dao', props.hasDao)
           
+          if(contract){
+            let isInit
+            try {
+              isInit = await contract.getInit({})
+              if(isInit == 'done') {
+                if(isMounted) {
+                handleInitChange(true)
+                }
+              } else {
+                if(isMounted) {
+                handleInitChange(false)
+                }
+              }
+            } catch (err) {
+              console.log('initilization not complete', err)
+            }
+
+          if(isInit == 'done'){
           if(currentPeriod == undefined || currentPeriod == 0){
             try {
               let period = await contract.getCurrentPeriod()
@@ -263,6 +369,7 @@ export default function Dao(props) {
               let owner = await contract.getSummoner()
               if(isMounted) {
               setSummoner(owner)
+              console.log('summoner', summoner)
               }
             } catch (err) {
               console.log('no summoner yet')
@@ -347,38 +454,62 @@ export default function Dao(props) {
             }
 
             return true
+          
           } catch (err) {
             console.log('not done', err)
             return false
           }
           return true
         }
+        }
+        return true
+        }
         
-       
-        fetchData()
+        initFleet()
           .then((res) => {
-            if(isMounted) {
-            res ? setDone(true) : setDone(false)
-            
-            }
+            console.log('res init fleet', res)
           })
-
-
+        
+        fetchData()
+          .then((nextRes) => {
+             if(isMounted) {
+                console.log('next res', nextRes)
+                 nextRes ? setDone(true) : setDone(false)
+             }
+          })
+       
         return () => { isMounted = false } // use effect cleanup to set flag false if unmounted
 
     },
 
     // The second argument to useEffect tells React when to re-run the effect
     // it compares current value and if different - re-renders
-    [initialized, currentPeriod]
+    [initialized, currentPeriod, hasDao]
   )
 
-
-  if(done && initialized) {
-    
-   
-
-
+  if(!hasDao) {
+    return (
+      <FleetHQ
+        accountId={accountId}
+        tokenName='Ⓝ'
+        contract={contract}
+        daoContract={daoContractSender}
+        handleInitChange={handleInitChange}
+        factoryContract={factoryContract}
+        hasDao={accountHasDao}
+        handleSnackBarOpen={handleSnackBarOpen}
+        handleSuccessMessage={handleSuccessMessage}
+        handleErrorMessage={handleErrorMessage}
+        handleHasDao={handleHasDao}
+        snackBarOpen={snackBarOpen}
+        severity={severity}
+        errorMessage={errorMessage}
+        successMessage={successMessage}
+        daoList={daoList}
+        idx={idx}
+        didsContract={didsContract}
+      />
+    )
   }
   
   
@@ -396,7 +527,7 @@ export default function Dao(props) {
     )
   }
   
-  if(done && (initialized != undefined  && !initialized)) {
+  if(done && (initialized != undefined && !initialized)) {
       return (
         <Initialize
           accountId={accountId}
@@ -407,6 +538,7 @@ export default function Dao(props) {
           handleSetCurrentPeriod={handleSetCurrentPeriod}
           handleSetProposalsLength={handleSetProposalsLength}
           handleSetProposalEvents={handleSetProposalEvents}
+          idx={idx}
         />
       )
   } else {
@@ -424,6 +556,9 @@ export default function Dao(props) {
           handleEscrowBalanceChanges={handleEscrowBalanceChanges}
           handleGuildBalanceChanges={handleGuildBalanceChanges}
           handleUserBalanceChanges={handleUserBalanceChanges}
+          handleSnackBarOpen={handleSnackBarOpen}
+          handleSuccessMessage={handleSuccessMessage}
+          handleErrorMessage={handleErrorMessage}
           currentPeriod={currentPeriod}
           periodDuration={periodDuration}
           memberStatus={memberStatus}
@@ -442,6 +577,10 @@ export default function Dao(props) {
           allMemberInfo={allMemberInfo}
           totalShares={totalShares}
           initEvents={initEvents}
+          factoryContract={factoryContract}
+          hasDao={accountHasDao}
+          idx={idx}
+          didsContract={didsContract}
           />
       )
   }

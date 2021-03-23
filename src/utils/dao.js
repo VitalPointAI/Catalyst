@@ -6,9 +6,9 @@ class DAO {
 
     constructor(){}
 
-    async initDAOContract(account) {
+    async initDAOContract(account, contractId) {
         //initialize DAO Contract
-        const daocontract = new nearApiJs.Contract(account, process.env.DAO_CONTRACT, {
+        const daocontract = new nearApiJs.Contract(account, contractId, {
             viewMethods: [
                 'isOwner',
                 'onlyShareholder',
@@ -46,7 +46,8 @@ class DAO {
                 'getInitEventsLength',
                 'getTotalMembers',
                 'getProposal',
-                'getSummonTime'
+                'getSummonTime',
+                'proveOwner'
             ],
             // Change methods can modify the state. But you don't receive the returned value when called.
             changeMethods: [
@@ -71,7 +72,8 @@ class DAO {
                 'setAppIdentity',
                 'setIdentity',
                 'registerMember',
-                'addComment'
+                'addComment',
+                'deleteDAO'
             ],
             sender: account.accountId
             });
@@ -79,13 +81,13 @@ class DAO {
             return daocontract
     }
 
-    async loadDAO() {
+    async loadDAO(contractId) {
        
         let loadAccount = await this.loadAccountObject()
        
         const account = await wallet.getAccount(loadAccount.accountId)
         
-        let daoContract = await this.initDAOContract(account)
+        let daoContract = await this.initDAOContract(account, contractId)
         
         return daoContract
     }

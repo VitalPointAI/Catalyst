@@ -1,9 +1,10 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Translate } from 'react-localize-redux';
 import styled from 'styled-components';
 import helpIcon from '../../images/icon-help.svg';
 import userIcon from '../../images/user-icon-grey.svg';
 import languagesIcon from '../../images/icon-languages.svg';
+import LanguageToggle from '../common/LangSwitcher';
 import Logo from './Logo';
 import NavLinks from './NavLinks';
 import TopNavLinks from './TopNavLinks'
@@ -11,7 +12,30 @@ import LeftSideDrawer from './LeftSideDrawer';
 import UserBalance from './UserBalance';
 import UserName from './UserName';
 import DesktopMenu from './DesktopMenu';
-import LanguageToggle from '../common/LangSwitcher';
+
+//import Avatar from '../common/Avatar/avatar'
+import Avatar from '@material-ui/core/Avatar'
+import { makeStyles } from '@material-ui/core/styles'
+
+// Material UI Imports
+import Grid from '@material-ui/core/Grid'
+import Paper from '@material-ui/core/Paper'
+import Typography from '@material-ui/core/Typography'
+
+const useStyles = makeStyles((theme) => ({
+    root: {
+      flexGrow: 1,
+      margin: 'auto',
+      maxWidth: 325,
+      minWidth: 325,
+    },
+    paper: {
+        padding: theme.spacing(2),
+        textAlign: 'center',
+        color: theme.palette.text.secondary,
+      },
+}));
+  
 
 const Container = styled.div`
     display: none;
@@ -39,32 +63,6 @@ const Container = styled.div`
     }
 `
 
-const Help = styled.a`
-    color: white;
-    display: flex;
-    align-items: center;
-    margin-left: auto;
-    text-transform: uppercase;
-    cursor: pointer;
-    letter-spacing: 2px;
-    padding-top: 2px;
-    
-    &:hover {
-        color: white;
-        text-decoration: none;
-    }
-
-    &:before {
-        content: '';
-        background: url(${helpIcon});
-        background-repeat: no-repeat;
-        display: inline-block;
-        width: 23px;
-        height: 23px;
-        margin-right: 10px;
-        margin-top: -2px;
-    }
-`
 
 const User = styled.div`
     border-left: 2px solid #5d5f60;
@@ -152,7 +150,6 @@ const User = styled.div`
 
     &:after {
         content: '';
-        border-color: #f8f8f8a1;
         border-style: solid;
         border-width: 2px 2px 0 0;
         display: inline-block;
@@ -165,12 +162,8 @@ const User = styled.div`
     }
 `
 
-const UserIcon = styled.div`
+const AvatarIcon = styled.div`
     display: none;
-    background: url(${userIcon});
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 21px;
     min-width: 35px;
     width: 35px;
     height: 35px;
@@ -182,50 +175,12 @@ const UserIcon = styled.div`
     }
 `
 
-const Lang = styled.div`
-    margin-left: 20px;
-    position: relative;
+const imageName = require('../../images/default-profile.png') // default no-image avatar
 
-    &:after {
-        content: '';
-        border-color: #f8f8f8a1;
-        border-style: solid;
-        border-width: 2px 2px 0 0;
-        display: inline-block;
-        position: absolute;
-        right: 10px;
-        top: calc(50% - 10px);
-        transform: rotate(135deg) translateY(-50%);
-        height: 9px;
-        width: 9px;
-    }
-
-    &:last-child {
-        margin-right: 15px;
-    }
-
-    .lang-selector {
-        appearance: none;
-        background: transparent url(${languagesIcon}) no-repeat 5px center / 20px 20px;
-        border: 0;
-        cursor: pointer;
-        font-size: 16px;
-        height: 32px;
-        outline: none;
-        padding-right: 54px;
-        position: relative;
-        user-select: none;
-        width: 54px;
-        z-index: 1;
-
-        &::-ms-expand {
-            display: none;
-        }
-    }
-`
-
-class DesktopContainer extends Component {
-    render() {
+export default function DesktopContainer(props) {
+ 
+        const [thisAvatar, setThisAvatar] = useState()
+        const [loaded, setLoaded] = useState(false)
 
         const {
             account,
@@ -233,31 +188,64 @@ class DesktopContainer extends Component {
             toggleMenu,
             availableAccounts,
             selectAccount,
-            showNavLinks
-        } = this.props;
+            showNavLinks,
+            curUserIdx,
+            avatar
+        } = props;
 
-        return (
-            <Container>
-            {showNavLinks && <LeftSideDrawer
-                account={account}
-                selectAccount={selectAccount}
-                availableAccounts={availableAccounts}
-                menuOpen={menuOpen}
-                toggleMenu={toggleMenu}
-                showNavLinks={showNavLinks}
-            />}
-                <Logo/>
-               <TopNavLinks />
-                <Help href='https://discord.gg/YRD8GWQ' target='_blank' rel='noopener noreferrer'>
-                    <Translate id='link.help'/>
-                </Help>
-                <Lang>
-                    <LanguageToggle />
-                </Lang>
+        const classes = useStyles()
+
+        useEffect(() => {
+
+            async function fetchData() {
+              
+               if(avatar){
+                   setThisAvatar(avatar)
+               } else {
+                   setThisAvatar(imageName)
+               }
+            }
+           
+            fetchData()
+              .then((res) => {
+                console.log('res', res)
+                // handleLoaded(true)
+              })
+            }, [curUserIdx, avatar]
+        )
+
+        const handleLoaded = (property) => {
+            setLoaded(property)
+        }
+
+        return (           
+            <Paper className={classes.paper}>
+            <Grid container justify="space-between" alignItems="center" >
+                <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
+                {showNavLinks && <LeftSideDrawer
+                    account={account}
+                    selectAccount={selectAccount}
+                    availableAccounts={availableAccounts}
+                    menuOpen={menuOpen}
+                    toggleMenu={toggleMenu}
+                    showNavLinks={showNavLinks}
+                />}
+                    <Logo />
+              
+                </Grid>
+                <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
+                    <Typography>LEARN</Typography>
+                </Grid>
+                <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
+                    <Typography>EXPLORE</Typography>
+                </Grid>
+                <Grid item xs={4} sm={4} md={4} lg={4} xl={4}>
                 {showNavLinks &&
-                    <>
+                    <>  
                         <User onClick={toggleMenu}>
-                            <UserIcon/>
+                          
+                                <Avatar src={thisAvatar} />
+                           
                             <UserName accountId={account.accountId}/>
                             <UserBalance balance={account.balance}/>
                         </User>
@@ -271,9 +259,8 @@ class DesktopContainer extends Component {
                         />
                     </>
                 }
-            </Container>
+                </Grid>
+            </Grid>
+            </Paper>
         )
     }
-}
-
-export default DesktopContainer;

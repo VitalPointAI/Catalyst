@@ -338,7 +338,9 @@
         "edit": "Edit",
         "createPersona": "Create Persona",
         "createPersonaCapital": "CREATE PERSONA",
-        "importPersona": "Import Existing Persona"
+        "importPersona": "Import Existing Persona",
+        "createFleetDao": "CREATE FLEET DAO",
+        "deleteFleetDao": "DELETE FLEET DAO"
     },
 
     "link": {
@@ -350,6 +352,8 @@
         "receive": "RECEIVE",
         "staking": "STAKING",
         "dao": "PROPOSALS",
+        "createDao": "CREATE DAO",
+        "exploreDaos": "EXPLORE DAOS",
         "help": "HELP",
         "profile": "Profile",
         "authorizedApps": "Authorized Apps",
@@ -739,13 +743,14 @@
             "notFound": "Account ${accountId} not found",
             "personaNotFound": "Persona ${accountId} not found",
             "default": "Account: ${accountId}",
-            "personaDefault": "Persona: ${accountId}"
+            "personaDefault": "${accountId}"
         },
         "details": {
             "profile": "PROFILE",
             "visibleTo": "VISIBLE TO",
             "username": "Account ID",
             "personaUsername": "Persona ID",
+            "personaDID": "3ID",
             "public": "Public",
             "totalBalance": "Total Balance",
             "minBalance": "Minimum Balance",
@@ -757,7 +762,12 @@
             "lockPopup": {
                 "title": "Why is this locked?",
                 "text": "Your account ID is your unique identifier in the system and cannot be changed because data and asset ownership is tied to it. However you are welcome to ${link} with desired name and transfer assets as needed.",
-                "createAnotherAccount": "create another account"
+                "createAnotherAccount": "create another persona"
+            },
+            "lockPopup3DID": {
+                "title": "Why is this locked?",
+                "text": "Your 3ID is your unique digital identity and cannot be changed because data is tied to it. However you are welcome to ${link} with desired name and create new digital identities or transfer data as needed.",
+                "createAnotherAccount": "create another persona"
             },
             "qrDesc": "Use your phone's camera app to send to this address"
         }
@@ -847,8 +857,10 @@
     "unlockedBalance": "This NEAR is still in a lockup contract, and is ready to be withdrawn. If you choose to withdraw this NEAR, it will appear in your Available Balance.",
     "memberProposalInfoShares": "Shares reflect a member's voting power and ownership of the community fund relative to their contribution. Typical request is a 1:1 match of shares to contribution. For example, if a member receives 10 shares for contributing 10 NEAR to the fund with current balance of 100 NEAR, then that member has 10% ownership and 10% of the voting power.",
     "memberProposalInfoContribution": "The amount of NEAR the member is contributing to the community fund. This fund is used to fund proposals that benefit the community in some way that members vote on and decide collectively to pass.",
+    "democracyMemberProposalInfoContribution": "The amount of NEAR the member is contributing to the community fund. This fund is used to fund proposals that benefit the community in some way that members vote on and decide collectively to pass.  Members receive one share for every one NEAR contributed which represents their portion of the community fund.  Member receives one vote regardless of contribution size.",
     "fundingProposalInfo": "The amount of NEAR the applicant is requesting to fund their proposal.  The proposal should be benefitting the community in some way.",
-
+    "daoPurposeInfo": "This is a short description of why the DAO exists - what purpose or mission is it bringing people together to achieve.",
+    
     "transaction": {
         "status": {
             "NotStarted": "Not started",
@@ -978,8 +990,8 @@
     },
 
     "networkBanner": {
-        "title": "Fleets is currently running on NEAR Testnet",
-        "header": "Fleets test app",
+        "title": "Catalyst is currently running on NEAR Testnet",
+        "header": "Catalyst test app",
         "desc": "This application (and network) are for testing purposes only. Data does not transfer to Mainnet."
     },
     "stagingBanner": {
@@ -997,5 +1009,9 @@
     "emailSubscribe": {
         "title": "Sign up below for early access",
         "placeholder": "Your email..."
+    },
+    "hq": {
+        "title": "Fleet HQ",
+        "subTitle": "Your DAO command"
     }
 }

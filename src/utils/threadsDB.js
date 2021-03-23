@@ -602,6 +602,25 @@ export async function deleteAppCollection(collection) {
   return true
 }
 
+export async function deleteFleetDataFromAppCollection(collection, ids) {
+  try{
+  await appDatabase.delete(ThreadID.fromString(process.env.APP_THREAD_ID), collection, ids)
+  } catch (err) {
+    console.log('problem deleteing items from collection', err)
+  }
+  return true
+}
+
+export async function retrieveAppIDs(collection, fleetID) {
+  try{
+    const query = new Where('fleetId').eq(fleetID)
+    const ids = await appDatabase.find(ThreadID.fromString(process.env.APP_THREAD_ID), collection, query)
+    return ids
+  } catch (err) {
+    console.log('error retrieving app ids', err)
+  }
+}
+
 export async function retrieveAppRecord(id, collection) {
   
   let obj

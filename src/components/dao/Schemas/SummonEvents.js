@@ -8,6 +8,9 @@ export const summonSchema = {
       _id: {
         type: 'string',
       },
+      fleetId: {
+        type: 'string',
+      },
       summoner: {
         type: 'string',
       },

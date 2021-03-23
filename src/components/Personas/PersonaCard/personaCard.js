@@ -7,27 +7,42 @@ import './memberCard.css'
 export default function PersonaCard(props) {
 
     const[loaded, setLoaded] = useState(true)
+    const [date, setDate] = useState('')
+    const [name, setName] = useState('')
+    const [avatar, setAvatar] = useState()
+    const [shortBio, setShortBio] = useState('')
 
     const {
-        personaId,
-        personaAccount,
-        personaCreatedDate,
-        personaStatus,
-        personaPrivacy
+       idx
     } = props
 
     useEffect(
         () => {
-
+            async function fetchData() {
+            
+                let result = await idx.get('profile', DID)
+                console.log('result ', result)
+                 if(result) {
+                     result.date ? setDate(result.date) : setDate('')
+                     result.avatar ? setAvatar(result.avatar) : setAvatar('')
+                     result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
+                     result.name ? setName(result.name) : setName('')
+                  }       
+            }
+           
+            fetchData()
+              .then((res) => {
+                console.log('res', res)
+              })
         },
         []
     )
 
-    // Format member join date as string with date and time for display
-    let intDate = parseInt(personaCreatedDate)
-    let options = {year: 'numeric', month: 'long', day: 'numeric'}
-    let formatPersonaCreatedDate = new Date(intDate).toLocaleString('en-US', options)
-    console.log("format date", formatPersonaCreatedDate)
+    // // Format member join date as string with date and time for display
+    // let intDate = parseInt(personaCreatedDate)
+    // let options = {year: 'numeric', month: 'long', day: 'numeric'}
+    // let formatPersonaCreatedDate = new Date(intDate).toLocaleString('en-US', options)
+    // console.log("format date", formatPersonaCreatedDate)
 
     let info = loaded
     ? ( <Card>

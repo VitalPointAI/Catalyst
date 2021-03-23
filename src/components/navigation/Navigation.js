@@ -21,6 +21,7 @@ class Navigation extends Component {
     state = {
         menuOpen: false
     }
+    
 
     componentDidUpdate(prevState) {
 
@@ -79,6 +80,8 @@ class Navigation extends Component {
                     toggleMenu={this.toggleMenu}
                     selectAccount={this.handleSelectAccount}
                     showNavLinks={this.showNavLinks}
+                    curUserIdx={this.props.curUserIdx}
+                    avatar={this.props.avatar}
                     {...this.props}
                 />
                 <MobileContainer

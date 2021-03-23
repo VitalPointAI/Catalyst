@@ -3,9 +3,12 @@ export const memberProposalSchema = {
     $schema: 'http://json-schema.org/draft-07/schema#',
     title: 'MemberProposal',
     type: 'object',
-    required: ['_id'],
+    required: ['proposalId'],
     properties: {
-      _id: {
+      proposalId: {
+        type: 'string',
+      },
+      contractId: {
         type: 'string',
       },
       applicant: {
@@ -26,7 +29,6 @@ export const memberProposalSchema = {
       },
       avatar: {
         type: 'string',
-        contentEncoding: 'base64',
       },
       published: {
         type: 'boolean'

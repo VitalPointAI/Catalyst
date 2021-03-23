@@ -6,6 +6,7 @@ import { utils } from 'near-api-js'
 import InfoPopup from '../../../common/InfoPopup'
 import { Translate } from 'react-localize-redux'
 import { proposalEvent } from '../../../../utils/proposalEvents'
+import { useParams } from 'react-router-dom'
 
 
 // Material UI components
@@ -83,6 +84,10 @@ export default function MemberProposal(props) {
   const [shares, setShares] = useState('')
   const [tribute, setTribute] = useState('')
   const [confirm, setConfirm] = useState(false)
+
+  const {
+    contractId
+  } = useParams()
   
 
   const classes = useStyles()
@@ -99,7 +104,9 @@ export default function MemberProposal(props) {
     daoContract,
     depositToken,
     proposalDeposit,
-    contract } = props
+    contract,
+    didsContract,
+    contractIdx } = props
 
   const handleClose = () => {
     handleMemberProposalClickState(false)
@@ -114,7 +121,7 @@ export default function MemberProposal(props) {
   };
 
   const handleTributeChange = (event) => {
-    setTribute(event.target.value.toString());
+    setTribute(event.target.value);
   };
 
   const handleConfirmChange = (event) => {
@@ -126,9 +133,24 @@ export default function MemberProposal(props) {
         pI: proposalIdentifier
         }, process.env.DEFAULT_GAS_VALUE, utils.format.parseNearAmount((parseInt(proposalDeposit)+parseInt(tribute)).toString()))
     try{
-      let recorded = await proposalEvent.recordEvent(
-        finished.pI, finished.a, finished.p, finished.s, finished.sR, finished.lR, finished.tO, finished.tT, finished.pR, finished.pT, 
-        finished.sP, finished.yV, finished.nV, finished.f, finished.mT, finished.pS, finished.vP, finished.gP, finished.voteFinalized)
+      // let recorded = await proposalEvent.recordEvent(
+      //   finished.pI, finished.a, finished.p, finished.s, finished.sR, finished.lR, finished.tO, finished.tT, finished.pR, finished.pT, 
+      //   finished.sP, finished.yV, finished.nV, finished.f, finished.mT, finished.pS, finished.vP, finished.gP, finished.voteFinalized)
+
+        let contractDid = await didsContract.getDID({accountId: contractId})
+        let memberProposalRecords = await contractIdx.get('memberProposal', contractDid)
+        let i = 0
+        let recordToChange
+        while (i < memberProposalRecords.events.length){
+          if (memberProposalRecords.events[i].memberProposalId == proposalIdentifier.toString()){
+            memberProposalRecords.events[i].flags = finished.f
+            break
+          }
+          i++
+        }
+
+        let result = await contractIdx.set('memberProposal', memberProposalRecords)
+
         handleSuccessMessage('Successfully cancelled membership proposal.', 'success')
         handleSnackBarOpen(true)
       } catch (err) {
@@ -143,7 +165,7 @@ export default function MemberProposal(props) {
     try{
       finished = await contract.submitProposal({
                       a: applicant,
-                      sR: shares,
+                      sR: tribute,
                       lR: '0',
                       tO: tribute,
                       tT: depositToken,
@@ -152,11 +174,48 @@ export default function MemberProposal(props) {
                       }, BOATLOAD_OF_GAS, utils.format.parseNearAmount((parseInt(tribute) + parseInt(proposalDeposit)).toString()))
 
       console.log('finished', finished)
-      try{
-        let recorded = await proposalEvent.recordEvent(
-          finished.pI, finished.a, finished.p, finished.s, finished.sR, finished.lR, finished.tO, finished.tT, finished.pR, finished.pT, 
-          finished.sP, finished.yV, finished.nV, finished.f, finished.mT, finished.pS, finished.vP, finished.gP, finished.voteFinalized)
-          if(recorded) {
+        let contractDid = await didsContract.getDID({accountId: contractId})
+        let memberProposalRecords = await contractIdx.get('memberProposal', contractDid)
+        if(!memberProposalRecords){
+          memberProposalRecords = { events: [] }
+        }
+
+        try{
+        let indivMemberProposalRecord = {
+          memberProposalId: (finished.pI).toString(),
+          applicant: finished.a,
+          proposer: finished.p,
+          sponsor: finished.s,
+          sharesRequested: finished.sR,
+          lootRequested: finished.lR,
+          tributeOffered: finished.tO,
+          tributeToken: finished.tT,
+          paymentRequested: finished.pR,
+          paymentToken: finished.pT,
+          startingPeriod: finished.sP,
+          yesVote: finished.yV,
+          noVote: finished.nV,
+          flags: finished.f,
+          maxTotalSharesAndLootAtYesVote: finished.mT,
+          proposalSubmission: parseInt(finished.pS),
+          votingPeriod: finished.vP,
+          gracePeriod: finished.gP,
+          voteFinalized: parseInt(finished.voteFinalized)
+        }
+
+        memberProposalRecords.events.push(indivMemberProposalRecord)
+        console.log('memberProposalRecords.events', memberProposalRecords.events)
+
+        let result = await contractIdx.set('memberProposal', memberProposalRecords)
+   
+
+    // let totalMembers = await daoContract.getTotalMembers()
+    // let memberId = parseInt(totalMembers)
+      // try{
+      //   let recorded = await proposalEvent.recordEvent(
+      //     finished.pI, finished.a, finished.p, finished.s, finished.sR, finished.lR, finished.tO, finished.tT, finished.pR, finished.pT, 
+      //     finished.sP, finished.yV, finished.nV, finished.f, finished.mT, finished.pS, finished.vP, finished.gP, finished.voteFinalized)
+          if(result) {
             handleSuccessMessage('Successfully added member proposal.', 'success')
             handleSnackBarOpen(true)
           } else {
@@ -177,7 +236,7 @@ export default function MemberProposal(props) {
 
     if(finished) {
       setFinished(true)
-      await handleProposalEventChange()
+    //  await handleProposalEventChange()
       await handleGuildBalanceChanges()
       await handleEscrowBalanceChanges()
       setOpen(false)
@@ -208,29 +267,7 @@ export default function MemberProposal(props) {
             />
             {errors.applicant && <p style={{color: 'red'}}>You must provide a valid NEAR account.</p>}
           </div>
-              <div>
-                <TextField
-                    autoFocus
-                    margin="dense"
-                    id="membership-proposal-sharesRequested"
-                    variant="outlined"
-                    name="sharesRequested"
-                    label="Shares Requested"
-                    placeholder="100"
-                    value={shares}
-                    onChange={handleSharesRequestedChange}
-                    inputRef={register({
-                        required: true,            
-                    })}
-                    InputProps={{
-                        endAdornment: <>
-                        <InputAdornment position="end">Shares</InputAdornment>
-                        <InfoPopup content={<Translate id='memberProposalInfoShares'/>}/>
-                        </>,
-                    }}
-                />
-                {errors.sharesRequested && <p style={{color: 'red'}}>You must provide a number.</p>}
-            </div>
+             
             <div>
               <TextField
                 margin="dense"
@@ -245,8 +282,8 @@ export default function MemberProposal(props) {
                     required: true,
                 })}
                 InputProps={{
-                  endAdornment: <><InputAdornment position="end">{tokenName}</InputAdornment>
-                  <InfoPopup content={<Translate id='memberProposalInfoContribution'/>}/>
+                  endAdornment: <><InputAdornment position="end">Ⓝ</InputAdornment>
+                  <InfoPopup content={<Translate id='democracyMemberProposalInfoContribution'/>}/>
                   </>,
                   }}
               />
@@ -276,7 +313,7 @@ export default function MemberProposal(props) {
                         <Typography variant="body2"><u>Proposal passes:</u></Typography>
                           <ul style={{paddingInlineStart:'10px', paddingInlineEnd:'10px'}}>
                             <li>
-                              <Typography variant="body2">Applicant becomes a member and receives {shares ? parseInt(shares) : 0} voting shares.</Typography>
+                              <Typography variant="body2">Applicant becomes a member and receives {shares ? parseInt(shares) : 0} shares.</Typography>
                             </li>
                             <li>
                               <Typography variant="body2">Contribution of {tribute ? parseInt(tribute) : 0} Ⓝ goes into the community guild fund.</Typography>
