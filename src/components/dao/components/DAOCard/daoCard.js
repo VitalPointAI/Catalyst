@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react'
+import * as nearApiJs from 'near-api-js'
 import { Link } from 'react-router-dom'
+import CeramicClient from '@ceramicnetwork/http-client'
 import { IDX } from '@ceramicstudio/idx'
 
 import { wallet } from '../../../../utils/wallet'
@@ -30,102 +32,85 @@ const useStyles = makeStyles((theme) => ({
     },
   }));
 
+const imageName = require('../../../../images/default-profile.png') // default no-image avatar
+
 export default function DAOCard(props) {
 
     const [date, setDate] = useState('')
     const [name, setName] = useState('')
-    const [logo, setLogo] = useState()
+    const [logo, setLogo] = useState(imageName)
     const [purpose, setPurpose] = useState('')
     const [memberCount, setMemberCount] = useState(0)
     const [stateDID, setStateDID] = useState()
     const [dataObj, setDataObj] = useState({})
+    const [did, setDid] = useState()
+    const [contractIdx, setContractIdx] = useState()
 
     const classes = useStyles();
 
     const { 
       contractId
    } = props
+   console.log('contractIddaocard', contractId)
 
      const {
        appIdx,
        didContract,
-       aliases
+       aliases,
+       near
      } = useContext(DaoCeramicAppContext)
 
     useEffect(
       () => {
-    
-      async function fetchdaoData() {
-          if(daoList){
-              setNoOfPages(Math.ceil(daoList.length/itemsPerPage))
-          }
-          
-      }
 
       async function fetchData() {
       
-        // 1. We check to ensure the NEAR account has a DID in the DID Registry on NEAR
-        let didExists = await didContract.hasDID({accountId: contractId})
-    
-        // 2. Knowing it exists, we then retrieve it and all the available definitions
-        if(didExists){
-          let did = await didContract.getDID({accountId: contractId})
-          let definitions = await didContract.getDefinitions()
-         
-          // 3. We need to build the profile alias from the definition based on how it's stored
-          // in the DID Registry.  
-          let m = 0
-          let daoProfileAlias
-          while (m < definitions.length) {
-            let key = definitions[m].split(':')
-            if (key[0] == contractId && key[1] == 'daoProfile'){
-              daoProfileAlias = {'daoProfile': key[2]}
-            break
-            }
-            m++
-          }
+        if(contractId && appIdx && didContract){
+          let existingDid = await didContract.hasDID({accountId: contractId})
+          if(existingDid){
+              let thisDid = await didContract.getDID({
+                  accountId: contractId
+              })
+              setDid(thisDid)
+              console.log('this did', thisDid)
+              let contractAccount = new nearApiJs.Account(near.connection, contractId)
+              let thisContractIdx = await ceramic.getDaoIdx(appIdx, didContract, contractAccount, thisDid)
+              setContractIdx(thisContractIdx)
+              console.log(thisContractIdx)
 
-          let n = 0
-          let memberAlias
-          while (n < definitions.length) {
-            let key = definitions[n].split(':')
-            if (key[0] == contractId && key[1] == 'member'){
-              memberAlias = {'member': key[2]}
-            break
-            }
-            m++
-          }
-
-          let aliases = {daoProfileAlias, memberAlias}
-         
-          // 4. We instantiate a ceramicClient and use it and the profile alias to instantiate
-          // a new IDX.  That's what let's us get to the data record defined by the profile
-          // definition.
-          const API_URL = 'https://ceramic-clay.3boxlabs.com'
-          const ceramicClient = new CeramicClient(API_URL, {docSyncEnabled: true})
-          let userIdx = new IDX({ ceramic: ceramicClient, aliases: aliases})
-          let result = await userIdx.get('profile', did)
-          let members = await userIdx.get('member', did)
-          
+              let result = await thisContractIdx.get('daoProfile')
+              console.log('result', result)
+              if(result){
+                result.date ? setDate(result.date) : setDate('')
+                result.logo ? setLogo(result.logo) : setLogo(imageName)
+                result.purpose ? setPurpose(result.purpose) : setPurpose('')
+                result.name ? setName(result.name) : setName('')
+              }
+              let members = await thisContractIdx.get('member')
+              console.log('members', members)
           // 5.  Finally, if there is a data record in the profile for the DID, we set it
           // to some state variables so we can use them in the app wherever we like. Have
           // commented out all the profile fields except avatar for this example.
-          let dataObj = {
-            contract: contractId,
-            did: did,
-            date: result ? result.profiles[0].date : '',
-            logo: result ? result.profiles[0].logo : '',
-            purpose: result ? result.profiles[0].purpose : '',
-            name: result ? result.profiles[0].name : '',
-            memberCount: members? members.events.length : 0
-          }
-        setDataObj(dataObj)         
+        //   let dataObj = {
+        //     contract: contractId,
+        //     did: did,
+        //     date: result ? result.profiles[0].date : '',
+        //     logo: result ? result.profiles[0].logo : '',
+        //     purpose: result ? result.profiles[0].purpose : '',
+        //     name: result ? result.profiles[0].name : '',
+        //     memberCount: members? members.events.length : 0
+        //   }
+        // setDataObj(dataObj)         
         }
+      }
       }
     
       fetchData()
+        .then((res) => {
+
+        })
     
-    }, []);    
+    }, [appIdx, didContract]);    
 
     return(
         <>
@@ -134,19 +119,19 @@ export default function DAOCard(props) {
             <CardActionArea>
               <CardContent>
                 <Typography gutterBottom variant="h6">
-                  {dataObj.name}
+                  {name}
                 </Typography>
                 <Typography gutterBottom variant="h6">
-                  {dataObj.contract}
+                  {contractId}
                 </Typography>
                 <Typography gutterBottom variant="h6">
                   {dataObj.did}
                 </Typography>
                 <Typography gutterBottom variant="h6">
-                  Created: {dataObj.date}
+                  Created: {date}
                 </Typography>
                 <Typography gutterBottom variant="h6">
-                  {dataObj.purpose}
+                  {purpose}
               </Typography>
                 <Typography gutterBottom variant="h6">
                   Members: {dataObj.memberCount}

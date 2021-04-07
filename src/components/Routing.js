@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react'
+import * as nearAPI from 'near-api-js'
 import { connect } from 'react-redux'
 import PropTypes from 'prop-types'
 import { Route, Switch, Redirect } from 'react-router-dom'
@@ -19,7 +20,7 @@ import { ceramic } from '../utils/ceramic'
 import { wallet } from '../utils/wallet'
 
 // SCHEMAS
-import { profileSchema } from '../schemas/profile'
+import { profileSchema } from '../schemas/profileold'
 import { profileListSchema } from '../schemas/profileList'
 import { jweSchema } from '../schemas/jwe'
 import { memberSchema } from '../schemas/members'
@@ -115,7 +116,7 @@ function Routing(props) {
     const [proposalsLength, setProposalsLength] = useState()
     const [proposalEvents, setProposalEvents] = useState()
     const [daoContractId, setDaoContractId] = useState()
-    const [factoryContract, setFactoryContract] = useState()
+    
     const [contract, setContract] = useState()
     const [daoContractSender, setDaoContractSend] = useState()
     const [didsContract, setDIDsContract] = useState()
@@ -127,7 +128,7 @@ function Routing(props) {
     const [curUserCeramicClient, setCurUserCeramicClient] = useState()
     const [DID, setDID] = useState()
     const [curUserIdx, setCurUserIdx] = useState()
-    const [appIdx, setAppIdx] = useState()
+
     const [aliases, setAliases] = useState({})
     const [contractId, setContractId] = useState()
     const [contractIdx, setContractIdx] = useState()
@@ -145,10 +146,6 @@ function Routing(props) {
         history, clearAlert,
         clear, handleRedirectUrl, handleClearUrl
     } = props
-
-  
-
-  //  const { accountId } = useContext(DaoCeramicAppContext)
 
     const languages = [
         { name: "English", code: "en" },
@@ -187,243 +184,243 @@ function Routing(props) {
            
                 handleRefreshUrl()
                 refreshAccount()
-           
-                async function fetchData() {
-
-                    let accountId
-                    let accountObj = await dao.loadAccountObject()
-                   
-                    if(accountObj){
-                        accountId = accountObj.accountId
-                        setAccountId(accountId)
-
-                        // Instantiate DIDs Contract
-                        let thisDIDsContract = await dids.loadDIDs(process.env.DIDS_CONTRACT)
-                        if(isMounted) {
-                            setDIDsContract(thisDIDsContract)
-                         
-                        }
-                    
-                        // ******** IDX Initialization *********
-
-                        //Set App Ceramic Client
-                        let appSeed = Buffer.from(process.env.FACTORY_PRIV_KEY.slice(0, 32))
-                        let appAccount = await wallet.getAccount(process.env.FACTORY_CONTRACT)
-                       
-                        let appClient = await ceramic.getCeramic(appAccount, appSeed)
-                        setAppCeramicClient(appClient)
-                       
-                        let appDID = await ceramic.associateDAODID(appAccount, thisDIDsContract, appClient)
-                       
-                        // Associate app NEAR account with 3ID and store in contract and cache in local storage
-                        let appAssociate = await ceramic.associateDID(appAccount, thisDIDsContract, appClient)
-                        
-
-                        // create app vault and definition if it doesn't exist
-                        let jweAlias = await ceramic.schemaSetup(appAccount, 'jwe', 'encrypted seed', thisDIDsContract, appClient, jweSchema)
-
-                        let seedAlias = await ceramic.schemaSetup(appAccount, 'SeedsJWE', 'encrypted dao seeds', thisDIDsContract, appClient, daoSeedsSchema)
-                        let currentAliases = {}
-                        try {
-                            let allAliases = await thisDIDsContract.getAliases()
-                          
-                            //reconstruct aliases
-                            let i = 0
-                            
-                            while (i < allAliases.length) {
-                                let key = allAliases[i].split(':')
-                                let alias = {[key[0]]: key[1]}
-                                currentAliases = {...currentAliases, ...alias}
-                                i++
-                            }
-                            if(allAliases) {
-                                
-                                let appIdx = new IDX({ ceramic: appClient, aliases: currentAliases})
-                                setAppIdx(appIdx)
-                              
-                            }
-                        } catch (err) {
-                            console.log('error retrieving aliases and setting app Idx', err)
-                        }
-                        
-                        // Set Current User Ceramic Client                      
-                        let currentUserCeramicClient = await ceramic.getCeramic(accountObj)
-                        setCurUserCeramicClient(curUserCeramicClient)
-                       
-
-                        // Associate current user NEAR account with 3ID and store in contract and cache in local storage
-                        let associate = await ceramic.associateDID(accountObj, thisDIDsContract, currentUserCeramicClient)
-                     
-                        let profileAliases = await ceramic.schemaSetup(accountObj, 'profile', 'user profile data', thisDIDsContract, currentUserCeramicClient, profileSchema)
-                        
-                        let currentUserAliases = {}
-                        let curInfo
-                        try {
-                            let allAliases = await thisDIDsContract.getAliases()
-                          
-                            //reconstruct aliases
-                            let i = 0
-                            
-                            while (i < allAliases.length) {
-                                let key = allAliases[i].split(':')
-                                let alias = {[key[0]]: key[1]}
-                                currentUserAliases = {...currentUserAliases, ...alias}
-                                i++
-                            }
-                            if(allAliases) {
-                               
-                                let userIdx = new IDX({ ceramic: currentUserCeramicClient, aliases: currentUserAliases})
-                                setCurUserIdx(userIdx)
-                                curInfo = await userIdx.get('profile')
-                                console.log('curInfo', curInfo)
-                                if(curInfo){
-                                    setAvatar(curInfo.avatar)
-                                }
-
-                              
-                            }
-                        } catch (err) {
-                            console.log('error retrieving aliases and setting app Idx', err)
-                        }
-                        
-
-                        // publish the document schemas and definitions and retain their CIDs (one time operation)
-                        let isInitialized = await thisDIDsContract.getInitialize()
-                        console.log('isinitialized', isInitialized)
-                    //   if(!isInitialized) {
-
-                        // const definitions = await thisDIDsContract.getDefinitions()
-                        // console.log('definitions', definitions)
-
-                        // const schemas = await thisDIDsContract.getSchemas()
-                        // console.log('schemas', schemas)
-                       // let currentAliases = {}
-                        // let jweAliases = await ceramic.schemaSetup(accountObj, 'jwe', 'encrypted signatures', thisDIDsContract, ceramicClient, jweSchema)
-                        // //currentAliases = {...aliases, ...jweAliases}
-                        // handleAliases(jweAliases)
-
-                      
-
-                    //     let memberAliases = await ceramic.schemaSetup(accountObj, 'member', 'member events', thisDIDsContract, ceramicClient, memberSchema)
-                    //    // currentAliases = {...currentAliases, ...memberAliases}
-                    //     handleAliases(memberAliases)
-
-                        //setAliases(currentAliases)
-                        
-                        
-                        
-                        // const loadVaults = await idx.get('vault')
-                        // console.log('loadVaults', loadVaults)
-
-                        // const loadProfiles = await idx.get('profile')
-                        // console.log('loadProfile', loadProfiles)
-
-                        //test encrypt
-                        
-                        // let upload = await ceramic.uploadSecret(idx, seed, aliases.vault)
-                        // console.log('upload', upload)
-
-                        // let download = await ceramic.downloadSecret(idx, aliases.vault)
-                        // console.log('download', Buffer.from(download).toString("base64"))
-                        // console.log('raw download', download)
-
-                       
-                        // view index
-                       // console.log(await idx.getIndex(idx.id))
-                        
-
-                        
-                        let daoName = accountId.split('.')
-                        let dname = daoName[0]
-                      
-                        let thisfactoryContract = await factory.loadFactory(dname+'.'+process.env.FACTORY_CONTRACT)
-                        
-
-                        if(isMounted) {
-                        setFactoryContract(thisfactoryContract)
-                     
-                        }
-
-                        try{
-                            let list = await thisfactoryContract.getDaoList()
-                            setDaoList(list)
-                        } catch (err) {
-                            console.log('problem retrieving Dao List', err)
-                        }
             
-                        try {
-                        let accountName = accountId.split('.')
-                        let name = accountName[0]
-                        let hasDao = await thisfactoryContract.findDAO({account: name + '.' + process.env.FACTORY_CONTRACT})
-                        let contract = await dao.loadDAO(name + '.' + process.env.FACTORY_CONTRACT)
-                        let daoContractSender = await daoContractSend.loadDAO(name + '.' + process.env.FACTORY_CONTRACT)
-                      //  console.log('has dao routing', hasDao)
-                        if(hasDao){
-                            setHasDao(true)
-                            setDaoContractId(name + '.' + process.env.FACTORY_CONTRACT)
-                            setContract(contract)
-                            setDaoContractSend(daoContractSender)                     
+           
+
+            //         // let accountId
+            //         // let accountObj = await dao.loadAccountObject()
+                   
+            //         // if(accountObj){
+            //         //     accountId = accountObj.accountId
+            //         //     setAccountId(accountId)
+
+            //         //     // Instantiate DIDs Contract
+            //         //     let thisDIDsContract = await dids.loadDIDs(process.env.DIDS_CONTRACT)
+            //         //     if(isMounted) {
+            //         //         setDIDsContract(thisDIDsContract)
+                         
+            //         //     }
+                    
+            //         //     // ******** IDX Initialization *********
+
+            //         //     //Set App Ceramic Client
+            //         //     let appSeed = Buffer.from(process.env.FACTORY_PRIV_KEY.slice(0, 32))
+            //         //     let appAccount = await wallet.getAccount(process.env.FACTORY_CONTRACT)
+                       
+            //         //     let appClient = await ceramic.getCeramic(appAccount, appSeed)
+            //         //     setAppCeramicClient(appClient)
+                       
+            //         //     let appDID = await ceramic.associateAppDID(appAccount, thisDIDsContract, appClient)
+                       
+            //         //     // Associate app NEAR account with 3ID and store in contract and cache in local storage
+            //         //     let appAssociate = await ceramic.associateDID(appAccount, thisDIDsContract, appClient)
+                        
+
+            //         //     // create app vault and definition if it doesn't exist
+            //         //     let jweAlias = await ceramic.schemaSetup(appAccount, 'jwe', 'encrypted seed', thisDIDsContract, appClient, jweSchema)
+
+            //         //     let seedAlias = await ceramic.schemaSetup(appAccount, 'SeedsJWE', 'encrypted dao seeds', thisDIDsContract, appClient, daoSeedsSchema)
+            //         //     let currentAliases = {}
+            //         //     try {
+            //         //         let allAliases = await thisDIDsContract.getAliases()
+                          
+            //         //         //reconstruct aliases
+            //         //         let i = 0
+                            
+            //         //         while (i < allAliases.length) {
+            //         //             let key = allAliases[i].split(':')
+            //         //             let alias = {[key[0]]: key[1]}
+            //         //             currentAliases = {...currentAliases, ...alias}
+            //         //             i++
+            //         //         }
+            //         //         if(allAliases) {
+                                
+            //         //             let appIdx = new IDX({ ceramic: appClient, aliases: currentAliases})
+            //         //             setAppIdx(appIdx)
+                              
+            //         //         }
+            //         //     } catch (err) {
+            //         //         console.log('error retrieving aliases and setting app Idx', err)
+            //         //     }
+                        
+            //         //     // Set Current User Ceramic Client                      
+            //         //     let currentUserCeramicClient = await ceramic.getCeramic(accountObj)
+            //         //     setCurUserCeramicClient(curUserCeramicClient)
+                       
+
+            //         //     // Associate current user NEAR account with 3ID and store in contract and cache in local storage
+            //         //     let associate = await ceramic.associateDID(accountObj, thisDIDsContract, currentUserCeramicClient)
+                     
+            //         //     let profileAliases = await ceramic.schemaSetup(accountObj, 'profile', 'user profile data', thisDIDsContract, currentUserCeramicClient, profileSchema)
+                        
+            //         //     let currentUserAliases = {}
+            //         //     let curInfo
+            //         //     try {
+            //         //         let allAliases = await thisDIDsContract.getAliases()
+                          
+            //         //         //reconstruct aliases
+            //         //         let i = 0
+                            
+            //         //         while (i < allAliases.length) {
+            //         //             let key = allAliases[i].split(':')
+            //         //             let alias = {[key[0]]: key[1]}
+            //         //             currentUserAliases = {...currentUserAliases, ...alias}
+            //         //             i++
+            //         //         }
+            //         //         if(allAliases) {
+                               
+            //         //             let userIdx = new IDX({ ceramic: currentUserCeramicClient, aliases: currentUserAliases})
+            //         //             setCurUserIdx(userIdx)
+            //         //             curInfo = await userIdx.get('profile')
+            //         //             console.log('curInfo', curInfo)
+            //         //             if(curInfo){
+            //         //                 setAvatar(curInfo.avatar)
+            //         //             }
+
+                              
+            //         //         }
+            //         //     } catch (err) {
+            //         //         console.log('error retrieving aliases and setting app Idx', err)
+            //         //     }
+                        
+
+            //         //     // publish the document schemas and definitions and retain their CIDs (one time operation)
+            //         //     let isInitialized = await thisDIDsContract.getInitialize()
+            //         //     console.log('isinitialized', isInitialized)
+            //         // //   if(!isInitialized) {
+
+            //         //     // const definitions = await thisDIDsContract.getDefinitions()
+            //         //     // console.log('definitions', definitions)
+
+            //         //     // const schemas = await thisDIDsContract.getSchemas()
+            //         //     // console.log('schemas', schemas)
+            //         //    // let currentAliases = {}
+            //         //     // let jweAliases = await ceramic.schemaSetup(accountObj, 'jwe', 'encrypted signatures', thisDIDsContract, ceramicClient, jweSchema)
+            //         //     // //currentAliases = {...aliases, ...jweAliases}
+            //         //     // handleAliases(jweAliases)
+
+                      
+
+            //         // //     let memberAliases = await ceramic.schemaSetup(accountObj, 'member', 'member events', thisDIDsContract, ceramicClient, memberSchema)
+            //         // //    // currentAliases = {...currentAliases, ...memberAliases}
+            //         // //     handleAliases(memberAliases)
+
+            //         //     //setAliases(currentAliases)
+                        
+                        
+                        
+            //         //     // const loadVaults = await idx.get('vault')
+            //         //     // console.log('loadVaults', loadVaults)
+
+            //         //     // const loadProfiles = await idx.get('profile')
+            //         //     // console.log('loadProfile', loadProfiles)
+
+            //         //     //test encrypt
+                        
+            //         //     // let upload = await ceramic.uploadSecret(idx, seed, aliases.vault)
+            //         //     // console.log('upload', upload)
+
+            //         //     // let download = await ceramic.downloadSecret(idx, aliases.vault)
+            //         //     // console.log('download', Buffer.from(download).toString("base64"))
+            //         //     // console.log('raw download', download)
+
+                       
+            //         //     // view index
+            //         //    // console.log(await idx.getIndex(idx.id))
+                        
+
+                        
+            //         //     let daoName = accountId.split('.')
+            //         //     let dname = daoName[0]
+                      
+            //         //     let thisfactoryContract = await factory.loadFactory(dname+'.'+process.env.FACTORY_CONTRACT)
+                        
+
+            //         //     if(isMounted) {
+            //         //     setFactoryContract(thisfactoryContract)
+                     
+            //         //     }
+
+            //         //     try{
+            //         //         let list = await thisfactoryContract.getDaoList()
+            //         //         setDaoList(list)
+            //         //     } catch (err) {
+            //         //         console.log('problem retrieving Dao List', err)
+            //         //     }
+            
+            //             try {
+            //             let accountName = accountId.split('.')
+            //             let name = accountName[0]
+            //             let hasDao = await thisfactoryContract.findDAO({account: name + '.' + process.env.FACTORY_CONTRACT})
+            //             let contract = await dao.loadDAO(name + '.' + process.env.FACTORY_CONTRACT)
+            //             let daoContractSender = await daoContractSend.loadDAO(name + '.' + process.env.FACTORY_CONTRACT)
+            //           //  console.log('has dao routing', hasDao)
+            //             if(hasDao){
+            //                 setHasDao(true)
+            //                 setDaoContractId(name + '.' + process.env.FACTORY_CONTRACT)
+            //                 setContract(contract)
+            //                 setDaoContractSend(daoContractSender)                     
                             
                     
-                            let i = 1
+            //                 let i = 1
                 
-                        setTimeout(async function refreshCurrentPeriod() {
-                            let start = true
-                            let init
-                            try{
-                                init = await contract.getInit()
-                            } catch (err) {
-                                console.log('cant retreive init', err)
-                            }
-                            if(init=='done'){
-                            try {
-                            let period = await contract.getCurrentPeriod()
-                            setCurrentPeriod(period)
-                            console.log('get period success')
-                            } catch (err) {
-                            console.log('get period issue', err)
-                            }
-                            start = false
-                            i++
-                            if(start == false){
-                            setTimeout(refreshCurrentPeriod, 10000)
-                            }
-                        }
-                        }, 10000)
+            //             setTimeout(async function refreshCurrentPeriod() {
+            //                 let start = true
+            //                 let init
+            //                 try{
+            //                     init = await contract.getInit()
+            //                 } catch (err) {
+            //                     console.log('cant retreive init', err)
+            //                 }
+            //                 if(init=='done'){
+            //                 try {
+            //                 let period = await contract.getCurrentPeriod()
+            //                 setCurrentPeriod(period)
+            //                 console.log('get period success')
+            //                 } catch (err) {
+            //                 console.log('get period issue', err)
+            //                 }
+            //                 start = false
+            //                 i++
+            //                 if(start == false){
+            //                 setTimeout(refreshCurrentPeriod, 10000)
+            //                 }
+            //             }
+            //             }, 10000)
                     
-                        let j = 1
-                        setTimeout(async function refreshCurrentProposals() {
-                            let start = true
-                        try {
-                                let proposalLength = await contract.getProposalsLength()
-                                console.log('proposalLength', proposalLength)
-                                setProposalsLength(proposalLength)
-                                let currentProposalEvents = await proposalEvent.retrieveAllEvents(proposalLength, 'ProposalEvents')
-                                console.log('currentproposalevents', currentProposalEvents)
-                                setProposalEvents(currentProposalEvents)
+            //             let j = 1
+            //             setTimeout(async function refreshCurrentProposals() {
+            //                 let start = true
+            //             try {
+            //                     let proposalLength = await contract.getProposalsLength()
+            //                     console.log('proposalLength', proposalLength)
+            //                     setProposalsLength(proposalLength)
+            //                     let currentProposalEvents = await proposalEvent.retrieveAllEvents(proposalLength, 'ProposalEvents')
+            //                     console.log('currentproposalevents', currentProposalEvents)
+            //                     setProposalEvents(currentProposalEvents)
                                 
-                            } catch (err) {
-                                console.log('error retrieving proposal events', err)
-                                return false
-                            }
-                            start = false
-                            j++
-                            if(start == false){
-                            setTimeout(refreshCurrentProposals, 30000)
-                            }
-                        }, 30000)
+            //                 } catch (err) {
+            //                     console.log('error retrieving proposal events', err)
+            //                     return false
+            //                 }
+            //                 start = false
+            //                 j++
+            //                 if(start == false){
+            //                 setTimeout(refreshCurrentProposals, 30000)
+            //                 }
+            //             }, 30000)
                     
-                    }
-                    } catch (err) {
-                        console.log(err)
-                    }
-                }
-            }
-                if(props.account){
-                fetchData()
-                    .then((res) => {
-                    })
-                }
+            //         }
+            //         } catch (err) {
+            //             console.log(err)
+            //         }
+            //     }
+            // }
+            //     if(props.account){
+            //     fetchData()
+            //         .then((res) => {
+            //         })
+            //     }
             
             history.listen(async () => {
                
@@ -531,7 +528,7 @@ const { search } = props.router.location
    
         
         return (
-           <DaoCeramicAppProvider>
+            <DaoCeramicAppProvider>
             <Container className='App' id='app-container'>
                 <GlobalStyle />
                 <ConnectedRouter basename={PATH_PREFIX} history={props.history} >
@@ -763,17 +760,7 @@ const { search } = props.router.location
                                 <Route
                                     exact
                                     path='/explore'
-                                    render={() => (
-                                        <ExploreDaos
-                                        {...props}
-                                        daoList={daoList}
-                                        appIdx={appIdx}
-                                        didsContract={didsContract}
-                                        appClient={appClient}
-                                        handleContractId={handleContractId}
-                                        handleContractIdx={handleContractIdx}
-                                      />
-                                    )}
+                                    component={ExploreDaos}
                                 />
                                 <Route
                                     exact

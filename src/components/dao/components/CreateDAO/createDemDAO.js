@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react'
+import * as nearAPI from 'near-api-js'
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { utils } from 'near-api-js'
@@ -14,6 +15,7 @@ import { IDX } from '@ceramicstudio/idx'
 import { dao } from '../../../../utils/dao'
 import FileUpload from '../../../common/IPFSupload/ipfsUpload'
 import { DaoCeramicAppContext } from '../../../../contexts/daoCeramicAppContext'
+
 const bip39 = require('bip39')
 
 // Material UI components
@@ -32,18 +34,10 @@ import WarningIcon from '@material-ui/icons/WarningTwoTone'
 import Grid from '@material-ui/core/Grid'
 import Checkbox from '@material-ui/core/Checkbox'
 import Avatar from '@material-ui/core/Avatar'
+import { SettingsBackupRestoreOutlined } from '@material-ui/icons'
 
 
 const useStyles = makeStyles((theme) => ({
-  root: {
-    flexGrow: 1,
-    margin: 'auto',
-    maxWidth: 325,
-    minWidth: 325,
-  },
-  card: {
-    margin: 'auto',
-  },
   warning: {
     float: 'left',
     paddingRight: '10px',
@@ -65,16 +59,10 @@ const useStyles = makeStyles((theme) => ({
       marginTop: theme.spacing(2),
     },
   },
-  actionsContainer: {
-    marginBottom: theme.spacing(2),
-  },
   large: {
     width: theme.spacing(7),
     height: theme.spacing(7),
     textAlign: 'center'
-  },
-  resetContainer: {
-    padding: theme.spacing(3),
   },
   }));
 
@@ -95,6 +83,9 @@ export default function CreateDemDAO(props) {
   const [logo, setLogo] = useState(imageName)
   const [fileHash, setFileHash] = useState('')
   const [daoType, setDaoType] = useState('Democracy')
+  const [isTaken, setIsTaken] = useState(false)
+  const [did, setDid] = useState()
+  const [curDaoIdx, setCurDaoIdx] = useState()
 
   const classes = useStyles()
 
@@ -109,22 +100,14 @@ export default function CreateDemDAO(props) {
 
   const { 
     appIdx,
-    handleAliases,
-    didsContract,
-    factoryContract,
-    aliases
+    didContract,
+    factoryContract
   } = useContext(DaoCeramicAppContext)
   
     useEffect(
       () => {
-        async function test() {
-        
-        }
-        test()
-          .then((res) => {
-
-          })
-      },[appIdx]
+       
+      },[]
     )
   
     const handleClickOpen = () => {
@@ -139,8 +122,11 @@ export default function CreateDemDAO(props) {
       setLogo(process.env.IPFS_PROVIDER + hash)
     }
     
-    const handleDaoNameChange = (event) => {
-        setDaoName(event.target.value);
+    const handleDaoNameChange = async (event) => {
+      const v = event.target.value.toLowerCase()
+      const taken = await wallet.isThisAccountTaken(v)
+      setIsTaken(taken)
+      setDaoName(v)
     };
 
     const handlePeriodDurationChange = (event) => {
@@ -175,14 +161,6 @@ export default function CreateDemDAO(props) {
         setConfirm(event.target.checked);
     };
 
-    const onDropLogo = async (pictureFiles, pictureDataURLs) => {
-        if(pictureDataURLs[0]!==null){
-            setLogo(pictureDataURLs[0])
-        } else {
-            setLogo(logo)
-        }
-    }
-
     function formatDate(timestamp) {
       let intDate = parseInt(timestamp)
       let options = {year: 'numeric', month: 'long', day: 'numeric'}
@@ -192,6 +170,7 @@ export default function CreateDemDAO(props) {
 
   const onSubmit = async (values) => {
     event.preventDefault()
+    
     setFinished(false)
 
       // create Democracy DAO
@@ -203,7 +182,6 @@ export default function CreateDemDAO(props) {
            
         let daoAccountName = daoName + '.' + process.env.FACTORY_CONTRACT
         let daoContract = await dao.loadDAO(daoAccountName)
-       
 
         let summonTime = await daoContract.init({
             _periodDuration: parseInt(periodDuration),
@@ -213,79 +191,87 @@ export default function CreateDemDAO(props) {
             _dilutionBound: parseInt(dilutionBound)
         }, process.env.DEFAULT_GAS_VALUE)
 
-        let did
-        let demSeed
-        let demAccount
-        let demClient
-        let demDaoIdx
-        try {
-          did = await didsContract.getDID({
-            accountId: daoAccountName
-          })
-          demSeed = await ceramic.downloadSecret(appIdx, 'SeedsJWE', did)
-          demAccount = await wallet.getAccount(daoName + '.' + process.env.FACTORY_CONTRACT)
-          demClient = await ceramic.getCeramic(demAccount, demSeed)
-        } catch (err) {
-          console.log('no did here', err)
-        }       
-
-        if(!demSeed) {
-            // create new Dem DAO identity seed
-            let mnemonic = bip39.generateMnemonic()
-            let secretKey = bip39.mnemonicToSeed(mnemonic)
-            demSeed = Buffer.from(secretKey.slice(0, 32))
-           
-            // encrypt and store seed in app's vault for later retrieval
-            demAccount = await wallet.getAccount(daoName + '.' + process.env.FACTORY_CONTRACT)
-            demClient = await ceramic.getCeramic(demAccount, demSeed)
-            let demDAODID = await ceramic.associateDAODID(demAccount, didsContract, demClient)
-     
-            try {
-              did = await didsContract.getDID({
-                accountId: daoAccountName
-              })
-              let upload = await ceramic.storeSeedSecret(appIdx, demSeed, 'SeedsJWE', did)
-            } catch (err) {
-              console.log('no did here either', err)
-            }
-        }
-
-        // setup DemDAO definitions and aliases
-        await ceramic.schemaSetup(demAccount, 'summonEvent', 'dao summon event', didsContract, demClient, summonSchema)
-        await ceramic.schemaSetup(demAccount, 'daoProfile', 'dao profile data', didsContract, demClient, daoProfileSchema)
-        await ceramic.schemaSetup(demAccount, 'member', 'dao member event', didsContract, demClient, memberSchema)
-        await ceramic.schemaSetup(demAccount, 'memberProposal', 'member proposals', didsContract, demClient, memberProposalSchema)
-       
-        demAccount = await wallet.getAccount(daoName + '.' + process.env.FACTORY_CONTRACT)
-        demClient = await ceramic.getCeramic(demAccount, demSeed)
-        
-        // authorize dem identity
-        let currentAliases = {}
-        try {
-            let allAliases = await didsContract.getAliases()
-       
-            //reconstruct aliases
-            let i = 0
             
-            while (i < allAliases.length) {
-                let key = allAliases[i].split(':')
-                let alias = {[key[0]]: key[1]}
-                currentAliases = {...currentAliases, ...alias}
-                i++
-            }
-            if(allAliases) {
-                demDaoIdx = new IDX({ ceramic: demClient, aliases: currentAliases})
-            }
-        } catch (err) {
-            console.log('error retrieving aliases and setting app Idx', err)
-        }
+        let daoAccount = await wallet.getAccount(daoName + '.' + process.env.FACTORY_CONTRACT)
+
+        let thisDaoIdx = await ceramic.getDaoIdx(appIdx, didContract, daoAccount)
+        setCurDaoIdx(thisDaoIdx)
+
+        console.log('thisDaoIdx', thisDaoIdx)
+        
+        // let did
+        // let demSeed
+        // let demAccount
+        // let demClient
+        // let demDaoIdx
+        // try {
+        //   did = await didContract.getDID({
+        //     accountId: daoAccountName
+        //   })
+        //   demSeed = await ceramic.downloadSecret(appIdx, 'SeedsJWE', did)
+        //   demAccount = await wallet.getAccount(daoName + '.' + process.env.FACTORY_CONTRACT)
+        //   demClient = await ceramic.getCeramic(demAccount, demSeed)
+        // } catch (err) {
+        //   console.log('no did here', err)
+        // }       
+
+        // if(!demSeed) {
+        //     // create new Dem DAO identity seed
+        //     let mnemonic = bip39.generateMnemonic()
+        //     let secretKey = bip39.mnemonicToSeed(mnemonic)
+        //     demSeed = Buffer.from(secretKey.slice(0, 32))
+           
+        //     // encrypt and store seed in app's vault for later retrieval
+        //     demAccount = await wallet.getAccount(daoName + '.' + process.env.FACTORY_CONTRACT)
+        //     demClient = await ceramic.getCeramic(demAccount, demSeed)
+        //     let demDAODID = await ceramic.associateAppDID(demAccount, didContract, demClient)
+     
+        //     try {
+        //       did = await didContract.getDID({
+        //         accountId: daoAccountName
+        //       })
+        //       let upload = await ceramic.storeSeedSecret(appIdx, demSeed, 'SeedsJWE', did)
+        //     } catch (err) {
+        //       console.log('no did here either', err)
+        //     }
+        // }
+
+        // // setup DemDAO definitions and aliases
+        // await ceramic.schemaSetup(demAccount, 'summonEvent', 'dao summon event', didContract, demClient, summonSchema)
+        // await ceramic.schemaSetup(demAccount, 'daoProfile', 'dao profile data', didContract, demClient, daoProfileSchema)
+        // await ceramic.schemaSetup(demAccount, 'member', 'dao member event', didContract, demClient, memberSchema)
+        // await ceramic.schemaSetup(demAccount, 'memberProposal', 'member proposals', didContract, demClient, memberProposalSchema)
+       
+        // demAccount = await wallet.getAccount(daoName + '.' + process.env.FACTORY_CONTRACT)
+        // demClient = await ceramic.getCeramic(demAccount, demSeed)
+        
+        // // authorize dem identity
+        // let currentAliases = {}
+        // try {
+        //     let allAliases = await didContract.getAliases()
+       
+        //     //reconstruct aliases
+        //     let i = 0
+            
+        //     while (i < allAliases.length) {
+        //         let key = allAliases[i].split(':')
+        //         let alias = {[key[0]]: key[1]}
+        //         currentAliases = {...currentAliases, ...alias}
+        //         i++
+        //     }
+        //     if(allAliases) {
+        //         demDaoIdx = new IDX({ ceramic: demClient, aliases: currentAliases})
+        //     }
+        // } catch (err) {
+        //     console.log('error retrieving aliases and setting app Idx', err)
+        // }
        
         //let daoRecords = await demDaoIdx.get('daoProfile', demDaoIdx._ceramic.did.id)
-        let daoRecords = await demDaoIdx.get('daoProfile')
+        let daoRecords = await thisDaoIdx.get('daoProfile', thisDaoIdx.id)
         console.log('daoRecords', daoRecords)
+
         if(!daoRecords){
           daoRecords = { profiles: [] }
-         
         }
 
         let now = new Date().getTime()
@@ -305,7 +291,7 @@ export default function CreateDemDAO(props) {
         daoRecords.profiles.push(record)
         console.log('daoRecords.profiles', daoRecords.profiles)
 
-        let result = await demDaoIdx.set('daoProfile', daoRecords)
+        let result = await thisDaoIdx.set('daoProfile', daoRecords)
         console.log('result set', result)
        
         let totalMembers = await daoContract.getTotalMembers()
@@ -317,7 +303,7 @@ export default function CreateDemDAO(props) {
            
           // Log Member Event
           //let memberEventRecord = await demDaoIdx.get('member', demDaoIdx._ceramic.did.id)
-          let memberEventRecord = await demDaoIdx.get('member')
+          let memberEventRecord = await thisDaoIdx.get('member', thisDaoIdx.id)
           if(!memberEventRecord){
             memberEventRecord = { events: [] }
           }
@@ -338,14 +324,14 @@ export default function CreateDemDAO(props) {
           memberEventRecord.events.push(indivMemberEventRecord)
           console.log('memberEventRecord.events', memberEventRecord.events)
   
-          await demDaoIdx.set('member', memberEventRecord)
+          await thisDaoIdx.set('member', memberEventRecord)
          
         }
 
          // Log Summon Event
 
        // let summonEventRecord = await demDaoIdx.get('summonEvent', demDaoIdx._ceramic.did.id)
-       let summonEventRecord = await demDaoIdx.get('summonEvent')
+       let summonEventRecord = await thisDaoIdx.get('summonEvent', thisDaoIdx.id)
         if(!summonEventRecord){
           summonEventRecord = { events: [] }
         }
@@ -366,7 +352,7 @@ export default function CreateDemDAO(props) {
   
         summonEventRecord.events.push(indivSummonEventRecord)
 
-        await demDaoIdx.set('summonEvent', summonEventRecord)
+        await thisDaoIdx.set('summonEvent', summonEventRecord)
       
         handleSuccessMessage('Successfully created Democracy DAO.', 'success')
         handleSnackBarOpen(true)
@@ -406,15 +392,20 @@ export default function CreateDemDAO(props) {
                     variant="outlined"
                     name="daoName"
                     placeholder="AwesomeDao"
+                    helperText="2-48 characters, no spaces, no symbols (except -)"
+                    minLength={2}
+                    maxLength={48}
+                    pattern="^(([a-z\d]+[\-_])*[a-z\d]+$"
                     label="DAO Name"
                     value={daoName}
                     onChange={handleDaoNameChange}
                     inputRef={register({
                         required: true,
-                        validate: value => value != '' || <p style={{color:'red'}}>You must specify a valid name.</p>
+                        validate: value => value => '' || <p style={{color:'red'}}>You must specify a valid name.</p>
                     })}
                     />
                     {errors.daoName && <p style={{color: 'red'}}>You must provide a valid name (no spaces).</p>}
+                    {isTaken && <p style={{color: 'red'}}>That DAO name is taken, please choose another.</p>}
                 </div>
             </Grid>
             <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
@@ -594,7 +585,7 @@ export default function CreateDemDAO(props) {
          </Card>
         </DialogContent>
       <DialogActions>
-      {finished ? <><Button onClick={handleSubmit(onSubmit)} color="primary" type="submit">Create DAO</Button></> : <LinearProgress className={classes.progress} />}
+      {finished ? <><Button onClick={handleSubmit(onSubmit)} color="primary" type="submit" disabled={isTaken}>Create DAO</Button></> : <LinearProgress className={classes.progress} />}
       {finished ? <><Button onClick={handleClose} color="primary">Cancel</Button></> : null }
       </DialogActions>
       </Dialog>

@@ -302,6 +302,19 @@ class Wallet {
         }
     }
 
+    async isThisAccountTaken (accountId) {
+        const account = new nearApiJs.Account(this.connection, accountId + '.factory.vitalpointai.testnet');
+        try {
+            await account.state()
+        } catch(e) {
+            console.warn(e)
+            if (/does not exist while viewing/.test(e.toString())) {
+                return false
+            }
+        }
+        return true
+    }
+
     // TODO: Rename to make it clear that this is used to check if account can be created and that it throws. requireAccountNotExists?
     async checkNewAccount(accountId) {
         if (!this.isLegitAccountId(accountId)) {

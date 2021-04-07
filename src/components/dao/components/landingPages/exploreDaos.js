@@ -38,11 +38,9 @@ const useStyles = makeStyles((theme) => ({
   
 
 export default function ExploreDaos(props) {
-    const itemsPerPage = 10
     const[finished, setFinished] = useState(true)
-    const[page, setPage] = useState(1)
-    const[noOfPages, setNoOfPages] = useState()
     const[dataObj, setDataObj] = useState({})
+    const[daos, setDaos] = useState([])
 
     const classes = useStyles()
     const { register, handleSubmit, watch, errors } = useForm()
@@ -57,36 +55,15 @@ export default function ExploreDaos(props) {
 
     useEffect(
         () => {
-      
-        async function fetchdaoData() {
-            if(daoList){
-                setNoOfPages(Math.ceil(daoList.length/itemsPerPage))
+            async function fetchData() {
+                setDaos(daoList)
             }
-            
-        }
 
-      
-       
-        fetchdaoData()
-            .then((res) => {
+            fetchData()
 
-            })
-        
-    }, []
+    }, [daoList]
     )
-
-    let Cards
-        if (daoList) {
-            if(daoList.length > 0) {  
-                Cards = daoList.map((fr, i) => {
-                        <DAOCard
-                            key={i}
-                            contractId={fr}
-                        />
-                    })
-            }        
-        }
-
+       
     return (
         <>
         <Grid container alignItems="center" justify="space-evenly" spacing={2} style={{marginTop:'40px', marginBottom:'40px'}}>
@@ -96,7 +73,15 @@ export default function ExploreDaos(props) {
         </Grid>
 
         <Grid container alignItems="center" justify="space-evenly" spacing={2} style={{marginTop:'40px', marginBottom:'40px'}}>
-            {Cards}
+            {daos && daos.length > 0 ? 
+                daos.map((fr, i) => 
+                   
+                    <DAOCard
+                        key={i}
+                        contractId={fr}
+                    />
+                )
+             : 'No Daos yet' }
         </Grid>
         </>
     )

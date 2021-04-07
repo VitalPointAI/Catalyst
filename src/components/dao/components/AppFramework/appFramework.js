@@ -1,105 +1,32 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
-import LogoutButton from '../common/LogoutButton/logoutButton'
 import ActionSelector from '../ActionSelector/actionSelector'
 import ProposalList from '../ProposalList/proposalList'
-import BalanceChart from '../BalanceGraphs/balanceGraph'
 import RightSideDrawer from './RightSideDrawer'
-import InfoPopup from '../../../common/InfoPopup'
-import { Translate } from 'react-localize-redux'
-import { IDX } from '@ceramicstudio/idx'
+import { DaoCeramicAppContext } from '../../../../contexts/daoCeramicAppContext'
 
 import { dao } from '../../../../utils/dao'
-import { dids } from '../../../../utils/dids'
 import { ceramic } from '../../../../utils/ceramic'
-import { wallet } from '../../../../utils/wallet'
 
 // Material UI imports
 import { makeStyles } from '@material-ui/core/styles'
-import clsx from 'clsx';
-import Card from '@material-ui/core/Card';
-import CardHeader from '@material-ui/core/CardHeader';
-import CardMedia from '@material-ui/core/CardMedia';
-import CardContent from '@material-ui/core/CardContent';
-import CardActions from '@material-ui/core/CardActions';
-import Collapse from '@material-ui/core/Collapse';
-import Avatar from '@material-ui/core/Avatar';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import IconButton from '@material-ui/core/IconButton';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
 import { red, blue, white } from '@material-ui/core/colors';
 import Typography from '@material-ui/core/Typography'
 import Grid from '@material-ui/core/Grid'
 import Divider from '@material-ui/core/Divider'
-import Paper from '@material-ui/core/Paper'
 import Chip from '@material-ui/core/Chip'
-import AccountCircleTwoToneIcon from '@material-ui/icons/AccountCircleTwoTone'
 import AccessTimeIcon from '@material-ui/icons/AccessTime';
-import AccountBalanceWalletTwoToneIcon from '@material-ui/icons/AccountBalanceWalletTwoTone'
-import Tooltip from '@material-ui/core/Tooltip'
-import FavoriteIcon from '@material-ui/icons/Favorite';
-import ShareIcon from '@material-ui/icons/Share';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import NotInterestedIcon from '@material-ui/icons/NotInterested';
 
 const axios = require('axios').default
 
 const useStyles = makeStyles((theme) => ({
-    root: {
-      padding: '10px'
-    },
-    paper: {
-      padding: theme.spacing(2),
-      textAlign: 'center',
-      color: theme.palette.text.secondary,
-    },
-    bullet: {
-      display: 'inline-block',
-      margin: '0 2px',
-      transform: 'scale(0.8)',
-    },
-    title: {
-      fontSize: 14,
-    },
-    pos: {
-      marginBottom: 12,
-    },
-    centered: {
-      display: 'flex',
-      justifyContent: 'center',
-      width: '100%',
-      alignItems: 'center',
-      marginBottom: '25px'
-  },
-    customCard: {
-        maxWidth: 275,
-        margin: 'auto',
-        padding: 20
-    },
-    media: {
-      height: 0,
-      paddingTop: '35.25%', // 16:9
-    },
-    expand: {
-      transform: 'rotate(0deg)',
-      marginLeft: 'auto',
-      transition: theme.transitions.create('transform', {
-        duration: theme.transitions.duration.shortest,
-      }),
-    },
-    expandOpen: {
-      transform: 'rotate(180deg)',
-    },
     top: {
       marginBottom: '10px',
       fontSize: '24px'
     },
-    avatar: {
-      backgroundColor: blue[500],
-      fontColor: '#FFFFFF'
-    },
   }));
-
   
 export default function AppFramework(props) {
 
@@ -120,7 +47,6 @@ export default function AppFramework(props) {
     const [memberInfo, setMemberInfo] = useState()
     const [currentPeriod, setCurrentPeriod] = useState()
     const [curUserIdx, setCurUserIdx] = useState()
-    const [curUserCeramicClient, setCurUserCeramicClient] = useState()
     const [accountId, setAccountId] = useState()
     const [summoner, setSummoner] = useState()
     const [totalShares, setTotalShares] = useState()
@@ -130,16 +56,11 @@ export default function AppFramework(props) {
     const [proposalDeposit, setProposalDeposit] = useState()
     const [periodDuration, setPeriodDuration] = useState()
     const [proposalEvents, setProposalEvents] = useState([])
+    const [did, setDid] = useState()
     
     const classes = useStyles()
     
     const {      
-    //  handleSetCurrentPeriod,
-     
-     
-    //  memberStatus,
-    //  memberInfo,
-    //  depositToken,
       tributeToken,
       tributeOffer,
       processingReward,
@@ -156,7 +77,7 @@ export default function AppFramework(props) {
       handleSnackBarOpen,
       handleHasDao,
       hasDao,
-      factoryContract,
+     // factoryContract,
     //  currentPeriod,
     //  periodDuration,
       tokenName,
@@ -165,7 +86,7 @@ export default function AppFramework(props) {
      
       daoContract,
       handleInitChange,
-      appIdx,
+      //appIdx,
      // summoner,
      // totalShares,
 
@@ -178,12 +99,18 @@ export default function AppFramework(props) {
      // contractId,
      // contractIdx 
     } = props
-      
 
-      const {
-        contractId
-      } = useParams()
-      console.log('contractid', contractId)
+    const { 
+      appIdx,
+      didContract,
+      factoryContract,
+      near,
+    } = useContext(DaoCeramicAppContext)
+      
+    const {
+      contractId
+    } = useParams()
+    console.log('contractid', contractId)
 
       async function handleGuildBalanceChanges() {
         try {
@@ -221,23 +148,31 @@ export default function AppFramework(props) {
 
             async function fetchData() {
 
-              let accountObj = await dao.loadAccountObject()
-              let accountId     
-              if(accountObj){
-                  accountId = accountObj.accountId
-                  setAccountId(accountId)
-              }
-              let curAccount = await wallet.getAccount(accountId)
-              console.log('curaccount', curAccount)
-              let seed = await ceramic.getSeed(curAccount)
-              let thisCurrentUserCeramicClient = await ceramic.getCeramic(curAccount, seed)
-              setCurUserCeramicClient(thisCurrentUserCeramicClient)
-              
-              //Set App Ceramic Client
-              let appSeed = Buffer.from(process.env.FACTORY_PRIV_KEY.slice(0, 32))
-              let appAccount = await wallet.getAccount(process.env.FACTORY_CONTRACT)
-              
-              let appClient = await ceramic.getCeramic(appAccount, appSeed)
+              if(contractId){
+                let existingDid = await didContract.hasDID({accountId: contractId})
+                if(existingDid){
+                    let thisDid = await didContract.getDID({
+                        accountId: contractId
+                    })
+                    setDid(thisDid)
+
+                    let contractAccount = new nearAPI.Account(near.connection, contractId)
+                    let thisContractIdx = await ceramic.getCurrentUserIdx(contractAccount, didContract, appIdx, thisDid)
+                    setContractIdx(thisContractIdx)
+                
+                //     let result = await curPersonaIdx.get('profile', curPersonaIdx.id)
+                    
+                //     if(result){
+                //       result.date ? setDate(result.date) : setDate('')
+                //       result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
+                //       result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
+                //       result.name ? setName(result.name) : setName('')
+                //       return true
+                //     }
+                //     return true
+                // }
+            
+            
 
               let contract = await dao.loadDAO(contractId)
               setContract(contract)
@@ -246,41 +181,38 @@ export default function AppFramework(props) {
               let init = await contract.getInit()
               console.log('init', init)
 
-              let thisDIDsContract = await dids.loadDIDs(process.env.DIDS_CONTRACT)
-              setDidsContract(thisDIDsContract)
-
-              let thisContractIdx
-              let currentAliases = {}
-              try {
-                  let allAliases = await thisDIDsContract.getAliases()
+             
+              // let currentAliases = {}
+              // try {
+              //     let allAliases = await thisDIDsContract.getAliases()
                  
-                  //reconstruct aliases
-                  let i = 0
+              //     //reconstruct aliases
+              //     let i = 0
                   
-                  while (i < allAliases.length) {
-                      let key = allAliases[i].split(':')
-                      let alias = {[key[0]]: key[1]}
-                      currentAliases = {...currentAliases, ...alias}
-                      i++
-                  }
-                  if(allAliases) {
-                      thisContractIdx = new IDX({ ceramic: appClient, aliases: currentAliases})
-                      setContractIdx(thisContractIdx)
-                      handleContractIdx(thisContractIdx)
-                  }
-              } catch (err) {
-                  console.log('error retrieving aliases and setting app Idx', err)
-              }
-              console.log('contractidx', thisContractIdx)
+              //     while (i < allAliases.length) {
+              //         let key = allAliases[i].split(':')
+              //         let alias = {[key[0]]: key[1]}
+              //         currentAliases = {...currentAliases, ...alias}
+              //         i++
+              //     }
+              //     if(allAliases) {
+              //         thisContractIdx = new IDX({ ceramic: appClient, aliases: currentAliases})
+              //         setContractIdx(thisContractIdx)
+              //         handleContractIdx(thisContractIdx)
+              //     }
+              // } catch (err) {
+              //     console.log('error retrieving aliases and setting app Idx', err)
+              // }
+              // console.log('contractidx', thisContractIdx)
 
-              // Set Current User Ceramic Client
-              console.log('accountid', accountId)
+              // // Set Current User Ceramic Client
+              // console.log('accountid', accountId)
                    
-              let thisUserIdx = new IDX({ ceramic: thisCurrentUserCeramicClient, aliases: currentAliases})
-              setCurUserIdx(thisUserIdx)              
+              // let thisUserIdx = new IDX({ ceramic: thisCurrentUserCeramicClient, aliases: currentAliases})
+              // setCurUserIdx(thisUserIdx)              
             
-              let did = await thisDIDsContract.getDID({accountId: contractId})
-              console.log('did', did)
+              // let did = await thisDIDsContract.getDID({accountId: contractId})
+              // console.log('did', did)
 
               let memberEvents = await thisContractIdx.get('member', did)
               console.log('memberEvents', memberEvents)
@@ -471,7 +403,9 @@ export default function AppFramework(props) {
                 }
             }
             }, 10000)
-            }
+          }
+          }
+        }
 
             fetchData()
               .then((res) => {

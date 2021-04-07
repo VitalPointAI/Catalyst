@@ -22,10 +22,14 @@ const history = createBrowserHistory()
 export const store = createStore(createRootReducer(history), createMiddleware(history))
 
 ReactDOM.render(
+   
     <Provider store={store}>
         <LocalizeProvider store={store}>
+       
            <Routing history={history} />
+         
         </LocalizeProvider>
-    </Provider>,
+    </Provider>
+   ,
     document.getElementById('root')
 )

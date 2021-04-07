@@ -252,6 +252,7 @@ export default function DesktopContainer(props) {
                         <DesktopMenu
                             show={menuOpen}
                             toggleMenu={toggleMenu}
+                            account={account}
                             accountId={account.accountId}
                             accounts={availableAccounts}
                             selectAccount={selectAccount}

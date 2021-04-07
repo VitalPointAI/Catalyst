@@ -6,9 +6,6 @@ export const profileSchema = {
       date: {
         type: 'string',
       },
-      owner: {
-        type: 'string',
-      },
       name: {
           type: 'string',
       },

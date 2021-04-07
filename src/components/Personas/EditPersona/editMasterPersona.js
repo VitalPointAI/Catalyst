@@ -25,7 +25,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Divider from '@material-ui/core/Divider'
 
 
-import { profileSchema } from '../../../schemas/profile';
+import { profileSchema } from '../../../schemas/profileold';
 
 // ReactQuill Component
 import ReactQuill from 'react-quill';

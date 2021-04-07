@@ -19,13 +19,15 @@ export default function Avatar(props) {
     const [exists, setExists] = useState(false)
 
     const {
-        curUserIdx,
-        accountId
+        accountId,
+        curUserIdx
     } = props
 
     useEffect(
         () => {
             async function loadAvatar() {
+
+               
                 
                 if(curUserIdx) {
                 let result = await curUserIdx.get('profile', curUserIdx.id)

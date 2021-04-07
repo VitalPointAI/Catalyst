@@ -24,7 +24,9 @@ function getConfig(env) {
     //  walletUrl: 'http://localhost:1234/wallet'
       helperUrl: 'https://helper.testnet.near.org',
       explorerUrl: 'https://explorer.testnet.near.org',
-      didRegistryContractName: 'dids.vitalpointai.testnet'
+      didRegistryContractName: 'dids.vitalpointai.testnet',
+      nameSuffix: 'testnet',
+      ACCOUNT_LINKS: '__ACCOUNT_LINKS'
     }
   case 'betanet':
     return {
