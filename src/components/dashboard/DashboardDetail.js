@@ -35,7 +35,7 @@ class DashboardDetail extends Component {
         }, TRANSACTIONS_REFRESH_INTERVAL)
 
         this.intervala = setTimeout(() => {
-            this.loadCeramic()
+   //         this.loadCeramic()
         }, 2000)
 
         this.setState(() => ({

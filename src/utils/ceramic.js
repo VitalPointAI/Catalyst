@@ -139,7 +139,7 @@ class Ceramic {
   }
 
   async associateDID(accountId, contract, ceramic) {
-
+    console.log('here1')
     // ensure it's registered in the contract, if not, put it back there
     let exists = await contract.hasDID({accountId: accountId})
 
@@ -161,10 +161,12 @@ class Ceramic {
   }
 
   async associateAppDID(accountId, contract, ceramic) {
-  
+    console.log('contract here', contract)
+    console.log('here')
     /** Try and retrieve did from  contract if it exists */
       let did
         let didPresent = await contract.hasDID({accountId: accountId})
+        console.log('didpresent', didPresent)
           if(didPresent) {   
           try {
               did = await contract.getDID({accountId: accountId});
@@ -351,6 +353,7 @@ class Ceramic {
     let aliases = {}
     
     let allAliases = await idx.get('definitions', idx.id)
+    console.log('allAliases', allAliases)
     
     if(allAliases != null) {
 
@@ -373,10 +376,11 @@ class Ceramic {
 
   // application IDX - maintains most up to date schemas and definitions ensuring chain always has the most recent commit
   async getAppIdx(contract){
-
+    console.log('contract appidx', contract)
     const appClient = await this.getAppCeramic()
-
+    console.log('appClient', appClient)
     const appDid = this.associateAppDID(process.env.APP_OWNER_ACCOUNT, contract, appClient)
+    console.log('appDid', appDid)
     const definitions = this.getAlias(process.env.APP_OWNER_ACCOUNT+':Definitions', appClient, definitionsSchema, 'alias definitions', contract)
     const schemas = this.getAlias(process.env.APP_OWNER_ACCOUNT+':Schemas', appClient, schemaSchema, 'user schemas', contract)
     const done = await Promise.all([appDid, definitions, schemas])
@@ -394,6 +398,7 @@ class Ceramic {
   async getCurrentUserIdx(account, appIdx, contract, owner, ownerIdx){
     
       let seed = await this.getLocalAccountSeed(account.accountId)
+      console.log('seed', seed)
       let currentUserCeramicClient = await this.getCeramic(account, seed)
 
       if(owner != '') {
@@ -415,8 +420,10 @@ class Ceramic {
       }
       
       let currentAliases = await this.getAliases(ownerIdx, account.accountId)
+      console.log('ceramic currentAliases', currentAliases)
 
       let curUserIdx = new IDX({ ceramic: currentUserCeramicClient, aliases: currentAliases})
+      console.log('ceramic file curUserIdx', curUserIdx)
   
       //initialize aliases if required
       const profileAlias = await this.aliasSetup(ownerIdx, account.accountId, 'profile', 'user profile data', profileSchema, currentUserCeramicClient)
@@ -430,25 +437,25 @@ class Ceramic {
   async getCurrentUserIdxNoDid (appIdx, contract, account, keyPair, recipientName, owner, ownerIdx) {
   
     if(keyPair == undefined){
-    keyPair = KeyPair.fromRandom('ed25519')   
-    const links = get(ACCOUNT_LINKS, [])
-    let c = 0
-    let accountExists
-    while(c < links.length) {
-        if(links[c].accountId == account.accountId){
-            accountExists = true
-            links[c] = { key: keyPair.secretKey, accountId: account.accountId, recipientName: recipientName, owner: owner, keyStored: Date.now() }
-            set(ACCOUNT_LINKS, links)
-            break
-        } else {
-            accountExists = false
-        }
-    c++
-    }
-    if(!accountExists){
-      links.push({ key: keyPair.secretKey, accountId: account.accountId, recipientName: recipientName, owner: owner, keyStored: Date.now() })
-      set(ACCOUNT_LINKS, links)
-    }
+      keyPair = KeyPair.fromRandom('ed25519')   
+      const links = get(ACCOUNT_LINKS, [])
+      let c = 0
+      let accountExists
+      while(c < links.length) {
+          if(links[c].accountId == account.accountId){
+              accountExists = true
+              links[c] = { key: keyPair.secretKey, accountId: account.accountId, recipientName: recipientName, owner: owner, keyStored: Date.now() }
+              set(ACCOUNT_LINKS, links)
+              break
+          } else {
+              accountExists = false
+          }
+      c++
+      }
+      if(!accountExists){
+        links.push({ key: keyPair.secretKey, accountId: account.accountId, recipientName: recipientName, owner: owner, keyStored: Date.now() })
+        set(ACCOUNT_LINKS, links)
+      }
     } else {
       const links = get(ACCOUNT_LINKS, [])
       let c = 0

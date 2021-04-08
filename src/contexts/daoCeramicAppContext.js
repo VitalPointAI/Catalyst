@@ -21,7 +21,8 @@ export const DaoCeramicAppContext = createContext()
 export default function DaoCeramicAppProvider(props) {
 
     const [appIdx, setAppIdx] = useState()
-    const [didContract, setDIDContract] = useState()
+    const [appDidContract, setAppDidContract] = useState()
+    const [didContract, setDidContract] = useState()
     const [accountId, setAccountId] = useState()
     const [curUserIdx, setCurUserIdx] = useState()
     const [factoryContract, setFactoryContract] = useState()
@@ -68,23 +69,20 @@ export default function DaoCeramicAppProvider(props) {
 
                 // ********* Initiate Dids Registry Contract ************
 
-                const appAccount = await wallet.getAccount(process.env.FACTORY_CONTRACT)
+                const appAccount = await wallet.getAccount(process.env.APP_OWNER_ACCOUNT)
                 console.log('appAccount', appAccount)
 
                 const appAccountId = appAccount.accountId
                 console.log('appAccountId', appAccountId)
-                setAccountId(accountId)
+                setAccountId(appAccountId)
             
-               // const connection = new nearAPI.WalletConnection(near)
-               // const account = connection.account()
-            
-                const didRegistryContract = await ceramic.initiateDidRegistryContract(appAccount)
-                console.log('didRegistryContract', didRegistryContract)
-                setDIDContract(didRegistryContract)
+                const appDidRegistryContract = await ceramic.initiateDidRegistryContract(appAccount)
+                console.log('appDidRegistryContract', appDidRegistryContract)
+                setAppDidContract(appDidRegistryContract)
 
                 //Initiate App Ceramic Components
     
-                const appIdx = await ceramic.getAppIdx(didRegistryContract)
+                const appIdx = await ceramic.getAppIdx(appDidRegistryContract)
                 console.log('appIdx', appIdx)
                 setAppIdx(appIdx)
 
@@ -94,11 +92,17 @@ export default function DaoCeramicAppProvider(props) {
                 let curUserIdx
                 let did
 
-                let curUserAccount = await wallet.loadAccount()
+                let signedInAccount = await wallet.loadAccount()
+                console.log('signedinaccount', signedInAccount)
+                let curUserAccount = await wallet.getAccount(signedInAccount.accountId)
                 console.log('curuseraccount', curUserAccount)
-                let curUserAccountId = curUserAccount.accountId
+                let curUserAccountId = signedInAccount.accountId
                 console.log('curuseraccountid', curUserAccountId)
-            
+
+                const didRegistryContract = await ceramic.initiateDidRegistryContract(curUserAccount)
+                console.log('didRegistryContract', didRegistryContract)
+                setDidContract(didRegistryContract)
+                
                 let existingDid = await didRegistryContract.hasDID({accountId: curUserAccountId})
                 console.log('existingDID', existingDid)
             
@@ -121,6 +125,7 @@ export default function DaoCeramicAppProvider(props) {
                     if(owner != undefined){
                         const ownerAccount = new nearApiJs.Account(near.connection, owner)
                         const ownerIdx = await ceramic.getCurrentUserIdx(ownerAccount, appIdx, didRegistryContract, owner)
+                        console.log('ownerIdx', ownerIdx)
                         curUserIdx = await ceramic.getCurrentUserIdx(curUserAccount, appIdx, didRegistryContract, owner, ownerIdx)
                         console.log('did curUseridx', curUserIdx)
                         setCurUserIdx(curUserIdx)
@@ -313,7 +318,8 @@ export default function DaoCeramicAppProvider(props) {
     return (
         <DaoCeramicAppContext.Provider 
             value={{
-                appIdx, 
+                appIdx,
+                appDidContract,
                 didContract, 
                 curInfo,
                 factoryContract,

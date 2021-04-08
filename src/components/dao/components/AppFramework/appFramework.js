@@ -102,6 +102,7 @@ export default function AppFramework(props) {
 
     const { 
       appIdx,
+      appDidContract,
       didContract,
       factoryContract,
       near,
