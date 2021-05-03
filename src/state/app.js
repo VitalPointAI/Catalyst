@@ -10,6 +10,7 @@ const initialState = {
         wasValidated: false,
         accountTaken: false,
         alert: null,
+        initialized: false
     },
     links: []
 };

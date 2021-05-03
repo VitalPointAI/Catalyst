@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { login } from '../../state/near'
+import AddRootPersonaForm from '../AddRootPersona/addRootPersona'
 
 // Material UI Components
 import Button from '@material-ui/core/Button'
@@ -34,7 +35,8 @@ const useStyles = makeStyles((theme) => ({
 export default function SignIn(props) {
 
   const {
-    wallet
+    wallet,
+    state
   } = props
 
 const classes = useStyles()
@@ -42,30 +44,7 @@ const classes = useStyles()
     return (
         <Grid container spacing={3}>
           <Grid item xs={12}>
-          
-                <div className={classes.root}>
-                  <Card className={classes.customCard}>
-                    <CardMedia
-                        component="img"
-                        image={require("../../img/near_logo.png")}
-                        title="Near Logo"
-                    />
-                    <CardHeader title="Ready To Create a NEAR Persona?"></CardHeader>
-                    <CardContent>
-                    <Typography variant="body2" color="textPrimary" component="p" style={{marginBottom: 20}}>
-                    To do so, you need to sign in with an existing NEAR account. The button below will sign you in using NEAR Wallet.</Typography>
-                    <Typography variant="body2" color="textSecondary" component="p" style={{marginBottom: 20}}>
-                    Go ahead and click the button below to get started:</Typography>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      className={classes.button}
-                      startIcon={<LockOpenTwoToneIcon />}
-                      onClick={login}
-                    >Sign In</Button>
-                    </CardContent>
-                  </Card>
-                </div>
+           <Typography>Placeholder</Typography>
          
           </Grid>
         </Grid>

@@ -11,14 +11,11 @@ import Typography from '@material-ui/core/Typography';
 import Tooltip from '@material-ui/core/Tooltip';
 import Zoom from '@material-ui/core/Zoom';
 import InfoIcon from '@material-ui/icons/Info';
+import { LinearProgress } from '@material-ui/core'
 
 const useStyles = makeStyles((theme) => ({
     root: {
-        flexGrow: 1,
-        maxWidth: 300,
         margin: 'auto',
-        marginTop: 50,
-        minHeight: 550,
     },
     paper: {
         padding: theme.spacing(2),
@@ -51,8 +48,10 @@ export default function Persona(props) {
     const [editPersonaClicked, setEditPersonaClicked] = useState(false)
     const [anchorEl, setAnchorEl] = useState(null)
     const [isUpdated, setIsUpdated] = useState(false)
-    const [finished, setFinished] = useState()
+    const [finished, setFinished] = useState(false)
     const [avatar, setAvatar] = useState(props.avatar)
+    const [claimCount, setClaimedCount] = useState(0)
+    const [daoCount, setDaoCount] = useState(0)
 
     const {
         state,
@@ -64,19 +63,46 @@ export default function Persona(props) {
         () => {
   
         async function fetchData() {
+            setFinished(false)
             if(state) {
-             
+                console.log(state)
                 if (state.curUserIdx){
                     let result = await state.curUserIdx.get('profile', state.curUserIdx.id)
                   
-                
                     if(result){
                         result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                     }
                 }
+
+                if(state.claimed && state.claimed.length > 0){
+                    let i = 0
+                    let count = 0
+                    while (i < state.claimed.length){
+                        if(state.claimed[i].owner == accountId){
+                        count++
+                        }
+                    i++
+                    }
+                    setClaimedCount(count)
+                }
+
+                if(state.daoLinks && state.daoLinks.length > 0){
+                    let i = 0
+                    let count = 0
+                    while (i < state.daoLinks.length){
+                        if(state.daoLinks[i].summoner == accountId){
+                        count++
+                        }
+                    i++
+                    }
+                    setDaoCount(count)
+                }
+
                 if((state.links && state.links.length > 0) || (state.claimed && state.claimed.length > 0)){
                         return true
                 }
+
+              
             }
         }
 
@@ -110,17 +136,47 @@ const handleEditPersonaClick = () => {
   }
 
     return (
-        <Grid container justify="space-between" alignItems="flex-start" spacing={1}>
-            <Grid item xs={12} sm={5} md={5} lg={5} xl={5}>
-                {profileExists ? (<><Typography variant="overline" display="block"><Tooltip TransitionComponent={Zoom} title="This is the total number of personas you have created across all your accounts, not just this one.">
-                <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
-                </Tooltip>All Your Personas: {state.links.length + state.claimed.length}
-                </Typography></>) : (<><Typography variant="overline" display="block"> <Tooltip TransitionComponent={Zoom} title="This is the total number of personas you have created across all your accounts, not just this one.">
-                <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
-            </Tooltip>All Your Personas: 0</Typography></>)}
+        <Grid container justify="space-between" alignItems="flex-start" spacing={1} className={classes.root}>
+            <Grid item xs={12} sm={12} md={6} lg={6} xl={6} style={{textAlign: 'center'}}>
+                {profileExists ? (
+                    <>
+                    <Typography variant="overline" display="inline">
+                        <Tooltip TransitionComponent={Zoom} title="The number of personas claimed by the signed in persona.">
+                            <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
+                        </Tooltip>Your Personas: {claimCount}
+                    </Typography>
+                    <Typography variant="overline" display="inline" style={{marginLeft: '10px'}}>
+                        <Tooltip TransitionComponent={Zoom} title="The number of DAOs the signed in persona has founded.">
+                            <InfoIcon fontSize="small" style={{marginLeft: '5px', marginRight:'5px', marginTop:'-3px'}} />
+                        </Tooltip>Your DAOs: {daoCount}
+                    </Typography>
+                    </>)
+                    :
+                    (<>
+                    <Typography variant="overline" display="inline" style={{marginLeft: '10px'}}>
+                        <Tooltip TransitionComponent={Zoom} title="The number of personas claimed by the signed in persona.">
+                            <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
+                        </Tooltip>Your Personas: 0
+                    </Typography>
+                    <Typography variant="overline" display="inline">
+                        <Tooltip TransitionComponent={Zoom} title="The number of DAOs the signed in persona has founded.">
+                            <InfoIcon fontSize="small" style={{marginLeft: '5px', marginRight:'5px', marginTop:'-3px'}} />
+                        </Tooltip>Your DAOs: 0
+                    </Typography>
+                    </>
+                    )                 
+                }
             </Grid>
-            <Grid item xs={12} sm={7} md={7} lg={7} xl={7}>
-            <Typography variant="overline" display="block" onClick={handleEditPersonaClick} style={{float:'right', marginLeft:'10px'}}>{accountId}: {balance} Ⓝ</Typography><Avatar src={avatar} className={classes.small} onClick={handleEditPersonaClick}/><br></br>
+            <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+            {finished ? (
+                <>
+                <Typography variant="overline" display="block" onClick={handleEditPersonaClick} style={{float:'right', marginLeft:'10px'}}>
+                    {accountId}: {balance} Ⓝ
+                </Typography>
+                <Avatar src={avatar} className={classes.small} onClick={handleEditPersonaClick}/>
+                </>
+            ) : <LinearProgress />
+            }
             </Grid>
             {editPersonaClicked ? <EditPersonaForm
                 state={state}

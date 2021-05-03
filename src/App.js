@@ -1,9 +1,20 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { appStore, onAppMount } from './state/app';
+import {
+    BrowserRouter as Router,
+    Switch,
+    Route,
+    Link
+  } from "react-router-dom";
 
 import { Container } from './components/Container'
 import { Receiver } from './components/Receiver'
-import { Giver } from './components/Giver'
+import { PersonaPage } from './components/mainPages/personas'
+import ExploreDaos from './components/mainPages/exploreDaos'
+import CreateDao from './components/mainPages/createDao'
+import AppFramework from './components/AppFramework/appFramework'
+
+// Material-UI Components
 import { CircularProgress } from '@material-ui/core';
 
 // helpers
@@ -13,6 +24,11 @@ export const qs = (s) => document.querySelector(s)
 
 const App = () => {
     const { state, dispatch, update } = useContext(appStore);
+
+    const [errorMessage, setErrorMessage] = useState()
+    const [severity, setSeverity] = useState()
+    const [successMessage, setSuccessMessage] = useState()
+    const [snackBarOpen, setSnackBarOpen] = useState(false)
 
     const onMount = () => {
         dispatch(onAppMount());
@@ -25,6 +41,22 @@ const App = () => {
        '\nLine Number: ' + lineNo);
     return true;   
     }
+
+    function handleErrorMessage(message, severity) {
+        setErrorMessage(message)
+        setSeverity(severity)
+      }
+    
+    function handleSuccessMessage(message, severity) {
+    setSuccessMessage(message)
+    setSeverity(severity)
+    }
+
+    function handleSnackBarOpen(property) {
+    setSnackBarOpen(property)
+    }
+
+   
     
     const {
         accountData, funding, wallet
@@ -48,10 +80,52 @@ const App = () => {
     }
 
     if (wallet) {
-        children = <Giver {...{ state, dispatch, update }} />
+        children = <PersonaPage {...{ state, dispatch, update }} />
     }
     
-    return <Container state={state}>{ children }</Container>
+    return(
+        <Router>
+            <Switch>
+                <Route exact path="/">
+                    <Container state={state}
+                    handleSnackBarOpen={handleSnackBarOpen}
+                    handleSuccessMessage={handleSuccessMessage}
+                    handleErrorMessage={handleErrorMessage}
+                    snackBarOpen={snackBarOpen}
+                    severity={severity}
+                    errorMessage={errorMessage}
+                    successMessage={successMessage}>{ children }</Container>
+                </Route>
+                <Route path="/explore">
+                    <ExploreDaos state={state}/>
+                </Route>
+                <Route path="/createDao">
+                    <CreateDao 
+                        state={state}
+                        handleSnackBarOpen={handleSnackBarOpen}
+                        handleSuccessMessage={handleSuccessMessage}
+                        handleErrorMessage={handleErrorMessage}
+                        snackBarOpen={snackBarOpen}
+                        severity={severity}
+                        errorMessage={errorMessage}
+                        successMessage={successMessage}
+                    />
+                </Route>
+                <Route path="/dao/:contractId">
+                    <AppFramework
+                        state={state}
+                        handleSnackBarOpen={handleSnackBarOpen}
+                        handleSuccessMessage={handleSuccessMessage}
+                        handleErrorMessage={handleErrorMessage}
+                        snackBarOpen={snackBarOpen}
+                        severity={severity}
+                        errorMessage={errorMessage}
+                        successMessage={successMessage}
+                    />
+                </Route>
+            </Switch>
+        </Router>
+    )
 }
 
 export default App;

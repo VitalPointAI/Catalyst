@@ -1,13 +1,15 @@
 import * as nearAPI from 'near-api-js'
 import { get, set, del } from '../utils/storage'
 import { ceramic } from '../utils/ceramic'
+import { factory } from '../utils/factory'
+import { dao } from '../utils/dao'
 
 import { config } from './config'
 
 export const {
-    FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, GAS, SEED_PHRASE_LOCAL_COPY,
-    networkId, nodeUrl, walletUrl, nameSuffix,
-    contractName, didRegistryContractName
+    FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT,
+    networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix,
+    contractName, didRegistryContractName, factoryContractName
 } = config
 
 const {
@@ -61,8 +63,17 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         changeMethods: ['send', 'create_account', 'create_account_and_claim'],
     })
 
+    const daoFactoryContract = new nearAPI.Contract(wallet.account(), factoryContractName, {
+        changeMethods: ['createDemDAO'],
+    })
+
     wallet.isAccountTaken = async (accountId) => {
         const accountTaken = await isAccountTaken(accountId + nameSuffix)
+        update('app', { accountTaken, wasValidated: true })
+    }
+
+    wallet.isDaoAccountTaken = async (accountId) => {
+        const accountTaken = await isAccountTaken(accountId + factorySuffix)
         update('app', { accountTaken, wasValidated: true })
     }
 
@@ -102,6 +113,44 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
             await contract.create_account({ new_account_id: accountId, new_public_key: keyPair.publicKey.toString() }, GAS, parseNearAmount(amount))
         }
     }
+
+    wallet.fundDaoAccount = async (accountId, summoner) => {
+        
+        if (accountId.indexOf(factorySuffix) > -1 || accountId.indexOf('.') > -1) {
+            alert(factorySuffix + ' is added automatically and no "." is allowed. Please remove and try again.')
+            return update('app.wasValidated', true)
+        }
+        accountId = accountId + factorySuffix
+        if (parseFloat(FACTORY_DEPOSIT, 10) < 0.1 || accountId.length < 2 || accountId.length > 48) {
+            return update('app.wasValidated', true)
+        }
+      //  const keyPair = KeyPair.fromRandom('ed25519')
+
+        let state = getState()
+
+        const links = get(DAO_LINKS, [])
+        let c = 0
+        let accountExists
+        while(c < links.length) {
+            if(links[c].accountId == accountId){
+                accountExists = true
+                alert('This dao already exists in local storage, it will be updated.')
+                links[c] = { contractId: accountId, summoner: summoner, created: Date.now() }
+                break
+            } else {
+                accountExists = false
+            }
+        c++
+        }
+        if(!accountExists){
+            links.push({ contractId: accountId, summoner: summoner, created: Date.now() })
+            await ceramic.storeKeysSecret(state.curUserIdx, links, 'daoKeys')
+            set(DAO_LINKS, links)
+        
+            await daoFactoryContract.createDemDAO({ accountId: accountId, deposit: FACTORY_DEPOSIT }, GAS, parseNearAmount(FACTORY_DEPOSIT))
+            console.log('fund daofactory contract', daoFactoryContract)
+        }
+    }    
 
     if(wallet.signedIn){
 
@@ -147,14 +196,14 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         } else {
             curUserIdx = await ceramic.getCurrentUserIdx(account, appIdx, didRegistryContract)
         }
-        
     }
+
     if(!existingDid){
         curUserIdx = await ceramic.getCurrentUserIdxNoDid(appIdx, didRegistryContract, account)
     }
     
     // Set Current User's Info
-    const curInfo = await curUserIdx.get('profile')
+    const curInfo = await curUserIdx.get('profile', curUserIdx.id)
 
     //synch local links with what's stored for the account in ceramic
     let allAccounts = await ceramic.downloadKeysSecret(curUserIdx, 'accountsKeys')
@@ -169,8 +218,29 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
             set(ACCOUNT_LINKS, allAccounts)
         }
     }
+
+    //synch local daos with what's stored for the account in ceramic
+    let allDaos = await ceramic.downloadKeysSecret(curUserIdx, 'daoKeys')
+
+    const storageDaos = get(DAO_LINKS, [])
     
-    update('', { didRegistryContract, appIdx, accountId, curUserIdx, wallet, curInfo })
+    if(allDaos.length != storageDaos.length){
+        if(allDaos.length < storageDaos.length){
+            await ceramic.storeKeysSecret(curUserIdx, storageDaos, 'daoKeys')
+        }
+        if(allDaos.length > storageDaos.length){
+            set(DAO_LINKS, allDaos)
+        }
+    }
+    
+    update('', { didRegistryContract, appIdx, accountId, curUserIdx, wallet, curInfo, did })
+
+     //** INITIALIZE FACTORY CONTRACT */
+     let daoFactory = await factory.initFactoryContract(account)
+     console.log('daoFactory', daoFactory)
+     
+     update('', {daoFactory})
+
     }
     // check localLinks, see if they're still valid
 
@@ -194,10 +264,14 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
 
     const claimed = localLinks.filter(({claimed}) => !!claimed)
     const links = localLinks.filter(({claimed}) => !claimed)
+
+    const daoLinks = get(DAO_LINKS, [])
   
     finished = true
 
-    update('', { near, wallet, links, claimed, finished })
+    update('', { near, wallet, links, claimed, daoLinks, finished })
+
+   
 }
 
 export async function login() {
@@ -286,6 +360,177 @@ export const keyRotation = () => async ({ update, getState, dispatch }) => {
     })
     
     return result
+}
+
+export async function initDao(wallet, accountId, summoner, periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound, daoType, appIdx, didRegistryContract ) {
+
+    let logged = await logInitEvent(accountId, summoner, daoType, appIdx, didRegistryContract, wallet)
+    console.log('logged', logged)
+    
+    let summonTime
+    if (logged) {
+        try {
+        const daoContract = await dao.initDaoContract(wallet.account(), accountId)
+        console.log('fund daoContract', daoContract)
+
+        return summonTime = await daoContract.init({
+            _periodDuration: parseInt(periodDuration),
+            _votingPeriodLength: parseInt(votingPeriodLength),
+            _gracePeriodLength: parseInt(gracePeriodLength),
+            _proposalDeposit: proposalDeposit,
+            _dilutionBound: parseInt(dilutionBound)
+        }, GAS)
+        } catch (err) {
+            console.log('init failed', err)
+        //  await deleteLogInitEvent(accountId, summoner, daoType)
+        }
+    } else {
+    return false
+    }
+}
+
+export async function logInitEvent (accountId, summoner, daoType, appIdx, didRegistryContract, wallet) {
+
+    const near = await nearAPI.connect({
+        networkId, nodeUrl, walletUrl, deps: { keyStore: new nearAPI.keyStores.BrowserLocalStorageKeyStore() },
+    })
+
+    let daoAccount = new nearAPI.Account(near.connection, accountId)
+
+    let thisCurDaoIdx = await ceramic.getCurrentUserIdxNoDid(appIdx, didRegistryContract, daoAccount)    
+    console.log('thisCurDaoIdx', thisCurDaoIdx)
+
+    const daoContract = await dao.initDaoContract(wallet.account(), accountId)
+    let totalMembers = await daoContract.getTotalMembers()
+    console.log('total Members', totalMembers)
+    let memberId = parseInt(totalMembers)
+    
+    let numberSummonTime = parseInt(summonTime)
+
+    if(summonTime && memberId) {
+       
+      // Log Member Event
+      let memberEventRecord = await thisCurDaoIdx.get('member', thisCurDaoIdx.id)
+      if(!memberEventRecord){
+        memberEventRecord = { events: [] }
+      }
+
+      let indivMemberEventRecord = {
+        memberId: memberId.toString(),
+        contractId: daoContract.contractId,
+        delegateKey: accountId,
+        shares: '1',
+        loot: '0',
+        existing: true,
+        highestIndexYesVote: 0,
+        jailed: 0,
+        joined: numberSummonTime,
+        updated: numberSummonTime
+      }
+
+      memberEventRecord.events.push(indivMemberEventRecord)
+      console.log('memberEventRecord.events', memberEventRecord.events)
+
+      await thisCurDaoIdx.set('member', memberEventRecord)
+     
+    }
+
+     // Log Summon Event
+
+   let summonEventRecord = await thisCurDaoIdx.get('summonEvent', thisCurDaoIdx.id)
+    if(!summonEventRecord){
+      summonEventRecord = { events: [] }
+    }
+   
+    let indivSummonEventRecord = {
+      eventId: '1',
+      contractId: daoContract.contractId,
+      summoner: summoner,
+      category: daoType,
+      tokens: ['Ⓝ'],
+      summoningTime: numberSummonTime,
+      periodDuration: parseInt(periodDuration),
+      votingPeriodLength: parseInt(votingPeriodLength),
+      gracePeriodLength: parseInt(gracePeriodLength),
+      proposalDeposit: proposalDeposit,
+      dilutionBound: parseInt(dilutionBound),
+      updateTime: numberSummonTime
+    }
+
+    summonEventRecord.events.push(indivSummonEventRecord)
+
+    await thisCurDaoIdx.set('summonEvent', summonEventRecord)
+
+    return true
+}
+
+export async function deleteLogInitEvent (accountId, summoner, daoType) {
+
+    let daoAccount = new nearAPI.Account(near.connection, accountId);
+    let thisCurDaoIdx = await ceramic.getCurrentUserIdxNoDid(appIdx, didRegistryContract, daoAccount)    
+    console.log('thisCurDaoIdx', thisCurDaoIdx)
+
+    const daoContract = await dao.initDaoContract(wallet.account(), accountId)
+    let totalMembers = await daoContract.getTotalMembers()
+    console.log('total Members', totalMembers)
+    let memberId = parseInt(totalMembers)
+    
+    let numberSummonTime = parseInt(summonTime)
+
+    if(summonTime && memberId) {
+       
+      // Log Member Event
+      let memberEventRecord = await thisCurDaoIdx.get('member', thisCurDaoIdx.id)
+      if(!memberEventRecord){
+        memberEventRecord = { events: [] }
+      }
+
+      let indivMemberEventRecord = {
+        memberId: memberId.toString(),
+        contractId: daoContract.contractId,
+        delegateKey: accountId,
+        shares: '1',
+        loot: '0',
+        existing: true,
+        highestIndexYesVote: 0,
+        jailed: 0,
+        joined: numberSummonTime,
+        updated: numberSummonTime
+      }
+
+      memberEventRecord.events.push(indivMemberEventRecord)
+      console.log('memberEventRecord.events', memberEventRecord.events)
+
+      await thisCurDaoIdx.set('member', memberEventRecord)
+     
+    }
+
+     // Log Summon Event
+
+   let summonEventRecord = await thisCurDaoIdx.get('summonEvent', thisCurDaoIdx.id)
+    if(!summonEventRecord){
+      summonEventRecord = { events: [] }
+    }
+   
+    let indivSummonEventRecord = {
+      eventId: '1',
+      contractId: daoContract.contractId,
+      summoner: summoner,
+      tokens: ['Ⓝ'],
+      summoningTime: numberSummonTime,
+      periodDuration: parseInt(periodDuration),
+      votingPeriodLength: parseInt(votingPeriodLength),
+      gracePeriodLength: parseInt(gracePeriodLength),
+      proposalDeposit: proposalDeposit,
+      dilutionBound: parseInt(dilutionBound),
+      updateTime: numberSummonTime
+    }
+
+    summonEventRecord.events.push(indivSummonEventRecord)
+
+    await thisCurDaoIdx.set('summonEvent', summonEventRecord)
+
+    return true
 }
 
 export const hasKey = async (key, accountId, near) => {

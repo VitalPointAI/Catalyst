@@ -5,13 +5,17 @@ let config = {
     SEED_PHRASE_LOCAL_COPY: '__SEED_PHRASE_LOCAL_COPY',
     FUNDING_DATA: '__FUNDING_DATA',
     ACCOUNT_LINKS: '__ACCOUNT_LINKS',
+    DAO_LINKS: '__DAO_LINKS',
     GAS: '200000000000000',
-    networkId: 'default',
+    FACTORY_DEPOSIT: '2',
+    networkId: 'testnet',
     nodeUrl: 'https://rpc.testnet.near.org',
     walletUrl: 'https://wallet.testnet.near.org',
     nameSuffix: '.testnet',
+    factorySuffix: '.factory.vitalpointai.testnet',
     contractName: 'testnet',
     didRegistryContractName: 'dids.vitalpointai.testnet',
+    factoryContractName: 'factory.vitalpointai.testnet'
 }
 
 if (process.env.REACT_APP_ENV === 'prod') {

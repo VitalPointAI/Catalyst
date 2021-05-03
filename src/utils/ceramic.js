@@ -7,7 +7,9 @@ import { Ed25519Provider } from 'key-did-provider-ed25519'
 
 // schemas
 import { profileSchema } from '../schemas/profile'
+import { daoProfileSchema } from '../schemas/daoProfile'
 import { accountKeysSchema } from '../schemas/accountKeys'
+import { daoKeysSchema } from '../schemas/daoKeys'
 import { definitionsSchema } from '../schemas/definitions'
 import { schemaSchema } from '../schemas/schemas'
 
@@ -15,7 +17,7 @@ import { config } from '../state/config'
 const axios = require('axios').default;
 
 export const {
-    FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, GAS, SEED_PHRASE_LOCAL_COPY,
+    FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY,
     networkId, nodeUrl, walletUrl, nameSuffix,
     contractName, didRegistryContractName
 } = config
@@ -151,7 +153,8 @@ async makeSeed(account){
         seed = await this.getLocalAccountSeed(account.accountId)
       }
     }
-    const API_URL = 'https://ceramic-clay.3boxlabs.com'
+   // const API_URL = 'https://ceramic-clay.3boxlabs.com'
+    const API_URL = 'http://localhost:7007'
     const ceramic = new CeramicClient(API_URL, {cacheDocCommits: true, docSyncEnabled: false, docSynchInterval: 30000})
     const provider = new Ed25519Provider(seed)
     await ceramic.setDIDProvider(provider)
@@ -161,7 +164,8 @@ async makeSeed(account){
   async getAppCeramic() {
     let retrieveSeed = await axios.get('https://vpbackend.azurewebsites.net/appseed')
     const seed = Buffer.from((retrieveSeed.data).slice(0, 32))
-    const API_URL = 'https://ceramic-clay.3boxlabs.com'
+   // const API_URL = 'https://ceramic-clay.3boxlabs.com'
+    const API_URL = 'http://localhost:7007'
     const ceramic = new CeramicClient(API_URL, {docSyncEnabled: false, docSynchInterval: 30000})
     const provider = new Ed25519Provider(seed)
     await ceramic.setDIDProvider(provider)
@@ -490,20 +494,24 @@ async makeSeed(account){
         ownerIdx = appIdx
       }
       
-      let currentAliases = await this.getAliases(ownerIdx, account.accountId)
+      //let currentAliases = await this.getAliases(ownerIdx, account.accountId)
 
-      let curUserIdx = new IDX({ ceramic: currentUserCeramicClient, aliases: currentAliases})
+      //let curUserIdx = new IDX({ ceramic: currentUserCeramicClient, aliases: currentAliases})
   
       //initialize aliases if required
       const profileAlias = await this.aliasSetup(ownerIdx, account.accountId, 'profile', 'user profile data', profileSchema, currentUserCeramicClient)
+      const daoProfileAlias = await this.aliasSetup(ownerIdx, account.accountId, 'daoProfile', 'dao profile data', daoProfileSchema, currentUserCeramicClient)
       const accountsKeysAlias = await this.aliasSetup(ownerIdx, account.accountId, 'accountsKeys', 'user account info', accountKeysSchema, currentUserCeramicClient)
-      currentAliases = await this.getAliases(ownerIdx, account.accountId)
-      curUserIdx = new IDX({ ceramic: currentUserCeramicClient, aliases: currentAliases})
+      const daoKeysAlias = await this.aliasSetup(ownerIdx, account.accountId, 'daoKeys', 'user dao info', daoKeysSchema, currentUserCeramicClient)
+      let currentAliases = await this.getAliases(ownerIdx, account.accountId)
+      let curUserIdx = new IDX({ ceramic: currentUserCeramicClient, aliases: currentAliases})
   
       return curUserIdx
   }
 
   async getCurrentUserIdxNoDid (appIdx, contract, account, keyPair, recipientName, owner, ownerIdx) {
+    console.log('appIdx', appIdx)
+    console.log('contract', contract)
   
     if(keyPair == undefined){
     keyPair = KeyPair.fromRandom('ed25519')   
@@ -551,14 +559,17 @@ async makeSeed(account){
     // Initiate new User Ceramic Client
     let newUserCeramicClient = await this.getCeramic(account, seed)
     
-    if(owner != '') {
+    if(owner != undefined) {
+      console.log('owner', owner)
     let ownerSeed = await this.getLocalAccountSeed(owner)
+    console.log('owner seed', ownerSeed)
       if(!ownerSeed){
         ownerIdx = appIdx
       } else {
         let ownerClient = await this.getCeramic(owner, ownerSeed)
-        const definitions = await this.getAlias(owner+':Definitions', ownerClient, definitionsSchema, 'alias definitions', contract)
-        const schemas = await this.getAlias(owner+':Schemas', ownerClient, schemaSchema, 'user schemas', contract)
+        console.log('owner client', ownerClient)
+        const definitions = await this.getAlias(owner, owner+':Definitions', ownerClient, definitionsSchema, 'alias definitions', contract)
+        const schemas = await this.getAlias(owner, owner+':Schemas', ownerClient, schemaSchema, 'user schemas', contract)
        
         let ownerAliases = {
           definitions: definitions,
@@ -574,7 +585,9 @@ async makeSeed(account){
     // Associate current user NEAR account with DID and store in contract
     let associate = this.associateDID(account.accountId, contract, newUserCeramicClient)
     let profileAlias = await this.aliasSetup(ownerIdx, account.accountId, 'profile', 'user profile data', profileSchema, newUserCeramicClient)
+    const daoProfileAlias = await this.aliasSetup(ownerIdx, account.accountId, 'daoProfile', 'dao profile data', daoProfileSchema, newUserCeramicClient)
     let accountsKeysAlias = await this.aliasSetup(ownerIdx, account.accountId, 'accountsKeys', 'user account info', accountKeysSchema, newUserCeramicClient)
+    const daoKeysAlias = await this.aliasSetup(ownerIdx, account.accountId, 'daoKeys', 'user dao info', daoKeysSchema, newUserCeramicClient)
     const done = await Promise.all([associate])
   
     let currentAliases = await this.getAliases(ownerIdx, account.accountId)
@@ -583,6 +596,11 @@ async makeSeed(account){
     // Store it's new seed/list of accounts for later retrieval
     const updatedLinks = get(ACCOUNT_LINKS, [])
     await this.storeKeysSecret(curUserIdx, updatedLinks, 'accountsKeys')
+
+    // Store it's new seed/list of daos for later retrieval
+    const updatedDaos = get(DAO_LINKS, [])
+    await this.storeKeysSecret(curUserIdx, updatedDaos, 'daoKeys')
+
     return curUserIdx
   }
 

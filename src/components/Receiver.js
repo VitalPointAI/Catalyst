@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
+import { Redirect } from 'react-router-dom'
 import { keyRotation, walletUrl, SEED_PHRASE_LOCAL_COPY } from '../state/near';
 import { appStore, onAppMount } from '../state/app';
 
@@ -69,6 +70,7 @@ export const Receiver = ({ dispatch }) => {
 
     if (!keyExists || success === 1) {
         return (<>
+            <Redirect to="/" />
             <Grid container spacing={1}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                     <Card className={classes.root}>
@@ -88,11 +90,11 @@ export const Receiver = ({ dispatch }) => {
     }
 
     return (<>
-        <Grid container spacing={1}>
+        <Grid container spacing={1} style={{textAlign: 'center'}}>
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
             <Card className={classes.root}>
             <CardHeader
-                title="Your new NEAR Persona is almost ready!"
+                title="Your new Persona is almost ready!"
                 subheader={`${from} created this persona with the account name:`}
             />
             <CardContent>
@@ -124,16 +126,16 @@ export const Receiver = ({ dispatch }) => {
                             setSuccess(1)
                         } catch (e) {
                             if (e.message.indexOf('Can not sign transactions') > -1) {
-                                alert('It looks like the account has already been claimed!')
+                                alert('It looks like the persona has already been claimed!')
                                 setSuccess(1)
                             } else {
-                                alert('There was an error claiming your account. Please try again.')
+                                alert('There was an error claiming your persona. Please try again.')
                                 console.error(e)
                             }
                         }
                         setClaiming(false)
                     }}>
-                        I Wrote It Down! CLAIM MY ACCOUNT NOW!
+                        I Wrote It Down! CLAIM MY PERSONA NOW!
                 </Button>
                 </>}
             </Grid>

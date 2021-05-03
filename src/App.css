@@ -14,6 +14,23 @@ body {
     z-index: -1;
 }
 
+.gradient {
+    color: transparent;
+ background: linear-gradient(
+   to left,
+   #67F6FF,
+   #52EBFF,
+   #40E2FF,
+   #22D3FF,
+   #12CBFF,
+   #67F6FF
+ );
+ background-size: 1000px 100%;
+ animation: bg 25s linear infinite;
+ background-clip: text;
+ -webkit-background-clip: text;
+}
+
 .container-alert {
     position: fixed;
     top: 32px; left: 0;

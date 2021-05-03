@@ -30,12 +30,19 @@ const useStyles = makeStyles((theme) => ({
         marginTop: 0,
     },
     card: {
-      marginTop: '10px',
-      maxWidth: '200px'
+      minWidth: '200px',
+      maxWidth: '200px',
+      cursor: 'pointer',
+      verticalAlign: 'middle'
     },
     avatar: {
       backgroundColor: red[500],
     },
+    square: {
+      float: 'left',
+      marginRight: '10px',
+      marginTop: '5px',
+    }
   }));
 
 const imageName = require('../../img/default-profile.png') // default no-image avatar
@@ -55,7 +62,7 @@ export default function PersonaCard(props) {
     const [isUpdated, setIsUpdated] = useState(false)
     const [anchorEl, setAnchorEl] = useState(null);
     const [did, setDid] = useState()
-    const [finished, setFinished] = useState()
+    const [finished, setFinished] = useState(false)
 
     const classes = useStyles();
 
@@ -152,47 +159,49 @@ export default function PersonaCard(props) {
 
     return(
         <>
-        {display ? (
-          <Card className={classes.card}>
-            <CardHeader
-              title={name}
-              subheader={date}
-              avatar = {<Avatar variant="square" src={avatar} className={classes.square} />}
-           />
-              <CardContent>
-                <Typography gutterBottom variant="h6" noWrap={true}>
-                  {accountId}
+        {!display ? <LinearProgress /> : 
+                     
+          finished && !claimed ? 
+      
+          (
+            <Card className={classes.card}>
+              <CardContent onClick={handleEditPersonaClick}>
+                <Avatar variant="rounded" src={avatar} className={classes.square} />
+                <Typography  variant="overline" display="inline" noWrap={true} style={{lineHeight: 0}}>
+                  {name ? name : accountId}<br></br>
+                  {finished ? (<span style={{fontSize: '80%'}}>{date}</span>) : <LinearProgress />}
                 </Typography>
               </CardContent>
-      
-            { finished ? ( <CardActions>
-          
-              {!claimed ? (
-                  <Link color="primary" href={link}>
-                    Claim
-                  </Link>
-              ) : null }
-
-              {claimed ? (
-                <Button onClick={handleEditPersonaClick} >
-                    Edit Persona
-                </Button>
-              ) : null }
-           
-
-
-              {editPersonaClicked ? <EditPersonaForm
-                state={state}
-                handleEditPersonaClickState={handleEditPersonaClickState}
-                curPersonaIdx={curUserIdx}
-                handleUpdate={handleUpdate}
-                did={did}
-                accountId={accountId}
-                /> : null }
-
-            </CardActions> ) : <LinearProgress /> }
-          </Card>) : null  }
+              <CardActions>
+                <Link color="primary" href={link}>
+                  Claim
+                </Link>
+              </CardActions>
+            </Card>
+          ) 
+          : 
+          (
+            <Card className={classes.card}>
+              <CardContent onClick={handleEditPersonaClick}>
+                <Avatar variant="rounded" src={avatar} className={classes.square} />
+                  <Typography  variant="overline" display="inline" noWrap={true} style={{lineHeight: 0}}>
+                    {name ? name : accountId}<br></br>
+                    {finished ? (<span style={{fontSize: '80%'}}>{date}</span>) : <LinearProgress />}
+                  </Typography>
+              </CardContent>
+            </Card>
+          )
+        }
          
+          {editPersonaClicked ? <EditPersonaForm
+            state={state}
+            handleEditPersonaClickState={handleEditPersonaClickState}
+            curPersonaIdx={curUserIdx}
+            handleUpdate={handleUpdate}
+            did={did}
+            accountId={accountId}
+            /> : null }
+
         </>
        
     )

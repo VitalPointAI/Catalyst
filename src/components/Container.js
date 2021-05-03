@@ -1,31 +1,32 @@
 import React, { useState, useEffect, useContext } from 'react';
+import clsx from 'clsx';
 import { flexClass } from '../App'
 import SignIn from '../components/SignIn/signIn'
+import LeftSideDrawer from '../components/LeftSideDrawer/leftSideDrawer'
 import LogoutButton from '../components/LogoutButton/logoutButton'
+import LoginButton from '../components/LogInButton/loginButton'
 import Persona from '../components/Persona/persona'
-import AddPersonaForm from '../components/AddPersona/addPersona'
+import Logo from '../components/Logo/logo'
+import { Header } from '../components/Header/header'
+
 
 // Material UI
 import { makeStyles } from '@material-ui/core/styles'
 import Grid from '@material-ui/core/Grid'
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
-import IconButton from '@material-ui/core/IconButton';
-import MenuIcon from '@material-ui/icons/Menu';
-import Paper from '@material-ui/core/Paper';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import { CircularProgress } from '@material-ui/core';
+import Typography from '@material-ui/core/Typography'
+import CircularProgress from '@material-ui/core/CircularProgress'
+import '../App.css'
+
 
 const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
-        maxWidth: 640,
+      //  maxWidth: 640,
         margin: 'auto',
-        marginTop: 50,
+      //  marginTop: 50,
         marginBottom: 50,
         minHeight: 550,
+        padding: '20px',
     },
     paper: {
         padding: theme.spacing(2),
@@ -39,16 +40,15 @@ const useStyles = makeStyles((theme) => ({
       flexGrow: 1,
       textAlign: 'left'
     },
+    drawer: {
+        marginTop: '5px'
+    }
   }));
 
-export const Container = ({ children, state }) => {
+export const Container = ({ children, state, handleSnackBarOpen, handleSuccessMessage, handleErrorMessage, snackBarOpen, severity, errorMessage, successMessage }) => {
 
     const classes = useStyles();
-
-    const [anchorEl, setAnchorEl] = useState(null);
-    const [addPersonaClicked, setAddPersonaClicked] = useState(false)
    
-
     const {
         app, wallet, links, claimed, accountId, curInfo
     } = state
@@ -58,74 +58,32 @@ export const Container = ({ children, state }) => {
     }, []
     )
 
-    const handleClick = (event) => {
-        setAnchorEl(event.currentTarget);
-    };
-
-    const handleClose = () => {
-        setAnchorEl(null);
-    };
-
-    function handleAddPersonaClick(property){
-        setAddPersonaClicked(property)
-    }
-
-    const addPersonaClick = () => {
-        setAddPersonaClicked(true)
-        handleClose()
-    }
-
     return (
         <>
-        <div class="background"></div>
         <div className={classes.root}>
-        <Paper className={classes.paper}>
-        <AppBar position="static" style={{marginBottom: '20px'}}>
-        <Toolbar>
-            <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu" onClick={handleClick}>
-            <MenuIcon />
-            </IconButton>
-            <Menu
-                id="simple-menu"
-                anchorEl={anchorEl}
-                keepMounted
-                open={Boolean(anchorEl)}
-                onClose={handleClose}
-            >
-                <MenuItem onClick={addPersonaClick}>Create Persona</MenuItem>
-               
-            </Menu>
-
-            <Typography variant="h6" className={classes.title} >
-            <a href="/" style={{color: 'white'}}>NEAR PERSONAS (TestNet)</a>
-            </Typography>
-            {wallet && wallet.signedIn ? <LogoutButton wallet={wallet} /> : null }
-        </Toolbar>
-        </AppBar>
-        <Grid container spacing={1}>
-            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-               {wallet && wallet.signedIn ? <Persona state={state} accountId={wallet.getAccountId()} balance={wallet.balance} /> : null}
-            </Grid>
-        </Grid>
-
-        {addPersonaClicked ? <AddPersonaForm
-            state={state}
-            handleAddPersonaClick={handleAddPersonaClick}
-            /> : null }
-
+        <Header state={state}
+        handleSnackBarOpen={handleSnackBarOpen}
+        handleSuccessMessage={handleSuccessMessage}
+        handleErrorMessage={handleErrorMessage}
+        snackBarOpen={snackBarOpen}
+        severity={severity}
+        errorMessage={errorMessage}
+        successMessage={successMessage}/>
+       
         <div class={flexClass}>
-            {state.finished ? (
-                <div class="container container-custom">
-                {wallet && wallet.signedIn ? children : <SignIn wallet={wallet}/>}
-                </div>
-                ) : state.accountData ? (
-                <div class="container container-custom">
+        {state.finished ? (
+            <div class="container container-custom">
+                {wallet && wallet.signedIn ? children : <SignIn wallet={wallet} state={state}/>}
+            </div>
+            ) : state.accountData ? (
+            <div class="container container-custom">
                 {children}
-                </div>
-                ) : <CircularProgress/> }
-                
+            </div>
+            ) : <CircularProgress/> 
+        }
+            
         </div>
-        </Paper>
+        
         { state.app.alert &&
             <div class="container-alert">
                 <div class={flexClass + ' mt-0'}>
@@ -137,7 +95,7 @@ export const Container = ({ children, state }) => {
                 </div>
             </div>
         }
-        </div>
+    </div>
     </>
     )
 }
