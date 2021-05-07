@@ -69,6 +69,7 @@ export default function DaoCard(props) {
     const [anchorEl, setAnchorEl] = useState(null);
     const [did, setDid] = useState()
     const [finished, setFinished] = useState(false)
+    const [created, setCreated] = useState(formatDate(props.created))
 
     const classes = useStyles();
 
@@ -89,6 +90,7 @@ export default function DaoCard(props) {
              
               // Set Dao Idx
               if(contractId){
+                 
                   let existingDid = await state.didRegistryContract.hasDID({accountId: contractId})
                   console.log('existing DID', existingDid)
                   if(existingDid){
@@ -167,7 +169,7 @@ export default function DaoCard(props) {
             setFinished(true)
           })
       
-  }, [isUpdated]
+  }, [isUpdated, state.near]
   )
 
   function handleUpdate(property){
@@ -186,6 +188,12 @@ export default function DaoCard(props) {
   function handleExpanded() {
     setAnchorEl(null)
   }
+
+  function formatDate(timestamp) {
+    let intDate = parseInt(timestamp)
+    let options = {year: 'numeric', month: 'long', day: 'numeric'}
+    return new Date(intDate).toLocaleString('en-US', options)
+  }
     
 
     return(
@@ -200,7 +208,7 @@ export default function DaoCard(props) {
                 <Avatar variant="rounded" src={logo} className={classes.square} />
                 <Typography  variant="overline" display="inline" noWrap={true} style={{lineHeight: 0}}>
                   {name ? name : contractId}<br></br>
-                  {finished ? (<span style={{fontSize: '80%'}}>{date}</span>) : <LinearProgress />}
+                  {finished ? (<span style={{fontSize: '80%'}}>{created}</span>) : <LinearProgress />}
                 </Typography>
               </CardContent>
               <CardActions>

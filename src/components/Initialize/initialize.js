@@ -3,7 +3,8 @@ import { makeStyles } from '@material-ui/core/styles'
 import { appStore, onAppMount } from '../../state/app';
 import { useForm } from 'react-hook-form'
 import { useParams } from 'react-router-dom'
-import { initDao, logEvent } from '../../state/near'
+import { initDao, logEvent, DAO_INIT } from '../../state/near'
+import { get, set, del } from '../../utils/storage'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -88,6 +89,7 @@ export default function Initialize(props) {
     
     useEffect(
       () => {
+        set(DAO_INIT, {init: false})
          
       }, [])
 
@@ -117,6 +119,7 @@ export default function Initialize(props) {
 
       const onSubmit = async (values) => {
         try{
+        
           await initDao(
             state.wallet, 
             contractId, 

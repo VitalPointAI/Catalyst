@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { get, set, del } from '../../utils/storage'
 import EditPersonaForm from '../../components/EditPersona/editPersona'
 import { makeStyles } from '@material-ui/core/styles'
@@ -143,12 +144,19 @@ const handleEditPersonaClick = () => {
                     <Typography variant="overline" display="inline">
                         <Tooltip TransitionComponent={Zoom} title="The number of personas claimed by the signed in persona.">
                             <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
-                        </Tooltip>Your Personas: {claimCount}
+                        </Tooltip>
+                        <Link to="/personas">
+                            Your Personas: {claimCount}
+                        </Link>
+                        
                     </Typography>
                     <Typography variant="overline" display="inline" style={{marginLeft: '10px'}}>
                         <Tooltip TransitionComponent={Zoom} title="The number of DAOs the signed in persona has founded.">
                             <InfoIcon fontSize="small" style={{marginLeft: '5px', marginRight:'5px', marginTop:'-3px'}} />
-                        </Tooltip>Your DAOs: {daoCount}
+                        </Tooltip>
+                        <Link to="/daos">
+                            Your DAOs: {daoCount}
+                        </Link>
                     </Typography>
                     </>)
                     :

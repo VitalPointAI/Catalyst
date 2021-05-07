@@ -7,7 +7,7 @@ import { dao } from '../utils/dao'
 import { config } from './config'
 
 export const {
-    FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT,
+    FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT, DAO_INIT,
     networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix,
     contractName, didRegistryContractName, factoryContractName
 } = config
@@ -145,8 +145,8 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         if(!accountExists){
             links.push({ contractId: accountId, summoner: summoner, created: Date.now() })
             await ceramic.storeKeysSecret(state.curUserIdx, links, 'daoKeys')
+            await addDaoToList(state.appIdx, accountId, summoner, Date.now())
             set(DAO_LINKS, links)
-        
             await daoFactoryContract.createDemDAO({ accountId: accountId, deposit: FACTORY_DEPOSIT }, GAS, parseNearAmount(FACTORY_DEPOSIT))
             console.log('fund daofactory contract', daoFactoryContract)
         }
@@ -160,12 +160,24 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     const accountId = account.accountId
     const didRegistryContract = await ceramic.initiateDidRegistryContract(account)
 
-    // ******** IDX Initialization *********
+     // ******** IDX Initialization *********
 
     //Initiate App Ceramic Components
     
     const appIdx = await ceramic.getAppIdx(didRegistryContract)
 
+    // ********** Log DAO Initialization and Summon Events */
+    let daoInitialized = get(DAO_INIT, [])
+    console.log('daoinit', daoInitialized)
+    if (daoInitialized === true) {
+        let daoType = 'Democracy'
+        let logged = await logInitEvent(accountId, daoType, appIdx, didRegistryContract, wallet)
+        console.log('logged', logged)
+        if (logged) {
+            set(DAO_INIT, {init: false})
+        }
+    }
+   
     // Set Current User Ceramic Client
 
     let curUserIdx
@@ -219,7 +231,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         }
     }
 
-    //synch local daos with what's stored for the account in ceramic
+    //synch local user daos with what's stored for the account in ceramic
     let allDaos = await ceramic.downloadKeysSecret(curUserIdx, 'daoKeys')
 
     const storageDaos = get(DAO_LINKS, [])
@@ -232,8 +244,10 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
             set(DAO_LINKS, allDaos)
         }
     }
+
+    let daoList = await appIdx.get('daoList')
     
-    update('', { didRegistryContract, appIdx, accountId, curUserIdx, wallet, curInfo, did })
+    update('', { didRegistryContract, appIdx, accountId, curUserIdx, wallet, curInfo, did, daoList })
 
      //** INITIALIZE FACTORY CONTRACT */
      let daoFactory = await factory.initFactoryContract(account)
@@ -364,16 +378,18 @@ export const keyRotation = () => async ({ update, getState, dispatch }) => {
 
 export async function initDao(wallet, accountId, summoner, periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound, daoType, appIdx, didRegistryContract ) {
 
-    let logged = await logInitEvent(accountId, summoner, daoType, appIdx, didRegistryContract, wallet)
-    console.log('logged', logged)
+ //   let logged = await logInitEvent(accountId, summoner, daoType, appIdx, didRegistryContract, wallet)
+ //   console.log('logged', logged)
     
-    let summonTime
-    if (logged) {
+ //   let summonTime
+ //   if (logged) {
         try {
         const daoContract = await dao.initDaoContract(wallet.account(), accountId)
         console.log('fund daoContract', daoContract)
+        
+        set(DAO_INIT, true)
 
-        return summonTime = await daoContract.init({
+        await daoContract.init({
             _periodDuration: parseInt(periodDuration),
             _votingPeriodLength: parseInt(votingPeriodLength),
             _gracePeriodLength: parseInt(gracePeriodLength),
@@ -382,14 +398,39 @@ export async function initDao(wallet, accountId, summoner, periodDuration, votin
         }, GAS)
         } catch (err) {
             console.log('init failed', err)
+            set(DAO_INIT, false)
+            return false
         //  await deleteLogInitEvent(accountId, summoner, daoType)
         }
-    } else {
-    return false
-    }
+  //  } else {
+    return true
+    //}
 }
 
-export async function logInitEvent (accountId, summoner, daoType, appIdx, didRegistryContract, wallet) {
+export async function addDaoToList (appIdx, contractId, summoner, created, category = '', name = '', logo = '', purpose = '') {
+      // Add Dao to List
+      let daoRecord = await appIdx.get('daoList')
+      if(!daoRecord){
+        daoRecord = { daoList: [] }
+      }
+
+      let indivDaoRecord = {
+        contractId: contractId,
+        summoner: summoner,
+        date: created,
+        category: category,
+        name: name,
+        logo: logo,
+        purpose: purpose
+      }
+
+      daoRecord.daoList.push(indivDaoRecord)
+      console.log('daoRecord.daoList', daoRecord.daoList)
+
+      await appIdx.set('daoList', daoRecord)
+}
+
+export async function logInitEvent (accountId, daoType, appIdx, didRegistryContract, wallet) {
 
     const near = await nearAPI.connect({
         networkId, nodeUrl, walletUrl, deps: { keyStore: new nearAPI.keyStores.BrowserLocalStorageKeyStore() },
@@ -401,8 +442,27 @@ export async function logInitEvent (accountId, summoner, daoType, appIdx, didReg
     console.log('thisCurDaoIdx', thisCurDaoIdx)
 
     const daoContract = await dao.initDaoContract(wallet.account(), accountId)
-    let totalMembers = await daoContract.getTotalMembers()
-    console.log('total Members', totalMembers)
+    console.log('daoContract', daoContract)
+
+    let summoner
+    try{
+        summoner = await daoContract.getSummoner()
+    } catch (err) {
+        console.log('no summoner', err)
+        set(DAO_INIT, false)
+        return false
+    }
+
+    let totalMembers
+    try {
+        totalMembers = await daoContract.getTotalMembers()
+        console.log('total Members', totalMembers)
+    } catch (err) {
+        console.log('no members', err)
+        set(DAO_INIT, false)
+        return false
+    }
+   
     let memberId = parseInt(totalMembers)
     
     let numberSummonTime = parseInt(summonTime)

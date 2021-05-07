@@ -147,15 +147,15 @@ export default function AddDaoForm(props) {
                 onClick={() => {
                   try{
                     let finish = state.wallet.fundDaoAccount(id, state.accountId)
-                    handleSuccessMessage('Successfully created Democracy DAO.', 'success')
-                    handleSnackBarOpen(true)
+                    // handleSuccessMessage('Successfully created Democracy DAO.', 'success')
+                    // handleSnackBarOpen(true)
                     setFinished(true)
                     setOpen(false)
                     handleClose()
                   } catch (err) {
                     console.log('error creating dao', err)
-                    handleErrorMessage('There was a problem creating the Democracy DAO' + err.message, 'error')
-                    handleSnackBarOpen(true)
+                    // handleErrorMessage('There was a problem creating the Democracy DAO' + err.message, 'error')
+                    // handleSnackBarOpen(true)
                     setFinished(true)
                     setOpen(false)
                     handleClose()

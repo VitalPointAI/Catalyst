@@ -12,6 +12,7 @@ import { accountKeysSchema } from '../schemas/accountKeys'
 import { daoKeysSchema } from '../schemas/daoKeys'
 import { definitionsSchema } from '../schemas/definitions'
 import { schemaSchema } from '../schemas/schemas'
+import { daoListSchema } from '../schemas/daoList'
 
 import { config } from '../state/config'
 const axios = require('axios').default;
@@ -325,7 +326,7 @@ async makeSeed(account){
 
   async aliasSetup(idx, accountId, aliasName, defDesc, schemaFormat, ceramicClient) {
     const currentDefinitions = await idx.get('definitions', idx.id)
-
+    console.log('current definitions', currentDefinitions)
     let defExists
     if(currentDefinitions != null){
       let m = 0
@@ -405,8 +406,10 @@ async makeSeed(account){
         console.log('definition issue', err)
       }
 
-      let defRecords = await idx.get('definitions', idx.id)
+      console.log('definition', definition)
 
+      let defRecords = await idx.get('definitions', idx.id)
+      console.log('defRecords', defRecords)
       if(defRecords == null){
         defRecords = { defs: [] }
       }
@@ -459,11 +462,13 @@ async makeSeed(account){
     const appDid = this.associateAppDID(process.env.APP_OWNER_ACCOUNT, contract, appClient)
     const definitions = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'Definitions', appClient, definitionsSchema, 'alias definitions', contract)
     const schemas = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'Schemas', appClient, schemaSchema, 'user schemas', contract)
-    const done = await Promise.all([appDid, definitions, schemas])
+    const daoList = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'daoList', appClient, daoListSchema, 'list of all daos', contract)
+    const done = await Promise.all([appDid, definitions, schemas, daoList])
     
     let rootAliases = {
       definitions: done[1],
-      schemas: done[2]
+      schemas: done[2],
+      daoList: done[3],
     }
     const appIdx = new IDX({ ceramic: appClient, aliases: rootAliases})
    
@@ -499,13 +504,14 @@ async makeSeed(account){
       //let curUserIdx = new IDX({ ceramic: currentUserCeramicClient, aliases: currentAliases})
   
       //initialize aliases if required
+      console.log('owneridx ceramic', ownerIdx)
       const profileAlias = await this.aliasSetup(ownerIdx, account.accountId, 'profile', 'user profile data', profileSchema, currentUserCeramicClient)
       const daoProfileAlias = await this.aliasSetup(ownerIdx, account.accountId, 'daoProfile', 'dao profile data', daoProfileSchema, currentUserCeramicClient)
       const accountsKeysAlias = await this.aliasSetup(ownerIdx, account.accountId, 'accountsKeys', 'user account info', accountKeysSchema, currentUserCeramicClient)
       const daoKeysAlias = await this.aliasSetup(ownerIdx, account.accountId, 'daoKeys', 'user dao info', daoKeysSchema, currentUserCeramicClient)
       let currentAliases = await this.getAliases(ownerIdx, account.accountId)
       let curUserIdx = new IDX({ ceramic: currentUserCeramicClient, aliases: currentAliases})
-  
+      console.log('curuseridx ceramic', curUserIdx)
       return curUserIdx
   }
 

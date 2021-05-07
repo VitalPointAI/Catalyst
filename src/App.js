@@ -13,6 +13,8 @@ import { PersonaPage } from './components/mainPages/personas'
 import ExploreDaos from './components/mainPages/exploreDaos'
 import CreateDao from './components/mainPages/createDao'
 import AppFramework from './components/AppFramework/appFramework'
+import { Home } from './components/Home'
+import Daos from './components/mainPages/daos'
 
 // Material-UI Components
 import { CircularProgress } from '@material-ui/core';
@@ -87,17 +89,34 @@ const App = () => {
         <Router>
             <Switch>
                 <Route exact path="/">
-                    <Container state={state}
-                    handleSnackBarOpen={handleSnackBarOpen}
-                    handleSuccessMessage={handleSuccessMessage}
-                    handleErrorMessage={handleErrorMessage}
-                    snackBarOpen={snackBarOpen}
-                    severity={severity}
-                    errorMessage={errorMessage}
-                    successMessage={successMessage}>{ children }</Container>
+                    <Home 
+                        state={state}
+                        handleSnackBarOpen={handleSnackBarOpen}
+                        handleSuccessMessage={handleSuccessMessage}
+                        handleErrorMessage={handleErrorMessage}
+                        snackBarOpen={snackBarOpen}
+                        severity={severity}
+                        errorMessage={errorMessage}
+                        successMessage={successMessage}>
+                        { children }
+                    </Home>
+                </Route>
+                <Route path="/daos">
+                    <Daos state={state}/>
                 </Route>
                 <Route path="/explore">
                     <ExploreDaos state={state}/>
+                </Route>
+                <Route path="/personas">
+                    <Container state={state}
+                        handleSnackBarOpen={handleSnackBarOpen}
+                        handleSuccessMessage={handleSuccessMessage}
+                        handleErrorMessage={handleErrorMessage}
+                        snackBarOpen={snackBarOpen}
+                        severity={severity}
+                        errorMessage={errorMessage}
+                        successMessage={successMessage}>{ children }
+                    </Container>
                 </Route>
                 <Route path="/createDao">
                     <CreateDao 

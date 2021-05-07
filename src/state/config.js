@@ -6,6 +6,7 @@ let config = {
     FUNDING_DATA: '__FUNDING_DATA',
     ACCOUNT_LINKS: '__ACCOUNT_LINKS',
     DAO_LINKS: '__DAO_LINKS',
+    DAO_INIT: '__DAO_INIT',
     GAS: '200000000000000',
     FACTORY_DEPOSIT: '2',
     networkId: 'testnet',

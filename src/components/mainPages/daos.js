@@ -40,7 +40,7 @@ const useStyles = makeStyles((theme) => ({
     }
   }));
   
-export default function ExploreDaos(props) {
+export default function Daos(props) {
    
     const[daos, setDaos] = useState([])
     const[daoCount, setDaoCount] = useState(0)
@@ -53,22 +53,22 @@ export default function ExploreDaos(props) {
     } = props
 
     const {
-        daoList
+        daoLinks
     } = state
 
     useEffect(
         () => {
             async function fetchData() {
-                if(daoList){
-                    console.log('daolist', daoList)
-                    setDaoCount(daoList.daoList.length)
-                    setDaos(daoList.daoList)
+                if(daoLinks){
+                    console.log('daolinks', daoLinks)
+                    setDaoCount(daoLinks.length)
+                    setDaos(daoLinks)
                 }
             }
 
             fetchData()
 
-    }, [daoList]
+    }, [daoLinks]
     )
     
     function handleEditDaoClick(property){
@@ -79,31 +79,21 @@ export default function ExploreDaos(props) {
         
         <div className={classes.root}>
         <Header state={state}/>
-        <Grid container alignItems="center" justify="space-evenly" spacing={2} style={{marginTop:'40px', marginBottom:'40px'}}>
-            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} className={classes.featureDAO}>
-                <Typography align="center" style={{color:'#1341a4', fontSize:'80px',fontWeight:'700', marginTop:'30px', lineHeight:'1em', verticalAlign:'middle'}}>
-                    {daos && daoCount > 1 ? daoCount + ' DAOs Run on Catalyst': null}
-                    {daos && daoCount == 1 ? daoCount + ' DAO Runs on Catalyst': null}
-                    {daos && daoCount == 0 ? daoCount + ' DAOs Run on Catalyst': null}
-                </Typography>
-            </Grid>
-        </Grid>
 
         <Grid container alignItems="center" justify="flex-start" spacing={2}>
             { daoCount > 0 ? 
                 (<>
                   
-                {daos.map(({ contractId, summoner, date }) => 
+                {daos.filter(dao => dao.summoner == state.accountId).map(({ contractId, created, summoner }) =>
                     <DaoCard
-                        key={date}
+                        key={created}
                         contractId={contractId}
+                        created={created}
                         summoner={summoner}
-                        created={date}
                         link={''}
                         state={state}
                         handleEditDaoClick={handleEditDaoClick}
-                    />
-                
+                    />              
                 )}
             </>)
             : null

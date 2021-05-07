@@ -21,9 +21,10 @@ import Typography from '@material-ui/core/Typography'
 import Grid from '@material-ui/core/Grid'
 import Divider from '@material-ui/core/Divider'
 import Chip from '@material-ui/core/Chip'
-import AccessTimeIcon from '@material-ui/icons/AccessTime';
-import CheckCircleIcon from '@material-ui/icons/CheckCircle';
-import NotInterestedIcon from '@material-ui/icons/NotInterested';
+import AccessTimeIcon from '@material-ui/icons/AccessTime'
+import CheckCircleIcon from '@material-ui/icons/CheckCircle'
+import NotInterestedIcon from '@material-ui/icons/NotInterested'
+import CircularProgress from '@material-ui/core/CircularProgress'
 
 const axios = require('axios').default
 
@@ -84,6 +85,7 @@ export default function AppFramework(props) {
     const [curDaoIdx, setCurDaoIdx] = useState()
     const [did, setDid] = useState()
     const [initialized, setInitialized] = useState()
+    const [initLoad, setInitLoad] = useState(false)
     
     const classes = useStyles()
     
@@ -182,6 +184,7 @@ export default function AppFramework(props) {
                     console.log('init', init)
                     setInitialized(init)
                     console.log('initialized', initialized)
+                    setInitLoad(true)
         
                     if(initialized){
                     let thisMemberInfo
@@ -379,8 +382,8 @@ export default function AppFramework(props) {
             <div className={classes.root}>
             <Header state={state} />
             <Grid container style={{padding:'20px'}}>
-            
-            {initialized == 'done' ? (
+            {initLoad == false ? <CircularProgress /> :
+            initialized == 'done' ? (
               <>
             <Grid container justify="space-evenly" alignItems="center" style={{marginBottom:'15px'}} spacing={0}>
               <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
