@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react'
+import { appStore, onAppMount } from '../../state/app'
+import * as nearAPI from 'near-api-js'
+import { ceramic } from '../../utils/ceramic'
 import { makeStyles } from '@material-ui/core/styles'
 import CommentForm from '../common/Comment/commentForm'
 import CommentDetails from '../common/Comment/commentDetails'
@@ -61,65 +64,123 @@ const useStyles = makeStyles((theme) => ({
     },
     }));
 
-export default function MemberProposalDetails(props) {
+export default function proposalDetails(props) {
     const [open, setOpen] = useState(true)
-    const [proposalId, setMemberProposalId] = useState(props.memberProposalId.toString())
-    const [proposalProposer, setMemberProposalProposer] = useState()
-    const [proposalApplicant, setMemberProposalApplicant] = useState('')
-    const [proposalIntro, setMemberProposalIntro] = useState()
-    const [proposalAvatar, setMemberProposalAvatar] = useState()
-    const [proposalPublished, setMemberProposalPublished] = useState(false)
+    const [intro, setIntro] = useState()
+    const [avatar, setAvatar] = useState()
+    const [name, setName] = useState('')
+  
+   
+    // const [proposalPublished, setMemberProposalPublished] = useState(false)
+    const [isUpdated, setIsUpdated] = useState(false)
     const [proposalComments, setProposalComments] = useState([])
     const [finished, setFinished] = useState(false)
+
     const classes = useStyles()
+
+    const { state, dispatch, update } = useContext(appStore)
+
+    const {
+      didRegistryContract,
+      near,
+      appIdx,
+      accountId
+    } = state
 
     const {
         handleProposalDetailsClickState,
-        memberProposalId,
+        proposalId,
         memberStatus,
         status,
-        accountId,
+        curDaoIdx,
+        curPersonaIdx,
+        applicant,
+        proposer,
         contract
     } = props
 
-    useEffect(() => {
-        async function fetchData() {
-            setFinished(false)
-            let result = await retrieveAppRecord(memberProposalId.toString(), 'MemberProposal')
-            if(!result){
-              let result = await retrieveRecord(memberProposalId.toString(), 'MemberProposal')
+    useEffect(
+        () => {
+         
+
+          async function fetchData() {
+         
+            // Get Applicant Persona Information
+           
+            if(applicant){                           
+                  let result = await curPersonaIdx.get('profile', curPersonaIdx.id)
+                  console.log('result proposal details persona card', result)
+                  
+                  if(result){
+                    result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
+                    result.name ? setName(result.name) : setName('')
+                  }
             }
-            if(result){
-            setMemberProposalId(memberProposalId.toString())
-            result.applicant ? setMemberProposalApplicant(result.applicant) : setMemberProposalApplicant('')
-            result.avatar ? setMemberProposalAvatar(result.avatar) : setMemberProposalAvatar(imageName)
-            result.intro ? setMemberProposalIntro(result.intro) : setMemberProposalIntro('')
-            result.proposer ? setMemberProposalProposer(result.proposer) : setMemberProposalProposer(accountId)
-            result.published ? setMemberProposalPublished(result.published) : setMemberProposalPublished(false)
+            
+
+            // Set Existing Proposal Data       
+            if(curDaoIdx){
+              let propResult = await curDaoIdx.get('proposalDetails', curDaoIdx.id)
+              console.log('propResult', propResult)
+              if(propResult) {
+                let i = 0
+                while (i < propResult.proposals.length){
+                  if(propResult.proposals[i].proposalId == proposalId){
+                    propResult.proposals[i].intro ? setIntro(propResult.proposals[i].intro) : setIntro('')
+                    break
+                  }
+                  i++
+                }
+              }
             }
 
-            let comments = await contract.getProposalComments({proposalId: memberProposalId.toString()})
-            setProposalComments(comments)
-          console.log('proposalcomments ', proposalComments)
-        }
-       
-        fetchData()
-          .then((res) => {
-            console.log('res', res)
-            setFinished(true)
-          })
-        
-    },[])
+            // Set Existing Proposal Comments      
+            if(curDaoIdx){
+              let commentResult = await curDaoIdx.get('comments', curDaoIdx.id)
+              if(!commentResult){
+                commentResult = { comments: [] }
+              }
+              console.log('commentResult', commentResult)
+              if(commentResult) {
+                let j = 0
+                let comments = []
+                while (j < commentResult.comments.length){
+                  if(commentResult.comments[j].parent == proposalId){
+                    comments.push(commentResult.comments[j])
+                  }
+                  j++
+                }
+                console.log('comments', comments)
+                setProposalComments(comments)
+              }
+            }
+            
+            // Load DAO Proposal information
+            let result = await curDaoIdx.get('proposals', curDaoIdx.id)
+            console.log('result here proposal card', result)
+                    
+            return true  
+          }
+
+          fetchData()
+            .then((res) => {
+              setFinished(true)
+            })
+          
+    }, [applicant, avatar, intro, isUpdated]
+    )
 
     const handleClose = () => {
         handleProposalDetailsClickState(false)
         setOpen(false)
     }
 
-    
-    let Comments;
-    if(proposalPublished) {
-    
+    function handleUpdate(property){
+      setIsUpdated(property)
+    }
+
+    let Comments
+    console.log('proposalComments', proposalComments)
     if (proposalComments && proposalComments.length > 0) {
         Comments = proposalComments.map(comment => {
             console.log('comments map', comment)
@@ -128,24 +189,27 @@ export default function MemberProposalDetails(props) {
                         key={comment.commentId}
                         commentId={comment.commentId}
                         comments={proposalComments}
-                        commentAuthor={comment.commentAuthor}
-                        commentParent={comment.commentParent}
+                        commentAuthor={comment.author}
+                        commentParent={comment.parent}
                         commentPublished={comment.published}
+                        commentBody={comment.body}
+                        commentPostDate={comment.postDate}
+                        commentSubject={comment.subject}
                         accountId={accountId}
                     />
                   )
           })
     }
-  }
+  
 
         return (
             <div>
      
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             {finished ? (<>
-              <DialogTitle id="form-dialog-title">Membership Proposal Details</DialogTitle>
+              <DialogTitle id="form-dialog-title">Proposal Details</DialogTitle>
                 <DialogContent>
-                {!proposalPublished ? (
+                {intro == '' ? (
                   <DialogContentText style={{marginBottom: 10}}>
                   This proposal has no details yet.
                   </DialogContentText>) : (<>
@@ -155,12 +219,12 @@ export default function MemberProposalDetails(props) {
                         </Grid>
                         <Grid item xs={12} sm={12} md={12} lg={12} xl={12} className={classes.centered}>
                             <Typography variant="h6">Meet</Typography>
-                            <Avatar src={proposalAvatar} className={classes.large} />
-                            <Typography variant="h3">{proposalApplicant}</Typography>
-                            <Typography variant="overline" display="block" gutterBottom>Proposed by: {proposalProposer}</Typography>
+                            <Avatar src={avatar} className={classes.large} />
+                            <Typography variant="h3">{applicant}</Typography>
+                            <Typography variant="overline" display="block" gutterBottom>Proposed by: {proposer}</Typography>
                         </Grid>
                         <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                            <div dangerouslySetInnerHTML={{ __html: proposalIntro}}></div>
+                            <div dangerouslySetInnerHTML={{ __html: intro}}></div>
                         </Grid>
                     </Grid>
                     </>)}
@@ -189,8 +253,11 @@ export default function MemberProposalDetails(props) {
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
               <Typography variant="h5" style={{marginLeft: '10px'}}>Leave a Comment/Ask a Question</Typography>
                   <CommentForm
-                    proposalId = {proposalId}
-                    contract = {contract}
+                    proposalId={proposalId}
+                    accountId={accountId}
+                    contract={contract}
+                    handleUpdate={handleUpdate}
+                    curDaoIdx={curDaoIdx}
                   />
               </Grid>
               ) : null }

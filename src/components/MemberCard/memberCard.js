@@ -1,6 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
+import { appStore, onAppMount } from '../../state/app'
+import * as nearAPI from 'near-api-js'
+import { get, set, del } from '../../utils/storage'
 import { ceramic } from '../../utils/ceramic'
+import { ACCOUNT_LINKS } from '../../state/near'
 
 // Material UI Components
 import { makeStyles } from '@material-ui/core/styles'
@@ -28,23 +32,34 @@ const useStyles = makeStyles((theme) => ({
     }
   }));
 
+  const imageName = require('../../img/default-profile.png') // default no-image avatar
+
 export default function MemberCard(props) {
 
     const [date, setDate] = useState('')
     const [name, setName] = useState('')
-    const [avatar, setAvatar] = useState()
+    const [avatar, setAvatar] = useState(imageName)
     const [shortBio, setShortBio] = useState('')
-    const [did, setDID] = useState()
+    const [did, setDid] = useState()
+    const [curUserIdx, setCurUserIdx] = useState()
+
+    const { state, dispatch, update } = useContext(appStore)
+
+    const {
+      didRegistryContract,
+      near
+    } = state
 
     const classes = useStyles();
 
-    const { 
+    const {
+     
       accountName, 
       shares, 
       joined, 
       memberCount, 
       summoner,
-      curUserIdx,
+      //curUserIdx,
       appIdx,
       appClient,
       contractIdx,
@@ -56,36 +71,38 @@ export default function MemberCard(props) {
 
     useEffect(
         () => {
-          console.log('curUserIdx', curUserIdx)
+          console.log('accountName', accountName)
           async function fetchData() {
-            let contractDid
-            try {
-              did = await didsContract.getDID({accountId: contractId})
-            } catch (err) {
-              console.log('error retrieving contract DID', err)
-            }
-            let memberDid
-            try {
-              console.log('account name', accountName)
-              memberDid = await didsContract.getDID({accountId: accountName})
-              console.log('memberdid', memberDid)
-            } catch (err) {
-              console.log('error retrieving member DID', err)
-            }
-            console.log('contractIdx', contractIdx)
-           
-              let members = await contractIdx.get('member')
-              console.log('dao members', members)
-              console.log('curUserIdxy', curUserIdx)
-              let result = await curUserIdx.get('profile', memberDid)
-              console.log('result ', result)
-              if(result) {
-                  result.date ? setDate(result.date) : setDate('')
-                  result.avatar ? setAvatar(result.avatar) : setAvatar('')
-                  result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
-                  result.name ? setName(result.name) : setName('')
-                }
+
+            // Set Card Persona Idx
+            let curPersonaIdx
+            if(accountName){
+              let existingDid = await state.didRegistryContract.hasDID({accountId: accountName})
             
+              if(existingDid){
+                  let thisDid = await state.didRegistryContract.getDID({
+                      accountId: accountName
+                  })
+                  setDid(thisDid)
+                 
+                  let personaAccount = new nearAPI.Account(state.near.connection, accountName)
+
+                  curPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, state.appIdx, state.didRegistryContract)
+                  setCurUserIdx(curPersonaIdx)
+              
+                  let result = await curPersonaIdx.get('profile', curPersonaIdx.id)
+                  console.log('result member card', result)
+                  
+                  if(result){
+                    result.date ? setDate(result.date) : setDate('')
+                    result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
+                    result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
+                    result.name ? setName(result.name) : setName('')
+                    return true
+                  }
+                  return true
+              }
+            }
         }
        
         fetchData()
@@ -93,9 +110,15 @@ export default function MemberCard(props) {
             console.log('res', res)
           })
 
-    }, [contractIdx]
+    }, [avatar]
     )
 
+    function formatDate(timestamp) {
+      let intDate = parseInt(timestamp)
+      let options = {year: 'numeric', month: 'long', day: 'numeric'}
+      return new Date(intDate).toLocaleString('en-US', options)
+    }
+      
 
     return(
         <>

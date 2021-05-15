@@ -20,38 +20,24 @@ const useStyles = makeStyles((theme) => ({
 export default function CommentDetails(props) {
 
     const [running, setRunning] = useState(false)
-    const [commentDate, setCommentDate] = useState()
     const [finished, setFinished] = useState(false)
-    const [commentSubject, setCommentSubject] = useState()
-    const [commentBody, setCommentBody] = useState()
-    const [commentAuthor, setCommentAuthor] = useState(props.commentAuthor)
-
-    console.log('commentdetails props', props)
+    
     const {
         commentId,
-        commentPublished
+        commentPublished,
+        commentBody,
+        commentAuthor,
+        commentPostDate,
+        commentSubject,
     } = props
-    console.log('comment props', props)
+    console.log('comment details props', props)
     const classes = useStyles();
     
     
     useEffect(() => {
         async function fetchData() {
             setFinished(false)
-            let record
-            if(!commentPublished) {
-                record = await retrieveRecord(commentId, 'Comment')
-            } else {
-                record = await retrieveAppRecord(commentId, 'Comment')
-            }
-            console.log('comment record', record)
-            if(record) {
-                setCommentDate(record.postDate)
-                setCommentSubject(record.subject)
-                setCommentBody(record.body)
-            } else {
-            console.log('no record')
-            }
+           
         }
        
         fetchData()
@@ -69,9 +55,9 @@ export default function CommentDetails(props) {
     }
 
     let formatCommentDate
-    console.log('comment post date', commentDate)
-    if(commentDate) {
-        let intDate = parseInt(commentDate)
+    console.log('comment post date', commentPostDate)
+    if(commentPostDate) {
+        let intDate = parseInt(commentPostDate)
         formatCommentDate = new Date(intDate).toLocaleString()
         console.log("formatted comment date", formatCommentDate)
     } else {

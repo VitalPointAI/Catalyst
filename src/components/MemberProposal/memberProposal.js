@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
-import Big from 'big.js'
 import { utils } from 'near-api-js'
-import { useParams } from 'react-router-dom'
-
+import { submitProposal } from '../../state/near'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -23,10 +21,8 @@ import Grid from '@material-ui/core/Grid'
 import WarningIcon from '@material-ui/icons/WarningTwoTone'
 import Checkbox from '@material-ui/core/Checkbox'
 import Tooltip from '@material-ui/core/Tooltip'
-
-
-const BOATLOAD_OF_GAS = Big(3).times(10 ** 14).toFixed()
-
+import Zoom from '@material-ui/core/Zoom'
+import InfoIcon from '@material-ui/icons/Info'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -82,49 +78,47 @@ export default function MemberProposal(props) {
   const [shares, setShares] = useState('')
   const [tribute, setTribute] = useState('')
   const [confirm, setConfirm] = useState(false)
-
-  const {
-    contractId
-  } = useParams()
   
-
   const classes = useStyles()
   const { register, handleSubmit, watch, errors } = useForm()
 
-  const { handleMemberProposalClickState, 
+  const { 
+    contractId,
+    state,
+    depositToken,
+    proposalDeposit,
+
+    handleMemberProposalClickState, 
     handleProposalEventChange,
     handleGuildBalanceChanges,
     handleEscrowBalanceChanges,
     handleSnackBarOpen,
     handleErrorMessage,
     handleSuccessMessage,
-    tokenName,
+
     daoContract,
-    depositToken,
-    proposalDeposit,
-    contract,
+   
     didsContract,
     contractIdx } = props
 
+    console.log('proposal deposit', proposalDeposit)
+
   const handleClose = () => {
     handleMemberProposalClickState(false)
-  };
+  }
 
   const handleApplicantChange = (event) => {
-    setApplicant(event.target.value.toString());
-  };
-
-  const handleSharesRequestedChange = (event) => {
-    setShares(event.target.value.toString());
-  };
+    setApplicant(event.target.value.toString())
+  }
 
   const handleTributeChange = (event) => {
-    setTribute(event.target.value);
+    setTribute(event.target.value)
+    setShares(event.target.value)
   };
 
   const handleConfirmChange = (event) => {
-    setConfirm(event.target.checked);
-  };
+    setConfirm(event.target.checked)
+  }
 
   async function handleCancelAction(proposalIdentifier, tribute) {
     let finished = await daoContract.cancelProposal({
@@ -160,70 +154,28 @@ export default function MemberProposal(props) {
   const onSubmit = async (values) => {
     setFinished(false)
     let finished
+
     try{
-      finished = await contract.submitProposal({
-                      a: applicant,
-                      sR: tribute,
-                      lR: '0',
-                      tO: tribute,
-                      tT: depositToken,
-                      pR: '0',
-                      pT: depositToken
-                      }, BOATLOAD_OF_GAS, utils.format.parseNearAmount((parseInt(tribute) + parseInt(proposalDeposit)).toString()))
-
-      console.log('finished', finished)
-        let contractDid = await didsContract.getDID({accountId: contractId})
-        let memberProposalRecords = await contractIdx.get('memberProposal', contractDid)
-        if(!memberProposalRecords){
-          memberProposalRecords = { events: [] }
-        }
-
-        try{
-        let indivMemberProposalRecord = {
-          memberProposalId: (finished.pI).toString(),
-          applicant: finished.a,
-          proposer: finished.p,
-          sponsor: finished.s,
-          sharesRequested: finished.sR,
-          lootRequested: finished.lR,
-          tributeOffered: finished.tO,
-          tributeToken: finished.tT,
-          paymentRequested: finished.pR,
-          paymentToken: finished.pT,
-          startingPeriod: finished.sP,
-          yesVote: finished.yV,
-          noVote: finished.nV,
-          flags: finished.f,
-          maxTotalSharesAndLootAtYesVote: finished.mT,
-          proposalSubmission: parseInt(finished.pS),
-          votingPeriod: finished.vP,
-          gracePeriod: finished.gP,
-          voteFinalized: parseInt(finished.voteFinalized)
-        }
-
-        memberProposalRecords.events.push(indivMemberProposalRecord)
-        console.log('memberProposalRecords.events', memberProposalRecords.events)
-
-        let result = await contractIdx.set('memberProposal', memberProposalRecords)
-   
-
-    // let totalMembers = await daoContract.getTotalMembers()
-    // let memberId = parseInt(totalMembers)
-      // try{
-      //   let recorded = await proposalEvent.recordEvent(
-      //     finished.pI, finished.a, finished.p, finished.s, finished.sR, finished.lR, finished.tO, finished.tT, finished.pR, finished.pT, 
-      //     finished.sP, finished.yV, finished.nV, finished.f, finished.mT, finished.pS, finished.vP, finished.gP, finished.voteFinalized)
-          if(result) {
-            handleSuccessMessage('Successfully added member proposal.', 'success')
-            handleSnackBarOpen(true)
-          } else {
-            console.log('error recording proposal - reverting')
-            await handleCancelAction(finished.pI, finished.tO)
-          }
-        } catch (err) {
-          console.log('error storing proposal log - reverting', err)
-          await handleCancelAction(finished.pI, finished.tO)
-        }
+      await submitProposal(
+                      state.wallet,
+                      contractId,
+                      applicant,
+                      tribute,
+                      depositToken,
+                      proposalDeposit)
+            
+       
+          // if(result) {
+          //   handleSuccessMessage('Successfully added member proposal.', 'success')
+          //   handleSnackBarOpen(true)
+          // } else {
+          //   console.log('error recording proposal - reverting')
+          //   await handleCancelAction(finished.pI, finished.tO)
+          // }
+        // } catch (err) {
+        //   console.log('error creating proposal event', err)
+        //   //await handleCancelAction(finished.pI, finished.tO)
+        // }
     } catch (err) {
       handleErrorMessage('There was a problem adding the member proposal' + err.message, 'error')
       handleSnackBarOpen(true)
@@ -272,7 +224,7 @@ export default function MemberProposal(props) {
                 id="member-proposal-tribute"
                 variant="outlined"
                 name="memberTribute"
-                label="Community Fund Contribution"
+                label="Contribution"
                 placeholder="100"
                 value={tribute}
                 onChange={handleTributeChange}
@@ -316,7 +268,7 @@ export default function MemberProposal(props) {
                               <Typography variant="body2">Applicant becomes a member and receives {shares ? parseInt(shares) : 0} shares.</Typography>
                             </li>
                             <li>
-                              <Typography variant="body2">Contribution of {tribute ? parseInt(tribute) : 0} Ⓝ goes into the community guild fund.</Typography>
+                              <Typography variant="body2">Contribution of {tribute ? parseInt(tribute) : 0} Ⓝ goes into the community fund.</Typography>
                             </li>
                             <li>
                               <Typography variant="body2">{parseInt(proposalDeposit)} Ⓝ proposal deposit is returned to you</Typography>

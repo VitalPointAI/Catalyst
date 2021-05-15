@@ -1,4 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
+import { useParams } from 'react-router-dom'
+import { appStore, onAppMount } from '../../state/app'
+import * as nearAPI from 'near-api-js'
+import { ceramic } from '../../utils/ceramic'
+import EditProposalForm from '../EditProposal/editProposal'
+import ProposalDetails from '../ProposalDetails/proposalDetails'
 
 // Material UI Components
 import { makeStyles, withStyles } from '@material-ui/core/styles'
@@ -30,7 +36,8 @@ const useStyles = makeStyles((theme) => ({
       marginBottom: '10px'
     },
     card: {
-      marginTop: '10px'
+      marginTop: '10px',
+      maxWidth: '250px'
     },
     votes: {
       paddingLeft: 0,
@@ -38,6 +45,10 @@ const useStyles = makeStyles((theme) => ({
     },
     avatar: {
       backgroundColor: red[500],
+    },
+    large: {
+      width: theme.spacing(7),
+      height: theme.spacing(7),
     },
   }));
 
@@ -50,64 +61,164 @@ const useStyles = makeStyles((theme) => ({
     },
   }))(Badge);
 
+  const imageName = require('../../img/default-profile.png') // default no-image avatar
+
 export default function ProposalCard(props) {
+
+    const [name, setName] = useState('')
+    const [avatar, setAvatar] = useState(imageName)
+    const [intro, setIntro] = useState()
+    const [proposals, setProposals] = useState()
+
+    const [isUpdated, setIsUpdated] = useState(false)
 
     const[hasVoted, setHasVoted] = useState(props.voted)
     const[isDone, setIsDone] = useState(props.done)
     const[title, setTitle] = useState('Enter Short Title')
+    const[did, setDid] = useState()
+    const[curPersonaIdx, setCurPersonaIdx] = useState()
+   
+    const [editProposalClicked, setEditProposalClicked] = useState(false)
+    const [proposalDetailsClicked, setProposalDetailsClicked] = useState(false)
+    const [anchorEl, setAnchorEl] = useState(null);
+    
+    const { state, dispatch, update } = useContext(appStore)
 
+    const {
+      didRegistryContract,
+      near,
+      appIdx,
+      accountId
+    } = state
+
+    const {
+      contractId
+    } = useParams()
 
     const classes = useStyles();
 
-    const { applicant, created, noVotes, yesVotes, proposalType, proposer, requestId, tribute, vote, loot, shares, status, accountId, funding,
+    const { applicant, created, noVotes, yesVotes, proposalType, proposer, requestId, tribute, vote, loot, shares, status, funding,
         isVotingPeriod, isGracePeriod, voted, gracePeriod, votingPeriod, currentPeriod, periodDuration, cancelFinish, sponsor, done,
-        handleMemberProposalDetailsClick,
+       
         handleFundingProposalDetailsClick,
         handleSponsorConfirmationClick,
         handleCancelAction,
         handleYesVotingAction,
         handleNoVotingAction,
-        handleRageQuitClick
+        handleRageQuitClick,
+        curDaoIdx,
+        daoDid,
+        memberStatus
     } = props
 
     useEffect(
         () => {
-          let isMounted = true
+         
 
           async function fetchData() {
-          let result = await retrieveAppRecord(requestId.toString(), 'MemberProposal')
-            if(!result){
-              let result = await retrieveRecord(requestId.toString(), 'MemberProposal')
+         
+            // Get Applicant Persona Information
+            let thisCurPersonaIdx
+            if(applicant){
+              let existingDid = await didRegistryContract.hasDID({accountId: applicant})
+            
+              if(existingDid){
+                  let thisDid = await didRegistryContract.getDID({
+                      accountId: applicant
+                  })
+                  setDid(thisDid)
+                 
+                  let personaAccount = new nearAPI.Account(near.connection, applicant)
+
+                  thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, didRegistryContract)
+                  setCurPersonaIdx(thisCurPersonaIdx)
+              
+                  let result = await thisCurPersonaIdx.get('profile', thisCurPersonaIdx.id)
+                  console.log('result proposal persona card', result)
+                  
+                  if(result){
+                    result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
+                    result.name ? setName(result.name) : setName('')
+                  }
+              }
             }
-            if(result){
-              result.title ? setTitle(result.title) : null
+
+              // Set Existing Proposal Data       
+            if(curDaoIdx){
+              let propResult = await curDaoIdx.get('proposalDetails', curDaoIdx.id)
+              console.log('propResult', propResult)
+              if(propResult) {
+                let i = 0
+                while (i < propResult.proposals.length){
+                  if(propResult.proposals[i].proposalId == requestId){
+                    propResult.proposals[i].intro ? setIntro(propResult.proposals[i].intro) : setIntro('')
+                    break
+                  }
+                  i++
+                }
+              }
             }
+            
+            // Load DAO Proposal information
+            let result = await curDaoIdx.get('proposals', daoDid)
+            console.log('result here proposal card', result)
+           
+                    
+            return true  
           }
 
           fetchData()
             .then((res) => {
 
             })
-          return () => { isMounted = false } // use effect cleanup to set flag false if unmounted
-    }, [title]
+          
+    }, [applicant, avatar, intro, isUpdated]
     )
+
+    function handleUpdate(property){
+      setIsUpdated(property)
+    }
+  
+    const handleEditProposalClick = () => {
+      handleExpanded()
+      handleEditProposalClickState(true)
+    }
+  
+    function handleEditProposalClickState(property){
+      setEditProposalClicked(property)
+    }
+
+    const handleProposalDetailsClick = () => {
+      handleExpanded()
+      handleProposalDetailsClickState(true)
+    }
+  
+    function handleProposalDetailsClickState(property){
+      setProposalDetailsClicked(property)
+    }
+  
+    function handleExpanded() {
+      setAnchorEl(null)
+    }
 
     return(
         <>
         <Card raised={true} className={classes.card}>
           {proposalType === 'Member' ? (
-           <> <Typography variant="h6" align="center" color="textSecondary">{proposalType} Proposal</Typography>
-         
+           <> 
+           <Typography variant="h6" align="left" style={{float: 'left', marginLeft: '5px'}} color="textSecondary">{proposalType} Proposal</Typography>
+           <Typography variant="h6" align="right" style={{float: 'right', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
+           <div style={{clear: 'both'}}></div>
             <CardHeader
-              title={<Chip
-                avatar={<Avatar alt="Member" src="../../../images/default-profile.png" />}
-                label={applicant}
-                variant="outlined"
-              />}
+              title={<><center><Avatar src={avatar} className={classes.large} /><Typography variant="h6">{name + ' (' + applicant + ')'}</Typography>
+              </center></>}
               subheader={
                 <Grid container alignItems="center" justify="space-evenly">
-                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
                     <Typography variant="overline">Proposed: {created}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
+                    <Typography variant="overline">Proposed By: {proposer}</Typography>
                   </Grid>
                   {status == 'Sponsored' ? (
                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
@@ -159,18 +270,22 @@ export default function ProposalCard(props) {
             <CardContent>
 
             {proposalType == 'Member' ? (
-              <Grid container alignItems="center" justify="space-evenly" style={{marginTop: '-20px', marginBottom:'20px'}}>
-              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                <Typography variant="h6" color="initial" noWrap={true} style={{border: '1px solid', padding: '2px'}} align="center"
-                onClick={(e) => handleMemberProposalDetailsClick(requestId, applicant, status, proposer, proposalType, e)}
-                >{title}</Typography>
-              </Grid>  
-              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                  <Typography variant="overline">Shares: {shares}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+              <Grid container alignItems="center" justify="space-evenly" style={{marginBottom:'20px'}}>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-20px', marginBottom:'20px'}}>
+                  <Typography variant="overline">Shares: {shares} | </Typography>
                   <Typography variant="overline">{`Tribute: ${tribute} Ⓝ`}</Typography>
                 </Grid>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                 
+                </Grid>
+              
+              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                <Typography variant="body1" color="initial" noWrap={true} align="center"
+                onClick={handleProposalDetailsClick}
+                >{intro ? intro.replace(/(<([^>]+)>)/gi, ""): null}</Typography>
+                
+              </Grid>  
+             
               </Grid>
             ) : null }
 
@@ -200,30 +315,10 @@ export default function ProposalCard(props) {
               </Grid>
             ) : null }
 
-              <Grid container alignItems="center" justify="space-evenly" spacing={0}>
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                  {proposalType === 'Member' || proposalType === 'GuildKick' ? (
-                    <><Button 
-                        variant="contained"
-                        color="primary" 
-                        onClick={(e) => handleMemberProposalDetailsClick(requestId, applicant, status, proposer, proposalType, e)}>
-                          Proposal Details
-                      </Button>
-                    </>) : null }
+            
 
-                  {proposalType === 'Funding' ? (
-                    <><Button 
-                        variant="contained" 
-                        color="primary" 
-                        onClick={(e) => handleFundingProposalDetailsClick(requestId, applicant, status, e)}>
-                          Proposal Details
-                      </Button>
-                    </>) : null }
-                  </Grid>
-                </Grid>
-
-                <Divider className={classes.divider}/>
-                {status == 'Submitted' && accountId == proposer ? <Typography variant="subtitle2" display="block" align="center">Awaiting Sponsor</Typography> : null}
+            <Divider className={classes.divider}/>
+            {status == 'Submitted' ? <Typography variant="subtitle2" display="block" align="center">Awaiting Sponsor</Typography> : null}
 
             </CardContent>
             <CardActions disableSpacing>
@@ -300,14 +395,82 @@ export default function ProposalCard(props) {
                 </Grid>
               ) : null }
                
+              <Grid container alignItems="center" justify="space-evenly" spacing={1}>
+
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                  {(accountId != proposer && accountId != applicant) && status=='Submitted' && memberStatus == true ? 
+                  <><Button 
+                      color="primary" 
+                      onClick={(e) => handleSponsorConfirmationClick(requestId, e)}
+                    >
+                    Sponsor
+                    </Button>
+                  </> : null }
+                </Grid>
+
+                <Grid item xs={4} sm={4} md={4} lg={4} xl={4}>
+                </Grid>
+
+              <Grid item xs={8} sm={8} md={8} lg={8} xl={8} align="right">
+                {accountId == proposer && status == 'Submitted' ? 
+                cancelFinish ? 
+                  <><Button color="primary" onClick={() => handleCancelAction(requestId, tribute)}>
+                    Cancel
+                  </Button>
+                  {proposalType === 'Member' || proposalType === 'GuildKick' ? (
+                    <><Button 
+                        color="primary" 
+                        onClick={handleEditProposalClick}>
+                          Edit
+                      </Button>
+                    </>)
+                  : null }
+                {proposalType === 'Funding' ? (
+                  <><Button 
+                      variant="contained" 
+                      color="primary" 
+                      onClick={(e) => handleFundingProposalDetailsClick(requestId, applicant, status, e)}>
+                        Proposal Details
+                    </Button>
+                  </>) : null } </>: <LinearProgress /> : null }
+              </Grid>
+            
+              </Grid>
+               
+               
+               
+               
+
+                  
+
                 
-               
-                {(accountId != proposer && accountId != applicant) && status=='Submitted' ? <><Button color="primary" onClick={(e) => handleSponsorConfirmationClick(requestId, e)}>Sponsor</Button></> : <LinearProgress /> }
-               
-                {(accountId == proposer || (accountId == applicant && proposalType != 'GuildKick')) && status=='Submitted' ? cancelFinish ? <><Button color="primary" onClick={() => handleCancelAction(requestId, tribute)}>Cancel</Button> </>: <LinearProgress /> : null } 
                 
                 </CardActions>
         </Card>
+
+        {editProposalClicked ? <EditProposalForm
+          state={state}
+          handleEditProposalClickState={handleEditProposalClickState}
+          curDaoIdx={curDaoIdx}
+          curPersonaIdx={curPersonaIdx}
+          applicant={applicant}
+          handleUpdate={handleUpdate}
+          did={did}
+          accountId={accountId}
+          proposalId={requestId}
+          /> : null }
+
+          {proposalDetailsClicked ? <ProposalDetails
+            proposer={proposer}
+            handleProposalDetailsClickState={handleProposalDetailsClickState}
+            curDaoIdx={curDaoIdx}
+            curPersonaIdx={curPersonaIdx}
+            applicant={applicant}
+            handleUpdate={handleUpdate}
+            did={did}
+            proposalId={requestId}
+            /> : null }
+
         </>
     )
 }

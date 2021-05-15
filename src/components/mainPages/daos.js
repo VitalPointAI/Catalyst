@@ -53,22 +53,23 @@ export default function Daos(props) {
     } = props
 
     const {
-        daoLinks
+        daoLinks,
+        daoList
     } = state
 
     useEffect(
         () => {
             async function fetchData() {
-                if(daoLinks){
-                    console.log('daolinks', daoLinks)
-                    setDaoCount(daoLinks.length)
-                    setDaos(daoLinks)
+                if(daoList){
+                    console.log('daolinks', daoList)
+                    setDaoCount(daoList.daoList.length)
+                    setDaos(daoList.daoList)
                 }
             }
 
             fetchData()
 
-    }, [daoLinks]
+    }, [daoList]
     )
     
     function handleEditDaoClick(property){
@@ -84,14 +85,13 @@ export default function Daos(props) {
             { daoCount > 0 ? 
                 (<>
                   
-                {daos.filter(dao => dao.summoner == state.accountId).map(({ contractId, created, summoner }) =>
+                {daos.filter(dao => dao.summoner == state.accountId).map(({ contractId, date, summoner }) =>
                     <DaoCard
-                        key={created}
+                        key={date}
                         contractId={contractId}
-                        created={created}
+                        created={date}
                         summoner={summoner}
                         link={''}
-                        state={state}
                         handleEditDaoClick={handleEditDaoClick}
                     />              
                 )}

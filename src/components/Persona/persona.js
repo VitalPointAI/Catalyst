@@ -60,6 +60,10 @@ export default function Persona(props) {
         balance
     } = props
 
+    const {
+        daoList
+    } = state
+
     useEffect(
         () => {
   
@@ -87,14 +91,26 @@ export default function Persona(props) {
                     setClaimedCount(count)
                 }
 
-                if(state.daoLinks && state.daoLinks.length > 0){
-                    let i = 0
+                // if(state.daoLinks && state.daoLinks.length > 0){
+                //     let i = 0
+                //     let count = 0
+                //     while (i < state.daoLinks.length){
+                //         if(state.daoLinks[i].summoner == accountId){
+                //         count++
+                //         }
+                //     i++
+                //     }
+                //     setDaoCount(count)
+                // }
+
+                if(daoList){
                     let count = 0
-                    while (i < state.daoLinks.length){
-                        if(state.daoLinks[i].summoner == accountId){
-                        count++
+                    let i = 0
+                    while(i < daoList.daoList.length){
+                        if(daoList.daoList[i].summoner == accountId){
+                            count++
                         }
-                    i++
+                        i++
                     }
                     setDaoCount(count)
                 }

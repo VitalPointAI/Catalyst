@@ -3,6 +3,7 @@ import { appStore, onAppMount } from '../../state/app';
 import { useParams } from 'react-router-dom'
 import * as nearAPI from 'near-api-js'
 import { get, set, del } from '../../utils/storage'
+import { logInitEvent, logProposalEvent } from '../../state/near'
 
 import ActionSelector from '../ActionSelector/actionSelector'
 import ProposalList from '../ProposalList/proposalList'
@@ -13,7 +14,7 @@ import Initialize from '../Initialize/initialize'
 import { dao } from '../../utils/dao'
 import { ceramic } from '../../utils/ceramic'
 
-import { DAO_LINKS } from '../../state/near'
+import { DAO_LINKS, DAO_FIRST_INIT, NEW_PROPOSAL } from '../../state/near'
 
 // Material UI imports
 import { makeStyles } from '@material-ui/core/styles'
@@ -31,9 +32,7 @@ const axios = require('axios').default
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
-  //  maxWidth: 640,
     margin: 'auto',
-  //  marginTop: 50,
     marginBottom: 50,
     minHeight: 550,
     padding: '20px',
@@ -56,7 +55,6 @@ export default function AppFramework(props) {
     const [purpose, setPurpose] = useState('')
     const [category, setCategory] = useState('')
 
-    const [graphData, setGraphData] = useState([])
     const [sharesLabel, setSharesLabel] = useState('Shares: 0')
     const [lootLabel, setLootLabel] = useState('Loot: 0')
     const [memberIcon, setMemberIcon] = useState(<NotInterestedIcon />)
@@ -65,15 +63,16 @@ export default function AppFramework(props) {
     const [nearPrice, setNearPrice] = useState()
 
     const [tabValue, setTabValue] = useState('1')
-    const [contract, setContract] = useState()
+    const [daoContract, setDaoContract] = useState()
     const [allMemberInfo, setAllMemberInfo] = useState([])
     const [contractIdx, setContractIdx] = useState()
     const [didsContract, setDidsContract] = useState()
     const [memberStatus, setMemberStatus] = useState()
     const [memberInfo, setMemberInfo] = useState()
+    const [allProposals, setAllProposals] = useState([])
     const [currentPeriod, setCurrentPeriod] = useState()
     const [curUserIdx, setCurUserIdx] = useState()
-    const [accountId, setAccountId] = useState()
+
     const [summoner, setSummoner] = useState()
     const [totalShares, setTotalShares] = useState()
     const [escrowBalance, setEscrowBalance] = useState()
@@ -108,7 +107,7 @@ export default function AppFramework(props) {
       tokenName,
       minSharePrice,
       proposalComments,
-      daoContract,
+    //  daoContract,
       handleInitChange,
       handleContractIdx,
       appClient,
@@ -117,10 +116,9 @@ export default function AppFramework(props) {
     const { 
       appIdx,
       didRegistryContract,
-      daoFactory,
       near,
+      accountId,
     } = state
-    console.log('state', state)
     
     const {
       contractId
@@ -130,6 +128,7 @@ export default function AppFramework(props) {
       () => {
 
           async function fetchData() {
+         
             if(didRegistryContract && near){
               if(contractId){
                 let existingDid = await didRegistryContract.hasDID({accountId: contractId})
@@ -141,27 +140,15 @@ export default function AppFramework(props) {
                     setDid(thisDid)
                    
                     let daoAccount = new nearAPI.Account(near.connection, contractId);
-                    console.log('daoAccount', daoAccount)
                     
-                    let summonerAccounts = get(DAO_LINKS, [])
-                    let b = 0
-                    let summoner
-                    while(b < summonerAccounts.length) {
-                        if(summonerAccounts[b].contractId == contractId){
-                        summoner = summonerAccounts[b].summoner
-                        break
-                        }
-                    b++
-                    }
-                    const ownerAccount = new nearAPI.Account(near.connection, summoner)
-                    console.log('ownerAccount', ownerAccount)
-                    const summonerIdx = await ceramic.getCurrentUserIdx(ownerAccount, appIdx, didRegistryContract, summoner)
-                    console.log('summonerIdx', summonerIdx)
-                    let thisCurDaoIdx = await ceramic.getCurrentUserIdx(daoAccount, appIdx, didRegistryContract, summoner, summonerIdx)
+                    let thisCurDaoIdx = await ceramic.getCurrentUserIdx(daoAccount, appIdx, didRegistryContract)
                     console.log('curdaoidx', thisCurDaoIdx)
                     setCurDaoIdx(thisCurDaoIdx)
-                    
-                
+
+                    let contract = await dao.initDaoContract(state.wallet.account(), contractId)
+                    setDaoContract(contract)
+                    console.log('dao contract', contract)
+                            
                     let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
                     console.log('result', result)
                     if(result){
@@ -172,19 +159,70 @@ export default function AppFramework(props) {
                       result.category ? setCategory(result.category) : setCategory('')
                     }
 
-                    let memberinfo = await thisCurDaoIdx.get('member', thisCurDaoIdx.id)
-                    console.log('result memberinfo', memberinfo)
+                   try {
+                    let memberInfo = await thisCurDaoIdx.get('members', thisCurDaoIdx.id)
+                    console.log('result memberinfo', memberInfo)
+                    setAllMemberInfo(memberInfo.events)
+                    } catch (err) {
+                      console.log('no memberinfo yet', err)
+                    }
                     
-
-                    let contract = await dao.initDaoContract(state.wallet.account(), contractId)
-                    setContract(contract)
-                    console.log('dao contract', contract)
-        
                     let init = await contract.getInit()
                     console.log('init', init)
                     setInitialized(init)
                     console.log('initialized', initialized)
                     setInitLoad(true)
+
+                    // check for first init to log summon and member events
+                    let firstInit = get(DAO_FIRST_INIT, [])
+                    console.log('firstinit', firstInit)
+                    let c = 0
+                    while(c < firstInit.length){
+                      if(firstInit[c].contractId==contractId && firstInit[c].init == true){
+                        let logged = logInitEvent(
+                          contractId, 
+                          thisCurDaoIdx, 
+                          contract, 
+                          'Democracy', 
+                          state.accountId)
+                          
+                        if (logged) {
+                          firstInit[c].init = false
+                          set(DAO_FIRST_INIT, firstInit)
+                        }
+                      }
+                      c++
+                    }
+
+                    // check for successfully added new proposal to log it
+                    let newProposal = get(NEW_PROPOSAL, [])
+                    console.log('newProposal', newProposal)
+                    let d = 0
+                    while(d < newProposal.length){
+                      if(newProposal[d].contractId==contractId && newProposal[d].new == true){
+                        let loggedProposal = logProposalEvent(
+                          thisCurDaoIdx, 
+                          contract, 
+                          newProposal[d].proposalId)
+                          
+                        if (loggedProposal) {
+                          newProposal[d].new = false
+                          set(NEW_PROPOSAL, newProposal)
+                        }
+                      }
+                      d++
+                    }
+
+                  
+
+                    try {
+                      let proposals = await thisCurDaoIdx.get('proposals', thisCurDaoIdx.id)
+                      console.log('result proposals', proposals)
+                      setAllProposals(proposals.events)
+                    } catch (err) {
+                      console.log('no proposals yet', err)
+                    }
+                   
         
                     if(initialized){
                     let thisMemberInfo
@@ -209,7 +247,7 @@ export default function AppFramework(props) {
                     try {
                       let owner = await contract.getSummoner()
                       setSummoner(owner)
-                      console.log('summoner', summoner)
+                      console.log('summoner hrt', summoner)
                     } catch (err) {
                       console.log('no summoner yet')
                     }
@@ -225,6 +263,7 @@ export default function AppFramework(props) {
                     try {
                       let token = await contract.getDepositToken()
                       setDepositToken(token)
+                      console.log('deposit token', depositToken)
                     } catch (err) {
                       console.log('no deposit token yet')
                     }
@@ -277,8 +316,7 @@ export default function AppFramework(props) {
                       } else {
                         guildRow = '0 Ⓝ'
                       }
-      
-                      setGuildBalanceChip(<>{guildRow}</>)
+                    setGuildBalanceChip(<>{guildRow}</>)
                       
                     let escrowRow
                       if(ebalance) {
@@ -288,8 +326,7 @@ export default function AppFramework(props) {
                       } else {
                         escrowRow = '0 Ⓝ'
                       }
-        
-                      setEscrowBalanceChip(<>{escrowRow}</>)
+                    setEscrowBalanceChip(<>{escrowRow}</>)
                       
                     let getNearPrice = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd')
                     console.log('nearprice', getNearPrice.data.near.usd)
@@ -329,6 +366,7 @@ export default function AppFramework(props) {
                   }
                   }, 10000)
                 }
+                
               }    
             }  
           }
@@ -337,10 +375,10 @@ export default function AppFramework(props) {
 
           fetchData()
             .then((res) => {
-              
+            
             })
         
-      }, [initialized, didRegistryContract, near, memberStatus ]
+      }, [initialized, didRegistryContract, near, memberStatus, summoner, depositToken]
     )
 
     function handleTabValueState(value) {
@@ -349,7 +387,7 @@ export default function AppFramework(props) {
 
     async function handleGuildBalanceChanges() {
       try {
-        let currentGuildBalance = await contract.getGuildTokenBalances()
+        let currentGuildBalance = await daoContract.getGuildTokenBalances()
         if(currentGuildBalance) {
           setGuildBalance(currentGuildBalance)
         
@@ -362,7 +400,7 @@ export default function AppFramework(props) {
 
     async function handleEscrowBalanceChanges() {
       try {
-        let currentEscrowBalance = await contract.getEscrowTokenBalances()
+        let currentEscrowBalance = await daoContract.getEscrowTokenBalances()
         if(currentEscrowBalance) {
           setEscrowBalance(currentEscrowBalance)
  
@@ -371,10 +409,6 @@ export default function AppFramework(props) {
       } catch (err) {
         return false
       }
-    }
-    
-    function handleTabValueState(value) {
-      setTabValue(value)
     }
     
   
@@ -398,7 +432,6 @@ export default function AppFramework(props) {
                   tokenName={tokenName}
                   depositToken={depositToken}
                   minSharePrice={minSharePrice}
-                  contract={contract}
                   daoContract={daoContract}
                   proposalDeposit={proposalDeposit}
                   didsContract={didsContract}
@@ -414,7 +447,7 @@ export default function AppFramework(props) {
                 <RightSideDrawer
                   state={state}
                   accountId={state.accountId} 
-                  contract={contract}
+                  contract={daoContract}
                   handleErrorMessage={handleErrorMessage} 
                   handleSuccessMessage={handleSuccessMessage}
                   handleSnackBarOpen={handleSnackBarOpen} 
@@ -445,22 +478,27 @@ export default function AppFramework(props) {
             </Grid>
           </Grid>
           
-
           <Divider variant="middle" align="center" style={{width:'75%', margin: 'auto'}}/>
-
-        
 
           <Grid container justify="space-evenly" alignItems="center" spacing={1}>
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-              <ProposalList 
-                accountId={accountId} 
+              <ProposalList
+                contractId={contractId}
+                curDaoIdx={curDaoIdx}
+                daoDid={did}
+                proposalEvents={allProposals}
+                allMemberInfo={allMemberInfo}
+                contract={daoContract}
+                memberStatus={memberStatus}
+        
+
                 guildBalance={guildBalance}
                 handleTabValueState={handleTabValueState}
                 tabValue={tabValue}
                 handleProposalEventChange={handleProposalEventChange}
                 handleGuildBalanceChanges={handleGuildBalanceChanges}
                 handleEscrowBalanceChanges={handleEscrowBalanceChanges}
-                proposalEvents={proposalEvents}
+               
                 memberStatus={memberStatus}
                 proposalDeposit={proposalDeposit}
                 depositToken={depositToken}
@@ -470,9 +508,8 @@ export default function AppFramework(props) {
                 currentPeriod={currentPeriod}
                 periodDuration={periodDuration}
                 proposalComments={proposalComments}
-                contract={contract}
-                daoContract={daoContract}
-                allMemberInfo={allMemberInfo}
+               
+               
                 handleSnackBarOpen={handleSnackBarOpen}
                 handleSuccessMessage={handleSuccessMessage}
                 handleErrorMessage={handleErrorMessage}

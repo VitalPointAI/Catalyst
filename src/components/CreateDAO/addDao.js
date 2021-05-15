@@ -2,7 +2,9 @@ import React, { useState, useEffect, useContext } from 'react'
 import { useForm } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { factorySuffix } from '../../state/near'
-import { appStore, onAppMount } from '../../state/app';
+import { appStore, onAppMount } from '../../state/app'
+import { get, set, del } from '../../utils/storage'
+import { REDIRECT } from '../../state/near'
 
 //Material-UI Components
 import Button from '@material-ui/core/Button'
@@ -29,6 +31,10 @@ const useStyles = makeStyles((theme) => ({
     float: 'left',
     paddingRight: '10px',
     paddingBottom: '10px'
+  },
+  root: {
+    maxWidth: '50%',
+    margin: 'auto'
   },
   progress: {
     width: '100%',
@@ -94,10 +100,29 @@ export default function AddDaoForm(props) {
     const handleConfirmChange = (event) => {
       setConfirm(event.target.checked);
     }
+
+    const onSubmit = async (values) => {
+      try{
+        let finish = state.wallet.fundDaoAccount(id, state.accountId)
+        // handleSuccessMessage('Successfully created Democracy DAO.', 'success')
+        // handleSnackBarOpen(true)
+        setFinished(true)
+        setOpen(false)
+        handleClose()
+      } catch (err) {
+        console.log('error creating dao', err)
+        // handleErrorMessage('There was a problem creating the Democracy DAO' + err.message, 'error')
+        // handleSnackBarOpen(true)
+        setFinished(true)
+        setOpen(false)
+        handleClose()
+      }
+      setFinished(false)
+    }
     
         return (
             <div>
-            <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+            <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" className={classes.root}>
               <DialogTitle id="form-dialog-title">Create DAO</DialogTitle>
               <DialogContent>
                     
@@ -134,7 +159,33 @@ export default function AddDaoForm(props) {
                     <div>
                         {state.app.accountTaken ? 'Dao name is already taken' : null}
                     </div>
-                  
+
+                   
+                    <Card>
+                      <CardContent>
+                        <Grid container className={classes.confirmation} spacing={1}>
+                   
+                          <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
+                     
+                            <Checkbox
+                              checked={confirm}
+                              onChange={handleConfirmChange}
+                              name="confirmCheck"
+                              color="primary"
+                              inputRef={register({
+                                required: true
+                              })}
+                            />
+                          </Grid>
+          
+                          <Grid item xs={11} sm={11} md={11} lg={11} xl={11} style={{margin:'auto'}}>
+                              <WarningIcon fontSize='large' className={classes.warning} />
+                              <Typography variant="body2" gutterBottom>Creating a Democracy DAO requires you to deposit <b>{parseInt(process.env.FACTORY_DEPOSIT)} Ⓝ</b>.</Typography>
+                              <Typography variant="body2">The <b>{process.env.FACTORY_DEPOSIT} Ⓝ</b> you are about to transfer covers the cost of storage of the DAO contract.  As this is a democracy DAO, you will have to submit a proposal that receives 51% of the vote in order to delete the DAO and recover this deposit.</Typography>     
+                          </Grid>
+                        </Grid>
+                      </CardContent>
+                    </Card>
                    
      
                 </DialogContent>
@@ -144,24 +195,8 @@ export default function AddDaoForm(props) {
                 disabled={state.app.accountTaken || clicked}
                 variant="contained"
                 color="primary"
-                onClick={() => {
-                  try{
-                    let finish = state.wallet.fundDaoAccount(id, state.accountId)
-                    // handleSuccessMessage('Successfully created Democracy DAO.', 'success')
-                    // handleSnackBarOpen(true)
-                    setFinished(true)
-                    setOpen(false)
-                    handleClose()
-                  } catch (err) {
-                    console.log('error creating dao', err)
-                    // handleErrorMessage('There was a problem creating the Democracy DAO' + err.message, 'error')
-                    // handleSnackBarOpen(true)
-                    setFinished(true)
-                    setOpen(false)
-                    handleClose()
-                  }
-                  setFinished(false)
-                }}>
+                onClick={handleSubmit(onSubmit)}
+                >
                 CREATE DAO
               </Button>
               

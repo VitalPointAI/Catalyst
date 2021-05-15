@@ -33,7 +33,7 @@ const useStyles = makeStyles((theme) => ({
     card: {
       minWidth: '200px',
       maxWidth: '200px',
-      cursor: 'pointer',
+      //cursor: 'pointer',
       verticalAlign: 'middle',
       marginLeft: '10px',
       marginRight: '10px',
@@ -64,7 +64,7 @@ export default function DaoCard(props) {
     const [editDaoClicked, setEditDaoClicked] = useState(false)
     const [claimed, setClaimed] = useState(false)
     const [curDaoIdx, setCurDaoIdx] = useState()
-    const [display, setDisplay] = useState(false)
+    const [display, setDisplay] = useState(true)
     const [isUpdated, setIsUpdated] = useState(false)
     const [anchorEl, setAnchorEl] = useState(null);
     const [did, setDid] = useState()
@@ -79,31 +79,34 @@ export default function DaoCard(props) {
       link
    } = props
 
+   const {
+     near,
+     didRegistryContract,
+     appIdx
+   } = state
+
     useEffect(
       () => {
 
       async function fetchData() {
-              if(summoner == state.accountId){
-                setDisplay(true)
-              }
+              // if(summoner == state.accountId){
+              //   setDisplay(true)
+              // }
               setFinished(false)
              
               // Set Dao Idx
-              if(contractId){
+              if(contractId && near){
                  
-                  let existingDid = await state.didRegistryContract.hasDID({accountId: contractId})
-                  console.log('existing DID', existingDid)
+                  let existingDid = await didRegistryContract.hasDID({accountId: contractId})
+            
                   if(existingDid){
-                      let thisDid = await state.didRegistryContract.getDID({
+                      let thisDid = await didRegistryContract.getDID({
                           accountId: contractId
                       })
                       setDid(thisDid)
-                     
-                      //let daoAccount = new nearAPI.Account(state.near.connection, contractId)
-                      let daoAccount = new nearAPI.Account(state.near.connection, contractId);
-                      // console.log('wallet', wallet)
-                      // let daoAccount = await wallet._near.account(contractId)
-                      console.log('daoAccount', daoAccount)
+                    
+                      let daoAccount = new nearAPI.Account(near.connection, contractId);
+                    
                       
                       let summonerAccounts = get(DAO_LINKS, [])
                       let b = 0
@@ -115,17 +118,19 @@ export default function DaoCard(props) {
                           }
                       b++
                       }
-                      const ownerAccount = new nearAPI.Account(state.near.connection, summoner)
-                      console.log('ownerAccount', ownerAccount)
-                      const summonerIdx = await ceramic.getCurrentUserIdx(ownerAccount, state.appIdx, state.didRegistryContract, summoner)
-                      console.log('summonerIdx', summonerIdx)
-                      let thisCurDaoIdx = await ceramic.getCurrentUserIdx(daoAccount, state.appIdx, state.didRegistryContract, summoner, summonerIdx)
-                      console.log('curdaoidx', thisCurDaoIdx)
+                      const ownerAccount = new nearAPI.Account(near.connection, summoner)
+                 
+                      const summonerIdx = await ceramic.getCurrentUserIdx(ownerAccount, appIdx, didRegistryContract, summoner)
+                    
+                      let thisCurDaoIdx = await ceramic.getCurrentUserIdx(daoAccount, appIdx, didRegistryContract, summoner, summonerIdx)
+                     
                       setCurDaoIdx(thisCurDaoIdx)
-                      update('', { thisCurDaoIdx })
+                //      update('', { thisCurDaoIdx })
                       
                   
-                      let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
+                    
+                      let result = await appIdx.get('daoProfile', thisDid)
+                      console.log('result here', result)
                       
                       if(result){
                         result.name ? setName(result.name) : setName('')
@@ -139,15 +144,13 @@ export default function DaoCard(props) {
                   }
 
                   if(!existingDid){
-                    // let wallet = new nearAPI.WalletAccount(state.near);
-                    // console.log('wallet', wallet)
-                    // let account = await wallet._near.account(contractId)
-                    let daoAccount = new nearAPI.Account(state.near.connection, contractId);
-                    console.log('account', daoAccount)
-                    let thisCurDaoIdx = await ceramic.getCurrentUserIdxNoDid(state.appIdx, state.didRegistryContract, daoAccount)
+                   
+                    let daoAccount = new nearAPI.Account(near.connection, contractId);
+                 
+                    let thisCurDaoIdx = await ceramic.getCurrentUserIdxNoDid(appIdx, didRegistryContract, daoAccount)
                     setCurDaoIdx(thisCurDaoIdx)
-                    console.log('curdaoidx', thisCurDaoIdx)
-                    update('', { thisCurDaoIdx })
+                   
+                  //  update('', { thisCurDaoIdx })
 
                     let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
                       
@@ -169,7 +172,7 @@ export default function DaoCard(props) {
             setFinished(true)
           })
       
-  }, [isUpdated, state.near]
+  }, [isUpdated, near]
   )
 
   function handleUpdate(property){

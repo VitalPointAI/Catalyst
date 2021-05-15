@@ -4,7 +4,8 @@ import {
     BrowserRouter as Router,
     Switch,
     Route,
-    Link
+    Link,
+    useParams
   } from "react-router-dom";
 
 import { Container } from './components/Container'

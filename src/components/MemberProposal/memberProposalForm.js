@@ -38,7 +38,7 @@ import Divider from '@material-ui/core/Divider'
 //     isUserCollection,
 //     deleteAppRecord,
 //     updateAppRecord } from '../../../../utils/threadsDB';
-import { memberProposalSchema } from '../../schemas/memberProposals';
+import { memberProposalSchema } from '../../schemas/proposals';
 
 // ReactQuill Component
 import ReactQuill from 'react-quill';
@@ -84,7 +84,7 @@ const imageName = require('../../img/default-profile.png') // default no-image a
 export default function MemberProposalForm(props) {
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
-    const [proposalId, setMemberProposalId] = useState(props.memberProposalId.toString())
+  
     const [proposalProposer, setMemberProposalProposer] = useState(props.accountId)
     const [proposalApplicant, setMemberProposalApplicant] = useState('')
     const [proposalIntro, setMemberProposalIntro] = useState('')
@@ -96,24 +96,27 @@ export default function MemberProposalForm(props) {
     const { register, handleSubmit, watch, errors } = useForm()
 
     const {
-        memberProposalId,
-        accountId,
+        proposalId,
+        applicant,
+        avatar,
+        name,
+
         handleProposalDetailsEmptyClickState,
         memberProposalType,
         contract,
         status,
     } = props
-    console.log('memberproposalid', memberProposalId)
+    
     const classes = useStyles()
 
     useEffect(() => {
         async function fetchData() {
             console.log('proposalId ', proposalId)
-            let result = await retrieveRecord(proposalId.toString(), 'MemberProposal')
+         
             console.log('result ', result)
             if(result) {
                 result.applicant ? setMemberProposalApplicant(result.applicant) : setMemberProposalApplicant('')
-                result.avatar ? setMemberProposalAvatar(result.avatar) : setMemberProposalAvatar(imageName)
+             //   result.avatar ? setMemberProposalAvatar(result.avatar) : setMemberProposalAvatar(imageName)
                 result.intro ? setMemberProposalIntro(result.intro) : setMemberProposalIntro('')
                 result.proposer ? setMemberProposalProposer(result.proposer) : setMemberProposalProposer(accountId)
                 result.published ? setMemberProposalPublished(result.published) : setMemberProposalPublished(false)

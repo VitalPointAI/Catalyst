@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import { withStyles } from '@material-ui/core/styles';
+import React, { useState, useContext } from 'react'
+import { useParams } from 'react-router-dom'
+import { appStore, onAppMount } from '../../state/app'
+
 import FundingProposal from '../FundingProposal/fundingProposal'
 import WhiteListProposal from '../WhiteListProposal/whitelistProposal'
 import GuildKickProposal from '../GuildKickProposal/guildKickProposal'
@@ -8,20 +9,21 @@ import MemberProposal from '../MemberProposal/memberProposal'
 import VotingProposal from '../VotingRights/votingRightsProposal'
 
 // Material UI Components
-
-import Button from '@material-ui/core/Button';
+import { makeStyles } from '@material-ui/core/styles'
+import { withStyles } from '@material-ui/core/styles'
+import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import ListItemText from '@material-ui/core/ListItemText'
-import EmojiPeopleIcon from '@material-ui/icons/EmojiPeople';
-import MonetizationOnIcon from '@material-ui/icons/MonetizationOn';
-import ThumbUpAltIcon from '@material-ui/icons/ThumbUpAlt';
-import RemoveCircleIcon from '@material-ui/icons/RemoveCircle';
+import EmojiPeopleIcon from '@material-ui/icons/EmojiPeople'
+import MonetizationOnIcon from '@material-ui/icons/MonetizationOn'
+import ThumbUpAltIcon from '@material-ui/icons/ThumbUpAlt'
+import RemoveCircleIcon from '@material-ui/icons/RemoveCircle'
 import HowToVoteIcon from '@material-ui/icons/HowToVote'
 import Snackbar from '@material-ui/core/Snackbar'
 import MuiAlert from '@material-ui/lab/Alert'
@@ -80,6 +82,8 @@ export default function ActionSelector(props) {
   const [errorMessage, setErrorMessage] = useState()
   const [severity, setSeverity] = useState()
   const [successMessage, setSuccessMessage] = useState()
+
+  const { state, dispatch, update } = useContext(appStore);
   
   
   const { 
@@ -96,6 +100,10 @@ export default function ActionSelector(props) {
     contractIdx,
     idx,
     contract } = props
+console.log('action selector prop deposit', proposalDeposit)
+  const {
+    contractId
+  } = useParams()
 
   const handleFundingProposalClick = () => {
     handleExpanded()
@@ -283,15 +291,17 @@ export default function ActionSelector(props) {
       accountId={accountId}/> : null }
 
       {memberProposalClicked ? <MemberProposal
-      contract={contract} 
+      contractId={contractId}
+      state={state}
+      proposalDeposit={proposalDeposit}
+      depositToken={depositToken}
+
       handleProposalEventChange={handleProposalEventChange}
       handleGuildBalanceChanges={handleGuildBalanceChanges}
       handleEscrowBalanceChanges={handleEscrowBalanceChanges}
       handleMemberProposalClickState={handleMemberProposalClickState} 
       handleTabValueState={handleTabValueState}
       accountId={accountId} 
-      depositToken={depositToken}
-      tokenName={tokenName}
       handleSnackBarOpen={handleSnackBarOpen}
       handleErrorMessage={handleErrorMessage}
       handleSuccessMessage={handleSuccessMessage}
@@ -299,7 +309,7 @@ export default function ActionSelector(props) {
       didsContract={didsContract}
       contractIdx={contractIdx}
       idx={idx}
-      proposalDeposit={proposalDeposit}/> : null }
+      /> : null }
     </>
   );
 }

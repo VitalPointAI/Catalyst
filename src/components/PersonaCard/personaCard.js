@@ -60,7 +60,7 @@ export default function PersonaCard(props) {
     const [curUserIdx, setCurUserIdx] = useState()
     const [display, setDisplay] = useState(false)
     const [isUpdated, setIsUpdated] = useState(false)
-    const [anchorEl, setAnchorEl] = useState(null);
+    const [anchorEl, setAnchorEl] = useState(null)
     const [did, setDid] = useState()
     const [finished, setFinished] = useState(false)
 

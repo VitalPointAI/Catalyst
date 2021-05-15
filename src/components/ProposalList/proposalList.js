@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
+import { appStore, onAppMount } from '../../state/app';
 import { utils } from 'near-api-js'
-//import { proposalEvent } from '../../../../utils/proposalEvents'
-//import { memberEvent } from '../../../../utils/memberEvent'
+import { GAS } from '../../state/near'
+
 import MemberCard from '../MemberCard/memberCard'
 import ProposalCard from '../ProposalCard/proposalCard'
 import MemberProposalForm from '../MemberProposal/memberProposalForm'
@@ -50,6 +51,9 @@ const StyledBadge = withStyles((theme) => ({
 }))(Badge);
 
 export default function ProposalList(props) {
+  const [avatar, setAvatar] = useState()
+  const [name, setName] = useState()
+
   const [loaded, setLoaded] = useState(false)
   const [proposalList, setProposalList] = useState([])
   const [votingList, setVotingList] = useState([])
@@ -76,14 +80,25 @@ export default function ProposalList(props) {
   const [done, setDone] = useState(true)
   const [memberProposalType, setMemberProposalType] = useState()
   
-
-
   const classes = useStyles()
   const theme = useTheme()
   const matches = useMediaQuery(theme.breakpoints.only('xs'))
 
-  const { 
-    accountId, 
+  const { state, dispatch, update } = useContext(appStore);
+
+  const {
+    didRegistryContract,
+    appIdx,
+    accountId
+  } = state
+
+  const {
+    proposalEvents,
+    memberStatus,
+    curDaoIdx,
+    daoDid,
+    contract,
+
     tabValue,
     handleTabValueState,
     handleProposalEventChange,
@@ -97,8 +112,8 @@ export default function ProposalList(props) {
     severity,
     successMessage,
     errorMessage,
-    proposalEvents,
-    memberStatus,
+  
+    
     depositToken,
     tributeToken,
     tributeOffer,
@@ -106,27 +121,28 @@ export default function ProposalList(props) {
     currentPeriod,
     periodDuration,
     proposalComments,
-    contract,
-    daoContract,
+    
+ 
     allMemberInfo,
     getCurrentPeriod,
     summoner,
     contractIdx,
-    appIdx,
+    //appIdx,
     curUserIdx,
-    didsContract,
+    
+    //didsContract,
     contractId,
     appClient
   } = props
 
   useEffect(() => {
-    let isMounted = true
+   
     async function fetchData() {
       let i = 0
+      let result
       while (i < proposalEvents.length) {
-          let result
           try{
-            result = await getUserVote(proposalEvents[i]._id)
+            result = await getUserVote(proposalEvents[i].proposalId)
           } catch (err) {
             console.log('problem getting user vote', err)
           }
@@ -135,7 +151,7 @@ export default function ProposalList(props) {
           i++
       }
         let newLists = await resolveStatus(proposalEvents)
-        if(isMounted){
+      
         setProposalList(newLists.allProposals)
         setVotingList(newLists.votingProposals)
         setQueueList(newLists.queueProposals)
@@ -143,19 +159,17 @@ export default function ProposalList(props) {
         setProposalCount(newLists.allProposals.length)
         setVoteCount(newLists.votingProposals.length)
         setProcessedCount(newLists.processedProposals.length)
+
         if(allMemberInfo){
           setMemberCount(allMemberInfo.length)
         }
-      }
     }
     
     if(proposalEvents && proposalEvents.length > 0){
-    fetchData()
-      .then((res) => {
-       
-      })
+      console.log('proposalEvents', proposalEvents)
+      fetchData()
     }
-    return () => { isMounted = false } // use effect cleanup to set flag false if unmounted
+   
   },[proposalEvents, currentPeriod, allMemberInfo])
 
   const handleTabChange = (event, newValue) => {
@@ -172,22 +186,28 @@ export default function ProposalList(props) {
     setSponsorConfirmationClicked(true)
   }
 
-  const handleMemberProposalDetailsClick = async (id, applicant, status, proposer, proposalType) => {
+  const handleMemberProposalDetailsClick = async (id, applicant, status, proposer, proposalType, avatar, name) => {
     setMemberProposalStatus(status)
     setMemberProposalType(proposalType)
     if(accountId != applicant && proposalType == 'Member') {
         handleTabValueState(tabValue)
         setMemberProposalId(id)
+        setAvatar(avatar)
+        setName(name)
         setMemberProposalDetailsClicked(true)
     }
     if(accountId == applicant){
         handleTabValueState(tabValue)
         setMemberProposalId(id)
+        setAvatar(avatar)
+        setName(name)
         setMemberProposalDetailsEmptyClicked(true)
     }
     if(accountId != applicant && accountId == proposer && proposalType == 'GuildKick'){
       handleTabValueState(tabValue)
       setMemberProposalId(id)
+      setAvatar(avatar)
+      setName(name)
       setMemberProposalDetailsEmptyClicked(true)
     }
   };
@@ -247,9 +267,9 @@ export default function ProposalList(props) {
     setCancelFinish(false)
     let finished
     try{
-    finished = await daoContract.cancelProposal({
+    finished = await contract.cancelProposal({
         pI: proposalIdentifier
-        }, process.env.DEFAULT_GAS_VALUE, utils.format.parseNearAmount((parseInt(proposalDeposit)+parseInt(tribute)).toString()))
+        }, GAS, utils.format.parseNearAmount((parseInt(proposalDeposit)+parseInt(tribute)).toString()))
         try{
         let proposal = await contract.getProposal({proposalId: parseInt(proposalIdentifier)})
         let updated = await proposalEvent.recordEvent(
@@ -285,7 +305,7 @@ export default function ProposalList(props) {
     try{
       finished = await daoContract.processProposal({
         pI: proposalIdentifier
-        }, process.env.DEFAULT_GAS_VALUE)
+        }, GAS)
           try{
           let proposal = await contract.getProposal({proposalId: parseInt(proposalIdentifier)})
           let updated = await proposalEvent.recordEvent(
@@ -476,6 +496,7 @@ async function handleNoVotingAction(proposalIdentifier) {
   }
 
   async function getUserVote(proposalIdentifier) {
+    console.log('contract here', contract)
     let result = await contract.getMemberProposalVote({memberAddress: accountId, pI: parseInt(proposalIdentifier)})
     return result
   }
@@ -531,7 +552,7 @@ async function handleNoVotingAction(proposalIdentifier) {
             applicant: fr.applicant, 
             proposer: fr.proposer,
             sponsor: fr.sponsor,
-            requestId: parseInt(fr._id), 
+            requestId: parseInt(fr.proposalId), 
             shares: fr.sharesRequested, 
             loot: fr.lootRequested, 
             tribute: fr.tributeOffered, 
@@ -559,7 +580,7 @@ async function handleNoVotingAction(proposalIdentifier) {
             applicant: fr.applicant, 
             proposer: fr.proposer,
             sponsor: fr.sponsor,
-            requestId: parseInt(fr._id), 
+            requestId: parseInt(fr.proposalId), 
             shares: fr.sharesRequested, 
             loot: fr.lootRequested, 
             tribute: fr.tributeOffered, 
@@ -588,7 +609,7 @@ async function handleNoVotingAction(proposalIdentifier) {
             applicant: fr.applicant, 
             proposer: fr.proposer,
             sponsor: fr.sponsor,
-            requestId: parseInt(fr._id),
+            requestId: parseInt(fr.proposalId),
             shares: fr.sharesRequested, 
             loot: fr.lootRequested, 
             tribute: fr.tributeOffered, 
@@ -616,7 +637,7 @@ async function handleNoVotingAction(proposalIdentifier) {
             applicant: fr.applicant, 
             proposer: fr.proposer,
             sponsor: fr.sponsor,
-            requestId: parseInt(fr._id), 
+            requestId: parseInt(fr.proposalId), 
             shares: fr.sharesRequested, 
             loot: fr.lootRequested, 
             tribute: fr.tributeOffered,
@@ -668,17 +689,18 @@ async function handleNoVotingAction(proposalIdentifier) {
       return (
         <MemberCard 
           key={fr.memberId}
+          accountId={accountId}
           accountName={fr.delegateKey}
           shares={fr.shares}
           memberCount={memberCount}
           summoner={summoner}
           curUserIdx={curUserIdx}
-          didsContract={didsContract}
+          didsContract={didRegistryContract}
           appIdx={appIdx}
           appClient={appClient}
           contractId={contractId}
           contractIdx={contractIdx}
-          joined={makeTime(parseInt(fr.joined))}
+          joined={fr.joined}
         />
       )
     })
@@ -686,11 +708,15 @@ async function handleNoVotingAction(proposalIdentifier) {
 
   let Proposals
   if (proposalList && proposalList.length > 0 && tabValue == '2') {
+    console.log('proposallist', proposalList)
     Proposals = proposalList.map((fr) => {
       return (
         <ProposalCard
+          curDaoIdx={curDaoIdx}
+          daoDid={daoDid}
           key={fr[0].requestId} 
           applicant={fr[0].applicant}
+          memberStatus={memberStatus}
           created={fr[0].date}
           noVotes={fr[0].noVotes}
           yesVotes={fr[0].yesVotes}
@@ -775,7 +801,7 @@ async function handleNoVotingAction(proposalIdentifier) {
           tribute={fr[0].tribute}
           loot={fr[0].loot}
           status={fr[0].status}
-          accountId={accountId}
+        
           handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
           handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
@@ -860,6 +886,8 @@ async function handleNoVotingAction(proposalIdentifier) {
     
     {memberProposalDetailsEmptyClicked ? <MemberProposalForm
       contract={contract}
+      avatar={avatar}
+      name={name}
       memberProposalId={memberProposalId}
       memberProposalType={memberProposalType}
       status={memberProposalStatus}
@@ -867,8 +895,11 @@ async function handleNoVotingAction(proposalIdentifier) {
       handleProposalDetailsEmptyClickState={handleMemberProposalDetailsEmptyClickState}  
       handleTabValueState={handleTabValueState}/> : null }
     
-    {memberProposalDetailsClicked ? <MemberProposalDetails
+    {memberProposalDetailsClicked ? <ProposalDetails
       contract={contract}
+      avatar={avatar}
+      name={name}
+      curDaoIdx={curDaoIdx}
       memberStatus={memberStatus}
       memberProposalType={memberProposalType}
       memberProposalId={memberProposalId}

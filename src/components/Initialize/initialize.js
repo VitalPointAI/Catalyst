@@ -3,7 +3,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { appStore, onAppMount } from '../../state/app';
 import { useForm } from 'react-hook-form'
 import { useParams } from 'react-router-dom'
-import { initDao, logEvent, DAO_INIT } from '../../state/near'
+import { initDao } from '../../state/near'
 import { get, set, del } from '../../utils/storage'
 
 // Material UI components
@@ -89,7 +89,6 @@ export default function Initialize(props) {
     
     useEffect(
       () => {
-        set(DAO_INIT, {init: false})
          
       }, [])
 
@@ -122,8 +121,7 @@ export default function Initialize(props) {
         
           await initDao(
             state.wallet, 
-            contractId, 
-            state.accountId, 
+            contractId,
             periodDuration, 
             votingPeriodLength, 
             gracePeriodLength, 
@@ -279,24 +277,9 @@ export default function Initialize(props) {
             <CardContent>
               <Grid container className={classes.confirmation} spacing={1}>
          
-                <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
-           
-                  <Checkbox
-                    checked={confirm}
-                    onChange={handleConfirmChange}
-                    name="confirmCheck"
-                    color="primary"
-                    inputRef={register({
-                      required: true
-                    })}
-                  />
-                </Grid>
+              Placeholder for video
 
-                <Grid item xs={11} sm={11} md={11} lg={11} xl={11} style={{margin:'auto'}}>
-                    <WarningIcon fontSize='large' className={classes.warning} />
-                    <Typography variant="body2" gutterBottom>Creating a Democracy DAO requires you to deposit <b>{parseInt(process.env.FACTORY_DEPOSIT)} Ⓝ</b>.</Typography>
-                    <Typography variant="body2">The <b>{process.env.FACTORY_DEPOSIT} Ⓝ</b> you are about to transfer covers the cost of storage of the DAO contract.  As this is a democracy DAO, you will have to submit a proposal that receives 51% of the vote in order to delete the DAO and recover this deposit.</Typography>     
-                </Grid>
+               
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{textAlign: 'center', marginTop: '50px'}}>
                   <Button
                   disabled={state.app.accountTaken || clicked}

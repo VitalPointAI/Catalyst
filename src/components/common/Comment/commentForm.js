@@ -18,19 +18,6 @@ import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
 import Grid from '@material-ui/core/Grid'
 
-// Textile ThreadsDB components
-// import { initiateCollection, 
-//     createRecord,
-//     initiateAppCollection,
-//     createAppRecord,
-//     retrieveRecord,
-//     retrieveAppRecord,
-//     updateRecord,
-//     isAppCollection,
-//     isUserCollection,
-//     updateAppRecord } from '../../../../../utils/threadsDB'
-import { commentSchema } from '../../../schemas/comment'
-
 // ReactQuill Component
 import ReactQuill from 'react-quill';
 
@@ -66,8 +53,6 @@ const useStyles = makeStyles((theme) => ({
     },
     }));
 
-//const imageName = require('../../../../assets/no-avatar.jpg') // default no-image avatar
-
 export default function CommentForm(props) {
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
@@ -83,9 +68,10 @@ export default function CommentForm(props) {
     const {
         proposalId,
         accountId,
-        contract
+        curDaoIdx,
+        handleUpdate
     } = props
-    console.log('proposalid', proposalId)
+   
     const classes = useStyles()
 
     useEffect(() => {
@@ -96,7 +82,7 @@ export default function CommentForm(props) {
        
         fetchData()
           .then((res) => {
-            console.log('res', res)
+        
           })
     },[])
 
@@ -111,100 +97,45 @@ export default function CommentForm(props) {
     }
 
     const handleCommentBodyChange = (content, delta, source, editor) => {
-        console.log('content', content)
-        console.log('delta', delta)
-        console.log('source', source)
-        console.log('editor', editor)
         setCommentBody(content)
-    }
-
-    async function getCommentId() {
-      let _commentId = await contract.getCommentLength()
-      _commentId++
-      let stringCommentId = _commentId.toString()
-      console.log('_commentId ', stringCommentId)
-     
-      return stringCommentId
     }
 
     const onSubmit = async (values) => {
         event.preventDefault();
         setFinished(false)
-        console.log('values ', values)
-        let _commentId = await getCommentId()
-        console.log('comment id after set ', _commentId)
+        
+        let allComments = await curDaoIdx.get('comments', curDaoIdx.id)
+        console.log('all comments', allComments)
+        let nextCommentId
+        if(allComments){
+          nextCommentId = allComments.comments.length
+        } else {
+          nextCommentId = 0
+        }
+
+        // Load existing array of details
+      
+        if(!allComments){
+          allComments = { comments: [] }
+        }
+
         let record = {
-          _id: _commentId,
-          parent: commentParent,
+          commentId: nextCommentId.toString(),
+          parent: proposalId.toString(),
           subject: commentSubject,
           body: commentBody,
           author: commentAuthor,
           postDate: new Date().getTime(),
           published: commentPublished
-      }
-
-        let userCollectionExists = await isUserCollection('Comment')
-        !userCollectionExists ? await initiateCollection('Comment', commentSchema) : null
-
-        let result = await retrieveRecord(commentId, 'Comment')
-        console.log('present user ', result)
-        console.log('user record ', result)
-        if(!result) {
-            await createRecord('Comment', record)
-            await contract.addComment({
-              commentId: _commentId,
-              commentParent: commentParent,
-              published: commentPublished.toString()
-          }, '150000000000000')
-        } else {
-            const updatedRecord = result
-            updatedRecord.parent = commentParent
-            updatedRecord.subject = commentSubject
-            updatedRecord.body = commentBody
-            updatedRecord.postDate = new Date().getTime()
-            updatedRecord.published = commentPublished
-            await updateRecord('Comment', [updatedRecord])
         }
 
-        if(commentPublished) {
-            let appCollectionExists = await isAppCollection('Comment')
-            !appCollectionExists ? await initiateAppCollection('Comment', commentSchema) : null
-
-            let result = await retrieveAppRecord(commentId, 'Comment')
-            console.log('present user ', result)
-            console.log('user record ', result)
-            if(!result) {
-                await createAppRecord('Comment', record)
-                await contract.addComment({
-                  commentId: _commentId,
-                  commentParent: commentParent,
-                  published: commentPublished.toString()
-              }, '150000000000000')
-            } else {
-              const updatedRecord = result
-              updatedRecord.parent = commentParent
-              updatedRecord.subject = commentSubject
-              updatedRecord.body = commentBody
-              updatedRecord.postDate = new Date().getTime()
-              updatedRecord.published = commentPublished
-              await updateAppRecord('Comment', [updatedRecord])
-            }
-        }
-
-        if(!commentPublished) {
-          let appCollectionExists = await isAppCollection('Comment')
-          !appCollectionExists ? await initiateAppCollection('Comment', commentSchema) : null
-
-          let result = await retrieveAppRecord(_commentId, 'Comment')
-          console.log('present user ', result)
-          console.log('user record ', result)
-
-          if(result) {
-            await deleteAppRecord(_commentId, 'Comment') 
-          }
-        }
-
+        // Add comment
+        allComments.comments.push(record)
+        console.log('allComments.comments', allComments.comments)
+        await curDaoIdx.set('comments', allComments)
+        
       setFinished(true)
+      handleUpdate(true)
     }
 
     const modules = {

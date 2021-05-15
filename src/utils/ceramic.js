@@ -13,6 +13,11 @@ import { daoKeysSchema } from '../schemas/daoKeys'
 import { definitionsSchema } from '../schemas/definitions'
 import { schemaSchema } from '../schemas/schemas'
 import { daoListSchema } from '../schemas/daoList'
+import { memberSchema } from '../schemas/members'
+import { summonSchema } from '../schemas/summonEvent'
+import { proposalSchema } from '../schemas/proposals'
+import { proposalDetailsSchema } from '../schemas/proposalDetails'
+import { commentsSchema } from '../schemas/comments'
 
 import { config } from '../state/config'
 const axios = require('axios').default;
@@ -407,24 +412,25 @@ async makeSeed(account){
       }
 
       console.log('definition', definition)
-
-      let defRecords = await idx.get('definitions', idx.id)
-      console.log('defRecords', defRecords)
-      if(defRecords == null){
-        defRecords = { defs: [] }
-      }
-
-      let record = {
-          accountId: accountId,
-          alias: aliasName,
-          def: definition.id.toString()
+      if(definition){
+        let defRecords = await idx.get('definitions', idx.id)
+        console.log('defRecords', defRecords)
+        if(defRecords == null){
+          defRecords = { defs: [] }
         }
 
-      defRecords.defs.push(record)
+        let record = {
+            accountId: accountId,
+            alias: aliasName,
+            def: definition.id.toString()
+          }
 
-      let result = await idx.set('definitions', defRecords)
-      
-      return true
+        defRecords.defs.push(record)
+
+        let result = await idx.set('definitions', defRecords)
+        
+        return true
+      }
     }
     return true
   }
@@ -463,13 +469,47 @@ async makeSeed(account){
     const definitions = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'Definitions', appClient, definitionsSchema, 'alias definitions', contract)
     const schemas = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'Schemas', appClient, schemaSchema, 'user schemas', contract)
     const daoList = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'daoList', appClient, daoListSchema, 'list of all daos', contract)
-    const done = await Promise.all([appDid, definitions, schemas, daoList])
+    const daoProfile = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'daoProfile', appClient, daoProfileSchema, 'dao profiles', contract)
+    const profile = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'profile', appClient, profileSchema, 'persona profiles', contract)
+    const accountsKeys = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'accountsKeys', appClient, accountKeysSchema, 'user account info', contract)
+    const daoKeys = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'daoKeys', appClient, daoKeysSchema, 'dao account info', contract)
+    const members = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'members', appClient, memberSchema, 'dao member info', contract)
+    const summonEvent = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'summonEvent', appClient, summonSchema, 'dao summon events', contract)
+    const proposal = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'proposals', appClient, proposalSchema, 'proposal events', contract)
+    const proposalDetails = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'proposalDetails', appClient, proposalDetailsSchema, 'proposal details', contract)
+    const comments = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'comments', appClient, commentsSchema, 'comments', contract)
+    const done = await Promise.all([
+      appDid, 
+      definitions, 
+      schemas, 
+      daoList, 
+      daoProfile, 
+      profile, 
+      accountsKeys, 
+      daoKeys, 
+      members, 
+      summonEvent, 
+      proposal, 
+      proposalDetails, 
+      comments
+    ])
     
     let rootAliases = {
       definitions: done[1],
       schemas: done[2],
       daoList: done[3],
+      daoProfile: done[4],
+      profile: done[5],
+      accountsKeys: done[6],
+      daoKeys: done[7],
+      members: done[8],
+      summonEvent: done[9],
+      proposals: done[10],
+      proposalDetails: done[11],
+      comments: done[12]
     }
+
+    console.log('root aliases', rootAliases)
     const appIdx = new IDX({ ceramic: appClient, aliases: rootAliases})
    
     return appIdx
@@ -478,6 +518,8 @@ async makeSeed(account){
   // owner IDX (account currently logged in and for which new Personas are made)
   async getCurrentUserIdx(account, appIdx, contract, owner, ownerIdx){
     
+      const appClient = await this.getAppCeramic()
+
       let seed = await this.getLocalAccountSeed(account.accountId)
       let currentUserCeramicClient = await this.getCeramic(account, seed)
 
@@ -505,12 +547,18 @@ async makeSeed(account){
   
       //initialize aliases if required
       console.log('owneridx ceramic', ownerIdx)
-      const profileAlias = await this.aliasSetup(ownerIdx, account.accountId, 'profile', 'user profile data', profileSchema, currentUserCeramicClient)
-      const daoProfileAlias = await this.aliasSetup(ownerIdx, account.accountId, 'daoProfile', 'dao profile data', daoProfileSchema, currentUserCeramicClient)
-      const accountsKeysAlias = await this.aliasSetup(ownerIdx, account.accountId, 'accountsKeys', 'user account info', accountKeysSchema, currentUserCeramicClient)
-      const daoKeysAlias = await this.aliasSetup(ownerIdx, account.accountId, 'daoKeys', 'user dao info', daoKeysSchema, currentUserCeramicClient)
-      let currentAliases = await this.getAliases(ownerIdx, account.accountId)
-      let curUserIdx = new IDX({ ceramic: currentUserCeramicClient, aliases: currentAliases})
+    //   const profileAlias = await this.aliasSetup(ownerIdx, account.accountId, 'profile', 'user profile data', profileSchema, currentUserCeramicClient)
+    // //  const daoProfileAlias = await this.aliasSetup(ownerIdx, account.accountId, 'daoProfile', 'dao profile data', daoProfileSchema, currentUserCeramicClient)
+    //   const daoProfile = await this.getAlias(process.env.APP_OWNER_ACCOUNT, 'daoProfile', appClient, daoProfileSchema, 'dao profiles', contract)
+    //   const accountsKeysAlias = await this.aliasSetup(ownerIdx, account.accountId, 'accountsKeys', 'user account info', accountKeysSchema, currentUserCeramicClient)
+    //   const daoKeysAlias = await this.aliasSetup(ownerIdx, account.accountId, 'daoKeys', 'user dao info', daoKeysSchema, currentUserCeramicClient)
+    //   const membersAlias = await this.aliasSetup(ownerIdx, account.accountId, 'members', 'dao member info', memberSchema, currentUserCeramicClient)
+    //   const summonAlias = await this.aliasSetup(ownerIdx, account.accountId, 'summonEvent', 'dao summon events', summonSchema, currentUserCeramicClient)
+     // let currentAliases = await this.getAliases(ownerIdx, account.accountId)
+   //   let currentAliases = await this.getAliases(appIdx, process.env.APP_OWNER_ACCOUNT)
+     // console.log('currentAliases', currentAliases)
+    //  currentAliases = {...currentAliases, daoProfile}
+      let curUserIdx = new IDX({ ceramic: currentUserCeramicClient, aliases: appIdx._aliases})
       console.log('curuseridx ceramic', curUserIdx)
       return curUserIdx
   }
@@ -590,15 +638,17 @@ async makeSeed(account){
     
     // Associate current user NEAR account with DID and store in contract
     let associate = this.associateDID(account.accountId, contract, newUserCeramicClient)
-    let profileAlias = await this.aliasSetup(ownerIdx, account.accountId, 'profile', 'user profile data', profileSchema, newUserCeramicClient)
-    const daoProfileAlias = await this.aliasSetup(ownerIdx, account.accountId, 'daoProfile', 'dao profile data', daoProfileSchema, newUserCeramicClient)
-    let accountsKeysAlias = await this.aliasSetup(ownerIdx, account.accountId, 'accountsKeys', 'user account info', accountKeysSchema, newUserCeramicClient)
-    const daoKeysAlias = await this.aliasSetup(ownerIdx, account.accountId, 'daoKeys', 'user dao info', daoKeysSchema, newUserCeramicClient)
-    const done = await Promise.all([associate])
+    // let profileAlias = await this.aliasSetup(ownerIdx, account.accountId, 'profile', 'user profile data', profileSchema, newUserCeramicClient)
+    // let daoProfileAlias = await this.aliasSetup(ownerIdx, account.accountId, 'daoProfile', 'dao profile data', daoProfileSchema, newUserCeramicClient)
+    // let accountsKeysAlias = await this.aliasSetup(ownerIdx, account.accountId, 'accountsKeys', 'user account info', accountKeysSchema, newUserCeramicClient)
+    // let daoKeysAlias = await this.aliasSetup(ownerIdx, account.accountId, 'daoKeys', 'user dao info', daoKeysSchema, newUserCeramicClient)
+    // let membersAlias = await this.aliasSetup(ownerIdx, account.accountId, 'members', 'dao member info', memberSchema, newUserCeramicClient)
+    // let summonAlias = await this.aliasSetup(ownerIdx, account.accountId, 'summonEvent', 'dao summon events', summonSchema, newUserCeramicClient)
+    // const done = await Promise.all([associate])
   
-    let currentAliases = await this.getAliases(ownerIdx, account.accountId)
-    const curUserIdx = new IDX({ ceramic: newUserCeramicClient, aliases: currentAliases})
-
+    // let currentAliases = await this.getAliases(ownerIdx, account.accountId)
+    //const curUserIdx = new IDX({ ceramic: newUserCeramicClient, aliases: currentAliases})
+    const curUserIdx = new IDX({ ceramic: newUserCeramicClient, aliases: appIdx._aliases})
     // Store it's new seed/list of accounts for later retrieval
     const updatedLinks = get(ACCOUNT_LINKS, [])
     await this.storeKeysSecret(curUserIdx, updatedLinks, 'accountsKeys')
