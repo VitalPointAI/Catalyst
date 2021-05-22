@@ -27,7 +27,7 @@ const axios = require('axios').default
 
 
 export const {
-    FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, REDIRECT, KEY_REDIRECT,
+    FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, REDIRECT, KEY_REDIRECT, APP_OWNER_ACCOUNT, IPFS_PROVIDER, FACTORY_DEPOSIT,
     networkId, nodeUrl, walletUrl, nameSuffix,
     contractName, didRegistryContractName
 } = config
@@ -226,7 +226,7 @@ async makeSeed(account){
             did = await didContract.putDID({
               accountId: accountId,
               did: ceramic.did.id
-            }, process.env.DEFAULT_GAS_VALUE)
+            }, GAS)
           } catch (err) {
             console.log('problem storing DID', err)
           }
@@ -465,19 +465,19 @@ async makeSeed(account){
 
     const appClient = await this.getAppCeramic()
 
-    const appDid = this.associateAppDID(process.env.APP_OWNER_ACCOUNT, contract, appClient)
-    const definitions = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'Definitions', appClient, definitionsSchema, 'alias definitions', contract)
-    const schemas = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'Schemas', appClient, schemaSchema, 'user schemas', contract)
-    const daoList = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'daoList', appClient, daoListSchema, 'list of all daos', contract)
-    const daoProfile = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'daoProfile', appClient, daoProfileSchema, 'dao profiles', contract)
-    const profile = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'profile', appClient, profileSchema, 'persona profiles', contract)
-    const accountsKeys = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'accountsKeys', appClient, accountKeysSchema, 'user account info', contract)
-    const daoKeys = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'daoKeys', appClient, daoKeysSchema, 'dao account info', contract)
-    const members = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'members', appClient, memberSchema, 'dao member info', contract)
-    const summonEvent = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'summonEvent', appClient, summonSchema, 'dao summon events', contract)
-    const proposal = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'proposals', appClient, proposalSchema, 'proposal events', contract)
-    const proposalDetails = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'proposalDetails', appClient, proposalDetailsSchema, 'proposal details', contract)
-    const comments = this.getAlias(process.env.APP_OWNER_ACCOUNT, 'comments', appClient, commentsSchema, 'comments', contract)
+    const appDid = this.associateAppDID(APP_OWNER_ACCOUNT, contract, appClient)
+    const definitions = this.getAlias(APP_OWNER_ACCOUNT, 'Definitions', appClient, definitionsSchema, 'alias definitions', contract)
+    const schemas = this.getAlias(APP_OWNER_ACCOUNT, 'Schemas', appClient, schemaSchema, 'user schemas', contract)
+    const daoList = this.getAlias(APP_OWNER_ACCOUNT, 'daoList', appClient, daoListSchema, 'list of all daos', contract)
+    const daoProfile = this.getAlias(APP_OWNER_ACCOUNT, 'daoProfile', appClient, daoProfileSchema, 'dao profiles', contract)
+    const profile = this.getAlias(APP_OWNER_ACCOUNT, 'profile', appClient, profileSchema, 'persona profiles', contract)
+    const accountsKeys = this.getAlias(APP_OWNER_ACCOUNT, 'accountsKeys', appClient, accountKeysSchema, 'user account info', contract)
+    const daoKeys = this.getAlias(APP_OWNER_ACCOUNT, 'daoKeys', appClient, daoKeysSchema, 'dao account info', contract)
+    const members = this.getAlias(APP_OWNER_ACCOUNT, 'members', appClient, memberSchema, 'dao member info', contract)
+    const summonEvent = this.getAlias(APP_OWNER_ACCOUNT, 'summonEvent', appClient, summonSchema, 'dao summon events', contract)
+    const proposal = this.getAlias(APP_OWNER_ACCOUNT, 'proposals', appClient, proposalSchema, 'proposal events', contract)
+    const proposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'proposalDetails', appClient, proposalDetailsSchema, 'proposal details', contract)
+    const comments = this.getAlias(APP_OWNER_ACCOUNT, 'comments', appClient, commentsSchema, 'comments', contract)
     const done = await Promise.all([
       appDid, 
       definitions, 

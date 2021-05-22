@@ -36,7 +36,7 @@ import Tooltip from '@material-ui/core/Tooltip'
 import Zoom from '@material-ui/core/Zoom'
 import InfoIcon from '@material-ui/icons/Info'
 import Divider from '@material-ui/core/Divider'
-import { factoryContractName, GAS, FACTORY_DEPOSIT, nameSuffix } from '../../state/near'
+import { factoryContractName, GAS, FACTORY_DEPOSIT, IPFS_PROVIDER, nameSuffix } from '../../state/near'
 
 
 const useStyles = makeStyles((theme) => ({
@@ -116,7 +116,7 @@ export default function CreateDemDAO(props) {
     };
 
     function handleFileHash(hash) {
-      setLogo(process.env.IPFS_PROVIDER + hash)
+      setLogo(IPFS_PROVIDER + hash)
     }
     
     const handleDaoNameChange = async (event) => {
@@ -529,8 +529,8 @@ export default function CreateDemDAO(props) {
             </Grid>
             <Grid item xs={10} sm={10} md={10} lg={10} xl={10} style={{margin:'auto'}}>
                 <WarningIcon fontSize='large' className={classes.warning} />
-                <Typography variant="body2" gutterBottom>Creating a Democracy DAO requires you to deposit <b>{parseInt(process.env.FACTORY_DEPOSIT)} Ⓝ</b>.</Typography>
-                <Typography variant="body2">The <b>{process.env.FACTORY_DEPOSIT} Ⓝ</b> you are about to transfer covers the cost of storage of the DAO contract.  As this is a democracy DAO, you will have to submit a proposal that receives 51% of the vote in order to delete the DAO and recover this deposit.</Typography>     
+                <Typography variant="body2" gutterBottom>Creating a Democracy DAO requires you to deposit <b>{parseInt(FACTORY_DEPOSIT)} Ⓝ</b>.</Typography>
+                <Typography variant="body2">The <b>{FACTORY_DEPOSIT} Ⓝ</b> you are about to transfer covers the cost of storage of the DAO contract.  As this is a democracy DAO, you will have to submit a proposal that receives 51% of the vote in order to delete the DAO and recover this deposit.</Typography>     
             </Grid>
             </Grid>
           </CardContent>

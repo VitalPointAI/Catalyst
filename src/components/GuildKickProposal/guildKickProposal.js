@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
-//import { proposalEvent } from '../../../../utils/proposalEvents'
 import { utils } from 'near-api-js'
+import { GAS } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -77,7 +77,7 @@ export default function GuildKickProposal(props) {
   async function handleCancelAction(proposalIdentifier) {
     let finished = await daoContract.cancelProposal({
         pI: proposalIdentifier
-        }, process.env.DEFAULT_GAS_VALUE, utils.format.parseNearAmount((parseInt(proposalDeposit)).toString()))
+        }, GAS, utils.format.parseNearAmount((parseInt(proposalDeposit)).toString()))
     try{
       // let recorded = await proposalEvent.recordEvent(
       //   finished.pI, finished.a, finished.p, finished.s, finished.sR, finished.lR, finished.tO, finished.tT, finished.pR, finished.pT, 
@@ -101,7 +101,7 @@ export default function GuildKickProposal(props) {
                     memberToKick: memberKick, 
                     proposalDeposit: proposalDeposit,
                     depositToken: depositToken
-                    }, process.env.DEFAULT_GAS_VALUE, utils.format.parseNearAmount((parseInt(proposalDeposit)).toString()))
+                    }, GAS, utils.format.parseNearAmount((parseInt(proposalDeposit)).toString()))
       try {
         let recorded = await proposalEvent.recordEvent(
           finished.pI, finished.a, finished.p, finished.s, finished.sR, finished.lR, finished.tO, finished.tT, finished.pR, finished.pT, 

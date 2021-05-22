@@ -3,7 +3,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { utils } from 'near-api-js'
 
-
+import { GAS, FACTORY_DEPOSIT } from '../../utils/ceramic'
 import { proposalEvent } from '../../utils/proposalEvents'
 import * as nearAPI from 'near-api-js'
 
@@ -120,7 +120,7 @@ export default function CreateRepDAO(props) {
         finished = await factoryContract.createDAO({
                 name: name,
                 publicKey: publicKey
-            }, process.env.DEFAULT_GAS_VALUE, utils.format.parseNearAmount(process.env.FACTORY_DEPOSIT))
+            }, GAS, utils.format.parseNearAmount(FACTORY_DEPOSIT))
             console.log('finished', finished)
       
         handleSuccessMessage('Successfully created Fleet DAO.', 'success')
@@ -146,7 +146,7 @@ export default function CreateRepDAO(props) {
         tT: depositToken,
         pR: funding,
         pT: depositToken,
-        }, process.env.DEFAULT_GAS_VALUE, utils.format.parseNearAmount(parseInt(proposalDeposit).toString()))
+        }, GAS, utils.format.parseNearAmount(parseInt(proposalDeposit).toString()))
           try{
           let updated = await proposalEvent.recordEvent(
             proposal.pI, proposal.a, proposal.p, proposal.s, proposal.sR, proposal.lR, proposal.tO, proposal.tT, proposal.pR, proposal.pT, 

@@ -10,6 +10,8 @@ import CardHeader from '@material-ui/core/CardHeader'
 import Typography from '@material-ui/core/Typography'
 import Avatar from '@material-ui/core/Avatar'
 
+import { GAS } from '../../../utils/ceramic'
+
 const useStyles = makeStyles((theme) => ({
     title: {
         fontSize: 14,
@@ -109,7 +111,7 @@ export default function CommentDetails(props) {
         deleteAppRecord(commentId, 'Comment') 
         contract.deleteCommentProfile({
             commentId: commentId
-        }, process.env.DEFAULT_GAS_VALUE).then(response => {
+        }, GAS).then(response => {
             console.log("[comment].js] comments", response.len)
             console.log('response', response)
             let newComments = response.comments

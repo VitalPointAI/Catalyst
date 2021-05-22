@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { utils } from 'near-api-js'
-import { submitProposal } from '../../state/near'
+import { submitProposal, GAS } from '../../state/near'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -123,7 +123,7 @@ export default function MemberProposal(props) {
   async function handleCancelAction(proposalIdentifier, tribute) {
     let finished = await daoContract.cancelProposal({
         pI: proposalIdentifier
-        }, process.env.DEFAULT_GAS_VALUE, utils.format.parseNearAmount((parseInt(proposalDeposit)+parseInt(tribute)).toString()))
+        }, GAS, utils.format.parseNearAmount((parseInt(proposalDeposit)+parseInt(tribute)).toString()))
     try{
       
 

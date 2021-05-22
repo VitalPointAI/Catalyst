@@ -5,7 +5,7 @@ import Big from 'big.js'
 import { utils } from 'near-api-js'
 import InfoPopup from '../../../common/InfoPopup'
 import { Translate } from 'react-localize-redux'
-import { proposalEvent } from '../../../../utils/proposalEvents'
+import { GAS } from '../../utils/ceramic'
 import { useParams } from 'react-router-dom'
 
 
@@ -131,7 +131,7 @@ export default function MemberProposal(props) {
   async function handleCancelAction(proposalIdentifier, tribute) {
     let finished = await daoContract.cancelProposal({
         pI: proposalIdentifier
-        }, process.env.DEFAULT_GAS_VALUE, utils.format.parseNearAmount((parseInt(proposalDeposit)+parseInt(tribute)).toString()))
+        }, GAS, utils.format.parseNearAmount((parseInt(proposalDeposit)+parseInt(tribute)).toString()))
     try{
       // let recorded = await proposalEvent.recordEvent(
       //   finished.pI, finished.a, finished.p, finished.s, finished.sR, finished.lR, finished.tO, finished.tT, finished.pR, finished.pT, 

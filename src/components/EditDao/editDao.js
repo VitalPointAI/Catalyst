@@ -3,6 +3,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import FileUpload from '../IPFSupload/ipfsUpload'
 import { flexClass } from '../../App'
+import { IPFS_PROVIDER } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -95,7 +96,7 @@ export default function EditDaoForm(props) {
     },[])
 
     function handleFileHash(hash) {
-      setLogo(process.env.IPFS_PROVIDER + hash)
+      setLogo(IPFS_PROVIDER + hash)
     }
 
     const handleClose = () => {

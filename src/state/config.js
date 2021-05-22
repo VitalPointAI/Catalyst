@@ -17,6 +17,8 @@ let config = {
     KEY_REDIRECT: '__KEY_REDIRECT',
     GAS: '200000000000000',
     FACTORY_DEPOSIT: '2',
+    APP_OWNER_ACCOUNT: 'vitalpointai.testnet',
+    IPFS_PROVIDER: ' https://ipfs.io/ipfs/',
     networkId: 'testnet',
     nodeUrl: 'https://rpc.testnet.near.org',
     walletUrl: 'https://wallet.testnet.near.org',

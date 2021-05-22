@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { utils } from 'near-api-js'
+import { GAS, FACTORY_DEPOSIT } from '../../utils/ceramic'
 
 import CreateDemDAO from '../CreateDAO/createDemDAO'
 import OliDaoCard from './DaoFrameworks/oliDaoCard'
@@ -122,7 +123,7 @@ export default function CreateDao(props) {
             try{
                 finished = await daoFactory.createDAO({
                         name: name
-                    }, process.env.DEFAULT_GAS_VALUE, utils.format.parseNearAmount(process.env.FACTORY_DEPOSIT))
+                    }, GAS, utils.format.parseNearAmount(FACTORY_DEPOSIT))
                   
               
                 handleSuccessMessage('Successfully created DAO.', 'success')
@@ -150,7 +151,7 @@ export default function CreateDao(props) {
            finished = await contract.deleteDAO({
                 name: name,
                 beneficiary: accountId
-            }, process.env.DEFAULT_GAS_VALUE)
+            }, GAS)
             console.log('finished', finished)
             if(finished) {
                 handleSuccessMessage('Successfully deleted DAO.', 'success')

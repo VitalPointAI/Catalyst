@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { utils } from 'near-api-js'
+import { GAS } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -118,7 +119,7 @@ export default function FundingProposal(props) {
         tT: depositToken,
         pR: funding,
         pT: depositToken,
-        }, process.env.DEFAULT_GAS_VALUE, utils.format.parseNearAmount(parseInt(proposalDeposit).toString()))
+        }, GAS, utils.format.parseNearAmount(parseInt(proposalDeposit).toString()))
           try{
           // let updated = await proposalEvent.recordEvent(
           //   proposal.pI, proposal.a, proposal.p, proposal.s, proposal.sR, proposal.lR, proposal.tO, proposal.tT, proposal.pR, proposal.pT, 

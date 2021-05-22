@@ -21,6 +21,8 @@ import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
 import Typography from '@material-ui/core/Typography'
 
+import { FACTORY_DEPOSIT } from '../../utils/ceramic'
+
 const useStyles = makeStyles((theme) => ({
   warning: {
     float: 'left',
@@ -148,8 +150,8 @@ export default function AddDaoForm(props) {
           
                           <Grid item xs={11} sm={11} md={11} lg={11} xl={11} style={{margin:'auto'}}>
                               <WarningIcon fontSize='large' className={classes.warning} />
-                              <Typography variant="body2" gutterBottom>Creating a Democracy DAO requires you to deposit <b>{parseInt(process.env.FACTORY_DEPOSIT)} Ⓝ</b>.</Typography>
-                              <Typography variant="body2">The <b>{process.env.FACTORY_DEPOSIT} Ⓝ</b> you are about to transfer covers the cost of storage of the DAO contract.  As this is a democracy DAO, you will have to submit a proposal that receives 51% of the vote in order to delete the DAO and recover this deposit.</Typography>     
+                              <Typography variant="body2" gutterBottom>Creating a Democracy DAO requires you to deposit <b>{parseInt(FACTORY_DEPOSIT)} Ⓝ</b>.</Typography>
+                              <Typography variant="body2">The <b>{FACTORY_DEPOSIT} Ⓝ</b> you are about to transfer covers the cost of storage of the DAO contract.  As this is a democracy DAO, you will have to submit a proposal that receives 51% of the vote in order to delete the DAO and recover this deposit.</Typography>     
                           </Grid>
                         </Grid>
                       </CardContent>
