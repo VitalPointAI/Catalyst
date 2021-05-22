@@ -50,16 +50,16 @@ export const Header = ({ state, handleSnackBarOpen, handleSuccessMessage, handle
                 <Typography style={{textAlign: 'center', margin: 'auto'}}>Learn</Typography>
             </Grid>
             <Grid item xs={4} sm={4} md={4} lg={4} xl={4}>
-                <LoginButton wallet={wallet} />
+                <LoginButton />
             </Grid>
                 </>
             ) : (
                 <>
                 <Grid item xs={4} sm={4} md={7} lg={7} xl={7}>
-                    {wallet && wallet.signedIn ? <Persona state={state} accountId={wallet.getAccountId()} balance={wallet.balance} /> : <LinearProgress /> }
+                    {wallet && wallet.signedIn ? <Persona balance={wallet.balance} /> : <LinearProgress /> }
                 </Grid>
                 <Grid item xs={4} sm={4} md={2} lg={2} xl={2} style={{textAlign: 'right'}}>
-                    <LogoutButton wallet={wallet} /> 
+                    <LogoutButton /> 
                 </Grid>
                 </>
                 )

@@ -84,7 +84,8 @@ export default function proposalDetails(props) {
       didRegistryContract,
       near,
       appIdx,
-      accountId
+      accountId,
+      curUserIdx
     } = state
 
     const {
@@ -155,9 +156,9 @@ export default function proposalDetails(props) {
               }
             }
             
-            // Load DAO Proposal information
-            let result = await curDaoIdx.get('proposals', curDaoIdx.id)
-            console.log('result here proposal card', result)
+            // // Load DAO Proposal information
+            // let result = await curDaoIdx.get('proposals', curDaoIdx.id)
+            // console.log('result here proposal card', result)
                     
             return true  
           }
@@ -196,6 +197,7 @@ export default function proposalDetails(props) {
                         commentPostDate={comment.postDate}
                         commentSubject={comment.subject}
                         accountId={accountId}
+                        curUserIdx={curUserIdx}
                     />
                   )
           })

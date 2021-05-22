@@ -50,7 +50,7 @@ export const Container = ({ children, state, handleSnackBarOpen, handleSuccessMe
     const classes = useStyles();
    
     const {
-        app, wallet, links, claimed, accountId, curInfo
+        app, wallet, links, claimed, accountId, curInfo, finished
     } = state
 
     useEffect(
@@ -71,7 +71,7 @@ export const Container = ({ children, state, handleSnackBarOpen, handleSuccessMe
         successMessage={successMessage}/>
        
         <div class={flexClass}>
-        {state.finished ? (
+        {finished ? (
             <div class="container container-custom">
                 {wallet && wallet.signedIn ? children : <SignIn wallet={wallet} state={state}/>}
             </div>

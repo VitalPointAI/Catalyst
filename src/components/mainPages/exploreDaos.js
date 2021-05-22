@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
+import { appStore, onAppMount } from '../../state/app'
 
 import DaoCard from '../DAOCard/daoCard'
 import { Header } from '../Header/header'
@@ -48,12 +49,10 @@ export default function ExploreDaos(props) {
 
     const classes = useStyles()
 
-    const {
-        state
-    } = props
+    const { state, dispatch, update } = useContext(appStore)
 
     const {
-        daoList
+      daoList,
     } = state
 
     useEffect(
@@ -93,9 +92,9 @@ export default function ExploreDaos(props) {
             { daoCount > 0 ? 
                 (<>
                   
-                {daos.map(({ contractId, summoner, date }) => 
+                {daos.map(({ contractId, summoner, date}, i) => 
                     <DaoCard
-                        key={date}
+                        key={i}
                         contractId={contractId}
                         summoner={summoner}
                         created={date}
@@ -103,11 +102,10 @@ export default function ExploreDaos(props) {
                         state={state}
                         handleEditDaoClick={handleEditDaoClick}
                     />
-                
-                )}
-            </>)
+                    )}
+                </>)
             : null
-            } 
+            }
         </Grid>
         </div>
         

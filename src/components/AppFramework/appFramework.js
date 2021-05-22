@@ -3,7 +3,7 @@ import { appStore, onAppMount } from '../../state/app';
 import { useParams } from 'react-router-dom'
 import * as nearAPI from 'near-api-js'
 import { get, set, del } from '../../utils/storage'
-import { logInitEvent, logProposalEvent } from '../../state/near'
+import { logInitEvent, logProposalEvent, logSponsorEvent, logCancelEvent, logProcessEvent, logVoteEvent, synchProposalEvent } from '../../state/near'
 
 import ActionSelector from '../ActionSelector/actionSelector'
 import ProposalList from '../ProposalList/proposalList'
@@ -14,7 +14,7 @@ import Initialize from '../Initialize/initialize'
 import { dao } from '../../utils/dao'
 import { ceramic } from '../../utils/ceramic'
 
-import { DAO_LINKS, DAO_FIRST_INIT, NEW_PROPOSAL } from '../../state/near'
+import { NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE } from '../../state/near'
 
 // Material UI imports
 import { makeStyles } from '@material-ui/core/styles'
@@ -49,11 +49,11 @@ export default function AppFramework(props) {
 
     const { state, dispatch, update } = useContext(appStore);
 
-    const [date, setDate] = useState('')
-    const [name, setName] = useState('')
-    const [logo, setLogo] = useState(imageName)
-    const [purpose, setPurpose] = useState('')
-    const [category, setCategory] = useState('')
+    // const [date, setDate] = useState('')
+    // const [name, setName] = useState('')
+    // const [logo, setLogo] = useState(imageName)
+    // const [purpose, setPurpose] = useState('')
+    // const [category, setCategory] = useState('')
 
     const [sharesLabel, setSharesLabel] = useState('Shares: 0')
     const [lootLabel, setLootLabel] = useState('Loot: 0')
@@ -61,6 +61,7 @@ export default function AppFramework(props) {
     const [guildBalanceChip, setGuildBalanceChip] = useState()
     const [escrowBalanceChip, setEscrowBalanceChip] = useState()
     const [nearPrice, setNearPrice] = useState()
+    const [change, setChange] = useState(false)
 
     const [tabValue, setTabValue] = useState('1')
     const [daoContract, setDaoContract] = useState()
@@ -80,11 +81,10 @@ export default function AppFramework(props) {
     const [depositToken, setDepositToken] = useState()
     const [proposalDeposit, setProposalDeposit] = useState()
     const [periodDuration, setPeriodDuration] = useState()
-    const [proposalEvents, setProposalEvents] = useState([])
     const [curDaoIdx, setCurDaoIdx] = useState()
-    const [did, setDid] = useState()
     const [initialized, setInitialized] = useState()
     const [initLoad, setInitLoad] = useState(false)
+    const [started, setStarted] = useState(false)
     
     const classes = useStyles()
     
@@ -101,15 +101,9 @@ export default function AppFramework(props) {
       processingReward,
       handleProposalEventChange,
       handleUserBalanceChanges,
-      
-      handleHasDao,
-      hasDao,
       tokenName,
       minSharePrice,
       proposalComments,
-    //  daoContract,
-      handleInitChange,
-      handleContractIdx,
       appClient,
     } = props
 
@@ -128,97 +122,192 @@ export default function AppFramework(props) {
       () => {
 
           async function fetchData() {
-         
+            
             if(didRegistryContract && near){
               if(contractId){
-                let existingDid = await didRegistryContract.hasDID({accountId: contractId})
-                console.log('existing DID', existingDid)
-                if(existingDid){
-                    let thisDid = await didRegistryContract.getDID({
-                        accountId: contractId
-                    })
-                    setDid(thisDid)
+                let thisCurDaoIdx
+                let daoAccount = new nearAPI.Account(near.connection, contractId)
+                console.log('daoAccount', daoAccount)
                    
-                    let daoAccount = new nearAPI.Account(near.connection, contractId);
-                    
-                    let thisCurDaoIdx = await ceramic.getCurrentUserIdx(daoAccount, appIdx, didRegistryContract)
-                    console.log('curdaoidx', thisCurDaoIdx)
-                    setCurDaoIdx(thisCurDaoIdx)
+                thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+                setCurDaoIdx(thisCurDaoIdx)
+           
+                let contract = await dao.initDaoContract(state.wallet.account(), contractId)
+                setDaoContract(contract)
 
-                    let contract = await dao.initDaoContract(state.wallet.account(), contractId)
-                    setDaoContract(contract)
-                    console.log('dao contract', contract)
-                            
-                    let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
-                    console.log('result', result)
-                    if(result){
-                      result.name ? setName(result.name) : setName('')
-                      result.date ? setDate(result.date) : setDate('')
-                      result.logo ? setLogo(result.logo) : setLogo(imageName)
-                      result.purpose ? setPurpose(result.purpose) : setPurpose('')
-                      result.category ? setCategory(result.category) : setCategory('')
-                    }
-
-                   try {
-                    let memberInfo = await thisCurDaoIdx.get('members', thisCurDaoIdx.id)
-                    console.log('result memberinfo', memberInfo)
-                    setAllMemberInfo(memberInfo.events)
-                    } catch (err) {
-                      console.log('no memberinfo yet', err)
-                    }
-                    
-                    let init = await contract.getInit()
-                    console.log('init', init)
-                    setInitialized(init)
-                    console.log('initialized', initialized)
-                    setInitLoad(true)
-
-                    // check for first init to log summon and member events
-                    let firstInit = get(DAO_FIRST_INIT, [])
-                    console.log('firstinit', firstInit)
-                    let c = 0
-                    while(c < firstInit.length){
-                      if(firstInit[c].contractId==contractId && firstInit[c].init == true){
-                        let logged = logInitEvent(
-                          contractId, 
+                   // check for first init to log summon and member events
+                   let firstInit = get(DAO_FIRST_INIT, [])
+              
+                   let c = 0
+                   while(c < firstInit.length){
+                     if(firstInit[c].contractId==contractId && firstInit[c].init == true){
+                       let logged = await logInitEvent(
+                         contractId, 
+                         thisCurDaoIdx, 
+                         contract, 
+                         'Democracy', 
+                         state.accountId)
+                         
+                       if (logged) {
+                         firstInit[c].init = false
+                         set(DAO_FIRST_INIT, firstInit)
+                         setChange(!change)
+                       }
+                     }
+                     c++
+                   }
+   
+                   // check for successfully added new proposal to log it
+                   let newProposal = get(NEW_PROPOSAL, [])
+                 
+                   let d = 0
+                   while(d < newProposal.length){
+                     if(newProposal[d].contractId==contractId && newProposal[d].new == true){
+                       let loggedProposal = await logProposalEvent(
+                         thisCurDaoIdx, 
+                         contract, 
+                         newProposal[d].proposalId
+                         )
+                         
+                       if (loggedProposal) {
+                         newProposal[d].new = false
+                         set(NEW_PROPOSAL, newProposal)
+                         setChange(!change)
+                       }
+                     }
+                     d++
+                   }
+   
+                   // check for successfully added new sponsor event to log it
+                   let newSponsor = get(NEW_SPONSOR, [])
+                 
+                   let f = 0
+                   while(f < newSponsor.length){
+                     if(newSponsor[f].contractId==contractId && newSponsor[f].new == true){
+                       let loggedSponsor = await logSponsorEvent(
+                         thisCurDaoIdx, 
+                         contract, 
+                         newSponsor[f].proposalId)
+                         
+                       if (loggedSponsor) {
+                         newSponsor[f].new = false
+                         set(NEW_SPONSOR, newSponsor)
+                         setChange(!change)
+                       }
+                     }
+                     f++
+                   }
+                   
+                    // check for new proposals to process
+                    let newProcess = get(NEW_PROCESS, [])
+                 
+                    let g = 0
+                    while(g < newProcess.length){
+                      if(newProcess[g].contractId==contractId && newProcess[g].new == true){
+                        let loggedProcess = await logProcessEvent(
                           thisCurDaoIdx, 
-                          contract, 
-                          'Democracy', 
-                          state.accountId)
+                          contract,
+                          contractId,
+                          newProcess[g].proposalId,
+                          newProcess[g].type,
+                          accountId
+                          )
                           
-                        if (logged) {
-                          firstInit[c].init = false
-                          set(DAO_FIRST_INIT, firstInit)
+                        if (loggedProcess) {
+                          newProcess[g].new = false
+                          set(NEW_PROCESS, newProcess)
+                          setChange(!change)
                         }
                       }
-                      c++
+                      g++
                     }
+   
+                     // check for new votes
+                     let newVotes = get(NEW_VOTE, [])
+                 
+                     let x = 0
+                     while(x < newVotes.length){
+                       if(newVotes[x].contractId==contractId && newVotes[x].new == true){
+                         let loggedVote = await logVoteEvent(
+                           thisCurDaoIdx, 
+                           contract, 
+                           newVotes[x].proposalId,
+                           newVotes[x].type,
+                           newVotes[x].vote,
+                           accountId
+                           )
+                           
+                         if (loggedVote) {
+                           newVotes[x].new = false
+                           set(NEW_VOTE, newVotes)
+                           setChange(!change)
+                         }
+                       }
+                       x++
+                     }
+   
+                     // check for cancelled proposal event
+                     let newCancel = get(NEW_CANCEL, [])
+                     let h = 0
+                     while(h < newCancel.length){
+                       if(newCancel[h].contractId==contractId && newCancel[h].new == true){
+                         let loggedCancel = await logCancelEvent(
+                           thisCurDaoIdx, 
+                           contract, 
+                           newCancel[h].proposalId)
+                           
+                         if (loggedCancel) {
+                           newCancel[h].new = false
+                           set(NEW_CANCEL, newCancel)
+                           setChange(!change)
+                         }
+                       }
+                       h++
+                     }
 
-                    // check for successfully added new proposal to log it
-                    let newProposal = get(NEW_PROPOSAL, [])
-                    console.log('newProposal', newProposal)
-                    let d = 0
-                    while(d < newProposal.length){
-                      if(newProposal[d].contractId==contractId && newProposal[d].new == true){
-                        let loggedProposal = logProposalEvent(
-                          thisCurDaoIdx, 
-                          contract, 
-                          newProposal[d].proposalId)
-                          
-                        if (loggedProposal) {
-                          newProposal[d].new = false
-                          set(NEW_PROPOSAL, newProposal)
-                        }
-                      }
-                      d++
-                    }
+                  // For debugging
+                  //  let proposalCheck= await contract.getProposal({proposalId: 0})
+                  //  console.log('proposalCheck', proposalCheck)
+                     
+                try{
+                  let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
+                  console.log('result dao', result)
+                  if(result){
+                    result.name ? setName(result.name) : setName('')
+                    result.date ? setDate(result.date) : setDate('')
+                    result.logo ? setLogo(result.logo) : setLogo(imageName)
+                    result.purpose ? setPurpose(result.purpose) : setPurpose('')
+                    result.category ? setCategory(result.category) : setCategory('')
+                  }
+                } catch (err) {
+                  console.log('problem retrieving DAO profile')
+                }
 
-                  
+                try {
+                  console.log('thiscurdaoidx', thisCurDaoIdx)
+                let memberInfo = await thisCurDaoIdx.get('members', thisCurDaoIdx.id)
+                console.log('result memberinfo', memberInfo)
+                setAllMemberInfo(memberInfo.events)
+                } catch (err) {
+                  console.log('no memberinfo yet', err)
+                }
+                    
+                let init = await contract.getInit()
+                console.log('init', init)
+                setInitialized(init)
+                console.log('initialized', initialized)
+                setInitLoad(true)
+
+             
 
                     try {
-                      let proposals = await thisCurDaoIdx.get('proposals', thisCurDaoIdx.id)
-                      console.log('result proposals', proposals)
-                      setAllProposals(proposals.events)
+                      let synched = await synchProposalEvent(thisCurDaoIdx, contract)
+                      console.log('synched', synched)
+                      if(synched){
+                        let proposals = await thisCurDaoIdx.get('proposals', thisCurDaoIdx.id)
+                        console.log('result proposals', proposals)
+                        setAllProposals(proposals.events)
+                      }
                     } catch (err) {
                       console.log('no proposals yet', err)
                     }
@@ -308,28 +397,27 @@ export default function AppFramework(props) {
                     }
         
                     let guildRow
-                      if(gbalance) {
-                        for (let i = 0; i < gbalance.length; i++) {
-                          guildRow = (<>{gbalance[i].balance} {gbalance[i].token}</>
-                          )
-                        }
-                      } else {
-                        guildRow = '0 Ⓝ'
+                    if(gbalance) {
+                      for (let i = 0; i < gbalance.length; i++) {
+                        guildRow = (<>{gbalance[i].balance} {gbalance[i].token}</>
+                        )
                       }
+                    } else {
+                      guildRow = '0 Ⓝ'
+                    }
                     setGuildBalanceChip(<>{guildRow}</>)
                       
                     let escrowRow
-                      if(ebalance) {
-                        for (let i = 0; i < ebalance.length; i++) {
-                          escrowRow = (<>{ebalance[i].balance} {ebalance[i].token}</>)
-                        }
-                      } else {
-                        escrowRow = '0 Ⓝ'
+                    if(ebalance) {
+                      for (let i = 0; i < ebalance.length; i++) {
+                        escrowRow = (<>{ebalance[i].balance} {ebalance[i].token}</>)
                       }
+                    } else {
+                      escrowRow = '0 Ⓝ'
+                    }
                     setEscrowBalanceChip(<>{escrowRow}</>)
                       
                     let getNearPrice = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd')
-                    console.log('nearprice', getNearPrice.data.near.usd)
                     setNearPrice(getNearPrice.data.near.usd)
                     
                     if(currentPeriod == undefined || currentPeriod == 0){
@@ -340,45 +428,47 @@ export default function AppFramework(props) {
                         console.log('get period issue', err)
                       }
                     }
-        
-                    let i = 1
-                    setTimeout(async function refreshCurrentPeriod() {
-                      let start = true
-                      let init
-                      try{
-                          init = await contract.getInit()
-                      } catch (err) {
-                          console.log('cant retreive init', err)
-                      }
-                      if(init=='done'){
-                      try {
-                      let period = await contract.getCurrentPeriod()
-                      setCurrentPeriod(period)
-                      console.log('get period success')
-                      } catch (err) {
-                      console.log('get period issue', err)
-                      }
-                      start = false
-                      i++
-                      if(start == false){
-                      setTimeout(refreshCurrentPeriod, 10000)
-                      }
+                    
+                  //   //let i = 1
+                    if(started==false){
+                      setTimeout(async function refreshCurrentPeriod() {
+                        
+                        let init
+                        try{
+                            init = await contract.getInit()
+                        } catch (err) {
+                            console.log('cant retrieve init', err)
+                        }
+                        if(init=='done'){
+                        try {
+                          let period = await contract.getCurrentPeriod()
+                          setCurrentPeriod(period)
+                          console.log('get period success')
+                        } catch (err) {
+                          console.log('get period issue', err)
+                        }
+                        //start = false
+                      // i++
+                        if(started == false){
+                        setTimeout(refreshCurrentPeriod, 20000)
+                        setStarted(true)
+                        }
+                    }
+                    }, 20000)
                   }
-                  }, 10000)
                 }
                 
               }    
             }  
-          }
+          
       }
-      
 
-          fetchData()
-            .then((res) => {
-            
-            })
-        
-      }, [initialized, didRegistryContract, near, memberStatus, summoner, depositToken]
+      fetchData()
+      .then((res) => {
+      
+      })
+  
+      }, [initialized, didRegistryContract, near, change, currentPeriod]
     )
 
     function handleTabValueState(value) {
@@ -437,6 +527,7 @@ export default function AppFramework(props) {
                   didsContract={didsContract}
                   contractIdx={contractIdx}
                   curUserIdx={curUserIdx}
+                  memberStatus={memberStatus}
                 />
               </div>
               </Grid>
@@ -485,11 +576,13 @@ export default function AppFramework(props) {
               <ProposalList
                 contractId={contractId}
                 curDaoIdx={curDaoIdx}
-                daoDid={did}
+               // daoDid={did}
                 proposalEvents={allProposals}
                 allMemberInfo={allMemberInfo}
                 contract={daoContract}
                 memberStatus={memberStatus}
+                proposalDeposit={proposalDeposit}
+               
         
 
                 guildBalance={guildBalance}
@@ -500,7 +593,7 @@ export default function AppFramework(props) {
                 handleEscrowBalanceChanges={handleEscrowBalanceChanges}
                
                 memberStatus={memberStatus}
-                proposalDeposit={proposalDeposit}
+          
                 depositToken={depositToken}
                 tributeToken={tributeToken}
                 tributeOffer={tributeOffer}
@@ -525,6 +618,7 @@ export default function AppFramework(props) {
           </Grid>
           </>
           ) : <Initialize 
+                summoner={summoner}
                 handleSnackBarOpen={handleSnackBarOpen}
                 handleSuccessMessage={handleSuccessMessage}
                 handleErrorMessage={handleErrorMessage}

@@ -22,6 +22,7 @@ import Tooltip from '@material-ui/core/Tooltip'
 import Zoom from '@material-ui/core/Zoom'
 import InfoIcon from '@material-ui/icons/Info'
 import { CardActions } from '@material-ui/core'
+import { DAO_LINKS } from '../../utils/ceramic';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -67,6 +68,7 @@ export default function Initialize(props) {
     const [dilutionBound, setDilutionBound] = useState('')
     const [confirm, setConfirm] = useState(false)
     const [clicked, setClicked] = useState(false)
+    const [summoner, setSummoner] = useState()
 
     const [logo, setLogo] = useState(imageName)
     const [finished, setFinished] = useState(false)
@@ -76,6 +78,11 @@ export default function Initialize(props) {
     const { register, handleSubmit, watch, errors } = useForm()
 
     const { state, dispatch, update } = useContext(appStore);
+
+    const {
+      accountId,
+      daoList
+    } = state
 
     const {
       contractId
@@ -89,6 +96,16 @@ export default function Initialize(props) {
     
     useEffect(
       () => {
+       // let daoOwner = get(DAO_LINKS, [])
+        let i = 0
+        while(i < daoList.daoList.length){
+          if(daoList.daoList[i].contractId == contractId){
+            let owner = daoList.daoList[i].summoner
+            setSummoner(owner)
+            break
+          }
+          i++
+        }
          
       }, [])
 
@@ -145,6 +162,7 @@ export default function Initialize(props) {
 
       return (
         <>
+        {summoner == accountId ? (
         <Grid container className={classes.confirmation} spacing={1}>
         <Grid item xs={12} sm={12} md={6} lg={6} xl={6} style={{textAlign: 'center'}}>
         <Card>
@@ -294,6 +312,7 @@ export default function Initialize(props) {
           </Card>
         </Grid>
       </Grid>
+        ) : 'DAO not initialized yet'}
         </>
     )
   

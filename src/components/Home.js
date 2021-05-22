@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react'
+import { get, set, del } from '../utils/storage'
 import clsx from 'clsx';
 import { flexClass } from '../App'
 import SignIn from './SignIn/signIn'
@@ -7,6 +8,8 @@ import LogoutButton from './LogoutButton/logoutButton'
 import LoginButton from './LogInButton/loginButton'
 import Persona from './Persona/persona'
 import Logo from './Logo/logo'
+import Import from './Import/import'
+import { KEY_REDIRECT } from '../state/near'
 import { Header } from './Header/header'
 
 
@@ -47,15 +50,20 @@ const useStyles = makeStyles((theme) => ({
 
 export const Home = ({ children, state, handleSnackBarOpen, handleSuccessMessage, handleErrorMessage, snackBarOpen, severity, errorMessage, successMessage }) => {
 
+    const [key, setKey] = useState(false)
     const classes = useStyles();
    
     const {
-        app, wallet, links, claimed, accountId, curInfo
+        app, wallet, links, claimed, accountId, curInfo, finished
     } = state
 
     useEffect(
-        () => {        
-    }, []
+        () => {
+            let needsKey = get(KEY_REDIRECT, [])
+            if(needsKey.action == true){
+                setKey(true)
+            }
+    }, [finished]
     )
 
     return (
@@ -71,15 +79,19 @@ export const Home = ({ children, state, handleSnackBarOpen, handleSuccessMessage
         successMessage={successMessage}/>
        
         <div class={flexClass}>
-        {state.finished ? (
+        {finished ? 
+           
             <div class="container container-custom">
-                {wallet && wallet.signedIn ? 'placeholder' : <SignIn wallet={wallet} state={state}/>}
+                {wallet && wallet.signedIn ?  
+                    key ? (<Import />) : 'to fill in'
+                : <SignIn wallet={wallet} state={state}/>}
             </div>
-            ) : state.accountData ? (
+            
+            : state.accountData ? (
             <div class="container container-custom">
                 {children}
             </div>
-            ) : <CircularProgress/> 
+            ) : <CircularProgress/>
         }
             
         </div>

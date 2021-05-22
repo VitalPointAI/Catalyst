@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app';
 import { utils } from 'near-api-js'
-import { GAS } from '../../state/near'
+import { cancelProposal, processProposal, submitVote, GAS } from '../../state/near'
 
 import MemberCard from '../MemberCard/memberCard'
 import ProposalCard from '../ProposalCard/proposalCard'
@@ -24,6 +24,7 @@ import Badge from '@material-ui/core/Badge'
 import PeopleAltIcon from '@material-ui/icons/PeopleAlt'
 import ListAltIcon from '@material-ui/icons/ListAlt'
 import HowToVoteIcon from '@material-ui/icons/HowToVote'
+import QueueIcon from '@material-ui/icons/Queue'
 import AssignmentTurnedInIcon from '@material-ui/icons/AssignmentTurnedIn'
 import Snackbar from '@material-ui/core/Snackbar'
 import MuiAlert from '@material-ui/lab/Alert'
@@ -64,6 +65,7 @@ export default function ProposalList(props) {
   const [proposalCount, setProposalCount] = useState(0)
   const [voteCount, setVoteCount] = useState(0)
   const [processedCount, setProcessedCount] = useState(0)
+  const [queueCount, setQueueCount] = useState(0)
   const [memberProposalDetailsClicked, setMemberProposalDetailsClicked] = useState(false)
   const [memberProposalDetailsEmptyClicked, setMemberProposalDetailsEmptyClicked] = useState(false)
   const [memberProposalId, setMemberProposalId] = useState('')
@@ -75,6 +77,7 @@ export default function ProposalList(props) {
   const [expanded, setExpanded] = useState(false)
   const [rageQuitClicked, setRageQuitClicked] = useState(false)
   const [cancelFinish, setCancelFinish] = useState(true)
+  const [processFinish, setProcessFinish] = useState(true)
   const [fundingProposalStatus, setFundingProposalStatus] = useState()
   const [memberProposalStatus, setMemberProposalStatus] = useState()
   const [done, setDone] = useState(true)
@@ -98,6 +101,8 @@ export default function ProposalList(props) {
     curDaoIdx,
     daoDid,
     contract,
+    contractId,
+    proposalDeposit,
 
     tabValue,
     handleTabValueState,
@@ -117,7 +122,7 @@ export default function ProposalList(props) {
     depositToken,
     tributeToken,
     tributeOffer,
-    proposalDeposit,
+    
     currentPeriod,
     periodDuration,
     proposalComments,
@@ -131,7 +136,7 @@ export default function ProposalList(props) {
     curUserIdx,
     
     //didsContract,
-    contractId,
+   
     appClient
   } = props
 
@@ -151,7 +156,7 @@ export default function ProposalList(props) {
           i++
       }
         let newLists = await resolveStatus(proposalEvents)
-      
+        console.log('newlists', newLists)
         setProposalList(newLists.allProposals)
         setVotingList(newLists.votingProposals)
         setQueueList(newLists.queueProposals)
@@ -159,6 +164,7 @@ export default function ProposalList(props) {
         setProposalCount(newLists.allProposals.length)
         setVoteCount(newLists.votingProposals.length)
         setProcessedCount(newLists.processedProposals.length)
+        setQueueCount(newLists.queueProposals.length)
 
         if(allMemberInfo){
           setMemberCount(allMemberInfo.length)
@@ -263,185 +269,38 @@ export default function ProposalList(props) {
   }
 
 
-  async function handleCancelAction(proposalIdentifier, tribute) {
+  async function handleCancelAction(proposalId, proposalDeposit, tribute) {
     setCancelFinish(false)
-    let finished
     try{
-    finished = await contract.cancelProposal({
-        pI: proposalIdentifier
-        }, GAS, utils.format.parseNearAmount((parseInt(proposalDeposit)+parseInt(tribute)).toString()))
-        try{
-        let proposal = await contract.getProposal({proposalId: parseInt(proposalIdentifier)})
-        let updated = await proposalEvent.recordEvent(
-          proposal.pI, proposal.a, proposal.p, proposal.s, proposal.sR, proposal.lR, proposal.tO, proposal.tT, proposal.pR, proposal.pT, 
-          proposal.sP, proposal.yV, proposal.nV, proposal.f, proposal.mT, proposal.pS, proposal.vP, proposal.gP, proposal.voteFinalized)
-          if(updated){
-            handleSuccessMessage('Successfully cancelled proposal.', 'success')
-            handleSnackBarOpen(true)
-          } else {
-            handleErrorMessage('There was a problem cancelling the proposal.', 'error')
-            handleSnackBarOpen(true)
-          }
-        } catch (err) {
-          console.log('problem deleteing proposal record event', err)
-          handleErrorMessage('There was a problem cancelling the proposal.', 'error')
-          handleSnackBarOpen(true)
-        }
+      await cancelProposal(contract, contractId, proposalId, proposalDeposit, tribute)
     } catch (err) {
       console.log('problem cancelling proposal', err)
       handleErrorMessage('There was a problem cancelling the proposal.', 'error')
       handleSnackBarOpen(true)
     }
-    if(finished) {
-      await handleProposalEventChange()
-      await handleEscrowBalanceChanges()
-      await handleGuildBalanceChanges()
-      setCancelFinish(true)
-    }
   }
 
-  async function handleProcessAction(proposalIdentifier, proposalType) {
-    let finished
+  async function handleProcessAction(proposalId, proposalType) {
+    setProcessFinish(false)
     try{
-      finished = await daoContract.processProposal({
-        pI: proposalIdentifier
-        }, GAS)
-          try{
-          let proposal = await contract.getProposal({proposalId: parseInt(proposalIdentifier)})
-          let updated = await proposalEvent.recordEvent(
-            proposal.pI, proposal.a, proposal.p, proposal.s, proposal.sR, proposal.lR, proposal.tO, proposal.tT, proposal.pR, proposal.pT, 
-            proposal.sP, proposal.yV, proposal.nV, proposal.f, proposal.mT, proposal.pS, proposal.vP, proposal.gP, proposal.voteFinalized)
-          let memberAdded
-          let memberUpdated
-            if(proposalType == 'Member'){
-              let member = await contract.getMemberInfo({member: proposal.a})
-              if(member[0]) {
-                let totalMembers = await contract.getTotalMembers()
-                let id = parseInt(totalMembers)
-                memberAdded = await memberEvent.recordMemberEvent(
-                  id, member[0].delegateKey, member[0].shares, member[0].loot, member[0].existing, member[0].highestIndexYesVote, member[0].jailed, member[0].joined, member[0].updated) 
-              }
-              } else {
-            let member = await contract.getMemberInfo({member: accountId})
-            console.log('member processed', member)
-            memberUpdated = await memberEvent.updateMemberEvent(
-            member[0].delegateKey, member[0].shares, member[0].loot, member[0].existing, member[0].highestIndexYesVote, member[0].jailed, member[0].joined, member[0].updated)
-            }
-           
-
-            if(updated && memberUpdated){
-              handleSuccessMessage('Successfully processed proposal.', 'success')
-              handleSnackBarOpen(true)
-            } else {
-              handleErrorMessage('There was a problem processing the proposal.', 'error')
-              handleSnackBarOpen(true)
-            }
-          } catch (err) {
-            console.log('problem recording the process proposal event', err)
-            handleErrorMessage('There was a problem processing the proposal.', 'error')
-            handleSnackBarOpen(true)
-          }
-      } catch (err) {
+      await processProposal(contract, contractId, proposalId, proposalType) 
+    } catch (err) {
         console.log('problem processing proposal', err)
         handleErrorMessage('There was a problem processing the proposal.', 'error')
         handleSnackBarOpen(true)
-      }
-      if(finished) {
-        await handleProposalEventChange()
-        await handleEscrowBalanceChanges()
-        await handleGuildBalanceChanges()
-      }
+    }
   }
 
-  async function handleYesVotingAction(proposalIdentifier) {
-    setDone(false)
-    let finished
-    try{
-      finished = await contract.submitVote({
-        pI: proposalIdentifier,
-        vote: 'yes'
-        }, process.env.DEFAULT_GAS_VALUE)
-          try{
-          let proposal = await contract.getProposal({proposalId: parseInt(proposalIdentifier)})
-          console.log('proposal in yes vote', proposal)
-          let updated = await proposalEvent.recordEvent(
-            proposal.pI, proposal.a, proposal.p, proposal.s, proposal.sR, proposal.lR, proposal.tO, proposal.tT, proposal.pR, proposal.pT, 
-            proposal.sP, proposal.yV, proposal.nV, proposal.f, proposal.mT, proposal.pS, proposal.vP, proposal.gP, proposal.voteFinalized)
-          
-          let member = await contract.getMemberInfo({member: accountId})
-          console.log('member from yes vote', member)
-          let memberUpdated = await memberEvent.updateMemberEvent(
-          member[0].delegateKey, member[0].shares, member[0].loot, member[0].existing, member[0].highestIndexYesVote, member[0].jailed, member[0].joined, member[0].updated)
-
-            if(updated && memberUpdated){
-              handleSuccessMessage('Successfully voted.', 'success')
-              handleSnackBarOpen(true)
-            } else {
-              handleErrorMessage('There was a problem with voting.', 'error')
-              handleSnackBarOpen(true)
-            }
-          } catch (err) {
-            console.log('problem recording the vote event', err)
-            handleErrorMessage('There was a problem with voting.', 'error')
-            handleSnackBarOpen(true)
-          }
+  async function handleVotingAction(proposalId, vote) {
+      setDone(false)
+      try{
+        await submitVote(contract, contractId, proposalId, vote)
       } catch (err) {
         console.log('problem with vote', err)
         handleErrorMessage('There was a problem with voting.', 'error')
         handleSnackBarOpen(true)
       }
-      if(finished) {
-        setDone(true)
-        await handleProposalEventChange()
-        await handleEscrowBalanceChanges()
-        await handleGuildBalanceChanges()
-      }
   }
-
-async function handleNoVotingAction(proposalIdentifier) {
-    setDone(false)
-    let finished
-    try{
-      finished = await contract.submitVote({
-        pI: proposalIdentifier,
-        vote: 'no'
-        }, process.env.DEFAULT_GAS_VALUE)
-          try{
-          let proposal = await contract.getProposal({proposalId: parseInt(proposalIdentifier)})
-          console.log('proposal in no vote', proposal)
-          let updated = await proposalEvent.recordEvent(
-            proposal.pI, proposal.a, proposal.p, proposal.s, proposal.sR, proposal.lR, proposal.tO, proposal.tT, proposal.pR, proposal.pT, 
-            proposal.sP, proposal.yV, proposal.nV, proposal.f, proposal.mT, proposal.pS, proposal.vP, proposal.gP, proposal.voteFinalized)
-          
-          let member = await contract.getMemberInfo({member: accountId})
-          console.log('member from no vote', member)
-          let memberUpdated = await memberEvent.updateMemberEvent(
-          member[0].delegateKey, member[0].shares, member[0].loot, member[0].existing, member[0].highestIndexYesVote, member[0].jailed, member[0].joined, member[0].updated)
-          
-            if(updated && memberUpdated){
-              handleSuccessMessage('Successfully voted.', 'success')
-              handleSnackBarOpen(true)
-            } else {
-              handleErrorMessage('There was a problem with voting.', 'error')
-              handleSnackBarOpen(true)
-            }
-          } catch (err) {
-            console.log('problem recording the vote event', err)
-            handleErrorMessage('There was a problem with voting.', 'error')
-            handleSnackBarOpen(true)
-          }
-      } catch (err) {
-        console.log('problem with vote', err)
-        handleErrorMessage('There was a problem with voting.', 'error')
-        handleSnackBarOpen(true)
-      }
-      if(finished) {
-        setDone(true)
-        await handleProposalEventChange()
-        await handleEscrowBalanceChanges()
-        await handleGuildBalanceChanges()
-      }
-}
 
   function getStatus(flags) {
     // flags [sponsored, processed, didPass, cancelled, whitelist, guildkick, member]
@@ -538,6 +397,7 @@ async function handleNoVotingAction(proposalIdentifier) {
     
     if (requests.length > 0) {
       requests.map((fr) => {
+        console.log('request fr', fr)
         status = getStatus(fr.flags)
         proposalType = getProposalType(fr.flags)
         let isVotingPeriod = getVotingPeriod(fr.startingPeriod, fr.votingPeriod)
@@ -601,7 +461,7 @@ async function handleNoVotingAction(proposalIdentifier) {
           }])
         }
 
-        if(status == 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && currentPeriod > parseInt(fr.startingPeriod) && isVotingPeriod == false && isGracePeriod == false){
+        if(status == 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && currentPeriod > parseInt(fr.gracePeriod) && !isVotingPeriod && !isGracePeriod){
         
           queueProposals.push({
             blockTimeStamp: fr.proposalSubmission,
@@ -665,19 +525,20 @@ async function handleNoVotingAction(proposalIdentifier) {
       queueProposals: queueProposals,
       processedProposals: processedProposals
     }
-    // process queued proposals
-    if(propObject.queueProposals && propObject.queueProposals.length > 0){
-      console.log('queue', propObject.queueProposals)
-      for(let i=0; i < propObject.queueProposals.length; i++) {
-        try{
-          if(propObject.queueProposals[i].status !== 'Processed' && propObject.queueProposals[i].status !== 'Passed' && propObject.queueProposals[i].status !== 'Not Passed'){
-          await handleProcessAction(propObject.queueProposals[i].requestId, propObject.queueProposals[i].proposalType)
-          }
-        } catch (err) {
-          console.log(err)
-        }
-     }
-    }
+
+  //   // process queued proposals
+  //   if(propObject.queueProposals && propObject.queueProposals.length > 0){
+  //     console.log('queue', propObject.queueProposals)
+  //     for(let i=0; i < propObject.queueProposals.length; i++) {
+  //       try{
+  //         if(propObject.queueProposals[i].status !== 'Processed' && propObject.queueProposals[i].status !== 'Passed' && propObject.queueProposals[i].status !== 'Not Passed'){
+  //         await handleProcessAction(contract, contractId, propObject.queueProposals[i].requestId, propObject.queueProposals[i].proposalType)
+  //         }
+  //       } catch (err) {
+  //         console.log(err)
+  //       }
+  //    }
+  //   }
     return propObject
   }
 
@@ -714,6 +575,8 @@ async function handleNoVotingAction(proposalIdentifier) {
         <ProposalCard
           curDaoIdx={curDaoIdx}
           daoDid={daoDid}
+          contract={contract}
+          proposalDeposit={proposalDeposit}
           key={fr[0].requestId} 
           applicant={fr[0].applicant}
           memberStatus={memberStatus}
@@ -774,16 +637,81 @@ async function handleNoVotingAction(proposalIdentifier) {
           handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
-          handleYesVotingAction={handleYesVotingAction}
-          handleNoVotingAction={handleNoVotingAction}
+          handleVotingAction={handleVotingAction}
           handleRageQuitClick={handleRageQuitClick}
         />
       )
     })
   }
 
+  let Queued
+  console.log('queue list', queueList)
+  if (queueList && queueList.length > 0 && tabValue == '4') {
+    Queued = queueList.map((fr) => {
+      console.log('fr queue', fr)
+      console.log('requestId', fr.requestId)
+      return (
+        <ProposalCard 
+          key={fr.requestId} 
+          applicant={fr.applicant}
+          created={fr.date}
+          noVotes={fr.noVotes}
+          yesVotes={fr.yesVotes}
+          proposalType={fr.proposalType}
+          proposer={fr.proposer}
+          sponsor={fr.sponsor}
+          funding={fr.funding}
+          requestId={fr.requestId}
+          shares={fr.shares}
+          tribute={fr.tribute}
+          loot={fr.loot}
+          status={fr.status}
+          startingPeriod={fr.startingPeriod}
+          currentPeriod={currentPeriod}
+          gracePeriod={fr.gracePeriod}
+          handleProcessAction={handleProcessAction}
+          handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
+          handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
+          handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+          handleCancelAction={handleCancelAction}
+        />
+      )
+    })
+  }
+  //why?????
+  if (queueList && queueList.length > 1 && tabValue == '4') {
+    Queued = queueList.map((fr) => {
+      console.log('fr queue', fr)
+      console.log('requestId', fr.requestId)
+      return (
+        <ProposalCard 
+          key={fr[0].requestId} 
+          applicant={fr[0].applicant}
+          created={fr[0].date}
+          noVotes={fr[0].noVotes}
+          yesVotes={fr[0].yesVotes}
+          proposalType={fr[0].proposalType}
+          proposer={fr[0].proposer}
+          sponsor={fr[0].sponsor}
+          funding={fr[0].funding}
+          requestId={fr[0].requestId}
+          shares={fr[0].shares}
+          tribute={fr[0].tribute}
+          loot={fr[0].loot}
+          status={fr[0].status}
+          startingPeriod={fr[0].startingPeriod}
+          handleProcessAction={handleProcessAction}
+          handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
+          handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
+          handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+          handleCancelAction={handleCancelAction}
+        />
+      )
+    })
+  }
+
   let Processed
-  if (processedList && processedList.length > 0 && tabValue == '4') {
+  if (processedList && processedList.length > 0 && tabValue == '5') {
     Processed = processedList.map((fr) => {
       return (
         <ProposalCard 
@@ -819,7 +747,6 @@ async function handleNoVotingAction(proposalIdentifier) {
         onChange={handleTabChange}
         variant="fullWidth"
         indicatorColor="primary"
-        textColor="secondary"
         aria-label="icon label tabs example"
        
       >
@@ -850,6 +777,15 @@ async function handleNoVotingAction(proposalIdentifier) {
           label="VOTING" 
           value="3"
         />
+        <Tab 
+          icon={
+            <StyledBadge badgeContent={queueCount} color="primary">
+              <QueueIcon fontSize='large'/>
+            </StyledBadge>
+          } 
+          label="PROCESSING" 
+          value="4"
+        />
         <Tab
           icon={
             <StyledBadge badgeContent={processedCount} color="primary">
@@ -857,7 +793,7 @@ async function handleNoVotingAction(proposalIdentifier) {
             </StyledBadge>
           }
           label="COMPLETE" 
-          value="4"
+          value="5"
         />
       </Tabs>
     </Paper>
@@ -872,6 +808,9 @@ async function handleNoVotingAction(proposalIdentifier) {
         {Votes}
       </TabPanel>
       <TabPanel value="4" className={classes.root}>
+        {Queued}
+      </TabPanel>
+      <TabPanel value="5" className={classes.root}>
         {Processed}
       </TabPanel>
     </TabContext>
@@ -928,7 +867,9 @@ async function handleNoVotingAction(proposalIdentifier) {
       handleTabValueState={handleTabValueState}/> : null }
 
     {sponsorConfirmationClicked ? <SponsorConfirmation
-      contract={contract} 
+      contract={contract}
+      contractId={contractId}
+      curDaoIdx={curDaoIdx}
       handleProposalEventChange={handleProposalEventChange}
       handleGuildBalanceChanges={handleGuildBalanceChanges}
       handleEscrowBalanceChanges={handleEscrowBalanceChanges}

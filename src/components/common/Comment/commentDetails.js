@@ -1,27 +1,44 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react'
+import { appStore, onAppMount } from '../../../state/app'
+import * as nearAPI from 'near-api-js'
+import { ceramic } from '../../../utils/ceramic'
 
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
 import CardHeader from '@material-ui/core/CardHeader'
-import Typography from '@material-ui/core/Typography';
-
-//import { retrieveAppRecord, deleteAppRecord, retrieveRecord, deleteRecord } from '../../../../../utils/threadsDB'
-//import Avatar from '../../../components/common/Avatar/avatar'
+import Typography from '@material-ui/core/Typography'
+import Avatar from '@material-ui/core/Avatar'
 
 const useStyles = makeStyles((theme) => ({
     title: {
         fontSize: 14,
         marginLeft: '10px'
     },
-    
+    small: {
+        width: theme.spacing(3),
+        height: theme.spacing(3),
+        float: 'left',
+        marginRight: '5px',
+    },
     }));
 
 export default function CommentDetails(props) {
 
     const [running, setRunning] = useState(false)
     const [finished, setFinished] = useState(false)
-    
+    const [avatar, setAvatar] = useState()
+    const [name, setName] = useState('')
+
+    const { state, dispatch, update } = useContext(appStore)
+
+    const {
+      didRegistryContract,
+      near,
+      appIdx,
+      accountId
+    } = state
+
     const {
         commentId,
         commentPublished,
@@ -30,12 +47,30 @@ export default function CommentDetails(props) {
         commentPostDate,
         commentSubject,
     } = props
-    console.log('comment details props', props)
+    
     const classes = useStyles();
     
     
     useEffect(() => {
         async function fetchData() {
+         
+            if(commentAuthor){
+              let existingDid = await didRegistryContract.hasDID({accountId: commentAuthor})
+            
+              if(existingDid){
+                 
+                  let authorAccount = new nearAPI.Account(near.connection, commentAuthor)
+
+                  let thisAuthorIdx = await ceramic.getCurrentUserIdx(authorAccount, appIdx)
+              
+                  let result = await thisAuthorIdx.get('profile', thisAuthorIdx.id)
+                  
+                  if(result){
+                    result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
+                    result.name ? setName(result.name) : setName('')
+                  }
+              }
+            }
             setFinished(false)
            
         }
@@ -92,7 +127,9 @@ export default function CommentDetails(props) {
        
             {finished ? (<Card variant="outlined">
                 <CardHeader title={commentSubject}></CardHeader>
-                <Typography className={classes.title} color="textSecondary" gutterBottom>Posted by: {commentAuthor}</Typography>
+                <Avatar src={avatar} className={classes.small}/>
+                <Typography className={classes.title} color="textSecondary" gutterBottom>Posted by: {name} ({commentAuthor})</Typography>
+               
                 <Typography className={classes.title} color="textSecondary" gutterBottom>{formatCommentDate}</Typography>
                 <CardContent>
                     

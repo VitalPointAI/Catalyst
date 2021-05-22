@@ -22,7 +22,6 @@ const useStyles = makeStyles((theme) => ({
 export default function LogoutButton(props) {
 
     const classes = useStyles()
-    const { accountId, balance, wallet } = props
 
     return (
         <> 

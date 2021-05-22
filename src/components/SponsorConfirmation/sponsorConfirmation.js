@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
-import Big from 'big.js'
 import { utils } from 'near-api-js'
-//import { proposalEvent } from '../../../../utils/proposalEvents'
+import { GAS } from '../../state/near'
+import { sponsorProposal } from '../../state/near'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -21,9 +21,6 @@ import CardContent from '@material-ui/core/CardContent'
 import Grid from '@material-ui/core/Grid'
 import WarningIcon from '@material-ui/icons/WarningTwoTone'
 import Checkbox from '@material-ui/core/Checkbox'
-
-const BOATLOAD_OF_GAS = Big(3).times(10 ** 14).toFixed()
-
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -69,7 +66,6 @@ export default function SponsorConfirmation(props) {
   const [finished, setFinished] = useState(true)
   const [confirm, setConfirm] = useState(false)
   
-
   const classes = useStyles()
   const { register, handleSubmit, watch, errors } = useForm()
 
@@ -83,7 +79,9 @@ export default function SponsorConfirmation(props) {
     depositToken,
     proposalDeposit,
     proposalIdentifier,
-    contract } = props
+    contract,
+    contractId,
+    curDaoIdx } = props
 
   const handleClickOpen = () => {
     setOpen(true)
@@ -102,29 +100,8 @@ export default function SponsorConfirmation(props) {
     setFinished(false)
     let finished
     try{
-      finished = await contract.sponsorProposal({
-        pI: proposalIdentifier,
-        proposalDeposit: proposalDeposit,
-        depositToken: depositToken
-        }, process.env.DEFAULT_GAS_VALUE, utils.format.parseNearAmount((parseInt(proposalDeposit)).toString()))
-          try{
-          let proposal = await contract.getProposal({proposalId: parseInt(proposalIdentifier)})
-          let updated = await proposalEvent.recordEvent(
-            proposal.pI, proposal.a, proposal.p, proposal.s, proposal.sR, proposal.lR, proposal.tO, proposal.tT, proposal.pR, proposal.pT, 
-            proposal.sP, proposal.yV, proposal.nV, proposal.f, proposal.mT, proposal.pS, proposal.vP, proposal.gP, proposal.voteFinalized)
-            if(updated){
-              handleSuccessMessage('Successfully sponsored proposal.', 'success')
-              handleSnackBarOpen(true)
-            } else {
-              handleErrorMessage('There was a problem sponsoring the proposal.', 'error')
-              handleSnackBarOpen(true)
-            }
-          } catch (err) {
-            console.log('problem recording sponsoring proposal event', err)
-            handleErrorMessage('There was a problem sponsoring the proposal.', 'error')
-            handleSnackBarOpen(true)
-          }
-      } catch (err) {
+      await sponsorProposal(contract, contractId, proposalIdentifier, depositToken, proposalDeposit, curDaoIdx)
+    } catch (err) {
         console.log('problem sponsoring proposal', err)
         let split = err.message.split(': ')
         let split2 = split[1].split(",", 1)
@@ -134,15 +111,7 @@ export default function SponsorConfirmation(props) {
         setFinished(true)
         setOpen(false)
         handleClose()
-      }
-      if(finished) {
-        await handleProposalEventChange()
-        await handleEscrowBalanceChanges()
-        await handleGuildBalanceChanges()
-        setFinished(true)
-        setOpen(false)
-        handleClose()
-      }
+    }
 }
 
   return (

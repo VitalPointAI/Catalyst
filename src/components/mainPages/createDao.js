@@ -69,15 +69,15 @@ export default function CreateDao(props) {
     } = props
 
     const {
-        daoLinks, 
+        daoList, 
         daoFactory
     } = state
 
     useEffect(
         () => {
         async function fetchData() {
-            if(daoLinks){
-                setNoOfPages(Math.ceil(daoLinks.length/itemsPerPage))
+            if(daoList){
+                setNoOfPages(Math.ceil(daoList.daoList.length/itemsPerPage))
             }
         }
         fetchData()

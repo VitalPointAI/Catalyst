@@ -15,10 +15,11 @@ import CardActions from '@material-ui/core/CardActions'
 import IconButton from '@material-ui/core/IconButton'
 import Avatar from '@material-ui/core/Avatar'
 import Typography from '@material-ui/core/Typography'
-import { red } from '@material-ui/core/colors'
+import { red, green } from '@material-ui/core/colors'
 import Button from '@material-ui/core/Button'
 import ThumbUpIcon from '@material-ui/icons/ThumbUp'
 import ThumbDownIcon from '@material-ui/icons/ThumbDown'
+import SendIcon from '@material-ui/icons/Send'
 import Badge from '@material-ui/core/Badge'
 import Grid from '@material-ui/core/Grid'
 import LinearProgress from '@material-ui/core/LinearProgress'
@@ -50,6 +51,9 @@ const useStyles = makeStyles((theme) => ({
       width: theme.spacing(7),
       height: theme.spacing(7),
     },
+    greenButton: {
+      backgroundColor: '#43a047'
+    }
   }));
 
   const StyledBadge = withStyles((theme) => ({
@@ -99,16 +103,18 @@ export default function ProposalCard(props) {
 
     const { applicant, created, noVotes, yesVotes, proposalType, proposer, requestId, tribute, vote, loot, shares, status, funding,
         isVotingPeriod, isGracePeriod, voted, gracePeriod, votingPeriod, currentPeriod, periodDuration, cancelFinish, sponsor, done,
-       
+        startingPeriod,
         handleFundingProposalDetailsClick,
         handleSponsorConfirmationClick,
         handleCancelAction,
-        handleYesVotingAction,
-        handleNoVotingAction,
+        handleVotingAction,
+        handleProcessAction,
         handleRageQuitClick,
         curDaoIdx,
         daoDid,
-        memberStatus
+        memberStatus,
+        contract,
+        proposalDeposit
     } = props
 
     useEffect(
@@ -123,10 +129,6 @@ export default function ProposalCard(props) {
               let existingDid = await didRegistryContract.hasDID({accountId: applicant})
             
               if(existingDid){
-                  let thisDid = await didRegistryContract.getDID({
-                      accountId: applicant
-                  })
-                  setDid(thisDid)
                  
                   let personaAccount = new nearAPI.Account(near.connection, applicant)
 
@@ -159,9 +161,9 @@ export default function ProposalCard(props) {
               }
             }
             
-            // Load DAO Proposal information
-            let result = await curDaoIdx.get('proposals', daoDid)
-            console.log('result here proposal card', result)
+            // // Load DAO Proposal information
+            // let result = await curDaoIdx.get('proposals', daoDid)
+            // console.log('result here proposal card', result)
            
                     
             return true  
@@ -268,26 +270,22 @@ export default function ProposalCard(props) {
           ) : null }
 
             <CardContent>
-
+                {console.log('proposalType', proposalType)}
             {proposalType == 'Member' ? (
               <Grid container alignItems="center" justify="space-evenly" style={{marginBottom:'20px'}}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-20px', marginBottom:'20px'}}>
                   <Typography variant="overline">Shares: {shares} | </Typography>
                   <Typography variant="overline">{`Tribute: ${tribute} Ⓝ`}</Typography>
                 </Grid>
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                 
-                </Grid>
               
-              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                <Typography variant="body1" color="initial" noWrap={true} align="center"
-                onClick={handleProposalDetailsClick}
-                >{intro ? intro.replace(/(<([^>]+)>)/gi, ""): null}</Typography>
-                
-              </Grid>  
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                  <Typography variant="body1" color="initial" noWrap={true} align="center"
+                  onClick={handleProposalDetailsClick}
+                  >{intro ? intro.replace(/(<([^>]+)>)/gi, ""): 'No Details'}</Typography>
+                </Grid>  
              
               </Grid>
-            ) : null }
+            ) : null}
 
             {proposalType == 'GuildKick' ? (
               <Grid container alignItems="center" justify="space-evenly" style={{marginTop: '-20px', marginBottom:'20px'}}>
@@ -297,7 +295,7 @@ export default function ProposalCard(props) {
                   >{title}</Typography>
                 </Grid>  
               </Grid>
-            ) : null }
+            ) : null}
 
             {proposalType == 'Funding' ? (
               <Grid container alignItems="center" justify="space-evenly" style={{marginTop: '-20px', marginBottom:'20px'}}>
@@ -306,14 +304,14 @@ export default function ProposalCard(props) {
                   onClick={(e) => handleFundingProposalDetailsClick(requestId, applicant, status, e)}
                   >{title}</Typography>
                 </Grid>    
-              <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                   <Typography variant="h5" align="center" style={{marginBottom: '10px'}}>Funding Requested</Typography>
                 </Grid>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                   <Typography variant="h5" align="center">{`${funding} Ⓝ`}</Typography>
                 </Grid>
               </Grid>
-            ) : null }
+            ) : null}
 
             
 
@@ -321,32 +319,32 @@ export default function ProposalCard(props) {
             {status == 'Submitted' ? <Typography variant="subtitle2" display="block" align="center">Awaiting Sponsor</Typography> : null}
 
             </CardContent>
-            <CardActions disableSpacing>
+           
 
               {status == 'Sponsored' && isVotingPeriod && !isGracePeriod ? (
-                <Grid container alignItems="center" justify="space-evenly" spacing={1}>
-                  <Grid item xs={4} sm={4} md={4} lg={4} xl={4}>
+                <Grid container alignItems="center" justify="space-between" spacing={1}>
+                  <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="left">
                      {done ? ( <StyledBadge badgeContent={yesVotes} color="primary">
-                        <IconButton onClick={(e) => handleYesVotingAction(requestId, e)} disabled={voted}>
-                          <ThumbUpIcon fontSize='large' color="primary" />
+                        <IconButton onClick={(e) => handleVotingAction(requestId, 'yes')} disabled={voted}>
+                          <ThumbUpIcon fontSize='small' color="primary" />
                         </IconButton>
                       </StyledBadge>
                       ) : <CircularProgress /> }
                   </Grid>
-                  <Grid item xs={4} sm={4} md={4} lg={4} xl={4} >
-                    <Typography variant="body2" align="center">
-                      {status}
+                  <Grid item xs={2} sm={2} md={2} lg={2} xl={2} align="center">
+                    <Typography variant="body2">
+                      Current Vote
                     </Typography>
                   </Grid>
-                  <Grid item xs={4} sm={4} md={4} lg={4} xl={4} className={classes.votes} >
+                  <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="center" >
                   {done ? ( <StyledBadge badgeContent={noVotes} color="secondary">
-                        <IconButton onClick={(e) => handleNoVotingAction(requestId, e)} disabled={voted}>
-                          <ThumbDownIcon fontSize='large' color="secondary" />
+                        <IconButton onClick={(e) => handleVotingAction(requestId, 'no')} disabled={voted}>
+                          <ThumbDownIcon fontSize='small' color="secondary" />
                         </IconButton>
                       </StyledBadge>
                       ) : <CircularProgress /> }
                   </Grid>
-                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
                     <Typography variant="caption" display="block">Voting Ends in {(((votingPeriod - currentPeriod)+1) * periodDuration / 60).toFixed(2)} minutes</Typography>
                   </Grid>
                 </Grid>
@@ -354,7 +352,7 @@ export default function ProposalCard(props) {
 
               {status == 'Sponsored' && isGracePeriod && !isVotingPeriod && vote != 'yes' ? (
                 <Grid container alignItems="center" justify="space-evenly" spacing={1}>
-                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
                     <Button
                       variant="contained"
                       color="secondary"
@@ -370,25 +368,65 @@ export default function ProposalCard(props) {
                   </Grid>
                 </Grid>
               ) : null }
-
-              {status == 'Passed' || status == 'Not Passed' ? (
-                <Grid container alignItems="center" justify="space-evenly" spacing={1}>
-                  <Grid item xs={4} sm={4} md={4} lg={4} xl={4} className={classes.votes}>
+              
+              {status == 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && currentPeriod > gracePeriod && !isVotingPeriod && !isGracePeriod ? (
+                <>
+                <Grid container alignItems="center" justify="space-between" spacing={1}>
+                  <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="left" >
                     <StyledBadge badgeContent={yesVotes} color="primary">
-                      <IconButton onClick={(e) => handleYesVotingAction(requestId, e)} disabled={true}>
-                        <ThumbUpIcon fontSize='large' color="primary" />
+                      <IconButton onClick={(e) => handleVotingAction(requestId, 'yes')} disabled={true}>
+                        <ThumbUpIcon fontSize='small' color="primary" />
                       </IconButton>
                     </StyledBadge>
                   </Grid>
-                  <Grid item xs={4} sm={4} md={4} lg={4} xl={4} >
-                    <Typography variant="body2" align="center">
+                  <Grid item xs={2} sm={2} md={2} lg={2} xl={2} >
+                    <Typography variant="body2">
+                      Final Vote
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="center" >
+                    <StyledBadge badgeContent={noVotes} color="secondary">
+                      <IconButton onClick={(e) => handleVotingAction(requestId, 'no')} disabled={true}>
+                        <ThumbDownIcon fontSize='small' color="secondary" />
+                      </IconButton>
+                    </StyledBadge>
+                  </Grid>
+                </Grid>
+                
+                <Grid container alignItems="center" justify="space-evenly" spacing={1}>
+                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
+                    <Button
+                      variant="contained"
+                      className={classes.greenButton}
+                      align="center"
+                      startIcon={<SendIcon />}
+                      onClick={(e) => handleProcessAction(requestId, proposalType)}
+                    >
+                    Finalize
+                    </Button>
+                  </Grid>
+                </Grid>
+                </>
+              ) : null }
+
+              {status == 'Passed' || status == 'Not Passed' ? (
+                <Grid container alignItems="center" justify="space-between" spacing={1}>
+                  <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="left" >
+                    <StyledBadge badgeContent={yesVotes} color="primary">
+                      <IconButton onClick={(e) => handleVotingAction(requestId, 'yes')} disabled={true}>
+                        <ThumbUpIcon fontSize='small' color="primary" />
+                      </IconButton>
+                    </StyledBadge>
+                  </Grid>
+                  <Grid item xs={2} sm={2} md={2} lg={2} xl={2} align="center" >
+                    <Typography variant="body2">
                       {status}
                     </Typography>
                   </Grid>
-                  <Grid item xs={4} sm={4} md={4} lg={4} xl={4} className={classes.votes}>
+                  <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="center" >
                     <StyledBadge badgeContent={noVotes} color="secondary">
-                      <IconButton onClick={(e) => handleNoVotingAction(requestId, e)} disabled={true}>
-                        <ThumbDownIcon fontSize='large' color="secondary" />
+                      <IconButton onClick={(e) => handleVotingAction(requestId, 'no')} disabled={true}>
+                        <ThumbDownIcon fontSize='small' color="secondary" />
                       </IconButton>
                     </StyledBadge>
                   </Grid>
@@ -414,7 +452,7 @@ export default function ProposalCard(props) {
               <Grid item xs={8} sm={8} md={8} lg={8} xl={8} align="right">
                 {accountId == proposer && status == 'Submitted' ? 
                 cancelFinish ? 
-                  <><Button color="primary" onClick={() => handleCancelAction(requestId, tribute)}>
+                  <><Button color="primary" onClick={() => handleCancelAction(requestId, proposalDeposit, tribute)}>
                     Cancel
                   </Button>
                   {proposalType === 'Member' || proposalType === 'GuildKick' ? (
@@ -436,16 +474,9 @@ export default function ProposalCard(props) {
               </Grid>
             
               </Grid>
-               
-               
-               
-               
-
-                  
 
                 
-                
-                </CardActions>
+               
         </Card>
 
         {editProposalClicked ? <EditProposalForm

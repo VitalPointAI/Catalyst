@@ -97,73 +97,60 @@ export default function DaoCard(props) {
               // Set Dao Idx
               if(contractId && near){
                  
-                  let existingDid = await didRegistryContract.hasDID({accountId: contractId})
+                  // let existingDid = await didRegistryContract.hasDID({accountId: contractId})
             
-                  if(existingDid){
-                      let thisDid = await didRegistryContract.getDID({
-                          accountId: contractId
-                      })
-                      setDid(thisDid)
+                  // if(existingDid){
+                      // let thisDid = await didRegistryContract.getDID({
+                      //     accountId: contractId
+                      // })
+                      // setDid(thisDid)
                     
                       let daoAccount = new nearAPI.Account(near.connection, contractId);
                     
-                      
-                      let summonerAccounts = get(DAO_LINKS, [])
-                      let b = 0
-                      let summoner
-                      while(b < summonerAccounts.length) {
-                          if(summonerAccounts[b].contractId == contractId){
-                          summoner = summonerAccounts[b].summoner
-                          break
-                          }
-                      b++
-                      }
-                      const ownerAccount = new nearAPI.Account(near.connection, summoner)
-                 
-                      const summonerIdx = await ceramic.getCurrentUserIdx(ownerAccount, appIdx, didRegistryContract, summoner)
-                    
-                      let thisCurDaoIdx = await ceramic.getCurrentUserIdx(daoAccount, appIdx, didRegistryContract, summoner, summonerIdx)
+                      let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
                      
                       setCurDaoIdx(thisCurDaoIdx)
-                //      update('', { thisCurDaoIdx })
-                      
-                  
-                    
-                      let result = await appIdx.get('daoProfile', thisDid)
-                      console.log('result here', result)
-                      
-                      if(result){
-                        result.name ? setName(result.name) : setName('')
-                        result.date ? setDate(result.date) : setDate('')
-                        result.logo ? setLogo(result.logo) : setLogo(imageName)
-                        result.purpose ? setPurpose(result.purpose) : setPurpose('')
-                        result.category ? setCategory(result.category) : setCategory('')
-                        return true
+
+                      try{
+                        let result = await appIdx.get('daoProfile', thisCurDaoIdx.id)
+                                           
+                        if(result){
+                          result.name ? setName(result.name) : setName('')
+                          result.date ? setDate(result.date) : setDate('')
+                          result.logo ? setLogo(result.logo) : setLogo(imageName)
+                          result.purpose ? setPurpose(result.purpose) : setPurpose('')
+                          result.category ? setCategory(result.category) : setCategory('')
+                          return true
+                        }
+                      } catch (err) {
+                        console.log('error retrieving DAO profile', err)
                       }
                       return true
-                  }
+                //  }
 
-                  if(!existingDid){
+                  // if(!existingDid){
                    
-                    let daoAccount = new nearAPI.Account(near.connection, contractId);
+                  //   // let daoAccount = new nearAPI.Account(near.connection, contractId);
                  
-                    let thisCurDaoIdx = await ceramic.getCurrentUserIdxNoDid(appIdx, didRegistryContract, daoAccount)
-                    setCurDaoIdx(thisCurDaoIdx)
-                   
-                  //  update('', { thisCurDaoIdx })
+                  //   // let thisCurDaoIdx = await ceramic.getCurrentDaoIdxNoDid(appIdx, didRegistryContract, daoAccount)
+                  //   // setCurDaoIdx(thisCurDaoIdx)
 
-                    let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
+                  //   // try{
+                  //   //   let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
                       
-                    if(result){
-                      result.name ? setName(result.name) : setName('')
-                      result.date ? setDate(result.date) : setDate('')
-                      result.logo ? setLogo(result.logo) : setLogo(imageName)
-                      result.purpose ? setPurpose(result.purpose) : setPurpose('')
-                      result.category ? setCategory(result.category) : setCategory('')
-                      return true
-                    }
-                    return true
-                  }
+                  //   //   if(result){
+                  //   //     result.name ? setName(result.name) : setName('')
+                  //   //     result.date ? setDate(result.date) : setDate('')
+                  //   //     result.logo ? setLogo(result.logo) : setLogo(imageName)
+                  //   //     result.purpose ? setPurpose(result.purpose) : setPurpose('')
+                  //   //     result.category ? setCategory(result.category) : setCategory('')
+                  //   //     return true
+                  //   //   }
+                  //   // } catch (err) {
+                  //   //   console.log('error retrieving DAO profile')
+                  //   // }
+                  //   // return true
+                  // }
               }
             }
 
@@ -171,7 +158,6 @@ export default function DaoCard(props) {
           .then((res) => {
             setFinished(true)
           })
-      
   }, [isUpdated, near]
   )
 
@@ -204,7 +190,6 @@ export default function DaoCard(props) {
         {!display ? <LinearProgress /> : 
                      
           finished ? 
-      
           (
             <Card className={classes.card}>
               <CardContent >
@@ -236,7 +221,6 @@ export default function DaoCard(props) {
             handleEditDaoClickState={handleEditDaoClickState}
             curDaoIdx={curDaoIdx}
             handleUpdate={handleUpdate}
-            did={did}
             contractId={contractId}
             /> : null }
 

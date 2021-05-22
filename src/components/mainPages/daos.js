@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-
+import React, { useState, useEffect, useContext } from 'react'
+import { appStore, onAppMount } from '../../state/app'
 import DaoCard from '../DAOCard/daoCard'
 import { Header } from '../Header/header'
 
@@ -48,28 +48,17 @@ export default function Daos(props) {
 
     const classes = useStyles()
 
-    const {
-        state
-    } = props
+    const { state, dispatch, update } = useContext(appStore)
 
     const {
-        daoLinks,
-        daoList
+      accountId,
+      daoList,
     } = state
 
     useEffect(
         () => {
-            async function fetchData() {
-                if(daoList){
-                    console.log('daolinks', daoList)
-                    setDaoCount(daoList.daoList.length)
-                    setDaos(daoList.daoList)
-                }
-            }
-
-            fetchData()
-
-    }, [daoList]
+   
+    }, []
     )
     
     function handleEditDaoClick(property){
@@ -82,12 +71,12 @@ export default function Daos(props) {
         <Header state={state}/>
 
         <Grid container alignItems="center" justify="flex-start" spacing={2}>
-            { daoCount > 0 ? 
+            { daoList && daoList.daoList.length > 0 ? 
                 (<>
-                  
-                {daos.filter(dao => dao.summoner == state.accountId).map(({ contractId, date, summoner }) =>
+                  {console.log('daos', daoList)}
+                {daoList.daoList.filter(dao => dao.summoner == accountId).map(({ contractId, date, summoner }, i) =>
                     <DaoCard
-                        key={date}
+                        key={i}
                         contractId={contractId}
                         created={date}
                         summoner={summoner}

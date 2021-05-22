@@ -5,7 +5,7 @@ import PersonaCard from '../../components/PersonaCard/personaCard'
 
 const forExample = `(for example: "bestie.near" or "squad.near")`
 const baseUrl = window.location.href.substr(0, window.location.href.lastIndexOf('/'))
-const getLink = (accountId, key, wallet, recipientName, owner) => `?accountId=${accountId}&key=${key}&from=${wallet.getAccountId()}&recipientName=${recipientName}&owner=${owner}`
+const getLink = (accountId, key, wallet, owner) => `?accountId=${accountId}&key=${key}&from=${wallet.getAccountId()}&owner=${owner}`
 
 // Material UI
 import { makeStyles } from '@material-ui/core/styles'
@@ -96,12 +96,12 @@ export const PersonaPage = ({ state, update, dispatch }) => {
                 (<> <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{textAlign: 'center'}}>
                         <Typography variant="h5" style={{marginBottom: '20px'}}>Reserved Personas</Typography>
                     </Grid>
-                    {links.filter(person => person.owner == accountId).map(({ key, accountId, recipientName = '', owner }) =>
+                    {links.filter(person => person.owner == accountId).map(({ key, accountId, owner }) =>
                         <PersonaCard
                             key={key}
                             accountId={accountId}
                             owner={owner}
-                            link={getLink(accountId, key, wallet, recipientName, owner)}
+                            link={getLink(accountId, key, wallet, owner)}
                             state={state}
                             handleEditPersonaClick={handleEditPersonaClick}
                             />
@@ -118,10 +118,9 @@ export const PersonaPage = ({ state, update, dispatch }) => {
                     <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                         <Typography variant="h5" style={{marginBottom: '20px'}}>Claimed Personas</Typography>
                     </Grid>
-                {claimed.filter(person => person.owner == accountId).map(({ key, accountId, recipientName = '', owner }) =>
+                {claimed.filter(person => person.owner == accountId).map(({ key, accountId, owner }) =>
                     <PersonaCard
                         key={key}
-                        name={recipientName}
                         accountId={accountId}
                         owner={owner}
                         link={''}

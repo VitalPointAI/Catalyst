@@ -125,9 +125,7 @@ export default function MemberProposal(props) {
         pI: proposalIdentifier
         }, process.env.DEFAULT_GAS_VALUE, utils.format.parseNearAmount((parseInt(proposalDeposit)+parseInt(tribute)).toString()))
     try{
-      // let recorded = await proposalEvent.recordEvent(
-      //   finished.pI, finished.a, finished.p, finished.s, finished.sR, finished.lR, finished.tO, finished.tT, finished.pR, finished.pT, 
-      //   finished.sP, finished.yV, finished.nV, finished.f, finished.mT, finished.pS, finished.vP, finished.gP, finished.voteFinalized)
+      
 
         let contractDid = await didsContract.getDID({accountId: contractId})
         let memberProposalRecords = await contractIdx.get('memberProposal', contractDid)
@@ -164,18 +162,6 @@ export default function MemberProposal(props) {
                       depositToken,
                       proposalDeposit)
             
-       
-          // if(result) {
-          //   handleSuccessMessage('Successfully added member proposal.', 'success')
-          //   handleSnackBarOpen(true)
-          // } else {
-          //   console.log('error recording proposal - reverting')
-          //   await handleCancelAction(finished.pI, finished.tO)
-          // }
-        // } catch (err) {
-        //   console.log('error creating proposal event', err)
-        //   //await handleCancelAction(finished.pI, finished.tO)
-        // }
     } catch (err) {
       handleErrorMessage('There was a problem adding the member proposal' + err.message, 'error')
       handleSnackBarOpen(true)

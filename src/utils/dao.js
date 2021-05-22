@@ -56,7 +56,7 @@ class DAO {
             changeMethods: [
                 'init',
                 'setInit',
-                'widthdrawBalance',
+                'withdrawBalance',
                 'withdrawBalances',
                 'collectTokens',
                 'submitProposal',
@@ -76,7 +76,8 @@ class DAO {
                 'setIdentity',
                 'registerMember',
                 'addComment',
-                'deleteDAO'
+                'deleteDAO',
+                'cancelProposal'
             ]
             });
 

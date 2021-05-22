@@ -22,7 +22,6 @@ const useStyles = makeStyles((theme) => ({
 export default function LoginButton(props) {
 
     const classes = useStyles()
-    const { accountId, balance, wallet } = props
 
     return (
         <> 

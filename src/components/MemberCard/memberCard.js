@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react'
-import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 import * as nearAPI from 'near-api-js'
-import { get, set, del } from '../../utils/storage'
 import { ceramic } from '../../utils/ceramic'
-import { ACCOUNT_LINKS } from '../../state/near'
 
 // Material UI Components
 import { makeStyles } from '@material-ui/core/styles'
@@ -47,47 +44,38 @@ export default function MemberCard(props) {
 
     const {
       didRegistryContract,
-      near
+      near, 
+      appIdx
     } = state
 
     const classes = useStyles();
 
     const {
-     
       accountName, 
       shares, 
-      joined, 
       memberCount, 
       summoner,
-      //curUserIdx,
-      appIdx,
-      appClient,
-      contractIdx,
-      didsContract } = props
-
-      const {
-        contractId
-      } = useParams()
+    } = props
 
     useEffect(
         () => {
-          console.log('accountName', accountName)
+         
           async function fetchData() {
 
             // Set Card Persona Idx
             let curPersonaIdx
             if(accountName){
-              let existingDid = await state.didRegistryContract.hasDID({accountId: accountName})
+              let existingDid = await didRegistryContract.hasDID({accountId: accountName})
             
               if(existingDid){
-                  let thisDid = await state.didRegistryContract.getDID({
+                  let thisDid = await didRegistryContract.getDID({
                       accountId: accountName
                   })
                   setDid(thisDid)
                  
-                  let personaAccount = new nearAPI.Account(state.near.connection, accountName)
+                  let personaAccount = new nearAPI.Account(near.connection, accountName)
 
-                  curPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, state.appIdx, state.didRegistryContract)
+                  curPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx)
                   setCurUserIdx(curPersonaIdx)
               
                   let result = await curPersonaIdx.get('profile', curPersonaIdx.id)
@@ -98,16 +86,14 @@ export default function MemberCard(props) {
                     result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                     result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
                     result.name ? setName(result.name) : setName('')
-                    return true
                   }
-                  return true
               }
             }
         }
        
         fetchData()
           .then((res) => {
-            console.log('res', res)
+           
           })
 
     }, [avatar]

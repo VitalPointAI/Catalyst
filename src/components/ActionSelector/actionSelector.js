@@ -85,7 +85,6 @@ export default function ActionSelector(props) {
 
   const { state, dispatch, update } = useContext(appStore);
   
-  
   const { 
     handleProposalEventChange,
     handleGuildBalanceChanges,
@@ -99,8 +98,9 @@ export default function ActionSelector(props) {
     didsContract,
     contractIdx,
     idx,
-    contract } = props
-console.log('action selector prop deposit', proposalDeposit)
+    contract,
+    memberStatus } = props
+
   const {
     contractId
   } = useParams()
@@ -199,6 +199,7 @@ console.log('action selector prop deposit', proposalDeposit)
       >
         Submit Proposals
       </Button>
+      {memberStatus ? (
       <StyledMenu
         id="customized-menu"
         anchorEl={anchorEl}
@@ -206,13 +207,12 @@ console.log('action selector prop deposit', proposalDeposit)
         open={Boolean(anchorEl)}
         onClose={handleExpanded}
       >
-         
           <StyledMenuItem button onClick={handleMemberProposalClick}>
-          <ListItemIcon>
-            <EmojiPeopleIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="New Member Proposal" />
-        </StyledMenuItem>
+            <ListItemIcon>
+              <EmojiPeopleIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="New Member Proposal" />
+          </StyledMenuItem>
           <StyledMenuItem button onClick={handleFundingProposalClick}>
             <ListItemIcon>
               <MonetizationOnIcon fontSize="small" />
@@ -226,7 +226,23 @@ console.log('action selector prop deposit', proposalDeposit)
             <ListItemText primary="Remove Member" />
           </StyledMenuItem>
       </StyledMenu>
-       
+      ) : (
+        <StyledMenu
+        id="customized-menu"
+        anchorEl={anchorEl}
+        keepMounted
+        open={Boolean(anchorEl)}
+        onClose={handleExpanded}
+      >
+          <StyledMenuItem button onClick={handleMemberProposalClick}>
+            <ListItemIcon>
+              <EmojiPeopleIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="New Member Proposal" />
+          </StyledMenuItem>
+        </StyledMenu>
+      )}
+    
       <Snackbar open={snackBarOpen} autoHideDuration={4000} onClose={snackBarHandleClose}>
       <Alert onClose={snackBarHandleClose} severity={severity}>
         {severity=='success' ? successMessage : errorMessage}

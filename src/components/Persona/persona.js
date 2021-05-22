@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
+import { appStore, onAppMount } from '../../state/app'
 import { Link } from 'react-router-dom'
 import { get, set, del } from '../../utils/storage'
 import EditPersonaForm from '../../components/EditPersona/editPersona'
@@ -52,17 +53,26 @@ export default function Persona(props) {
     const [finished, setFinished] = useState(false)
     const [avatar, setAvatar] = useState(props.avatar)
     const [claimCount, setClaimedCount] = useState(0)
-    const [daoCount, setDaoCount] = useState(0)
+    const [daoCount, setDaoCount] = useState()
+
+    const { state, dispatch, update } = useContext(appStore)
 
     const {
-        state,
-        accountId,
+      didRegistryContract,
+      near,
+      appIdx,
+      accountId,
+      curUserIdx,
+      claimed,
+      daoList,
+      links
+    } = state
+
+    const {
         balance
     } = props
 
-    const {
-        daoList
-    } = state
+   
 
     useEffect(
         () => {
@@ -70,40 +80,27 @@ export default function Persona(props) {
         async function fetchData() {
             setFinished(false)
             if(state) {
-                console.log(state)
-                if (state.curUserIdx){
-                    let result = await state.curUserIdx.get('profile', state.curUserIdx.id)
+                if (curUserIdx){
+                    let result = await curUserIdx.get('profile', curUserIdx.id)
                   
                     if(result){
                         result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                     }
                 }
 
-                if(state.claimed && state.claimed.length > 0){
+                if(claimed && claimed.length > 0){
                     let i = 0
                     let count = 0
-                    while (i < state.claimed.length){
-                        if(state.claimed[i].owner == accountId){
+                    while (i < claimed.length){
+                        if(claimed[i].owner == accountId){
                         count++
                         }
                     i++
                     }
                     setClaimedCount(count)
-                }
-
-                // if(state.daoLinks && state.daoLinks.length > 0){
-                //     let i = 0
-                //     let count = 0
-                //     while (i < state.daoLinks.length){
-                //         if(state.daoLinks[i].summoner == accountId){
-                //         count++
-                //         }
-                //     i++
-                //     }
-                //     setDaoCount(count)
-                // }
-
-                if(daoList){
+                }  
+               
+                if(daoList && daoList.daoList.length > 0){
                     let count = 0
                     let i = 0
                     while(i < daoList.daoList.length){
@@ -114,12 +111,11 @@ export default function Persona(props) {
                     }
                     setDaoCount(count)
                 }
-
-                if((state.links && state.links.length > 0) || (state.claimed && state.claimed.length > 0)){
-                        return true
+ 
+                if((links && links.length > 0) || (claimed && claimed.length > 0) || (daoList && daoList.daoList.length > 0)){
+                    return true
                 }
 
-              
             }
         }
 
@@ -129,7 +125,7 @@ export default function Persona(props) {
              setFinished(true)
             })
         
-    }, [state.curUserIdx, state.links, state.claimed, isUpdated]
+    }, [state, curUserIdx, links, claimed, isUpdated]
     )
 
 const classes = useStyles()

@@ -47,13 +47,12 @@ export const onAppMount = () => async ({ update, getState, dispatch }) => {
     const message = decodeURIComponent(url.searchParams.get('message') || '')
     const link = url.searchParams.get('link') || ''
     const accountId = url.searchParams.get('accountId')
-    const recipientName = url.searchParams.get('recipientName')
     const owner = url.searchParams.get('owner')
 
     if (key && accountId) {
         const { seedPhrase, publicKey } = generateSeedPhrase()
         const keyExists = await hasKey(key, accountId)
-        update('accountData', { key, from, message, link, accountId, seedPhrase, publicKey, keyExists, recipientName, owner })
+        update('accountData', { key, from, message, link, accountId, seedPhrase, publicKey, keyExists, owner })
     } else {
         dispatch(initNear());
     }

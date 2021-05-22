@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-const ipfsAPI = require('ipfs-http-client')
+const { create } = require('ipfs-http-client')
 import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles((theme) => ({
@@ -29,7 +29,7 @@ export default function FileUpload(props) {
 
     const classes = useStyles();
 
-    const ipfsApi = ipfsAPI('https://ipfs.infura.io:5001')
+    const ipfsApi = create('https://ipfs.infura.io:5001')
   
     const captureFile = (event) => {
         event.stopPropagation()

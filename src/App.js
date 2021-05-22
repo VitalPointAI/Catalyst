@@ -1,5 +1,6 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { appStore, onAppMount } from './state/app';
+import React, { useState, useContext, useEffect } from 'react'
+import { appStore, onAppMount } from './state/app'
+import { get, set, del } from './utils/storage'
 import {
     BrowserRouter as Router,
     Switch,
@@ -14,11 +15,14 @@ import { PersonaPage } from './components/mainPages/personas'
 import ExploreDaos from './components/mainPages/exploreDaos'
 import CreateDao from './components/mainPages/createDao'
 import AppFramework from './components/AppFramework/appFramework'
+import NewKey from './components/mainPages/newKey'
 import { Home } from './components/Home'
 import Daos from './components/mainPages/daos'
+import Import from './components/Import/import'
+import { KEY_REDIRECT } from './state/near'
 
 // Material-UI Components
-import { CircularProgress } from '@material-ui/core';
+import { CircularProgress } from '@material-ui/core'
 
 // helpers
 export const btnClass = 'btn btn-sm btn-outline-primary mb-3 '
@@ -26,7 +30,7 @@ export const flexClass = 'd-flex justify-content-evenly align-items-center '
 export const qs = (s) => document.querySelector(s)
 
 const App = () => {
-    const { state, dispatch, update } = useContext(appStore);
+    const { state, dispatch, update } = useContext(appStore)
 
     const [errorMessage, setErrorMessage] = useState()
     const [severity, setSeverity] = useState()
@@ -131,6 +135,9 @@ const App = () => {
                         successMessage={successMessage}
                     />
                 </Route>
+                <Route path="/newKey">
+                    <NewKey />
+                </Route>
                 <Route path="/dao/:contractId">
                     <AppFramework
                         state={state}
@@ -148,4 +155,4 @@ const App = () => {
     )
 }
 
-export default App;
+export default App

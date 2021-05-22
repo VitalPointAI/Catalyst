@@ -100,6 +100,12 @@ export default function CommentForm(props) {
         setCommentBody(content)
     }
 
+    const handleReset = () => {
+      setCommentSubject('')
+      setCommentPublished(false)
+      setCommentBody('')
+    }
+
     const onSubmit = async (values) => {
         event.preventDefault();
         setFinished(false)
@@ -134,6 +140,7 @@ export default function CommentForm(props) {
         console.log('allComments.comments', allComments.comments)
         await curDaoIdx.set('comments', allComments)
         
+      handleReset()
       setFinished(true)
       handleUpdate(true)
     }
