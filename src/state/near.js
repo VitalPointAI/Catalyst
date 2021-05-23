@@ -434,32 +434,64 @@ export async function initDao(wallet, contractId, periodDuration, votingPeriodLe
 }
 
 // Initializes a DAO by setting its key components
-export async function submitProposal(wallet, contractId, applicant, tribute, depositToken, proposalDeposit) {
+export async function submitProposal(
+    wallet, 
+    contractId, 
+    depositToken, 
+    proposalDeposit, 
+    proposalType, 
+    applicant, 
+    loot, 
+    tribute,
+    sharesRequested,
+    paymentRequested) {
    
     const daoContract = await dao.initDaoContract(wallet.account(), contractId)
     const proposalId = await daoContract.getProposalsLength()
 
-    try {
-        // set trigger for to log new proposal
-        let newProposal = get(NEW_PROPOSAL, [])
-        newProposal.push({contractId: contractId, proposalId: proposalId, new: true})
-        set(NEW_PROPOSAL, newProposal)
+    // set trigger for to log new proposal
+    let newProposal = get(NEW_PROPOSAL, [])
+    newProposal.push({contractId: contractId, proposalId: proposalId, new: true})
+    set(NEW_PROPOSAL, newProposal)
 
-        await daoContract.submitProposal({
-            a: applicant,
-            sR: tribute,
-            lR: '0',
-            tO: tribute,
-            tT: depositToken,
-            pR: '0',
-            pT: depositToken,
-            contractId: contractId
-            }, GAS, parseNearAmount((parseInt(tribute) + parseInt(proposalDeposit)).toString()))
-
-    } catch (err) {
-        console.log('submit proposal failed', err)
-        return false
-    }
+    switch(proposalType){
+        case 'Member':
+            try{
+            await daoContract.submitProposal({
+                a: applicant,
+                sR: sharesRequested,
+                lR: loot,
+                tO: tribute,
+                tT: depositToken,
+                pR: paymentRequested,
+                pT: depositToken,
+                contractId: contractId
+                }, GAS, parseNearAmount((parseInt(tribute) + parseInt(proposalDeposit)).toString()))
+            } catch (err) {
+                console.log('submit member proposal failed', err)
+                return false
+            }
+            break
+        case 'Funding':
+            try{
+                await daoContract.submitProposal({
+                    a: applicant,
+                    sR: sharesRequested,
+                    lR: loot,
+                    tO: tribute,
+                    tT: depositToken,
+                    pR: paymentRequested,
+                    pT: depositToken,
+                    contractId: contractId
+                    }, GAS, parseNearAmount(parseInt(proposalDeposit)).toString())
+                } catch (err) {
+                    console.log('submit member proposal failed', err)
+                    return false
+                }
+                break
+        default:
+            return false
+    }    
     return true
 }
 

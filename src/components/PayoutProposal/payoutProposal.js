@@ -62,11 +62,11 @@ const useStyles = makeStyles((theme) => ({
   }));
 
 
-export default function FundingProposal(props) {
+export default function PayoutProposal(props) {
   const [open, setOpen] = useState(true)
   const [finished, setFinished] = useState(true)
   const [applicant, setApplicant] = useState(props.accountId)
-  const [funding, setFunding] = useState('')
+  const [payout, setPayout] = useState('')
   const [confirm, setConfirm] = useState(false)
 
   const classes = useStyles()
@@ -75,7 +75,7 @@ export default function FundingProposal(props) {
 
   const { 
     state,
-    handleFundingProposalClickState,
+    handlePayoutProposalClickState,
     proposalDeposit,
     handleSnackBarOpen,
     handleErrorMessage,
@@ -85,15 +85,15 @@ export default function FundingProposal(props) {
     contractId } = props
 
   const handleClose = () => {
-    handleFundingProposalClickState(false)
+    handlePayoutProposalClickState(false)
   };
   
   const handleApplicantChange = (event) => {
     setApplicant(event.target.value);
   };
 
-  const handleFundingChange = (event) => {
-    setFunding(event.target.value);
+  const handlePayoutChange = (event) => {
+    setPayout(event.target.value);
   };
 
   const handleConfirmChange = (event) => {
@@ -115,11 +115,11 @@ export default function FundingProposal(props) {
         '0',
         '0',
         '0',
-        funding
+        payout
         )
       } catch (err) {
-        console.log('problem submitting funding proposal', err)
-        handleErrorMessage('There was a problem submitting the funding proposal.', 'error')
+        console.log('problem submitting payout proposal', err)
+        handleErrorMessage('There was a problem submitting the payout proposal.', 'error')
         handleSnackBarOpen(true)
       }
   } 
@@ -127,43 +127,43 @@ export default function FundingProposal(props) {
   return (
     <div>
       <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Request Funding</DialogTitle>
+        <DialogTitle id="form-dialog-title">Request Payout</DialogTitle>
         <DialogContent className={classes.rootForm}>  
           <div>
             <TextField
               autoFocus
               margin="dense"
-              id="funding-proposal-applicant-receiver"
+              id="payout-proposal-applicant-receiver"
               variant="outlined"
-              name="fundingProposalApplicant"
+              name="payoutProposalApplicant"
               label="Applicant Account"
               value={applicant}
               onChange={handleApplicantChange}
               inputRef={register({
                   required: true,
-                  validate: value => value != '' || <p style={{color:'red'}}>You must specify an account that will receive the funding.</p>
+                  validate: value => value != '' || <p style={{color:'red'}}>You must specify an account that will receive the payout.</p>
               })}
               placeholder={applicant}
             />
-            {errors.fundingProposalApplicant && <p style={{color: 'red'}}>You must provide a valid NEAR account.</p>}
+            {errors.payoutProposalApplicant && <p style={{color: 'red'}}>You must provide a valid NEAR account.</p>}
           </div>
           <div>
             <TextField
               margin="dense"
-              id="funding-proposal-funds-requested"
+              id="payout-proposal-funds-requested"
               variant="outlined"
-              name="funding"
-              label="Funding Requested"
+              name="payout"
+              label="Payout Requested"
               placeholder="e.g. 100000"
-              value={funding}
-              onChange={handleFundingChange}
+              value={payout}
+              onChange={handlePayoutChange}
               inputRef={register({
                   required: true,
-                  validate: value => value != '' || <p style={{color:'red'}}>You must specify the amount of funding your proposal needs.</p>
+                  validate: value => value != '' || <p style={{color:'red'}}>You must specify the amount of the payout.</p>
               })}
               InputProps={{
                 endAdornment: <><InputAdornment position="end">{tokenName}</InputAdornment>
-                <Tooltip TransitionComponent={Zoom} title="The amount of NEAR the applicant is requesting to fund their proposal.  The proposal should be benefitting the community in some way.">
+                <Tooltip TransitionComponent={Zoom} title="The amount of NEAR the applicant is requesting to receive. The payout must be an amount already committed for this project.">
                     <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
                 </Tooltip>
                 </>
@@ -173,8 +173,8 @@ export default function FundingProposal(props) {
         <Card>
         <CardContent>
           <WarningIcon fontSize='large' className={classes.warning} />
-          <Typography variant="body1">You are requesting that <b>{applicant}</b> receive {funding} Ⓝ. After submitting
-          this proposal, you must provide enough supporting detail to help other members vote on and decide whether to approve your proposal or not.</Typography>
+          <Typography variant="body1">You are requesting that <b>{applicant}</b> receive {payout} Ⓝ. After submitting
+          this proposal, you must provide enough supporting detail and proof of work to help other members evaluate the work done and decide whether to approve your proposal or not.</Typography>
           <Grid container className={classes.confirmation} spacing={1}>
             <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
               <Checkbox
@@ -194,10 +194,10 @@ export default function FundingProposal(props) {
                   <Typography variant="body2"><u>Proposal passes:</u></Typography>
                     <ul style={{paddingInlineStart:'10px', paddingInlineEnd:'10px'}}>
                       <li>
-                        <Typography variant="body2">Applicant receives {funding} Ⓝ.</Typography>
+                        <Typography variant="body2">Applicant receives {payout} Ⓝ.</Typography>
                       </li>
                       <li>
-                        <Typography variant="body2">Community fund will decrease by {funding} Ⓝ.</Typography>
+                        <Typography variant="body2">Community fund will decrease by {payout} Ⓝ.</Typography>
                       </li>
                       <li>
                         <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you</Typography>
@@ -208,7 +208,7 @@ export default function FundingProposal(props) {
                   <Typography variant="body2"><u>Proposal fails or is cancelled:</u></Typography>
                     <ul style={{paddingInlineStart:'10px', paddingInlineEnd:'10px'}}>
                       <li>
-                        <Typography variant="body2">Applicant receives no funding.</Typography>
+                        <Typography variant="body2">Applicant receives no payout.</Typography>
                       </li>
                       <li>
                         <Typography variant="body2">Community fund does not change.</Typography>

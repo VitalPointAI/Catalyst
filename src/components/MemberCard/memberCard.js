@@ -113,8 +113,9 @@ export default function MemberCard(props) {
             title={name}
           />
           </div>
+         
           <CardHeader
-          subheader={<Typography variant="overline" align="center">Joined: {date}</Typography>}
+          subheader={ <><center><Chip size="small" color="primary" label={accountName}/><br></br><Typography variant="overline" align="center">Joined: {date}</Typography></center></>}
           className={classes.header}
           />
  
@@ -126,11 +127,9 @@ export default function MemberCard(props) {
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                 <Typography variant="overline">{`Voting Power: ${shares && memberCount ? (shares / memberCount)*100 : '100'}%`}</Typography>
               </Grid>
-              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                <Chip size="small" color="primary" label={accountName} /> 
-            </Grid>
             </Grid>
           </CardContent>
+          {summoner == accountName ? <center><Chip size="small" color="secondary" label='summoner' style={{marginTop: '-30px'}}/></center> : null} 
         </Card>
         </>
     )

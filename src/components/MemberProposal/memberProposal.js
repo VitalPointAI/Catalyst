@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import React, { useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
-import { utils } from 'near-api-js'
-import { submitProposal, GAS } from '../../state/near'
+import { submitProposal } from '../../state/near'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -10,7 +9,6 @@ import TextField from '@material-ui/core/TextField'
 import Dialog from '@material-ui/core/Dialog'
 import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
-import DialogContentText from '@material-ui/core/DialogContentText'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import LinearProgress from '@material-ui/core/LinearProgress'
 import Typography from '@material-ui/core/Typography'
@@ -25,15 +23,6 @@ import Zoom from '@material-ui/core/Zoom'
 import InfoIcon from '@material-ui/icons/Info'
 
 const useStyles = makeStyles((theme) => ({
-  root: {
-    flexGrow: 1,
-    margin: 'auto',
-    maxWidth: 325,
-    minWidth: 325,
-  },
-  card: {
-    margin: 'auto',
-  },
   warning: {
     float: 'left',
     paddingRight: '10px',
@@ -55,20 +44,6 @@ const useStyles = makeStyles((theme) => ({
       marginTop: theme.spacing(2),
     },
   },
-  circleProgress: {
-    display: 'flex',
-    '& > * + *': {
-      marginLeft: theme.spacing(2),
-    },
-    minWidth: '325px',
-    minHeight: '200px',
-  },
-  actionsContainer: {
-    marginBottom: theme.spacing(2),
-  },
-  resetContainer: {
-    padding: theme.spacing(3),
-  },
   }));
 
 export default function MemberProposal(props) {
@@ -87,21 +62,13 @@ export default function MemberProposal(props) {
     state,
     depositToken,
     proposalDeposit,
+    handleMemberProposalClickState,
 
-    handleMemberProposalClickState, 
-    handleProposalEventChange,
-    handleGuildBalanceChanges,
-    handleEscrowBalanceChanges,
+  
     handleSnackBarOpen,
     handleErrorMessage,
     handleSuccessMessage,
-
-    daoContract,
-   
-    didsContract,
-    contractIdx } = props
-
-    console.log('proposal deposit', proposalDeposit)
+   } = props
 
   const handleClose = () => {
     handleMemberProposalClickState(false)
@@ -114,67 +81,32 @@ export default function MemberProposal(props) {
   const handleTributeChange = (event) => {
     setTribute(event.target.value)
     setShares(event.target.value)
-  };
+  }
 
   const handleConfirmChange = (event) => {
     setConfirm(event.target.checked)
   }
 
-  async function handleCancelAction(proposalIdentifier, tribute) {
-    let finished = await daoContract.cancelProposal({
-        pI: proposalIdentifier
-        }, GAS, utils.format.parseNearAmount((parseInt(proposalDeposit)+parseInt(tribute)).toString()))
-    try{
-      
-
-        let contractDid = await didsContract.getDID({accountId: contractId})
-        let memberProposalRecords = await contractIdx.get('memberProposal', contractDid)
-        let i = 0
-        let recordToChange
-        while (i < memberProposalRecords.events.length){
-          if (memberProposalRecords.events[i].memberProposalId == proposalIdentifier.toString()){
-            memberProposalRecords.events[i].flags = finished.f
-            break
-          }
-          i++
-        }
-
-        let result = await contractIdx.set('memberProposal', memberProposalRecords)
-
-        handleSuccessMessage('Successfully cancelled membership proposal.', 'success')
-        handleSnackBarOpen(true)
-      } catch (err) {
-        handleErrorMessage('There was a problem cancelling the membership proposal.', 'error')
-        handleSnackBarOpen(true)
-      }
-  }
-
   const onSubmit = async (values) => {
     setFinished(false)
-    let finished
-
     try{
       await submitProposal(
                       state.wallet,
                       contractId,
-                      applicant,
-                      tribute,
                       depositToken,
-                      proposalDeposit)
+                      proposalDeposit,
+                      'Member',
+                      applicant,
+                      '0',
+                      tribute,
+                      tribute,
+                      '0'
+                      )
             
     } catch (err) {
       handleErrorMessage('There was a problem adding the member proposal' + err.message, 'error')
       handleSnackBarOpen(true)
       setFinished(true)
-      setOpen(false)
-      handleClose()
-    }
-
-    if(finished) {
-      setFinished(true)
-    //  await handleProposalEventChange()
-      await handleGuildBalanceChanges()
-      await handleEscrowBalanceChanges()
       setOpen(false)
       handleClose()
     }
@@ -290,5 +222,5 @@ export default function MemberProposal(props) {
       </Dialog>
       
     </div>
-  );
+  )
 }

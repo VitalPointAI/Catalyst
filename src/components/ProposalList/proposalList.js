@@ -103,6 +103,7 @@ export default function ProposalList(props) {
     contract,
     contractId,
     proposalDeposit,
+    allMemberInfo,
 
     tabValue,
     handleTabValueState,
@@ -128,19 +129,19 @@ export default function ProposalList(props) {
     proposalComments,
     
  
-    allMemberInfo,
+    
     getCurrentPeriod,
     summoner,
     contractIdx,
-    //appIdx,
     curUserIdx,
-    
-    //didsContract,
-   
     appClient
   } = props
 
   useEffect(() => {
+
+    if(allMemberInfo){
+      setMemberCount(allMemberInfo.length)
+    }
    
     async function fetchData() {
       let i = 0
@@ -155,20 +156,17 @@ export default function ProposalList(props) {
           proposalEvents[i].voted = result == 'yes' || result == 'no'? true : false
           i++
       }
-        let newLists = await resolveStatus(proposalEvents)
-        console.log('newlists', newLists)
-        setProposalList(newLists.allProposals)
-        setVotingList(newLists.votingProposals)
-        setQueueList(newLists.queueProposals)
-        setProcessedList(newLists.processedProposals)
-        setProposalCount(newLists.allProposals.length)
-        setVoteCount(newLists.votingProposals.length)
-        setProcessedCount(newLists.processedProposals.length)
-        setQueueCount(newLists.queueProposals.length)
 
-        if(allMemberInfo){
-          setMemberCount(allMemberInfo.length)
-        }
+      let newLists = await resolveStatus(proposalEvents)
+      console.log('newlists', newLists)
+      setProposalList(newLists.allProposals)
+      setVotingList(newLists.votingProposals)
+      setQueueList(newLists.queueProposals)
+      setProcessedList(newLists.processedProposals)
+      setProposalCount(newLists.allProposals.length)
+      setVoteCount(newLists.votingProposals.length)
+      setProcessedCount(newLists.processedProposals.length)
+      setQueueCount(newLists.queueProposals.length)
     }
     
     if(proposalEvents && proposalEvents.length > 0){
@@ -216,12 +214,12 @@ export default function ProposalList(props) {
       setName(name)
       setMemberProposalDetailsEmptyClicked(true)
     }
-  };
+  }
 
   const handleRageQuitClick = () => {
     handleExpanded()
     setRageQuitClicked(true)
-  };
+  }
 
   function handleMemberProposalDetailsClickState(property) {
     setMemberProposalDetailsClicked(property)
@@ -246,7 +244,7 @@ export default function ProposalList(props) {
         setFundingProposalId(id)
         setFundingProposalDetailsEmptyClicked(true)
     }
-  };
+  }
 
   function handleFundingProposalDetailsClickState(property) {
     setFundingProposalDetailsClicked(property)
@@ -267,7 +265,6 @@ export default function ProposalList(props) {
   function Alert(props) {
     return <MuiAlert elevation={6} variant="filled" {...props} />
   }
-
 
   async function handleCancelAction(proposalId, proposalDeposit, tribute) {
     setCancelFinish(false)
@@ -378,12 +375,6 @@ export default function ProposalList(props) {
     var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
     var formatDate = monthName + ' ' + day + ', ' + year
     return formatDate
-  }
-
-  function formatDate(timestamp) {
-      let intDate = parseInt(timestamp)
-      let options = {year: 'numeric', month: 'long', day: 'numeric'}
-      return new Date(intDate).toLocaleString('en-US', options)
   }
 
   async function resolveStatus(requests) {
@@ -648,8 +639,6 @@ export default function ProposalList(props) {
   console.log('queue list', queueList)
   if (queueList && queueList.length > 0 && tabValue == '4') {
     Queued = queueList.map((fr) => {
-      console.log('fr queue', fr)
-      console.log('requestId', fr.requestId)
       return (
         <ProposalCard 
           key={fr.requestId} 
@@ -681,8 +670,6 @@ export default function ProposalList(props) {
   //why?????
   if (queueList && queueList.length > 1 && tabValue == '4') {
     Queued = queueList.map((fr) => {
-      console.log('fr queue', fr)
-      console.log('requestId', fr.requestId)
       return (
         <ProposalCard 
           key={fr[0].requestId} 

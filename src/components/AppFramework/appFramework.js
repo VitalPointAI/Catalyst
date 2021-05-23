@@ -48,13 +48,7 @@ const imageName = require('../../img/default-profile.png') // default no-image a
   
 export default function AppFramework(props) {
 
-    const { state, dispatch, update } = useContext(appStore);
-
-    // const [date, setDate] = useState('')
-    // const [name, setName] = useState('')
-    // const [logo, setLogo] = useState(imageName)
-    // const [purpose, setPurpose] = useState('')
-    // const [category, setCategory] = useState('')
+    const { state, dispatch, update } = useContext(appStore)
 
     const [sharesLabel, setSharesLabel] = useState('Shares: 0')
     const [lootLabel, setLootLabel] = useState('Loot: 0')
@@ -128,13 +122,14 @@ export default function AppFramework(props) {
               if(contractId){
                 let thisCurDaoIdx
                 let daoAccount = new nearAPI.Account(near.connection, contractId)
-                console.log('daoAccount', daoAccount)
                    
                 thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
                 setCurDaoIdx(thisCurDaoIdx)
            
                 let contract = await dao.initDaoContract(state.wallet.account(), contractId)
                 setDaoContract(contract)
+
+                // *********CHECK FOR TRIGGERS AND EXECUTE*************
 
                    // check for first init to log summon and member events
                    let firstInit = get(DAO_FIRST_INIT, [])
@@ -269,10 +264,23 @@ export default function AppFramework(props) {
                   // For debugging
                   //  let proposalCheck= await contract.getProposal({proposalId: 0})
                   //  console.log('proposalCheck', proposalCheck)
+
+                //************SYNCH PROPOSALS AND CONTRACT */
+
+                  try {
+                    let synched = await synchProposalEvent(thisCurDaoIdx, contract)
+                    if(synched){
+                      let proposals = await thisCurDaoIdx.get('proposals', thisCurDaoIdx.id)
+                      setAllProposals(proposals.events)
+                    }
+                  } catch (err) {
+                    console.log('no proposals yet', err)
+                  }
+
+                //************ LOAD COMMUNITY SETTINGS AND INFORMATION */
                      
                 try{
                   let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
-                  console.log('result dao', result)
                   if(result){
                     result.name ? setName(result.name) : setName('')
                     result.date ? setDate(result.date) : setDate('')
@@ -285,42 +293,22 @@ export default function AppFramework(props) {
                 }
 
                 try {
-                  console.log('thiscurdaoidx', thisCurDaoIdx)
                 let memberInfo = await thisCurDaoIdx.get('members', thisCurDaoIdx.id)
-                console.log('result memberinfo', memberInfo)
                 setAllMemberInfo(memberInfo.events)
                 } catch (err) {
                   console.log('no memberinfo yet', err)
                 }
                     
                 let init = await contract.getInit()
-                console.log('init', init)
                 setInitialized(init)
-                console.log('initialized', initialized)
                 setInitLoad(true)
 
-             
-
-                    try {
-                      let synched = await synchProposalEvent(thisCurDaoIdx, contract)
-                      console.log('synched', synched)
-                      if(synched){
-                        let proposals = await thisCurDaoIdx.get('proposals', thisCurDaoIdx.id)
-                        console.log('result proposals', proposals)
-                        setAllProposals(proposals.events)
-                      }
-                    } catch (err) {
-                      console.log('no proposals yet', err)
-                    }
-                   
-        
-                    if(initialized){
+                if(initialized){
                     let thisMemberInfo
                     let thisMemberStatus
         
                     try {
                       thisMemberStatus = await contract.getMemberStatus({member: accountId})
-                      console.log('member status', thisMemberStatus)
                       setMemberStatus(thisMemberStatus)
                     } catch (err) {
                       console.log('no member status yet')
@@ -328,7 +316,6 @@ export default function AppFramework(props) {
                     
                     try {
                       thisMemberInfo = await contract.getMemberInfo({member: accountId})
-                      console.log('member info', thisMemberInfo)
                       setMemberInfo(thisMemberInfo)
                     } catch (err) {
                       console.log('no member info yet')
@@ -337,14 +324,12 @@ export default function AppFramework(props) {
                     try {
                       let owner = await contract.getSummoner()
                       setSummoner(owner)
-                      console.log('summoner hrt', summoner)
                     } catch (err) {
                       console.log('no summoner yet')
                     }
         
                     try {
                       let shares = await contract.getTotalShares()
-                      console.log('shares', shares)
                       setTotalShares(shares)
                     } catch (err) {
                       console.log('no total shares yet')
@@ -353,14 +338,12 @@ export default function AppFramework(props) {
                     try {
                       let token = await contract.getDepositToken()
                       setDepositToken(token)
-                      console.log('deposit token', depositToken)
                     } catch (err) {
                       console.log('no deposit token yet')
                     }
                         
                     try {
                       let deposit = await contract.getProposalDeposit()
-                      console.log('proposal deposit', deposit)
                       setProposalDeposit(deposit)
                     } catch (err) {
                       console.log('no proposal deposit yet')
@@ -373,11 +356,9 @@ export default function AppFramework(props) {
                       console.log('no period duration yet')
                     }
                   
-        
                     let ebalance
                     try {
                       ebalance = await contract.getEscrowTokenBalances()
-                      console.log('escrow balance', ebalance)
                       setEscrowBalance(ebalance)
                     } catch (err) {
                       console.log('no escrow balance')
@@ -400,8 +381,7 @@ export default function AppFramework(props) {
                     let guildRow
                     if(gbalance) {
                       for (let i = 0; i < gbalance.length; i++) {
-                        guildRow = (<>{gbalance[i].balance} {gbalance[i].token}</>
-                        )
+                        guildRow = (<>{gbalance[i].balance} {gbalance[i].token}</>)
                       }
                     } else {
                       guildRow = '0 Ⓝ'
@@ -431,44 +411,31 @@ export default function AppFramework(props) {
                       }
                     }
                     
-                  //   //let i = 1
+                  //***********START PERIOD REFRESH TIMER */
                     if(started==false){
                       setTimeout(async function refreshCurrentPeriod() {
-                        
-                        let init
-                        try{
-                            init = await contract.getInit()
-                        } catch (err) {
-                            console.log('cant retrieve init', err)
-                        }
-                        if(init=='done'){
                         try {
                           let period = await contract.getCurrentPeriod()
                           setCurrentPeriod(period)
-                          console.log('get period success')
                         } catch (err) {
                           console.log('get period issue', err)
                         }
-                        //start = false
-                      // i++
                         if(started == false){
-                        setTimeout(refreshCurrentPeriod, 20000)
-                        setStarted(true)
+                          setTimeout(refreshCurrentPeriod, 20000)
+                          setStarted(true)
                         }
+                      }, 20000)
                     }
-                    }, 20000)
-                  }
+                  
                 }
                 
               }    
             }  
-          
-      }
+          }
 
-      fetchData()
-      .then((res) => {
-      
-      })
+          fetchData()
+          .then((res) => {
+          })
   
       }, [initialized, didRegistryContract, near, change, currentPeriod]
     )
@@ -482,7 +449,6 @@ export default function AppFramework(props) {
         let currentGuildBalance = await daoContract.getGuildTokenBalances()
         if(currentGuildBalance) {
           setGuildBalance(currentGuildBalance)
-        
         }
         return true
       } catch (err) {
@@ -495,7 +461,6 @@ export default function AppFramework(props) {
         let currentEscrowBalance = await daoContract.getEscrowTokenBalances()
         if(currentEscrowBalance) {
           setEscrowBalance(currentEscrowBalance)
- 
         }
         return true
       } catch (err) {
@@ -503,7 +468,6 @@ export default function AppFramework(props) {
       }
     }
     
-  
     return (
       <>
             <div className={classes.root}>

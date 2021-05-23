@@ -129,14 +129,14 @@ export default function ExploreDaos(props) {
                             {resources && resources > 0 ? resources + ' Ⓝ' : null}
                         </Typography>
                         <Typography align="center" style={{color:'#1341a4', fontSize:'30px',fontWeight:'700', lineHeight:'1em', verticalAlign:'middle'}}>
-                            {resources && resources > 0 ? '$' + resources * nearPrice + ' USD' : null}
+                            {resources && resources > 0 ? '$' + Math.round(resources * nearPrice, 2) + ' USD' : null}
                         </Typography>
                     </Grid>
                 </Grid>
             </Grid>
         </Grid>
 
-        <Grid container alignItems="center" justify="flex-start" spacing={2}>
+        <Grid container alignItems="center" justify="space-between" spacing={2}>
             { daoCount > 0 ? 
                 (<>
                   
