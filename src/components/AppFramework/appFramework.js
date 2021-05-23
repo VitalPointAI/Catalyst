@@ -8,6 +8,7 @@ import { logInitEvent, logProposalEvent, logSponsorEvent, logCancelEvent, logPro
 import ActionSelector from '../ActionSelector/actionSelector'
 import ProposalList from '../ProposalList/proposalList'
 import RightSideDrawer from './RightSideDrawer'
+import Footer from '../../components/common/Footer/footer'
 import { Header } from '../Header/header'
 import Initialize from '../Initialize/initialize'
 
@@ -419,6 +420,7 @@ export default function AppFramework(props) {
                       
                     let getNearPrice = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd')
                     setNearPrice(getNearPrice.data.near.usd)
+                    update('', nearPrice)
                     
                     if(currentPeriod == undefined || currentPeriod == 0){
                       try {
@@ -503,6 +505,7 @@ export default function AppFramework(props) {
     
   
     return (
+      <>
             <div className={classes.root}>
             <Header state={state} />
             <Grid container style={{padding:'20px'}}>
@@ -625,8 +628,10 @@ export default function AppFramework(props) {
               />
           }
         </Grid>
+       
         </div>
-    
+        <Footer />
+        </>
     )
     
 }

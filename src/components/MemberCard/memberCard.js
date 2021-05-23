@@ -67,11 +67,7 @@ export default function MemberCard(props) {
             if(accountName){
               let existingDid = await didRegistryContract.hasDID({accountId: accountName})
             
-              if(existingDid){
-                  let thisDid = await didRegistryContract.getDID({
-                      accountId: accountName
-                  })
-                  setDid(thisDid)
+                if(existingDid){
                  
                   let personaAccount = new nearAPI.Account(near.connection, accountName)
 
@@ -131,7 +127,7 @@ export default function MemberCard(props) {
                 <Typography variant="overline">{`Voting Power: ${shares && memberCount ? (shares / memberCount)*100 : '100'}%`}</Typography>
               </Grid>
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                <Chip size="small" color="primary" label={summoner} /> 
+                <Chip size="small" color="primary" label={accountName} /> 
             </Grid>
             </Grid>
           </CardContent>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app'
 import DaoCard from '../DAOCard/daoCard'
 import { Header } from '../Header/header'
+import Footer from '../../components/common/Footer/footer'
 
 // Material UI components
 import { makeStyles } from '@material-ui/core/styles'
@@ -12,10 +13,10 @@ const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
       //  maxWidth: 640,
-        margin: 'auto',
+      //  margin: 'auto',
       //  marginTop: 50,
-        marginBottom: 50,
-        minHeight: 550,
+      //  marginBottom: '50px',
+        minHeight: 700,
         padding: '20px',
     },
     featureDAO: {
@@ -66,14 +67,15 @@ export default function Daos(props) {
     }
 
     return (
-        
+        <>
         <div className={classes.root}>
         <Header state={state}/>
 
-        <Grid container alignItems="center" justify="flex-start" spacing={2}>
+        <Grid container alignItems="center" justify="space-between" spacing={0}>
             { daoList && daoList.daoList.length > 0 ? 
                 (<>
                   {console.log('daos', daoList)}
+               
                 {daoList.daoList.filter(dao => dao.summoner == accountId).map(({ contractId, date, summoner }, i) =>
                     <DaoCard
                         key={i}
@@ -83,12 +85,13 @@ export default function Daos(props) {
                         link={''}
                         handleEditDaoClick={handleEditDaoClick}
                     />              
-                )}
+                ).reverse()}
             </>)
             : null
             } 
         </Grid>
         </div>
-        
+        <Footer />
+        </>
     )
 }

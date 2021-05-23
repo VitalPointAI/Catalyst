@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app'
+import { utils } from 'near-api-js'
 
 import DaoCard from '../DAOCard/daoCard'
 import { Header } from '../Header/header'
@@ -8,6 +9,8 @@ import { Header } from '../Header/header'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Grid from '@material-ui/core/Grid'
+
+const axios = require('axios').default
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -43,9 +46,11 @@ const useStyles = makeStyles((theme) => ({
   
 export default function ExploreDaos(props) {
    
-    const[daos, setDaos] = useState([])
-    const[daoCount, setDaoCount] = useState(0)
+    const [daos, setDaos] = useState([])
+    const [daoCount, setDaoCount] = useState(0)
     const [editDaoClicked, setEditDaoClicked] = useState(false)
+    const [resources, setResources] = useState(0)
+    const [nearPrice, setNearPrice] = useState()
 
     const classes = useStyles()
 
@@ -53,6 +58,7 @@ export default function ExploreDaos(props) {
 
     const {
       daoList,
+      near
     } = state
 
     useEffect(
@@ -62,12 +68,38 @@ export default function ExploreDaos(props) {
                     console.log('daolist', daoList)
                     setDaoCount(daoList.daoList.length)
                     setDaos(daoList.daoList)
+
+                    let i = 0
+                    let balance = 0
+                    while (i < daoList.daoList.length){
+                        let account
+                        try {
+                            account = await near.connection.provider.query({
+                                request_type: "view_account",
+                                finality: "final",
+                                account_id: daoList.daoList[i].contractId,
+                            })
+                        } catch (err) {
+                            console.log('problem retrieving account', err)
+                        }
+                        if(account){
+                            console.log('account', account)
+                            let formatted = utils.format.formatNearAmount(account.amount, 0)
+                            balance = balance + parseInt(formatted)
+                            console.log('balance', balance)
+                        }
+                        i++
+                    }
+                    setResources(balance)
+                    let getNearPrice = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd')
+                    setNearPrice(getNearPrice.data.near.usd)
+                    console.log('nearprice', nearPrice)
                 }
             }
 
             fetchData()
 
-    }, [daoList]
+    }, [daoList, near, nearPrice]
     )
     
     function handleEditDaoClick(property){
@@ -78,13 +110,29 @@ export default function ExploreDaos(props) {
         
         <div className={classes.root}>
         <Header state={state}/>
-        <Grid container alignItems="center" justify="space-evenly" spacing={2} style={{marginTop:'40px', marginBottom:'40px'}}>
+        <Grid container alignItems="center" justify="space-between" spacing={0} style={{marginTop:'40px', marginBottom:'40px'}}>
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12} className={classes.featureDAO}>
-                <Typography align="center" style={{color:'#1341a4', fontSize:'80px',fontWeight:'700', marginTop:'30px', lineHeight:'1em', verticalAlign:'middle'}}>
-                    {daos && daoCount > 1 ? daoCount + ' DAOs Run on Catalyst': null}
-                    {daos && daoCount == 1 ? daoCount + ' DAO Runs on Catalyst': null}
-                    {daos && daoCount == 0 ? daoCount + ' DAOs Run on Catalyst': null}
-                </Typography>
+                <Typography align="center" style={{color:'#1341a4', fontSize:'60px',fontWeight:'700', marginTop:'30px', lineHeight:'1em', verticalAlign:'middle'}}>Catalyst Powers</Typography>
+                <Grid container alignItems="center" justify="space-evenly" spacing={1}>
+                    <Grid item xs={6} sm={6} md={6} lg={6} xl={6} align="center">
+                        <Typography style={{color:'#1341a4', fontSize:'80px',fontWeight:'700', marginTop:'30px', lineHeight:'1em', verticalAlign:'middle'}}>
+                            {daos ? daoCount : null} 
+                        </Typography>
+                        <Typography variant="overline" style={{color:'#1341a4', fontSize:'30px',fontWeight:'700', lineHeight:'1em', verticalAlign:'middle'}}>
+                            {daos && daoCount > 1 ? 'Communities': null} 
+                            {daos && daoCount == 1 ? 'Community': null}
+                            {daos && daoCount == 0 ? 'Communities': null}
+                        </Typography>
+                    </Grid>
+                    <Grid item xs={6} sm={6} md={6} lg={6} xl={6} >
+                        <Typography align="center" style={{color:'#1341a4', fontSize:'80px',fontWeight:'700', marginTop:'30px', lineHeight:'1em', verticalAlign:'middle'}}>
+                            {resources && resources > 0 ? resources + ' Ⓝ' : null}
+                        </Typography>
+                        <Typography align="center" style={{color:'#1341a4', fontSize:'30px',fontWeight:'700', lineHeight:'1em', verticalAlign:'middle'}}>
+                            {resources && resources > 0 ? '$' + resources * nearPrice + ' USD' : null}
+                        </Typography>
+                    </Grid>
+                </Grid>
             </Grid>
         </Grid>
 
@@ -102,7 +150,7 @@ export default function ExploreDaos(props) {
                         state={state}
                         handleEditDaoClick={handleEditDaoClick}
                     />
-                    )}
+                    ).reverse()}
                 </>)
             : null
             }

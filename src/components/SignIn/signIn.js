@@ -19,7 +19,7 @@ const useStyles = makeStyles((theme) => ({
         maxWidth: '95%',
         margin: 'auto',
         marginTop: 50,
-        minHeight: 550,
+        minHeight: 500,
     },
     customCard: {
         maxWidth: '95%',
@@ -42,7 +42,7 @@ export default function SignIn(props) {
 const classes = useStyles()
 
     return (
-        <Grid container spacing={3}>
+        <Grid container spacing={3} className={classes.root}>
           <Grid item xs={12}>
            <Typography>Placeholder</Typography>
          

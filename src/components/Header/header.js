@@ -1,4 +1,5 @@
-import React from 'react';
+import React from 'react'
+import { useParams } from 'react-router-dom'
 import LeftSideDrawer from '../LeftSideDrawer/leftSideDrawer'
 import LogoutButton from '../LogoutButton/logoutButton'
 import LoginButton from '../LogInButton/loginButton'
@@ -18,10 +19,16 @@ export const Header = ({ state, handleSnackBarOpen, handleSuccessMessage, handle
         wallet
     } = state
 
+    const {
+        contractId
+    } = useParams()
+    
     return (
         <>
         <Grid container justify="space-between" alignItems="center">
-            <Grid item xs={8} sm={8} md={3} lg={3} xl={3}>
+            <Grid item xs={8} sm={8} md={3} lg={3} xl={3} align="left">
+            {wallet && wallet.signedIn ? (
+                <>
                 <LeftSideDrawer
                 state={state}
                 handleSnackBarOpen={handleSnackBarOpen}
@@ -31,8 +38,8 @@ export const Header = ({ state, handleSnackBarOpen, handleSuccessMessage, handle
                 severity={severity}
                 errorMessage={errorMessage}
                 successMessage={successMessage}
-                />
-                <Logo />
+                /> <Logo /></>) :
+                <Logo />}
             </Grid>
             
             {wallet && !wallet.signedIn ? (

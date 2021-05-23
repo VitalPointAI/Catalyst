@@ -18,6 +18,8 @@ import ListItemText from '@material-ui/core/ListItemText'
 import AddBoxIcon from '@material-ui/icons/AddBox'
 import AccountBalanceIcon from '@material-ui/icons/AccountBalance'
 import Avatar from '@material-ui/core/Avatar'
+import GroupIcon from '@material-ui/icons/Group'
+import ExploreIcon from '@material-ui/icons/Explore'
 
 const useStyles = makeStyles((theme) => ({
     list: {
@@ -28,7 +30,8 @@ const useStyles = makeStyles((theme) => ({
         width: 'auto',
     },
     menuButton: {
-        marginTop: '5px'
+        marginTop: '5px',
+        
     },
     small: {
         width: theme.spacing(3),
@@ -100,25 +103,37 @@ const list = (anchor) => (
 >
     <Typography variant='h6'>Personas</Typography>
     <List>
-      <ListItem button key={1} onClick={(e) => addPersonaClick(e)}>
-        <ListItemIcon><Avatar src={imageName} className={classes.small}/></ListItemIcon>
+      <Link to='/personas'>
+        <ListItem button key={1}>
+          <ListItemIcon><Avatar src={imageName} className={classes.small}/></ListItemIcon>
+          <ListItemText primary='My Personas'/>
+        </ListItem>
+      </Link>
+      <ListItem button key={2} onClick={(e) => addPersonaClick(e)}>
+        <ListItemIcon><AddBoxIcon /></ListItemIcon>
         <ListItemText primary='Create Persona'/>
       </ListItem>
     </List>
     <Divider />
-    <Typography variant='h6'>DAOs</Typography>
+    <Typography variant='h6'>Communities</Typography>
     <List>
-      <ListItem button key={4} onClick={(e) => addDaoClick(e)}>
-        <ListItemIcon><AddBoxIcon /></ListItemIcon>
-        <ListItemText primary='Create DAO'/>
-      </ListItem>
+      <Link to='/daos'>
+        <ListItem button key={3}>
+          <ListItemIcon><GroupIcon /></ListItemIcon>
+          <ListItemText primary='My Communities'/>
+        </ListItem>
+      </Link>
+      
     <Link to='/explore'>
-      <ListItem button key={5}>
-        <ListItemIcon><AccountBalanceIcon /></ListItemIcon>
-        <ListItemText primary='Explore DAOs'/>
+      <ListItem button key={4}>
+        <ListItemIcon><ExploreIcon /></ListItemIcon>
+        <ListItemText primary='Explore Communities'/>
       </ListItem>
     </Link>
-    
+    <ListItem button key={5} onClick={(e) => addDaoClick(e)}>
+        <ListItemIcon><AddBoxIcon /></ListItemIcon>
+        <ListItemText primary='Create Community'/>
+      </ListItem>
     </List>
     
 </div>

@@ -35,8 +35,7 @@ const useStyles = makeStyles((theme) => ({
       maxWidth: '200px',
       //cursor: 'pointer',
       verticalAlign: 'middle',
-      marginLeft: '10px',
-      marginRight: '10px',
+      margin: '10px 10px 10px 10px',
       padding: '2px'
     },
     avatar: {
@@ -49,7 +48,7 @@ const useStyles = makeStyles((theme) => ({
     }
   }));
 
-const imageName = require('../../img/default-profile.png') // default no-image avatar
+const imageName = require('../../img/default_logo.png') // default no-image avatar
 
 export default function DaoCard(props) {
 
@@ -96,68 +95,35 @@ export default function DaoCard(props) {
              
               // Set Dao Idx
               if(contractId && near){
-                 
-                  // let existingDid = await didRegistryContract.hasDID({accountId: contractId})
-            
-                  // if(existingDid){
-                      // let thisDid = await didRegistryContract.getDID({
-                      //     accountId: contractId
-                      // })
-                      // setDid(thisDid)
                     
-                      let daoAccount = new nearAPI.Account(near.connection, contractId);
-                    
-                      let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
-                     
-                      setCurDaoIdx(thisCurDaoIdx)
+                let daoAccount = new nearAPI.Account(near.connection, contractId);
+              
+                let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+                setCurDaoIdx(thisCurDaoIdx)
 
-                      try{
-                        let result = await appIdx.get('daoProfile', thisCurDaoIdx.id)
-                                           
-                        if(result){
-                          result.name ? setName(result.name) : setName('')
-                          result.date ? setDate(result.date) : setDate('')
-                          result.logo ? setLogo(result.logo) : setLogo(imageName)
-                          result.purpose ? setPurpose(result.purpose) : setPurpose('')
-                          result.category ? setCategory(result.category) : setCategory('')
-                          return true
-                        }
-                      } catch (err) {
-                        console.log('error retrieving DAO profile', err)
-                      }
-                      return true
-                //  }
-
-                  // if(!existingDid){
-                   
-                  //   // let daoAccount = new nearAPI.Account(near.connection, contractId);
-                 
-                  //   // let thisCurDaoIdx = await ceramic.getCurrentDaoIdxNoDid(appIdx, didRegistryContract, daoAccount)
-                  //   // setCurDaoIdx(thisCurDaoIdx)
-
-                  //   // try{
-                  //   //   let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
-                      
-                  //   //   if(result){
-                  //   //     result.name ? setName(result.name) : setName('')
-                  //   //     result.date ? setDate(result.date) : setDate('')
-                  //   //     result.logo ? setLogo(result.logo) : setLogo(imageName)
-                  //   //     result.purpose ? setPurpose(result.purpose) : setPurpose('')
-                  //   //     result.category ? setCategory(result.category) : setCategory('')
-                  //   //     return true
-                  //   //   }
-                  //   // } catch (err) {
-                  //   //   console.log('error retrieving DAO profile')
-                  //   // }
-                  //   // return true
-                  // }
-              }
+                try{
+                  let result = await appIdx.get('daoProfile', thisCurDaoIdx.id)
+                                      
+                  if(result){
+                    result.name ? setName(result.name) : setName('')
+                    result.date ? setDate(result.date) : setDate('')
+                    result.logo ? setLogo(result.logo) : setLogo(imageName)
+                    result.purpose ? setPurpose(result.purpose) : setPurpose('')
+                    result.category ? setCategory(result.category) : setCategory('')
+                    return true
+                  }
+                } catch (err) {
+                  console.log('error retrieving DAO profile', err)
+                }
+                return true
             }
+      }
 
       fetchData()
           .then((res) => {
             setFinished(true)
           })
+
   }, [isUpdated, near]
   )
 
@@ -192,11 +158,21 @@ export default function DaoCard(props) {
           finished ? 
           (
             <Card className={classes.card}>
-              <CardContent >
-                <Avatar variant="rounded" src={logo} className={classes.square} />
+              <CardContent align="center">
+              <Link to={`/dao/${contractId}`}>
+                <div style={{width: '100%', 
+                height: '50px',
+                backgroundImage: `url(${logo})`, 
+                backgroundSize: '180px auto', 
+                backgroundPosition: 'center', 
+                backgroundRepeat: 'no-repeat',
+                backgroundOrigin: 'content-box'
+            }}>
+            </div>
+            </Link>
                 <Typography  variant="overline" display="inline" noWrap={true} style={{lineHeight: 0}}>
                   {name ? name : contractId}<br></br>
-                  {finished ? (<span style={{fontSize: '80%'}}>{created}</span>) : <LinearProgress />}
+                  {finished ? (<span style={{fontSize: '80%'}}>Created: {created}</span>) : <LinearProgress />}
                 </Typography>
               </CardContent>
               <CardActions>

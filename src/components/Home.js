@@ -3,6 +3,7 @@ import { get, set, del } from '../utils/storage'
 import clsx from 'clsx';
 import { flexClass } from '../App'
 import SignIn from './SignIn/signIn'
+import Footer from '../components/common/Footer/footer'
 import LeftSideDrawer from './LeftSideDrawer/leftSideDrawer'
 import LogoutButton from './LogoutButton/logoutButton'
 import LoginButton from './LogInButton/loginButton'
@@ -95,6 +96,8 @@ export const Home = ({ children, state, handleSnackBarOpen, handleSuccessMessage
         }
             
         </div>
+
+       
         
         { state.app.alert &&
             <div class="container-alert">
@@ -108,6 +111,7 @@ export const Home = ({ children, state, handleSnackBarOpen, handleSuccessMessage
             </div>
         }
     </div>
+    <Footer />
     </>
     )
 }

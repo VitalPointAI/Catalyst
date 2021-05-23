@@ -40,6 +40,12 @@ const useStyles = makeStyles((theme) => ({
         height: theme.spacing(7),
         textAlign: 'center'
     },
+    square: {
+      //color: theme.palette.getContrastText(deepOrange[500]),
+      //backgroundColor: deepOrange[500],
+      width: '175px',
+      height: 'auto'
+    },
     waiting: {
       minWidth: '100%',
       minHeight: '100%',
@@ -48,7 +54,7 @@ const useStyles = makeStyles((theme) => ({
     }
     }));
 
-const imageName = require('../../img/default-profile.png') // default no-image avatar
+const imageName = require('../../img/default_logo.png') // default no-image avatar
 
 export default function EditDaoForm(props) {
     const [open, setOpen] = useState(true)
@@ -227,12 +233,12 @@ export default function EditDaoForm(props) {
                   />
              
                   <Grid container spacing={1}>
-                    <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
-                        <Avatar src={logo} className={classes.large} />
+                    <Grid item xs={4} sm={4} md={4} lg={4} xl={4}>
+                        <Avatar src={logo} variant="square" className={classes.square} />
                     </Grid>
-                    <Grid item xs={10} sm={10} md={10} lg={10} xl={10}>
+                    <Grid item xs={8} sm={8} md={8} lg={8} xl={8}>
                       <Typography align="center" variant="h5">Upload a Logo</Typography>
-                      <FileUpload handleFileHash={handleFileHash}/>
+                      <FileUpload handleFileHash={handleFileHash} align="center"/>
                     </Grid>
                   </Grid>
                  

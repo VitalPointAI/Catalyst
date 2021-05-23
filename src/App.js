@@ -21,6 +21,8 @@ import Daos from './components/mainPages/daos'
 import Import from './components/Import/import'
 import { KEY_REDIRECT } from './state/near'
 
+
+
 // Material-UI Components
 import { CircularProgress } from '@material-ui/core'
 
@@ -36,6 +38,7 @@ const App = () => {
     const [severity, setSeverity] = useState()
     const [successMessage, setSuccessMessage] = useState()
     const [snackBarOpen, setSnackBarOpen] = useState(false)
+   
 
     const onMount = () => {
         dispatch(onAppMount());
@@ -63,7 +66,8 @@ const App = () => {
     setSnackBarOpen(property)
     }
 
-   
+    
+    
     
     const {
         accountData, funding, wallet
@@ -88,6 +92,7 @@ const App = () => {
 
     if (wallet) {
         children = <PersonaPage {...{ state, dispatch, update }} />
+
     }
     
     return(

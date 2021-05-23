@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react'
+import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 import { Link } from 'react-router-dom'
 import { get, set, del } from '../../utils/storage'
@@ -72,8 +73,10 @@ export default function Persona(props) {
         balance
     } = props
 
+    const {
+        contractId
+    } = useParams()
    
-
     useEffect(
         () => {
   
@@ -151,7 +154,7 @@ const handleEditPersonaClick = () => {
     return (
         <Grid container justify="space-between" alignItems="flex-start" spacing={1} className={classes.root}>
             <Grid item xs={12} sm={12} md={6} lg={6} xl={6} style={{textAlign: 'center'}}>
-                {profileExists ? (
+                {profileExists && contractId == undefined ? (
                     <>
                     <Typography variant="overline" display="inline">
                         <Tooltip TransitionComponent={Zoom} title="The number of personas claimed by the signed in persona.">
@@ -172,7 +175,7 @@ const handleEditPersonaClick = () => {
                     </Typography>
                     </>)
                     :
-                    (<>
+                    contractId == undefined ? (<>
                     <Typography variant="overline" display="inline" style={{marginLeft: '10px'}}>
                         <Tooltip TransitionComponent={Zoom} title="The number of personas claimed by the signed in persona.">
                             <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
@@ -184,8 +187,17 @@ const handleEditPersonaClick = () => {
                         </Tooltip>Your DAOs: 0
                     </Typography>
                     </>
-                    )                 
-                }
+                    ) : (<>
+                    <Grid container justify="space-evenly" alignItems="center" spacing={1}>
+                        <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
+                            <Link to={`/dao/${contractId}/about`} variant="body1">About</Link>
+                        </Grid>
+                        <Grid item xs={10} sm={10} md={10} lg={10} xl={10}>
+                            <Link to={`/dao/${contractId}/how`} variant="body1">Community Guidelines</Link>
+                        </Grid>
+                    </Grid>
+                    </>) }               
+                
             </Grid>
             <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
             {finished ? (

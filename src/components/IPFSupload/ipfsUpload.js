@@ -13,7 +13,7 @@ const useStyles = makeStyles((theme) => ({
      
     },
      logo: {
-        maxWidth: '150px',
+        maxWidth: '175px',
         border: '1px solid',
       width: theme.spacing(12),
     },
@@ -64,7 +64,7 @@ export default function FileUpload(props) {
 
     return (
         <div>
-        <form id="captureMedia" onSubmit={handleSubmit}>
+        <form id="captureMedia" onSubmit={handleSubmit} style={{textAlign: 'center', marginTop: '10px'}}>
             <input type="file" onChange={captureFile} />
         </form>
       </div>

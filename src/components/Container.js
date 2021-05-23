@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import clsx from 'clsx';
 import { flexClass } from '../App'
 import SignIn from '../components/SignIn/signIn'
+import Footer from '../components/common/Footer/footer'
 import LeftSideDrawer from '../components/LeftSideDrawer/leftSideDrawer'
 import LogoutButton from '../components/LogoutButton/logoutButton'
 import LoginButton from '../components/LogInButton/loginButton'
@@ -83,6 +84,7 @@ export const Container = ({ children, state, handleSnackBarOpen, handleSuccessMe
         }
             
         </div>
+      
         
         { state.app.alert &&
             <div class="container-alert">
@@ -96,6 +98,7 @@ export const Container = ({ children, state, handleSnackBarOpen, handleSuccessMe
             </div>
         }
     </div>
+    <Footer />
     </>
     )
 }
