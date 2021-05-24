@@ -24,7 +24,7 @@ const useStyles = makeStyles((theme) => ({
       //  marginTop: 50,
         marginBottom: 50,
         minHeight: 550,
-        padding: '20px',
+        padding: '0px',
     },
     featureDAO: {
         minHeight: '200px',
@@ -170,8 +170,8 @@ export default function ExploreDaos(props) {
                 </Grid>
             </Grid>
         </Grid>
-
-        <Grid container alignItems="center" justify="space-between" spacing={2}>
+      
+        <Grid container alignItems="center" justify="space-between" spacing={0} >
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
             <SearchBar
                 placeholder="Search"
@@ -180,7 +180,7 @@ export default function ExploreDaos(props) {
             </Grid>
         </Grid>
 
-        <Grid container alignItems="center" justify="space-between" spacing={2}>
+        <Grid container alignItems="center" justify="space-between" spacing={3} style={{padding: '20px'}}>
         {daoCount > 0 ? 
                 (<>
                   

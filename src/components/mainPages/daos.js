@@ -13,11 +13,11 @@ const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
       //  maxWidth: 640,
-      //  margin: 'auto',
+        margin: 'auto',
       //  marginTop: 50,
       //  marginBottom: '50px',
         minHeight: 700,
-        padding: '20px',
+        padding: '0px',
     },
     featureDAO: {
         minHeight: '200px',
@@ -79,7 +79,7 @@ export default function Daos(props) {
         <div className={classes.root}>
         <Header state={state}/>
 
-        <Grid container alignItems="center" justify="space-between" spacing={0}>
+        <Grid container alignItems="center" justify="space-between" spacing={3} style={{padding: '20px'}} >
             { daos && daos.length > 0 ? 
                 (<>
                   {console.log('daos', daos)}

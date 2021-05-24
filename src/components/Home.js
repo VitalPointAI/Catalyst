@@ -30,7 +30,7 @@ const useStyles = makeStyles((theme) => ({
       //  marginTop: 50,
         marginBottom: 50,
         minHeight: 550,
-        padding: '20px',
+        padding: '0px',
     },
     paper: {
         padding: theme.spacing(2),

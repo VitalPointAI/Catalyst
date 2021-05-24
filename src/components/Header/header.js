@@ -25,7 +25,7 @@ export const Header = ({ state, handleSnackBarOpen, handleSuccessMessage, handle
     
     return (
         <>
-        <Grid container justify="space-between" alignItems="center">
+        <Grid container justify="space-between" alignItems="center" style={{padding: '20px'}}>
             <Grid item xs={8} sm={8} md={3} lg={3} xl={3} align="left">
             {wallet && wallet.signedIn ? (
                 <>

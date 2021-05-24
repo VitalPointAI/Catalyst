@@ -16,7 +16,7 @@ import LockOpenTwoToneIcon from '@material-ui/icons/LockOpenTwoTone';
 const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
-        maxWidth: '95%',
+      //  maxWidth: '95%',
         margin: 'auto',
         marginTop: 50,
         minHeight: 500,
@@ -42,7 +42,7 @@ export default function SignIn(props) {
 const classes = useStyles()
 
     return (
-        <Grid container spacing={3} className={classes.root}>
+        <Grid container spacing={0} className={classes.root}>
           <Grid item xs={12}>
            <Typography>Placeholder</Typography>
          
