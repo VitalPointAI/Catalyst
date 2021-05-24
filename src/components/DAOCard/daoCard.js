@@ -54,11 +54,11 @@ export default function DaoCard(props) {
 
   const { state, dispatch, update } = useContext(appStore);
 
-    const [date, setDate] = useState('')
-    const [name, setName] = useState('')
-    const [logo, setLogo] = useState(imageName)
-    const [purpose, setPurpose] = useState('')
-    const [category, setCategory] = useState('')
+    const [sdate, setsDate] = useState()
+    const [sname, setsName] = useState('')
+    const [slogo, setsLogo] = useState(imageName)
+    const [spurpose, setsPurpose] = useState('')
+    const [scategory, setsCategory] = useState('')
 
     const [editDaoClicked, setEditDaoClicked] = useState(false)
     const [claimed, setClaimed] = useState(false)
@@ -68,13 +68,18 @@ export default function DaoCard(props) {
     const [anchorEl, setAnchorEl] = useState(null);
     const [did, setDid] = useState()
     const [finished, setFinished] = useState(false)
-    const [created, setCreated] = useState(formatDate(props.created))
+    const [created, setCreated] = useState(formatDate(props.date))
 
     const classes = useStyles();
 
     const { 
       summoner,
       contractId,
+      logo,
+      date,
+      name,
+      category,
+      purpose,
       link
    } = props
 
@@ -88,35 +93,41 @@ export default function DaoCard(props) {
       () => {
 
       async function fetchData() {
+
+          name != '' ? setsName(name) : setsName('')
+          date ? setsDate(date) : setsDate('')
+          logo !='' ? setsLogo(logo) : setsLogo(imageName)
+          purpose != '' ? setsPurpose(purpose) : setsPurpose('')
+          category != '' ? setsCategory(category) : setsCategory('')
               // if(summoner == state.accountId){
               //   setDisplay(true)
               // }
               setFinished(false)
              
               // Set Dao Idx
-              if(contractId && near){
+            //   if(contractId && near){
                     
-                let daoAccount = new nearAPI.Account(near.connection, contractId);
+            //     let daoAccount = new nearAPI.Account(near.connection, contractId)
               
-                let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
-                setCurDaoIdx(thisCurDaoIdx)
+            //     let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+            //     setCurDaoIdx(thisCurDaoIdx)
 
-                try{
-                  let result = await appIdx.get('daoProfile', thisCurDaoIdx.id)
+            //     try{
+            //       let result = await appIdx.get('daoProfile', thisCurDaoIdx.id)
                                       
-                  if(result){
-                    result.name ? setName(result.name) : setName('')
-                    result.date ? setDate(result.date) : setDate('')
-                    result.logo ? setLogo(result.logo) : setLogo(imageName)
-                    result.purpose ? setPurpose(result.purpose) : setPurpose('')
-                    result.category ? setCategory(result.category) : setCategory('')
-                    return true
-                  }
-                } catch (err) {
-                  console.log('error retrieving DAO profile', err)
-                }
-                return true
-            }
+            //       if(result){
+            //         result.name ? setName(result.name) : setName('')
+            //         result.date ? setDate(result.date) : setDate('')
+            //         result.logo ? setLogo(result.logo) : setLogo(imageName)
+            //         result.purpose ? setPurpose(result.purpose) : setPurpose('')
+            //         result.category ? setCategory(result.category) : setCategory('')
+            //         return true
+            //       }
+            //     } catch (err) {
+            //       console.log('error retrieving DAO profile', err)
+            //     }
+            //     return true
+            // }
       }
 
       fetchData()
@@ -124,7 +135,7 @@ export default function DaoCard(props) {
             setFinished(true)
           })
 
-  }, [isUpdated, near]
+  }, [isUpdated, near, name, date, logo, purpose, created]
   )
 
   function handleUpdate(property){
@@ -162,7 +173,7 @@ export default function DaoCard(props) {
               <Link to={`/dao/${contractId}`}>
                 <div style={{width: '100%', 
                 height: '50px',
-                backgroundImage: `url(${logo})`, 
+                backgroundImage: `url(${slogo})`, 
                 backgroundSize: '180px auto', 
                 backgroundPosition: 'center', 
                 backgroundRepeat: 'no-repeat',
@@ -171,8 +182,9 @@ export default function DaoCard(props) {
             </div>
             </Link>
                 <Typography  variant="overline" display="inline" noWrap={true} style={{lineHeight: 0}}>
-                  {name ? name : contractId}<br></br>
-                  {finished ? (<span style={{fontSize: '80%'}}>Created: {created}</span>) : <LinearProgress />}
+                  {sname ? sname : contractId.split('.')[0]}<br></br>
+                  {finished ? (<span style={{fontSize: '80%'}}>Updated: {created}</span>) : <LinearProgress />}<br></br>
+                  {scategory ? (<span style={{fontSize: '80%'}}>Category: {scategory}</span>): (<span style={{fontSize: '80%'}}>Category: Undefined</span>)}
                 </Typography>
               </CardContent>
               <CardActions>

@@ -3,7 +3,8 @@ import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import FileUpload from '../IPFSupload/ipfsUpload'
 import { flexClass } from '../../App'
-import { IPFS_PROVIDER } from '../../utils/ceramic'
+import { ceramic, IPFS_PROVIDER } from '../../utils/ceramic'
+import * as nearAPI from 'near-api-js'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -65,6 +66,7 @@ export default function EditDaoForm(props) {
     const [logo, setLogo] = useState(imageName)
     const [purpose, setPurpose] = useState('')
     const [category, setCategory] = useState('')
+    const [curDaoIdx, setCurDaoIdx] = useState()
 
     const { register, handleSubmit, watch, errors } = useForm()
 
@@ -72,8 +74,7 @@ export default function EditDaoForm(props) {
         state,
         handleUpdate,
         handleEditDaoClickState,
-        contractId,
-        curDaoIdx
+        contractId
     } = props
     
     const classes = useStyles()
@@ -82,8 +83,15 @@ export default function EditDaoForm(props) {
         async function fetchData() {
           setLoaded(false)
            // Set Card Persona Idx       
-           if(contractId){
-              let result = await curDaoIdx.get('daoProfile', curDaoIdx.id)
+           if(contractId && state.near){
+             // Set Dao Idx
+                               
+              let daoAccount = new nearAPI.Account(state.near.connection, contractId)
+            
+              let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, state.appIdx, state.didRegistryContract)
+              setCurDaoIdx(thisCurDaoIdx)
+
+              let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
 
               if(result) {
                 result.name ? setName(result.name) : setName('')
@@ -148,6 +156,26 @@ export default function EditDaoForm(props) {
         }
      
         let result = await curDaoIdx.set('daoProfile', record)
+
+        let m = 0
+        let updateDaoList = state.daoList
+        while (m < updateDaoList.daoList.length){
+          if(updateDaoList.daoList[m].contractId == contractId){
+            let newRecord = {
+              contractId: contractId,
+              summoner: state.accountId,
+              date: now,
+              category: category,
+              name: name,
+              logo: logo,
+              purpose: purpose
+            }
+            updateDaoList.daoList[m] = newRecord
+          }
+          m++
+        }
+
+        let daoResult = await state.appIdx.set('daoList', updateDaoList)
      
 
       setFinished(true)

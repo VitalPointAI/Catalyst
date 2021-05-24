@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app'
 import { utils } from 'near-api-js'
+import Fuse from 'fuse.js'
 
 import DaoCard from '../DAOCard/daoCard'
 import { Header } from '../Header/header'
+import SearchBar from '../../components/common/SearchBar/search'
 
 // Material UI components
 import { makeStyles } from '@material-ui/core/styles'
@@ -11,6 +13,8 @@ import Typography from '@material-ui/core/Typography'
 import Grid from '@material-ui/core/Grid'
 
 const axios = require('axios').default
+
+
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -51,6 +55,7 @@ export default function ExploreDaos(props) {
     const [editDaoClicked, setEditDaoClicked] = useState(false)
     const [resources, setResources] = useState(0)
     const [nearPrice, setNearPrice] = useState()
+    const [searchDaos, setSearchDaos] = useState([])
 
     const classes = useStyles()
 
@@ -67,7 +72,8 @@ export default function ExploreDaos(props) {
                 if(daoList){
                     console.log('daolist', daoList)
                     setDaoCount(daoList.daoList.length)
-                    setDaos(daoList.daoList)
+                    let sortedDaos = _.sortBy(daoList.daoList, 'date').reverse()
+                    setDaos(sortedDaos)
 
                     let i = 0
                     let balance = 0
@@ -106,6 +112,35 @@ export default function ExploreDaos(props) {
         setEditDaoClicked(property)
     }
 
+    const searchData = (pattern) => {
+        if (!pattern) {
+            let sortedDaos = _.sortBy(daoList.daoList, 'date').reverse()
+            setDaos(sortedDaos)
+            return
+        }
+        console.log('daos', daos)
+        
+        const fuse = new Fuse(daos, {
+            keys: ['category']
+        })
+        console.log('fuse', fuse)
+
+        const result = fuse.search(pattern)
+        console.log('fuse result', result)
+
+        const matches = []
+        if (!result.length) {
+            setDaos([])
+        } else {
+            result.forEach(({item}) => {
+                matches.push(item)
+        })
+        console.log('matches', matches)
+            setDaos(matches)
+        }
+    }
+  
+
     return (
         
         <div className={classes.root}>
@@ -137,20 +172,33 @@ export default function ExploreDaos(props) {
         </Grid>
 
         <Grid container alignItems="center" justify="space-between" spacing={2}>
-            { daoCount > 0 ? 
+            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+            <SearchBar
+                placeholder="Search"
+                onChange={(e) => searchData(e.target.value)}
+            />
+            </Grid>
+        </Grid>
+
+        <Grid container alignItems="center" justify="space-between" spacing={2}>
+        {daoCount > 0 ? 
                 (<>
                   
-                {daos.map(({ contractId, summoner, date}, i) => 
+                {daos.map(({ contractId, summoner, date, category, logo, purpose, name }, i) => 
                     <DaoCard
                         key={i}
                         contractId={contractId}
                         summoner={summoner}
-                        created={date}
+                        date={date}
+                        name={name}
+                        purpose={purpose}
+                        category={category}
+                        logo={logo}
                         link={''}
                         state={state}
                         handleEditDaoClick={handleEditDaoClick}
                     />
-                    ).reverse()}
+                    )}
                 </>)
             : null
             }
