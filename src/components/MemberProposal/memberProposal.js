@@ -208,8 +208,7 @@ export default function MemberProposal(props) {
                           </ul>
                       </Grid>
                     </Grid>
-                  
-                    <Typography variant="body2">The <b>{(tribute ? parseInt(tribute) : 0) + parseInt(proposalDeposit)} Ⓝ</b> you are about to transfer immediately goes into escrow and stays there until the proposal is sponsored or cancelled.</Typography>     
+                    <Typography variant="body2">The <b>{(tribute ? parseInt(tribute) : 0)} Ⓝ</b> you are about to transfer immediately goes into the community escrow and stays there until the proposal is sponsored or cancelled.</Typography>     
                   </Grid>
               </Grid>
                 </CardContent>

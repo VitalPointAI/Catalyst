@@ -110,7 +110,7 @@ export default function PayoutProposal(props) {
         contractId,
         depositToken,
         proposalDeposit,
-        'Funding',
+        'Payout',
         applicant,
         '0',
         '0',
@@ -197,7 +197,7 @@ export default function PayoutProposal(props) {
                         <Typography variant="body2">Applicant receives {payout} Ⓝ.</Typography>
                       </li>
                       <li>
-                        <Typography variant="body2">Community fund will decrease by {payout} Ⓝ.</Typography>
+                        <Typography variant="body2">Community escrow fund will decrease by {payout} Ⓝ.</Typography>
                       </li>
                       <li>
                         <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you</Typography>
@@ -211,7 +211,7 @@ export default function PayoutProposal(props) {
                         <Typography variant="body2">Applicant receives no payout.</Typography>
                       </li>
                       <li>
-                        <Typography variant="body2">Community fund does not change.</Typography>
+                        <Typography variant="body2">Community escrow fund does not change.</Typography>
                       </li>
                       <li>
                         <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you.</Typography>
@@ -219,8 +219,7 @@ export default function PayoutProposal(props) {
                     </ul>
                 </Grid>
               </Grid>
-              <Typography variant="body2">The <b>{proposalDeposit} Ⓝ</b> you are about to transfer immediately goes into escrow and stays there until the proposal is sponsored or cancelled.</Typography>     
-            </Grid>
+             </Grid>
             </Grid>
           </CardContent>
          </Card>

@@ -80,7 +80,8 @@ export default function DaoCard(props) {
       name,
       category,
       purpose,
-      link
+      link,
+      handleUpdate
    } = props
 
    const {
@@ -135,12 +136,12 @@ export default function DaoCard(props) {
             setFinished(true)
           })
 
-  }, [isUpdated, near, name, date, logo, purpose, created]
+  }, [near, name, date, logo, purpose, created]
   )
 
-  function handleUpdate(property){
-    setIsUpdated(property)
-  }
+  // function handleUpdate(property){
+  //   setIsUpdated(property)
+  // }
 
   const handleEditDaoClick = () => {
     handleExpanded()

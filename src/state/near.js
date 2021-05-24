@@ -472,7 +472,7 @@ export async function submitProposal(
                 return false
             }
             break
-        case 'Funding':
+        case 'Commitment':
             try{
                 await daoContract.submitProposal({
                     a: applicant,
@@ -486,6 +486,23 @@ export async function submitProposal(
                     }, GAS, parseNearAmount(parseInt(proposalDeposit)).toString())
                 } catch (err) {
                     console.log('submit member proposal failed', err)
+                    return false
+                }
+                break
+        case 'Payout':
+            try{
+                await daoContract.submitProposal({
+                    a: applicant,
+                    sR: sharesRequested,
+                    lR: loot,
+                    tO: tribute,
+                    tT: depositToken,
+                    pR: paymentRequested,
+                    pT: depositToken,
+                    contractId: contractId
+                    }, GAS, parseNearAmount(parseInt(proposalDeposit)).toString())
+                } catch (err) {
+                    console.log('submit payout proposal failed', err)
                     return false
                 }
                 break
@@ -561,7 +578,7 @@ export async function submitVote(daoContract, contractId, proposalId, vote) {
 }
 
 // Cancel a DAO Proposal
-export async function cancelProposal(daoContract, contractId, proposalId, proposalDeposit, tribute) {
+export async function cancelProposal(daoContract, contractId, summoner) {
 
     try {
         // set trigger for to log new proposal
@@ -577,6 +594,26 @@ export async function cancelProposal(daoContract, contractId, proposalId, propos
 
     } catch (err) {
         console.log('cancel proposal failed', err)
+        return false
+    }
+    return true
+}
+
+// Delete a DAO
+export async function deleteDao(daoContract, contractId) {
+
+    try {
+        // set trigger for to log new proposal
+        let newDelete = get(NEW_DELETE, [])
+        newDelete.push({contractId: contractId, proposalId: proposalId, new: true})
+        set(NEW_DELETE, newDelete)
+
+        await daoContract.deleteDAO({
+            beneficiary: accountId
+            }, GAS)
+
+    } catch (err) {
+        console.log('delete proposal failed', err)
         return false
     }
     return true

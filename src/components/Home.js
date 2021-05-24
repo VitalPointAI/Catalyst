@@ -79,25 +79,23 @@ export const Home = ({ children, state, handleSnackBarOpen, handleSuccessMessage
         errorMessage={errorMessage}
         successMessage={successMessage}/>
        
-        <div class={flexClass}>
         {finished ? 
-           
-            <div class="container container-custom">
-                {wallet && wallet.signedIn ?  
-                    key ? (<Import />) : 'to fill in'
+            <Grid container spacing={0}>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                    {wallet && wallet.signedIn ?  
+                        key ? (<Import />) : 'to fill in'
                 : <SignIn wallet={wallet} state={state}/>}
-            </div>
+                </Grid>
+           </Grid>
             
             : state.accountData ? (
-            <div class="container container-custom">
-                {children}
-            </div>
+            <Grid container spacing={0}>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                    {children}
+                </Grid>
+            </Grid>
             ) : <CircularProgress/>
-        }
-            
-        </div>
-
-       
+        }       
         
         { state.app.alert &&
             <div class="container-alert">

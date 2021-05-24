@@ -256,12 +256,12 @@ export default function ProposalCard(props) {
              /></>
            ) : null }
 
-          {proposalType === 'Funding' ? (
+          {proposalType === 'Commitment' ? (
             <> <Typography variant="h6" align="center" color="textSecondary">{proposalType} Proposal</Typography>
             {status == 'Sponsored' ? <Typography variant="overline" align="center" color="textSecondary">Sponsored by: {sponsor}</Typography> : null }
             <CardHeader
               title={<Chip
-                avatar={<Avatar alt="Funding" src="../../../images/dollar.png" />}
+                avatar={<Avatar alt="Funding Commitment" src="../../../images/dollar.png" />}
                 label={proposer}
                 variant="outlined"
               />}
@@ -297,7 +297,7 @@ export default function ProposalCard(props) {
               </Grid>
             ) : null}
 
-            {proposalType == 'Funding' ? (
+            {proposalType == 'Commitment' ? (
               <Grid container alignItems="center" justify="space-evenly" style={{marginTop: '-20px', marginBottom:'20px'}}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                   <Typography variant="h6" noWrap={true} style={{border: '1px solid', padding: '2px', textAlign: 'center', fontWeight: '800', color: 'black'}}
@@ -463,7 +463,7 @@ export default function ProposalCard(props) {
                       </Button>
                     </>)
                   : null }
-                {proposalType === 'Funding' ? (
+                {proposalType === 'Commitment' ? (
                   <><Button 
                       variant="contained" 
                       color="primary" 

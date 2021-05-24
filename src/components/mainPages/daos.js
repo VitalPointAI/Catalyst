@@ -46,6 +46,7 @@ export default function Daos(props) {
     const[daos, setDaos] = useState([])
     const[daoCount, setDaoCount] = useState(0)
     const [editDaoClicked, setEditDaoClicked] = useState(false)
+    const [isUpdated, setIsUpdated] = useState(false)
 
     const classes = useStyles()
 
@@ -58,13 +59,19 @@ export default function Daos(props) {
 
     useEffect(
         () => {
-            let sortedDaos = _.sortBy(daoList.daoList, 'date').reverse()
-            setDaos(sortedDaos)
-    }, []
+            if(daoList){
+                let sortedDaos = _.sortBy(daoList.daoList, 'date').reverse()
+                setDaos(sortedDaos)
+            }
+    }, [daoList, isUpdated]
     )
     
     function handleEditDaoClick(property){
         setEditDaoClicked(property)
+    }
+
+    function handleUpdate(){
+        setIsUpdated(!isUpdated)
     }
 
     return (
@@ -90,6 +97,7 @@ export default function Daos(props) {
                     link={''}
                     state={state}
                     handleEditDaoClick={handleEditDaoClick}
+                    handleUpdate={handleUpdate}
                 />            
                 )}
             </>)

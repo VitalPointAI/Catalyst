@@ -324,7 +324,7 @@ export default function ProposalList(props) {
   }
 
   function getProposalType(flags) {
-    // flags [sponsored, processed, didPass, cancelled, whitelist, guildkick, member]
+    // flags [sponsored, processed, didPass, cancelled, whitelist, guildkick, member, commitment]
     let type = ''
     if(flags[4]) {
     type = 'Whitelist'
@@ -335,8 +335,11 @@ export default function ProposalList(props) {
     if(flags[6]) {
     type = 'Member'
     }
-    if(!flags[4] && !flags[5] && !flags[6]) {
-    type = 'Funding'
+    if(flags[7]) {
+      type = 'Commitment'
+      }
+    if(!flags[4] && !flags[5] && !flags[6] &&!flags[7]) {
+    type = 'Payout'
     }
     return type
   }
