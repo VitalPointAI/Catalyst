@@ -58,7 +58,8 @@ export default function Daos(props) {
 
     useEffect(
         () => {
-   
+            let sortedDaos = _.sortBy(daoList.daoList, 'date').reverse()
+            setDaos(sortedDaos)
     }, []
     )
     
@@ -72,20 +73,25 @@ export default function Daos(props) {
         <Header state={state}/>
 
         <Grid container alignItems="center" justify="space-between" spacing={0}>
-            { daoList && daoList.daoList.length > 0 ? 
+            { daos && daos.length > 0 ? 
                 (<>
-                  {console.log('daos', daoList)}
+                  {console.log('daos', daos)}
                
-                {daoList.daoList.filter(dao => dao.summoner == accountId).map(({ contractId, date, summoner }, i) =>
-                    <DaoCard
-                        key={i}
-                        contractId={contractId}
-                        created={date}
-                        summoner={summoner}
-                        link={''}
-                        handleEditDaoClick={handleEditDaoClick}
-                    />              
-                ).reverse()}
+                {daos.filter(dao => dao.summoner == accountId).map(({ contractId, date, summoner, name, purpose, category, logo }, i) =>
+                <DaoCard
+                    key={i}
+                    contractId={contractId}
+                    summoner={summoner}
+                    date={date}
+                    name={name}
+                    purpose={purpose}
+                    category={category}
+                    logo={logo}
+                    link={''}
+                    state={state}
+                    handleEditDaoClick={handleEditDaoClick}
+                />            
+                )}
             </>)
             : null
             } 
