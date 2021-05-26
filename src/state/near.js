@@ -79,7 +79,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         update('app', { accountTaken, wasValidated: true })
     }
 
-    wallet.fundAccount = async (amount, accountId, owner) => {
+    wallet.fundAccount = async (amount, accountId, name, owner) => {
       
         if (accountId.indexOf(nameSuffix) > -1 || accountId.indexOf('.') > -1) {
             alert(nameSuffix + ' is added automatically and no "." is allowed. Please remove and try again.')
@@ -116,6 +116,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         
             await contract.create_account({ new_account_id: accountId, new_public_key: keyPair.publicKey.toString() }, GAS, parseNearAmount(amount))
         //}
+        update('', { near, wallet, links, claimed })
     }
 
     wallet.fundDaoAccount = async (accountId, summoner) => {
@@ -168,16 +169,27 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         // if(!accountExists){
 
             try{
-                upLinks.push({ key: keyPair.secretKey, contractId: accountId, summoner: summoner, created: Date.now() })
-                await ceramic.storeKeysSecret(state.appIdx, upLinks, 'daoKeys')
+                let i = 0
+                let exists = false
+                while (i < upLinks.length){
+                    if(upLinks[i].contractId == accountId){
+                        exists = true
+                        break
+                    }
+                    i++
+                }
+                if(!exists){
+                    upLinks.push({ key: keyPair.secretKey, contractId: accountId, summoner: summoner, created: Date.now() })
+                    await ceramic.storeKeysSecret(state.appIdx, upLinks, 'daoKeys')
 
-                let daoAdded = await addDaoToList(state.appIdx, accountId, summoner, Date.now())
+                    let daoAdded = await addDaoToList(state.appIdx, accountId, summoner, Date.now())
 
-                let link = '/daos'
-                set(REDIRECT, {action: true, link: link})
+                    let link = '/dao/' + accountId
+                    set(REDIRECT, {action: true, link: link})
 
-                if(daoAdded) {
-                    await daoFactoryContract.createDemDAO({ accountId: accountId, deposit: FACTORY_DEPOSIT }, GAS, parseNearAmount(FACTORY_DEPOSIT))
+                    if(daoAdded) {
+                        await daoFactoryContract.createDemDAO({ accountId: accountId, deposit: FACTORY_DEPOSIT }, GAS, parseNearAmount(FACTORY_DEPOSIT))
+                    }
                 }
             } catch (err) {
                 console.log('error setting up new Dao', err)
@@ -219,7 +231,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     let existingDid = await didRegistryContract.hasDID({accountId: accountId})
 
     if(existingDid){
-        curUserIdx = await ceramic.getCurrentUserIdx(account, appIdx)
+        curUserIdx = await ceramic.getCurrentUserIdx(account, appIdx, didRegistryContract)
     }
  
     if(!existingDid){
@@ -227,7 +239,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     }
 
     update('', { didRegistryContract, appIdx, accountId, curUserIdx, daoFactory })
-    console.log('curuserIdx', curUserIdx)
+   
     if(curUserIdx){
         // check localLinks, see if they're still valid
         let state = getState()
@@ -293,6 +305,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
                 localLinks.splice(i, 1)
                 continue
             }
+            console.log('claimed', !!claimed)
             if (!!claimed || Date.now() - keyStored < 5000) {
                 continue
             }
@@ -354,38 +367,73 @@ export const unclaimLink = (keyToFind) => async ({ update }) => {
 
 export const keyRotation = () => async ({ update, getState, dispatch }) => {
     const state = getState()
+    console.log('state', state)
    
-    const { key, accountId, publicKey, seedPhrase, owner } = state.accountData
+    const { key, accountId, publicKey, seedPhrase, owner, curUserIdx } = state.accountData
 
     const keyPair = KeyPair.fromString(key)
     const signer = await InMemorySigner.fromKeyPair(networkId, accountId, keyPair)
     const near = await nearAPI.connect({
         networkId, nodeUrl, walletUrl, deps: { keyStore: signer.keyStore },
-    });
-    const account = new nearAPI.Account(near.connection, accountId);
+    })
+    const account = new nearAPI.Account(near.connection, accountId)
     const accessKeys = await account.getAccessKeys()
 
     const didContract = await ceramic.initiateDidRegistryContract(account)
 
     const appIdx = await ceramic.getAppIdx(didContract)
 
-    const ownerAccount = new nearAPI.Account(near.connection, owner);
-
-    let ownerAccounts = get(ACCOUNT_LINKS, [])
-  
-    let b = 0
-    let ownersowner
-    while(b < ownerAccounts.length) {
-        if(ownerAccounts[b].accountId == owner){
-            ownersowner = ownerAccounts[b].owner
-            break
-        }
-    b++
-    }
     
-  //  const ownerIdx = await ceramic.getCurrentUserIdx(ownerAccount, appIdx, ownersowner)
+
+    // const ownerAccount = new nearAPI.Account(near.connection, owner)
+    // const ownerIdx = await ceramic.getCurrentUserIdx(ownerAccount, appIdx, ownerIdx, didContract)
+
+    // let upLinks = await ceramic.downloadKeysSecret(ownerIdx, 'accountsKeys')
+    console.log('key rotate idx', curUserIdx)
+    let upLinks = await ceramic.downloadKeysSecret(curUserIdx, 'accountsKeys')
    
-    await ceramic.getCurrentUserIdxNoDid(appIdx, didContract, account, keyPair, ownersowner)                 
+    console.log('uplinks fund account', upLinks)
+
+    let b = 0
+    let exists = false
+    while(b < upLinks.length){
+        if(upLinks[b].accountId == accountId){
+            let modifiedAccount = {
+                key: keyPair.secretKey,
+                accountId: accountId,
+                owner: owner,
+                keyStored: Date.now()
+            }
+            upLinks[b] = modifiedAccount
+            exists = true
+        }
+        b++
+    }
+
+    if(!exists){
+        upLinks.push({ key: keyPair.secretKey, accountId: accountId, owner: owner, keyStored: Date.now() })
+    }
+    await ceramic.storeKeysSecret(curUserIdx, upLinks, 'accountsKeys')
+    
+    set(ACCOUNT_LINKS, upLinks)
+
+    let personaIdx = await ceramic.getCurrentUserIdx(account, appIdx, didContract)
+
+    // let ownerAccounts = get(ACCOUNT_LINKS, [])
+  
+    // let b = 0
+    // let ownersowner
+    // while(b < ownerAccounts.length) {
+    //     if(ownerAccounts[b].accountId == owner){
+    //         ownersowner = ownerAccounts[b].owner
+    //         break
+    //     }
+    // b++
+    // }
+    
+   
+   
+    // await ceramic.getCurrentUserIdxNoDid(appIdx, didContract, account, keyPair, owner)                 
     
     const actions = [
         deleteKey(PublicKey.from(accessKeys[0].public_key)),
@@ -396,13 +444,13 @@ export const keyRotation = () => async ({ update, getState, dispatch }) => {
 
     const result = await account.signAndSendTransaction(accountId, actions)
 
-    fetch('https://hooks.zapier.com/hooks/catch/6370559/ocibjmr/', {
-        method: 'POST',
-        body: JSON.stringify({
-            account_id: accountId,
-            time_claimed: Date.now()
-        })
-    })
+    // fetch('https://hooks.zapier.com/hooks/catch/6370559/ocibjmr/', {
+    //     method: 'POST',
+    //     body: JSON.stringify({
+    //         account_id: accountId,
+    //         time_claimed: Date.now()
+    //     })
+    // })
     
     return result
 }
@@ -474,18 +522,15 @@ export async function submitProposal(
             break
         case 'Commitment':
             try{
-                await daoContract.submitProposal({
-                    a: applicant,
-                    sR: sharesRequested,
-                    lR: loot,
-                    tO: tribute,
-                    tT: depositToken,
-                    pR: paymentRequested,
-                    pT: depositToken,
+                await daoContract.submitCommitmentProposal({
+                    applicant: applicant,
+                    depositToken: depositToken,
+                    paymentRequested: paymentRequested,
+                    paymentToken: depositToken,
                     contractId: contractId
-                    }, GAS, parseNearAmount(parseInt(proposalDeposit)).toString())
+                    }, GAS, parseNearAmount(parseInt(proposalDeposit).toString()))
                 } catch (err) {
-                    console.log('submit member proposal failed', err)
+                    console.log('submit commitment proposal failed', err)
                     return false
                 }
                 break
@@ -500,7 +545,7 @@ export async function submitProposal(
                     pR: paymentRequested,
                     pT: depositToken,
                     contractId: contractId
-                    }, GAS, parseNearAmount(parseInt(proposalDeposit)).toString())
+                    }, GAS, parseNearAmount(parseInt(proposalDeposit).toString()))
                 } catch (err) {
                     console.log('submit payout proposal failed', err)
                     return false
@@ -562,7 +607,7 @@ export async function submitVote(daoContract, contractId, proposalId, vote) {
     try {
         // set trigger for to log new proposal
         let newVote = get(NEW_VOTE, [])
-        newVote.push({contractId: contractId, proposalId: proposalId, new: true, vote: vote})
+        newVote.push({contractId: contractId, proposalId: proposalId, new: true, vote: vote, tabValue: '3'})
         set(NEW_VOTE, newVote)
 
         await daoContract.submitVote({
@@ -578,7 +623,7 @@ export async function submitVote(daoContract, contractId, proposalId, vote) {
 }
 
 // Cancel a DAO Proposal
-export async function cancelProposal(daoContract, contractId, summoner) {
+export async function cancelProposal(daoContract, contractId, proposalId, proposalDeposit, tribute = 0) {
 
     try {
         // set trigger for to log new proposal
@@ -680,6 +725,61 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
                 }
             }
         i++
+        }
+    }
+    return true
+}
+
+// Synch Current Member to Log
+export async function synchMember(curDaoIdx, daoContract, contractId, accountId) {
+
+    let exists = false
+
+    let member
+    try{
+        member = await daoContract.getMemberInfo({member: accountId})
+        console.log('member', member)
+    } catch (err) {
+        console.log('current user does not appear to be a member', err)
+    }
+
+    let logMembers = await curDaoIdx.get('members', curDaoIdx.id)
+
+    let i = 0
+    if(member && member.length > 0){
+        while(i < logMembers.events.length){
+            if(logMembers.events[i].delegateKey == member[0].delegateKey){
+                exists = true
+                break
+            }
+            i++
+        }
+
+        if(!exists){
+            let nextMemberId = logMembers.events.length + 1
+
+            let indivMemberRecord = {
+                memberId: nextMemberId.toString(),
+                contractId: contractId,
+                delegateKey: member[0].delegateKey,
+                shares: member[0].shares,
+                loot: member[0].loot,
+                existing: member[0].existing,
+                highestIndexYesVote: member[0].highestIndexYesVote,
+                jailed: member[0].jailed,
+                joined: parseInt(member[0].joined),
+                updated: parseInt(member[0].updated)
+            }
+        
+            logMembers.events.push(indivMemberRecord)
+            console.log('logMembers.events', logMembers.events)
+            
+            try {
+            await curDaoIdx.set('members', logMembers)
+            memberLogged = true
+            } catch (err) {
+                console.log('error adding new member', err)
+            }
         }
     }
     return true
@@ -852,7 +952,12 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId) {
 
     let logged = false
 
-    let proposal = await daoContract.getProposal({proposalId: parseInt(proposalId)})   
+    let proposal
+    try{
+        proposal = await daoContract.getProposal({proposalId: parseInt(proposalId)})
+    } catch (err) {
+        console.log('error retrieving proposal for this id', err)
+    }
 
     if(proposal) {
        
@@ -1011,18 +1116,18 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
          let exists = false
          let i = 0
          while (i < memberEventRecord.events.length){
-             if(memberEventRecord.events[i].memberId == member.memberId){
+             if(memberEventRecord.events[i].memberId == memberId.toString()){
                  let updatedMemberRecord = {
-                    memberId: member.memberId.toString(),
+                    memberId: memberId.toString(),
                     contractId: contractId,
-                    delegateKey: member.member[0].delegateKey,
-                    shares: member.member[0].shares,
-                    loot: member.member[0].loot,
-                    existing: member.member[0].existing,
-                    highestIndexYesVote: member.member[0].highestIndexYesVote,
-                    jailed: member.member[0].jailed,
-                    joined: member.member[0].joined,
-                    updated: member.member[0].updated
+                    delegateKey: member[0].delegateKey,
+                    shares: member[0].shares,
+                    loot: member[0].loot,
+                    existing: member[0].existing,
+                    highestIndexYesVote: member[0].highestIndexYesVote,
+                    jailed: member[0].jailed,
+                    joined: parseInt(member[0].joined),
+                    updated: parseInt(member[0].updated)
                      }
                  memberEventRecord.events[i] = updatedMemberRecord
                  try {
@@ -1037,6 +1142,8 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
           i++
         }
     }
+    console.log('processLogged', processLogged)
+    console.log('memberLogged', memberLogged)
     if(processLogged && memberLogged){
         return true
     } else {
@@ -1045,12 +1152,17 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
 }
 
 // Logs a Vote Event
-export async function logVoteEvent(curDaoIdx, daoContract, proposalId, vote, accountId) {
+export async function logVoteEvent(curDaoIdx, daoContract, proposalId, accountId) {
 
     let voteLogged = false
     let memberLogged = false
 
-    let proposal = await daoContract.getProposal({proposalId: proposalId})
+    let proposal
+    try{
+        proposal = await daoContract.getProposal({proposalId: proposalId})
+    } catch (err) {
+        console.log('issue getting proposal', err)
+    }
 
     if(proposal) {
         // Load existing proposal details
@@ -1095,15 +1207,22 @@ export async function logVoteEvent(curDaoIdx, daoContract, proposalId, vote, acc
             }
         i++
         }
-
-        let member = await daoContract.getMemberInfo({member: accountId})
+        console.log('vote logged', voteLogged)
+        
+        let member
+        try{
+            member = await daoContract.getMemberInfo({member: accountId})
+        } catch (err) {
+            console.log('error retrieving member info', member)
+        }
 
         let memberEventRecord = await curDaoIdx.get('members', curDaoIdx.id)
 
-         // Update an existing member
+         // Update the existing voting member
          let memberExists = false
          let j = 0
          while (j < memberEventRecord.events.length){
+             console.log('member', member)
              if(memberEventRecord.events[j].memberId == member.memberId){
                  let updatedMemberRecord = {
                     memberId: member.memberId.toString(),
@@ -1131,6 +1250,7 @@ export async function logVoteEvent(curDaoIdx, daoContract, proposalId, vote, acc
           j++
         }
     }
+    console.log('memberLogged', memberLogged)
     if(voteLogged && memberLogged){
         return true
     } else {

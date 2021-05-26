@@ -179,7 +179,7 @@ export default function EditDaoForm(props) {
      
 
       setFinished(true)
-      handleUpdate(true)
+      handleUpdate()
       setOpen(false)
       handleClose()
     }

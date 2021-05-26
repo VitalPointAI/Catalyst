@@ -16,9 +16,9 @@ import Typography from '@material-ui/core/Typography';
 const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
-        maxWidth: 640,
+        //maxWidth: 640,
         margin: 'auto',
-        marginTop: 50,
+      //  marginTop: 50,
         minHeight: 550,
     },
     paper: {
@@ -50,7 +50,7 @@ export const PersonaPage = ({ state, update, dispatch }) => {
 
     useEffect(
         () => {
-  
+ 
         async function fetchData() {
             setLoaded(false)
             let i = 0
@@ -80,7 +80,7 @@ export const PersonaPage = ({ state, update, dispatch }) => {
                 setLoaded(true)
             })
         
-    }, [countOfClaims, countOfLinks]
+    }, [countOfClaims, countOfLinks, claimed]
     )
 
 
@@ -91,6 +91,7 @@ export const PersonaPage = ({ state, update, dispatch }) => {
     return (
         <Router>
         <>
+        <div className={classes.root}>
         <Grid container alignItems="center" justify="flex-start" spacing={2} style={{marginBottom: '20px'}}>
             {countOfLinks > 0 ? 
                 (<> <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{textAlign: 'center'}}>
@@ -112,7 +113,7 @@ export const PersonaPage = ({ state, update, dispatch }) => {
             }
         </Grid>
         <Divider variant="middle" style={{marginBottom: '20px'}}/>
-        <Grid container alignItems="center" justify="flex-start" spacing={2}>
+        <Grid container alignItems="center" justify="space-between" spacing={2} style={{padding: '20px'}}>
             { countOfClaims > 0 ? 
                 (<>
                     <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
@@ -132,6 +133,7 @@ export const PersonaPage = ({ state, update, dispatch }) => {
             : null
             } 
         </Grid>
+        </div>
     </>
     </Router>
     )

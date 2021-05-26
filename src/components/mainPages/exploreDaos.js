@@ -56,6 +56,7 @@ export default function ExploreDaos(props) {
     const [resources, setResources] = useState(0)
     const [nearPrice, setNearPrice] = useState()
     const [searchDaos, setSearchDaos] = useState([])
+    const [isUpdated, setIsUpdated] = useState()
 
     const classes = useStyles()
 
@@ -105,11 +106,15 @@ export default function ExploreDaos(props) {
 
             fetchData()
 
-    }, [daoList, near, nearPrice]
+    }, [daoList, near, nearPrice, isUpdated]
     )
     
     function handleEditDaoClick(property){
         setEditDaoClicked(property)
+    }
+
+    function handleUpdate(){
+        setIsUpdated(!isUpdated)
     }
 
     const searchData = (pattern) => {
@@ -197,6 +202,7 @@ export default function ExploreDaos(props) {
                         link={''}
                         state={state}
                         handleEditDaoClick={handleEditDaoClick}
+                        handleUpdate={handleUpdate}
                     />
                     )}
                 </>)

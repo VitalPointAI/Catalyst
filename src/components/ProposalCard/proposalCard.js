@@ -455,7 +455,7 @@ export default function ProposalCard(props) {
                   <><Button color="primary" onClick={() => handleCancelAction(requestId, proposalDeposit, tribute)}>
                     Cancel
                   </Button>
-                  {proposalType === 'Member' || proposalType === 'GuildKick' ? (
+                  {proposalType === 'Member' || proposalType === 'GuildKick' || proposalType === 'Commitment' || proposalType === 'Payout' ? (
                     <><Button 
                         color="primary" 
                         onClick={handleEditProposalClick}>

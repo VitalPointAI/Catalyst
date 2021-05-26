@@ -65,8 +65,6 @@ const App = () => {
     function handleSnackBarOpen(property) {
     setSnackBarOpen(property)
     }
-
-    
     
     
     const {

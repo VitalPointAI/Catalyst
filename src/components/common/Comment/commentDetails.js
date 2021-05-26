@@ -63,7 +63,7 @@ export default function CommentDetails(props) {
                  
                   let authorAccount = new nearAPI.Account(near.connection, commentAuthor)
 
-                  let thisAuthorIdx = await ceramic.getCurrentUserIdx(authorAccount, appIdx)
+                  let thisAuthorIdx = await ceramic.getCurrentUserIdx(authorAccount, appIdx, didRegistryContract)
               
                   let result = await thisAuthorIdx.get('profile', thisAuthorIdx.id)
                   

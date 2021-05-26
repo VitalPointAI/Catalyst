@@ -515,7 +515,8 @@ async makeSeed(account){
   }
 
   // current user IDX (account currently logged in)
-  async getCurrentUserIdx(account, appIdx){
+  async getCurrentUserIdx(account, appIdx, contract){
+    console.log('get contract', contract)
       set(KEY_REDIRECT, {action: false, link: ''})
       let seed = await this.getLocalAccountSeed(account.accountId)
       if(seed == false){
@@ -523,9 +524,35 @@ async makeSeed(account){
         return false
       }
       let currentUserCeramicClient = await this.getCeramic(account, seed)
+      this.associateDID(account.accountId, contract, currentUserCeramicClient)
       let curUserIdx = new IDX({ ceramic: currentUserCeramicClient, aliases: appIdx._aliases})
       return curUserIdx
   }
+
+//    // current user IDX (account currently logged in)
+//    async getCurrentUserIdx(account, appIdx, ownerIdx, contract){
+//     set(KEY_REDIRECT, {action: false, link: ''})
+//     let seed
+//     let accountKeys = await this.downloadKeysSecret(account, ownerIdx)
+//     console.log('accountKeys', accountKeys)
+//     if(accountKeys && accountKeys.length > 0){
+//       let i = 0
+//       while(i < accountKeys.length){
+//         if(accountKeys[i].accountId == account.accountId){
+//           seed = Buffer.from((accountKeys[i].key).slic(0,32))
+//         }
+//       }
+//       i++
+//     }
+//     if(seed == false){
+//       set(KEY_REDIRECT, {action: true, link: '/newKey'})
+//       return false
+//     }
+//     let currentUserCeramicClient = await this.getCeramic(account, seed)
+//     this.associateDID(account.accountId, contract, currentUserCeramicClient)
+//     let curUserIdx = new IDX({ ceramic: currentUserCeramicClient, aliases: appIdx._aliases})
+//     return curUserIdx
+// }
 
   // current dao IDX
   async getCurrentDaoIdx(contractAccount, appIdx, contract){

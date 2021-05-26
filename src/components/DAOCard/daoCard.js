@@ -64,8 +64,8 @@ export default function DaoCard(props) {
     const [claimed, setClaimed] = useState(false)
     const [curDaoIdx, setCurDaoIdx] = useState()
     const [display, setDisplay] = useState(true)
-    const [isUpdated, setIsUpdated] = useState(false)
-    const [anchorEl, setAnchorEl] = useState(null);
+    const [isUpdated, setIsUpdated] = useState()
+    const [anchorEl, setAnchorEl] = useState(null)
     const [did, setDid] = useState()
     const [finished, setFinished] = useState(false)
     const [created, setCreated] = useState(formatDate(props.date))
@@ -94,7 +94,7 @@ export default function DaoCard(props) {
       () => {
 
       async function fetchData() {
-
+         isUpdated
           name != '' ? setsName(name) : setsName('')
           date ? setsDate(date) : setsDate('')
           logo !='' ? setsLogo(logo) : setsLogo(imageName)
@@ -138,10 +138,6 @@ export default function DaoCard(props) {
 
   }, [near, name, date, logo, purpose, created]
   )
-
-  // function handleUpdate(property){
-  //   setIsUpdated(property)
-  // }
 
   const handleEditDaoClick = () => {
     handleExpanded()

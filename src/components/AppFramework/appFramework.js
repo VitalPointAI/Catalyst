@@ -3,7 +3,7 @@ import { appStore, onAppMount } from '../../state/app';
 import { useParams } from 'react-router-dom'
 import * as nearAPI from 'near-api-js'
 import { get, set, del } from '../../utils/storage'
-import { logInitEvent, logProposalEvent, logSponsorEvent, logCancelEvent, logProcessEvent, logVoteEvent, synchProposalEvent } from '../../state/near'
+import { logInitEvent, logProposalEvent, logSponsorEvent, logCancelEvent, logProcessEvent, logVoteEvent, synchProposalEvent, synchMember } from '../../state/near'
 
 import ActionSelector from '../ActionSelector/actionSelector'
 import ProposalList from '../ProposalList/proposalList'
@@ -36,7 +36,6 @@ const useStyles = makeStyles((theme) => ({
     margin: 'auto',
     marginBottom: 50,
     minHeight: 550,
-    padding: '20px',
   },
     top: {
       marginBottom: '10px',
@@ -68,6 +67,7 @@ export default function AppFramework(props) {
     const [allProposals, setAllProposals] = useState([])
     const [currentPeriod, setCurrentPeriod] = useState()
     const [curUserIdx, setCurUserIdx] = useState()
+    const [tokenName, setTokenName] = useState()
 
     const [summoner, setSummoner] = useState()
     const [totalShares, setTotalShares] = useState()
@@ -96,7 +96,7 @@ export default function AppFramework(props) {
       processingReward,
       handleProposalEventChange,
       handleUserBalanceChanges,
-      tokenName,
+     
       minSharePrice,
       proposalComments,
       appClient,
@@ -122,8 +122,11 @@ export default function AppFramework(props) {
               if(contractId){
                 let thisCurDaoIdx
                 let daoAccount = new nearAPI.Account(near.connection, contractId)
-                   
+                   console.log('daoAccount', daoAccount)
+                   console.log('appidx', appIdx)
+                   console.log('contract', didRegistryContract)
                 thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+                console.log('thiscurdaoidx', thisCurDaoIdx)
                 setCurDaoIdx(thisCurDaoIdx)
            
                 let contract = await dao.initDaoContract(state.wallet.account(), contractId)
@@ -224,18 +227,18 @@ export default function AppFramework(props) {
                      let x = 0
                      while(x < newVotes.length){
                        if(newVotes[x].contractId==contractId && newVotes[x].new == true){
-                         let loggedVote = await logVoteEvent(
+                         
+                          let loggedVote = await logVoteEvent(
                            thisCurDaoIdx, 
                            contract, 
                            newVotes[x].proposalId,
-                           newVotes[x].type,
-                           newVotes[x].vote,
                            accountId
                            )
                            
                          if (loggedVote) {
                            newVotes[x].new = false
                            set(NEW_VOTE, newVotes)
+                           setTabValue(newVotes[x].tabValue)
                            setChange(!change)
                          }
                        }
@@ -265,7 +268,7 @@ export default function AppFramework(props) {
                   //  let proposalCheck= await contract.getProposal({proposalId: 0})
                   //  console.log('proposalCheck', proposalCheck)
 
-                //************SYNCH PROPOSALS AND CONTRACT */
+                //************SYNCH PROPOSALS AND CONTRACT AND MEMBERS */
 
                   try {
                     let synched = await synchProposalEvent(thisCurDaoIdx, contract)
@@ -275,6 +278,17 @@ export default function AppFramework(props) {
                     }
                   } catch (err) {
                     console.log('no proposals yet', err)
+                  }
+
+                  try {
+                    let synched = await synchMember(thisCurDaoIdx, contract, contractId, accountId)
+                    console.log('synched', synched)
+                    if(synched){
+                      let members = await thisCurDaoIdx.get('members', thisCurDaoIdx.id)
+                      setAllMemberInfo(members.events)
+                    }
+                  } catch (err) {
+                    console.log('no members yet', err)
                   }
 
                 //************ LOAD COMMUNITY SETTINGS AND INFORMATION */
@@ -292,12 +306,13 @@ export default function AppFramework(props) {
                   console.log('problem retrieving DAO profile')
                 }
 
-                try {
-                let memberInfo = await thisCurDaoIdx.get('members', thisCurDaoIdx.id)
-                setAllMemberInfo(memberInfo.events)
-                } catch (err) {
-                  console.log('no memberinfo yet', err)
-                }
+                // try {
+                // let memberInfo = await thisCurDaoIdx.get('members', thisCurDaoIdx.id)
+                // console.log('memberInfo', memberInfo)
+                // setAllMemberInfo(memberInfo.events)
+                // } catch (err) {
+                //   console.log('no memberinfo yet', err)
+                // }
                     
                 let init = await contract.getInit()
                 setInitialized(init)
@@ -316,6 +331,7 @@ export default function AppFramework(props) {
                     
                     try {
                       thisMemberInfo = await contract.getMemberInfo({member: accountId})
+                      console.log('thismemberinfo', thisMemberInfo)
                       setMemberInfo(thisMemberInfo)
                     } catch (err) {
                       console.log('no member info yet')
@@ -338,6 +354,7 @@ export default function AppFramework(props) {
                     try {
                       let token = await contract.getDepositToken()
                       setDepositToken(token)
+                      setTokenName(token)
                     } catch (err) {
                       console.log('no deposit token yet')
                     }

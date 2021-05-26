@@ -68,26 +68,7 @@ export const Receiver = ({ dispatch }) => {
         )
     }
 
-    if (!keyExists || success === 1) {
-        return (<>
-            <Redirect to="/" />
-            <Grid container spacing={1}>
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                    <Card className={classes.root}>
-                    <CardHeader
-                        title="Congratulations!"
-                    />
-                    <CardContent>
-                        <Typography variant="h5" gutterBottom style={{marginBottom:'20px'}}>{accountId} is ready to go.</Typography>
-                        <Divider variant="middle" />
-                        <a href={'/'}><Button>Go To Personas</Button></a>
-                    </CardContent>
-                    </Card> 
-                </Grid>
-            </Grid>
-        </>
-        )
-    }
+    if (!keyExists || success === 1) {  window.location.assign('/personas') }
 
     return (<>
         <Grid container spacing={1} style={{textAlign: 'center'}}>

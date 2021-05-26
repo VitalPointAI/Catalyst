@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 import * as nearAPI from 'near-api-js'
 import { ceramic } from '../../utils/ceramic'
+import { dao } from '../../utils/dao'
 import EditDaoForm from '../EditDao/editDao'
 
 // Material UI
@@ -33,6 +34,7 @@ export default function Logo(props) {
     const [editDaoClicked, setEditDaoClicked] = useState(false)
     const [curDaoIdx, setCurDaoIdx] = useState()
     const [loaded, setLoaded] = useState(false)
+    const [summoner, setSummoner] = useState()
 
     const { state, dispatch, update } = useContext(appStore)
 
@@ -41,7 +43,9 @@ export default function Logo(props) {
     const { 
         appIdx,
         didRegistryContract,
-        near
+        near,
+        accountId,
+        wallet
       } = state
 
     const {
@@ -51,6 +55,7 @@ export default function Logo(props) {
     useEffect(() => {
 
         async function fetchData() {
+
             if(!contractId){
                 setLogo(catalystLogo)
                 setLoaded(true)
@@ -61,6 +66,7 @@ export default function Logo(props) {
                 console.log('daoAccount', daoAccount)
                     
                 thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+                console.log('thiscurdaoIdx logo', thisCurDaoIdx)
                 setCurDaoIdx(thisCurDaoIdx)
                 
                 if(thisCurDaoIdx){
@@ -71,10 +77,18 @@ export default function Logo(props) {
                         result.logo ? setLogo(result.logo) : setLogo(defaultLogo)
                         setLoaded(true)
                         }
+                        if(!result){
+                            setLogo(defaultLogo)
+                            setLoaded(true)
+                        }
                     } catch (err) {
                         console.log('problem retrieving DAO profile')
                     }
                 }
+
+                let contract = await dao.initDaoContract(wallet.account(), contractId)
+                let owner = await contract.getSummoner()
+                setSummoner(owner)
             }
         }
 
@@ -120,7 +134,7 @@ export default function Logo(props) {
             }}>
             </div>
             </Link>
-            <Chip label="Change" component="a" onClick={handleEditDaoClick} clickable variant="outlined" className={classes.chip}/>
+            {accountId == summoner ? <Chip label="Change" component="a" onClick={handleEditDaoClick} clickable variant="outlined" className={classes.chip}/> : null }
            
             </>
         ) : (

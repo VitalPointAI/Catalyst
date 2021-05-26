@@ -71,7 +71,7 @@ export default function MemberCard(props) {
                  
                   let personaAccount = new nearAPI.Account(near.connection, accountName)
 
-                  curPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx)
+                  curPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, didRegistryContract)
                   setCurUserIdx(curPersonaIdx)
               
                   let result = await curPersonaIdx.get('profile', curPersonaIdx.id)
