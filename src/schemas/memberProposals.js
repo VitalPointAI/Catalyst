@@ -1,4 +1,4 @@
-export const proposalDetailsSchema = {
+export const memberProposalDetailsSchema = {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "title": "ProposalDetails",

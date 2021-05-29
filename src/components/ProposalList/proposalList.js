@@ -9,7 +9,8 @@ import MemberProposalForm from '../MemberProposal/memberProposalForm'
 import MemberProposalDetails from '../MemberProposal/memberProposalDetails'
 import FundingProposalForm from '../FundingProposal/fundingProposalForm'
 import FundingProposalDetails from '../FundingProposal/fundingProposalDetails'
-import SponsorConfirmation from '../SponsorConfirmation/sponsorConfirmation'
+import SponsorConfirmation from '../Confirmation/sponsorConfirmation'
+import DonationConfirmation from '../Confirmation/donationConfirmation'
 import RageQuit from '../RageQuit/rageQuit'
 
 // Material UI Components
@@ -556,6 +557,7 @@ export default function ProposalList(props) {
           contractId={contractId}
           contractIdx={contractIdx}
           joined={fr.joined}
+          updated={fr.updated}
         />
       )
     })

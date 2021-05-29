@@ -18,13 +18,14 @@ import { daoListSchema } from '../schemas/daoList'
 import { memberSchema } from '../schemas/members'
 import { summonSchema } from '../schemas/summonEvent'
 import { proposalSchema } from '../schemas/proposals'
-import { proposalDetailsSchema } from '../schemas/proposalDetails'
+import { memberProposalDetailsSchema } from '../schemas/memberProposals'
+import { fundingProposalDetailsSchema } from '../schemas/fundingProposals'
 import { commentsSchema } from '../schemas/comments'
+import { donationsSchema } from '../schemas/donations'
 
 import { config } from '../state/config'
 
 const axios = require('axios').default
-
 
 export const {
     FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, REDIRECT, KEY_REDIRECT, APP_OWNER_ACCOUNT, IPFS_PROVIDER, FACTORY_DEPOSIT,
@@ -191,8 +192,8 @@ async makeSeed(account){
     
     if(!exists){
       try {
-        let didContract = await this.useDidContractFullAccessKey()
-          await didContract.putDID({
+      //  let didContract = await this.useDidContractFullAccessKey()
+          await contract.putDID({
             accountId: accountId,
             did: ceramic.did.id
           }, GAS)
@@ -222,8 +223,8 @@ async makeSeed(account){
         /** No DID, so create a new one and store it in the contract */
         if (ceramic.did.id) {
           try{
-            let didContract = await this.useDidContractFullAccessKey()
-            did = await didContract.putDID({
+         //   let didContract = await this.useDidContractFullAccessKey()
+            did = await contract.putDID({
               accountId: accountId,
               did: ceramic.did.id
             }, GAS)
@@ -309,21 +310,29 @@ async makeSeed(account){
 
 
   async getAlias(accountId, aliasName, client, schema, description, contract) {
+    let alias
     try {
       let aliasExists = await contract.hasAlias({alias: accountId+':'+aliasName})
+      console.log('aliasExists', aliasExists)
       if(aliasExists){
-        let alias = await contract.retrieveAlias({alias: accountId+':'+aliasName})
+        try{
+          alias = await contract.retrieveAlias({alias: accountId+':'+aliasName})
+        console.log('alias', alias)
         return alias
+        } catch (err) {
+          console.log('alias is misformed', err)
+          alias = false
+        }
       }
-      if(!aliasExists){
+      if(!aliasExists || alias == false){
         let schemaURL = await publishSchema(client, {content: schema})
         let definition = await createDefinition(client, {
           name: aliasName,
           description: description,
           schema: schemaURL.commitId.toUrl()
         })
-        let didContract = await this.useDidContractFullAccessKey()
-        await didContract.storeAlias({alias: accountId+':'+aliasName, definition: definition.id.toString()})
+     //   let didContract = await this.useDidContractFullAccessKey()
+        await contract.storeAlias({alias: accountId+':'+aliasName, definition: definition.id.toString()})
         return definition.id.toString()
       }
     } catch (err) {
@@ -476,8 +485,10 @@ async makeSeed(account){
     const members = this.getAlias(APP_OWNER_ACCOUNT, 'members', appClient, memberSchema, 'dao member info', contract)
     const summonEvent = this.getAlias(APP_OWNER_ACCOUNT, 'summonEvent', appClient, summonSchema, 'dao summon events', contract)
     const proposal = this.getAlias(APP_OWNER_ACCOUNT, 'proposals', appClient, proposalSchema, 'proposal events', contract)
-    const proposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'proposalDetails', appClient, proposalDetailsSchema, 'proposal details', contract)
+    const memberProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'memberProposalDetails', appClient, memberProposalDetailsSchema, 'member proposal details', contract)
+    const fundingProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'fundingProposalDetails', appClient, fundingProposalDetailsSchema, 'funding proposal details', contract)
     const comments = this.getAlias(APP_OWNER_ACCOUNT, 'comments', appClient, commentsSchema, 'comments', contract)
+    const donations = this.getAlias(APP_OWNER_ACCOUNT, 'donations', appClient, donationsSchema, 'donations', contract)
     const done = await Promise.all([
       appDid, 
       definitions, 
@@ -490,8 +501,10 @@ async makeSeed(account){
       members, 
       summonEvent, 
       proposal, 
-      proposalDetails, 
-      comments
+      memberProposalDetails,
+      fundingProposalDetails, 
+      comments,
+      donations
     ])
     
     let rootAliases = {
@@ -505,8 +518,10 @@ async makeSeed(account){
       members: done[8],
       summonEvent: done[9],
       proposals: done[10],
-      proposalDetails: done[11],
-      comments: done[12]
+      memberProposalDetails: done[11],
+      fundingProposalDetails: done[12],
+      comments: done[13],
+      donations: done[14]
     }
 
     const appIdx = new IDX({ ceramic: appClient, aliases: rootAliases})

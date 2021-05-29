@@ -18,10 +18,8 @@ import AppFramework from './components/AppFramework/appFramework'
 import NewKey from './components/mainPages/newKey'
 import { Home } from './components/Home'
 import Daos from './components/mainPages/daos'
-import Import from './components/Import/import'
-import { KEY_REDIRECT } from './state/near'
-
-
+import Developers from './components/mainPages/developers'
+import Supporters from './components/mainPages/supporters'
 
 // Material-UI Components
 import { CircularProgress } from '@material-ui/core'
@@ -115,6 +113,9 @@ const App = () => {
                 <Route path="/explore">
                     <ExploreDaos state={state}/>
                 </Route>
+                <Route path="/developers">
+                    <Developers />
+                </Route>
                 <Route path="/personas">
                     <Container state={state}
                         handleSnackBarOpen={handleSnackBarOpen}
@@ -152,6 +153,9 @@ const App = () => {
                         errorMessage={errorMessage}
                         successMessage={successMessage}
                     />
+                </Route>
+                <Route path="/supporters/:contractId">
+                    <Supporters />
                 </Route>
             </Switch>
         </Router>

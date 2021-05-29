@@ -3,7 +3,15 @@ import { appStore, onAppMount } from '../../state/app';
 import { useParams } from 'react-router-dom'
 import * as nearAPI from 'near-api-js'
 import { get, set, del } from '../../utils/storage'
-import { logInitEvent, logProposalEvent, logSponsorEvent, logCancelEvent, logProcessEvent, logVoteEvent, synchProposalEvent, synchMember } from '../../state/near'
+import { logInitEvent, 
+  logProposalEvent, 
+  logSponsorEvent, 
+  logCancelEvent, 
+  logProcessEvent, 
+  logVoteEvent,
+  logDonationEvent,
+  synchProposalEvent, 
+  synchMember } from '../../state/near'
 
 import ActionSelector from '../ActionSelector/actionSelector'
 import ProposalList from '../ProposalList/proposalList'
@@ -15,7 +23,7 @@ import Initialize from '../Initialize/initialize'
 import { dao } from '../../utils/dao'
 import { ceramic } from '../../utils/ceramic'
 
-import { NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE } from '../../state/near'
+import { NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE, NEW_DONATION } from '../../state/near'
 
 // Material UI imports
 import { makeStyles } from '@material-ui/core/styles'
@@ -263,6 +271,27 @@ export default function AppFramework(props) {
                        }
                        h++
                      }
+                  
+                   // check for successfully added donation log it
+                   let newDonation = get(NEW_DONATION, [])
+                 
+                   let y = 0
+                   while(y < newDonation.length){
+                     if(newDonation[y].contractId==contractId && newDonation[y].new == true){
+                       let loggedDonation = await logDonationEvent(
+                         thisCurDaoIdx, 
+                         contract,
+                         newDonation[y].donationId,
+                         newDonation[y].contractId)
+                         
+                       if (loggedDonation) {
+                         newDonation[y].new = false
+                         set(NEW_DONATION, newDonation)
+                         setChange(!change)
+                       }
+                     }
+                     y++
+                   }
 
                   // For debugging
                   //  let proposalCheck= await contract.getProposal({proposalId: 0})

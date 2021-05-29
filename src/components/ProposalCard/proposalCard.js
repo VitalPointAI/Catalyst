@@ -3,8 +3,10 @@ import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 import * as nearAPI from 'near-api-js'
 import { ceramic } from '../../utils/ceramic'
-import EditProposalForm from '../EditProposal/editProposal'
-import ProposalDetails from '../ProposalDetails/proposalDetails'
+import EditMemberProposalForm from '../EditProposal/editMemberProposal'
+import MemberProposalDetails from '../ProposalDetails/memberProposalDetails'
+import EditFundingProposalForm from '../EditProposal/editFundingProposal'
+import FundingProposalDetails from '../ProposalDetails/fundingProposalDetails'
 
 // Material UI Components
 import { makeStyles, withStyles } from '@material-ui/core/styles'
@@ -47,6 +49,11 @@ const useStyles = makeStyles((theme) => ({
     avatar: {
       backgroundColor: red[500],
     },
+    small: {
+      width: theme.spacing(3),
+      height: theme.spacing(3),
+      float: 'left'
+    },
     large: {
       width: theme.spacing(7),
       height: theme.spacing(7),
@@ -58,12 +65,27 @@ const useStyles = makeStyles((theme) => ({
 
   const StyledBadge = withStyles((theme) => ({
     badge: {
-      right: -3,
-      top: 13,
+      right: 13,
+      top: 0,
       border: `2px solid ${theme.palette.background.paper}`,
       padding: '0 4px',
     },
+  }))(Badge)
+ 
+  const StyledBadgeProposer = withStyles((theme) => ({
+    badge: {
+      backgroundColor: '#f9f1f1',
+      right: -30,
+      top: 25,
+      border: `1px solid #000000`,
+      padding: '0 4px',
+    },
   }))(Badge);
+
+  const defaultProps = {
+    color: 'primary',
+    children: <Typography />,
+  }
 
   const imageName = require('../../img/default-profile.png') // default no-image avatar
 
@@ -72,18 +94,25 @@ export default function ProposalCard(props) {
     const [name, setName] = useState('')
     const [avatar, setAvatar] = useState(imageName)
     const [intro, setIntro] = useState()
+
+    const[title, setTitle] = useState('Proposal Details')
+
     const [proposals, setProposals] = useState()
 
     const [isUpdated, setIsUpdated] = useState(false)
 
     const[hasVoted, setHasVoted] = useState(props.voted)
     const[isDone, setIsDone] = useState(props.done)
-    const[title, setTitle] = useState('Enter Short Title')
-    const[did, setDid] = useState()
+    
+    
     const[curPersonaIdx, setCurPersonaIdx] = useState()
    
-    const [editProposalClicked, setEditProposalClicked] = useState(false)
-    const [proposalDetailsClicked, setProposalDetailsClicked] = useState(false)
+    const [editMemberProposalDetailsClicked, setEditMemberProposalDetailsClicked] = useState(false)
+    const [memberProposalDetailsClicked, setMemberProposalDetailsClicked] = useState(false)
+
+    const [editFundingProposalDetailsClicked, setEditFundingProposalDetailsClicked] = useState(false)
+    const [fundingProposalDetailsClicked, setFundingProposalDetailsClicked] = useState(false)
+
     const [anchorEl, setAnchorEl] = useState(null);
     
     const { state, dispatch, update } = useContext(appStore)
@@ -104,7 +133,6 @@ export default function ProposalCard(props) {
     const { applicant, created, noVotes, yesVotes, proposalType, proposer, requestId, tribute, vote, loot, shares, status, funding,
         isVotingPeriod, isGracePeriod, voted, gracePeriod, votingPeriod, currentPeriod, periodDuration, cancelFinish, sponsor, done,
         startingPeriod,
-        handleFundingProposalDetailsClick,
         handleSponsorConfirmationClick,
         handleCancelAction,
         handleVotingAction,
@@ -145,9 +173,9 @@ export default function ProposalCard(props) {
               }
             }
 
-              // Set Existing Proposal Data       
+            // Set Existing Member Proposal Data       
             if(curDaoIdx){
-              let propResult = await curDaoIdx.get('proposalDetails', curDaoIdx.id)
+              let propResult = await curDaoIdx.get('memberProposalDetails', curDaoIdx.id)
               console.log('propResult', propResult)
               if(propResult) {
                 let i = 0
@@ -161,10 +189,21 @@ export default function ProposalCard(props) {
               }
             }
             
-            // // Load DAO Proposal information
-            // let result = await curDaoIdx.get('proposals', daoDid)
-            // console.log('result here proposal card', result)
-           
+            // Set Existing Funding Proposal Data       
+            if(curDaoIdx){
+              let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
+              console.log('propResult', propResult)
+              if(propResult) {
+                let i = 0
+                while (i < propResult.proposals.length){
+                  if(propResult.proposals[i].proposalId == requestId){
+                    propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
+                    break
+                  }
+                  i++
+                }
+              }
+            }  
                     
             return true  
           }
@@ -174,29 +213,51 @@ export default function ProposalCard(props) {
 
             })
           
-    }, [applicant, avatar, intro, isUpdated]
+    }, [applicant, avatar, intro, title, isUpdated]
     )
 
     function handleUpdate(property){
       setIsUpdated(property)
     }
   
-    const handleEditProposalClick = () => {
+    // Member Proposal Functions
+
+    const handleEditMemberProposalDetailsClick = () => {
       handleExpanded()
-      handleEditProposalClickState(true)
+      handleEditMemberProposalDetailsClickState(true)
     }
   
-    function handleEditProposalClickState(property){
-      setEditProposalClicked(property)
+    function handleEditMemberProposalDetailsClickState(property){
+      setEditMemberProposalDetailsClicked(property)
     }
 
-    const handleProposalDetailsClick = () => {
+    const handleMemberProposalDetailsClick = () => {
       handleExpanded()
-      handleProposalDetailsClickState(true)
+      handleMemberProposalDetailsClickState(true)
     }
   
-    function handleProposalDetailsClickState(property){
-      setProposalDetailsClicked(property)
+    function handleMemberProposalDetailsClickState(property){
+      setMemberProposalDetailsClicked(property)
+    }
+
+    // Funding Commitment Proposal Functions
+
+    const handleEditFundingProposalDetailsClick = () => {
+      handleExpanded()
+      handleEditFundingProposalDetailsClickState(true)
+    }
+  
+    function handleEditFundingProposalDetailsClickState(property){
+      setEditFundingProposalDetailsClicked(property)
+    }
+
+    const handleFundingProposalDetailsClick = () => {
+      handleExpanded()
+      handleFundingProposalDetailsClickState(true)
+    }
+  
+    function handleFundingProposalDetailsClickState(property){
+      setFundingProposalDetailsClicked(property)
     }
   
     function handleExpanded() {
@@ -211,9 +272,8 @@ export default function ProposalCard(props) {
            <Typography variant="h6" align="left" style={{float: 'left', marginLeft: '5px'}} color="textSecondary">{proposalType} Proposal</Typography>
            <Typography variant="h6" align="right" style={{float: 'right', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
            <div style={{clear: 'both'}}></div>
-            <CardHeader
-              title={<><center><Avatar src={avatar} className={classes.large} /><Typography variant="h6">{name + ' (' + applicant + ')'}</Typography>
-              </center></>}
+           <CardHeader
+              title={<><center><Avatar src={avatar} className={classes.large} /><Typography variant="h6">{name + ' (' + applicant + ')'}</Typography></center></>}
               subheader={
                 <Grid container alignItems="center" justify="space-evenly">
                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
@@ -231,6 +291,48 @@ export default function ProposalCard(props) {
                 }
             /></>
           ) : null }
+
+          {proposalType === 'Commitment' ? (
+            <> 
+            <Typography variant="h6" align="left" style={{float: 'left', marginLeft: '5px'}} color="textSecondary">Funding {proposalType}</Typography>
+            <Typography variant="h6" align="right" style={{float: 'right', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
+            <StyledBadgeProposer                        
+              badgeContent={proposer}
+              style={{marginLeft: '10px'}}
+            >
+              <Avatar src={avatar}  />
+            </StyledBadgeProposer>
+            <div style={{clear: 'both'}}></div>
+            <CardHeader
+               align="center"
+               title={<>
+                {accountId == proposer && status == 'Submitted' ? 
+                  <Badge badgeContent={'change'} {...defaultProps} onClick={handleEditFundingProposalDetailsClick}>
+                    <Typography variant="h6" noWrap={true} style={{fontWeight: '800', color: 'black'}}>
+                      {title ? title.replace(/(<([^>]+)>)/gi, ""): 'Add Details'}
+                    </Typography>
+                  </Badge> :
+                  <Typography variant="h6" noWrap={true} style={{fontWeight: '800', color: 'black'}}>
+                      {title ? title.replace(/(<([^>]+)>)/gi, ""): 'Add Details'}
+                  </Typography>}
+                  </>}
+               subheader={
+                 <Grid container alignItems="center" justify="space-evenly">
+                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
+                      <Typography variant="overline">Proposed: {created}</Typography>
+                   </Grid>
+                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                      
+                   </Grid>
+                   {status == 'Sponsored' ? (
+                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                     <Typography variant="overline" color="textSecondary">Sponsor: {sponsor}</Typography>
+                   </Grid>
+                   ) : null }
+                 </Grid>
+                 }
+             /></>
+           ) : null }
 
           {proposalType === 'GuildKick' ? (
             <> <Typography variant="h6" align="center" color="textSecondary">{proposalType} Proposal</Typography>
@@ -256,19 +358,6 @@ export default function ProposalCard(props) {
              /></>
            ) : null }
 
-          {proposalType === 'Commitment' ? (
-            <> <Typography variant="h6" align="center" color="textSecondary">{proposalType} Proposal</Typography>
-            {status == 'Sponsored' ? <Typography variant="overline" align="center" color="textSecondary">Sponsored by: {sponsor}</Typography> : null }
-            <CardHeader
-              title={<Chip
-                avatar={<Avatar alt="Funding Commitment" src="../../../images/dollar.png" />}
-                label={proposer}
-                variant="outlined"
-              />}
-              subheader={`Proposed: ${created}`}
-            /></>
-          ) : null }
-
             <CardContent>
                 {console.log('proposalType', proposalType)}
             {proposalType == 'Member' ? (
@@ -280,12 +369,11 @@ export default function ProposalCard(props) {
               
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                   <Typography variant="body1" color="initial" noWrap={true} align="center"
-                  onClick={handleProposalDetailsClick}
+                  onClick={handleMemberProposalDetailsClick}
                   >{intro ? intro.replace(/(<([^>]+)>)/gi, ""): 'No Details'}</Typography>
                 </Grid>  
-             
               </Grid>
-            ) : null}
+            ) : null }
 
             {proposalType == 'GuildKick' ? (
               <Grid container alignItems="center" justify="space-evenly" style={{marginTop: '-20px', marginBottom:'20px'}}>
@@ -300,9 +388,7 @@ export default function ProposalCard(props) {
             {proposalType == 'Commitment' ? (
               <Grid container alignItems="center" justify="space-evenly" style={{marginTop: '-20px', marginBottom:'20px'}}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                  <Typography variant="h6" noWrap={true} style={{border: '1px solid', padding: '2px', textAlign: 'center', fontWeight: '800', color: 'black'}}
-                  onClick={(e) => handleFundingProposalDetailsClick(requestId, applicant, status, e)}
-                  >{title}</Typography>
+                 
                 </Grid>    
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                   <Typography variant="h5" align="center" style={{marginBottom: '10px'}}>Funding Requested</Typography>
@@ -455,20 +541,19 @@ export default function ProposalCard(props) {
                   <><Button color="primary" onClick={() => handleCancelAction(requestId, proposalDeposit, tribute)}>
                     Cancel
                   </Button>
-                  {proposalType === 'Member' || proposalType === 'GuildKick' || proposalType === 'Commitment' || proposalType === 'Payout' ? (
+                  {proposalType === 'Member' || proposalType === 'GuildKick' || proposalType === 'Payout' ? (
                     <><Button 
                         color="primary" 
-                        onClick={handleEditProposalClick}>
+                        onClick={handleEditMemberProposalDetailsClick}>
                           Edit
                       </Button>
                     </>)
                   : null }
                 {proposalType === 'Commitment' ? (
                   <><Button 
-                      variant="contained" 
                       color="primary" 
-                      onClick={(e) => handleFundingProposalDetailsClick(requestId, applicant, status, e)}>
-                        Proposal Details
+                      onClick={handleEditFundingProposalDetailsClick}>
+                        Edit
                     </Button>
                   </>) : null } </>: <LinearProgress /> : null }
               </Grid>
@@ -479,28 +564,48 @@ export default function ProposalCard(props) {
                
         </Card>
 
-        {editProposalClicked ? <EditProposalForm
+        {editMemberProposalDetailsClicked ? <EditMemberProposalForm
           state={state}
-          handleEditProposalClickState={handleEditProposalClickState}
+          handleEditMemberProposalDetailsClickState={handleEditMemberProposalDetailsClickState}
           curDaoIdx={curDaoIdx}
           curPersonaIdx={curPersonaIdx}
           applicant={applicant}
           handleUpdate={handleUpdate}
-          did={did}
           accountId={accountId}
           proposalId={requestId}
           /> : null }
 
-          {proposalDetailsClicked ? <ProposalDetails
-            proposer={proposer}
-            handleProposalDetailsClickState={handleProposalDetailsClickState}
-            curDaoIdx={curDaoIdx}
-            curPersonaIdx={curPersonaIdx}
-            applicant={applicant}
-            handleUpdate={handleUpdate}
-            did={did}
-            proposalId={requestId}
-            /> : null }
+        {editFundingProposalDetailsClicked ? <EditFundingProposalForm
+          state={state}
+          handleEditFundingProposalDetailsClickState={handleEditFundingProposalDetailsClickState}
+          curDaoIdx={curDaoIdx}
+          curPersonaIdx={curPersonaIdx}
+          applicant={applicant}
+          proposer={proposer}
+          handleUpdate={handleUpdate}
+          accountId={accountId}
+          proposalId={requestId}
+          /> : null }
+
+        {memberProposalDetailsClicked ? <MemberProposalDetails
+          proposer={proposer}
+          handleMemberProposalDetailsClickState={handleMemberProposalDetailsClickState}
+          curDaoIdx={curDaoIdx}
+          curPersonaIdx={curPersonaIdx}
+          applicant={applicant}
+          handleUpdate={handleUpdate}
+          proposalId={requestId}
+          /> : null }
+
+        {fundingProposalDetailsClicked ? <FundingProposalDetails
+          proposer={proposer}
+          handleFundingProposalDetailsClickState={handleFundingProposalDetailsClickState}
+          curDaoIdx={curDaoIdx}
+          curPersonaIdx={curPersonaIdx}
+          applicant={applicant}
+          handleUpdate={handleUpdate}
+          proposalId={requestId}
+          /> : null }
 
         </>
     )

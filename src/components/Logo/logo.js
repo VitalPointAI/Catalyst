@@ -86,9 +86,19 @@ export default function Logo(props) {
                     }
                 }
 
-                let contract = await dao.initDaoContract(wallet.account(), contractId)
+                let contract
+                try{
+                    contract = await dao.initDaoContract(wallet.account(), contractId)
+                } catch (err) {
+                    console.log('error retrieving contract', err)
+                }
+                
+                try{
                 let owner = await contract.getSummoner()
                 setSummoner(owner)
+                } catch (err) {
+                    console.log('error retrieving summoner', err)
+                }
             }
         }
 

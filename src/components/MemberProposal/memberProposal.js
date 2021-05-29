@@ -151,7 +151,7 @@ export default function MemberProposal(props) {
                 })}
                 InputProps={{
                   endAdornment: <><InputAdornment position="end">Ⓝ</InputAdornment>
-                  <Tooltip TransitionComponent={Zoom} title="The amount of NEAR the member is contributing to the community fund. This fund is used to fund proposals that benefit the community in some way that members vote on and decide collectively to pass.  Members receive one share for every one NEAR contributed which represents their portion of the community fund.  Member receives one vote regardless of contribution size.">
+                  <Tooltip TransitionComponent={Zoom} title="The amount of NEAR the member is contributing to the community fund. This fund is used to fund proposals that benefit the community in some way that members vote on and decide collectively to pass.  Members receive one share for every one NEAR contributed which represents their portion of the community fund.">
                       <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
                   </Tooltip>
                   </>

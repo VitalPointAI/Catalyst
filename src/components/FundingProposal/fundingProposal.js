@@ -173,9 +173,9 @@ export default function FundingProposal(props) {
         <Card>
         <CardContent>
           <WarningIcon fontSize='large' className={classes.warning} />
-          <Typography variant="body1">You are requesting that <b>{applicant}</b> receive {funding} Ⓝ. After submitting
-          this proposal, you must provide enough supporting detail to help other members vote on and decide whether to approve your proposal or not. 
-          Note: while you can submit a request for any funding amount, keep in mind that funding commitment proposals can not be sponsored if they exceed 50% of what is 
+          <Typography variant="body1" gutterBottom>You are requesting that {funding} Ⓝ be reserved for use by <b>{applicant}</b>. After submitting
+          this proposal, you must provide enough supporting detail to help other members vote on and decide whether to approve your proposal or not.</Typography> 
+          <Typography variant="body1">Note: while you can submit a request for any funding amount, funding commitment proposals can not be sponsored if they exceed 50% of what is 
           available in the community fund.</Typography>
           <Grid container className={classes.confirmation} spacing={1}>
             <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>

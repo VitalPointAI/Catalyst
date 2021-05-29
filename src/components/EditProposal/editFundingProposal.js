@@ -50,7 +50,7 @@ const useStyles = makeStyles((theme) => ({
 
 const imageName = require('../../img/default-profile.png') // default no-image avatar
 
-export default function EditProposalForm(props) {
+export default function EditFundingProposalForm(props) {
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
     const [loaded, setLoaded] = useState(false)
@@ -61,15 +61,17 @@ export default function EditProposalForm(props) {
     const [avatar, setAvatar] = useState(imageName)
     const [shortBio, setShortBio] = useState('')
 
-    // Proposal Fields
-    const [intro, setIntro] = useState('')
+    // Funding Proposal Fields
+    const [title, setTitle] = useState('')
+    const [details, setDetails] = useState('')
 
     const { register, handleSubmit, watch, errors } = useForm()
 
     const {
         handleUpdate,
-        handleEditProposalClickState,
+        handleEditFundingProposalDetailsClickState,
         applicant,
+        proposer,
         curDaoIdx,
         curPersonaIdx,
         proposalId,
@@ -95,13 +97,14 @@ export default function EditProposalForm(props) {
 
            // Set Existing Proposal Data       
            if(curDaoIdx){
-              let propResult = await curDaoIdx.get('proposalDetails', curDaoIdx.id)
+              let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
               console.log('propResult', propResult)
               if(propResult) {
                 let i = 0
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == proposalId){
-                    propResult.proposals[i].intro ? setIntro(propResult.proposals[i].intro) : setIntro('')
+                    propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
+                    propResult.proposals[i].details ? setDetails(propResult.proposals[i].details) : setDetails('')
                     break
                   }
                   i++
@@ -121,13 +124,13 @@ export default function EditProposalForm(props) {
     }
 
     const handleClose = () => {
-        handleEditProposalClickState(false)
+        handleEditFundingProposalDetailsClickState(false)
         setOpen(false)
     }
 
-    const handleNameChange = (event) => {
+    const handleTitleChange = (event) => {
         let value = event.target.value;
-        setName(value)
+        setTitle(value)
     }
 
     function formatDate(timestamp) {
@@ -136,12 +139,8 @@ export default function EditProposalForm(props) {
       return new Date(intDate).toLocaleString('en-US', options)
     }
 
-    const handleShortBioChange = (content, delta, source, editor) => {
-        setShortBio(content)
-    }
-
-    const handleIntroChange = (content, delta, source, editor) => {
-      setIntro(content)
+    const handleDetailsChange = (content, delta, source, editor) => {
+        setDetails(content)
     }
 
     const onSubmit = async (values) => {
@@ -152,17 +151,19 @@ export default function EditProposalForm(props) {
       let formattedDate = formatDate(now)
   
       // Load existing array of details
-      let detailRecords = await curDaoIdx.get('proposalDetails', curDaoIdx.id)
-      console.log('detailRecords', detailRecords)
+      let detailRecords = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
+      console.log('funding detailRecords', detailRecords)
       if(!detailRecords){
         detailRecords = { proposals: [] }
       }
 
       let proposalRecord = {
           proposalId: proposalId.toString(),
-          intro: intro,
-          applicant: applicant,
-          updated: formattedDate
+          title: title,
+          details: details,
+          proposer: proposer,
+          submitDate: now,
+          published: true
       }
 
       // Update existing records
@@ -171,7 +172,7 @@ export default function EditProposalForm(props) {
       while (i < detailRecords.proposals.length){
         if(detailRecords.proposals[i].proposalId == proposalId){
           detailRecords.proposals[i] = proposalRecord
-          await curDaoIdx.set('proposalDetails', detailRecords)
+          await curDaoIdx.set('fundingProposalDetails', detailRecords)
           exists = true
           break
         }
@@ -182,7 +183,7 @@ export default function EditProposalForm(props) {
       if(!exists){
         detailRecords.proposals.push(proposalRecord)
         console.log('detailrecords.proposals', detailRecords.proposals)
-        await curDaoIdx.set('proposalDetails', detailRecords)
+        await curDaoIdx.set('fundingProposalDetails', detailRecords)
       }
      
       setFinished(true)
@@ -214,21 +215,36 @@ export default function EditProposalForm(props) {
        
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             { loaded ? (<>
-              <DialogTitle id="form-dialog-title">Proposal Details</DialogTitle>
+              <DialogTitle id="form-dialog-title">Funding Commitment Proposal Details</DialogTitle>
               <DialogContent>
                   <DialogContentText style={{marginBottom: 10}}>
-                  Please introduce:
+                  Please describe the project:
                   
                   </DialogContentText>
-                  <div><Avatar src={avatar} /></div>
-                  <Typography variant="h6">{name}</Typography>
+                  
+                  <TextField
+                      autoFocus
+                      margin="dense"
+                      id="funding-proposal-title"
+                      variant="outlined"
+                      name="fundingProposalTitle"
+                      label="Proposal Title"
+                      placeholder="My Awesome Proposal"
+                      value={title}
+                      onChange={handleTitleChange}
+                      inputRef={register({
+                          required: true                              
+                      })}
+                  />
+                  {errors.fundingProposalTitle && <p style={{color: 'red'}}>You must give your proposal a title.</p>}
+              
                   <ReactQuill
                     theme="snow"
                     modules={modules}
                     formats={formats}
-                    name="intro"
-                    value={intro}
-                    onChange={handleIntroChange}
+                    name="details"
+                    value={details}
+                    onChange={handleDetailsChange}
                     style={{height:'200px', marginBottom:'100px'}}
                     inputRef={register({
                         required: false

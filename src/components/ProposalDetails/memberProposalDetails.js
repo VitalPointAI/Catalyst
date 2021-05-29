@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app'
-import * as nearAPI from 'near-api-js'
-import { ceramic } from '../../utils/ceramic'
 import { makeStyles } from '@material-ui/core/styles'
 import CommentForm from '../common/Comment/commentForm'
 import CommentDetails from '../common/Comment/commentDetails'
@@ -64,14 +62,12 @@ const useStyles = makeStyles((theme) => ({
     },
     }));
 
-export default function proposalDetails(props) {
+export default function MemberProposalDetails(props) {
     const [open, setOpen] = useState(true)
     const [intro, setIntro] = useState()
     const [avatar, setAvatar] = useState()
     const [name, setName] = useState('')
   
-   
-    // const [proposalPublished, setMemberProposalPublished] = useState(false)
     const [isUpdated, setIsUpdated] = useState(false)
     const [proposalComments, setProposalComments] = useState([])
     const [finished, setFinished] = useState(false)
@@ -81,15 +77,12 @@ export default function proposalDetails(props) {
     const { state, dispatch, update } = useContext(appStore)
 
     const {
-      didRegistryContract,
-      near,
-      appIdx,
       accountId,
       curUserIdx
     } = state
 
     const {
-        handleProposalDetailsClickState,
+        handleMemberProposalDetailsClickState,
         proposalId,
         memberStatus,
         status,
@@ -121,7 +114,7 @@ export default function proposalDetails(props) {
 
             // Set Existing Proposal Data       
             if(curDaoIdx){
-              let propResult = await curDaoIdx.get('proposalDetails', curDaoIdx.id)
+              let propResult = await curDaoIdx.get('memberProposalDetails', curDaoIdx.id)
               console.log('propResult', propResult)
               if(propResult) {
                 let i = 0
@@ -155,10 +148,6 @@ export default function proposalDetails(props) {
                 setProposalComments(comments)
               }
             }
-            
-            // // Load DAO Proposal information
-            // let result = await curDaoIdx.get('proposals', curDaoIdx.id)
-            // console.log('result here proposal card', result)
                     
             return true  
           }
@@ -172,7 +161,7 @@ export default function proposalDetails(props) {
     )
 
     const handleClose = () => {
-        handleProposalDetailsClickState(false)
+        handleMemberProposalDetailsClickState(false)
         setOpen(false)
     }
 

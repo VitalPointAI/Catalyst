@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app'
 import * as nearAPI from 'near-api-js'
-import { ceramic } from '../../utils/ceramic'
 import Persona from '@aluhning/get-personas-js'
 
 // Material UI Components
@@ -32,7 +31,7 @@ const useStyles = makeStyles((theme) => ({
 
   const imageName = require('../../img/default-profile.png') // default no-image avatar
 
-export default function MemberCard(props) {
+export default function SupporterCard(props) {
 
     const [date, setDate] = useState('')
     const [name, setName] = useState('')
@@ -41,6 +40,7 @@ export default function MemberCard(props) {
     const [did, setDid] = useState()
     const [curUserIdx, setCurUserIdx] = useState()
     const [joined, setJoined] = useState(props.joined)
+    const [contribution, setDonation] = useState()
 
     const { state, dispatch, update } = useContext(appStore)
 
@@ -53,12 +53,11 @@ export default function MemberCard(props) {
     const classes = useStyles();
 
     const {
-      accountName, 
-      shares, 
-      memberCount, 
-      summoner,
+      accountId,
+      donation,
+      contributed,
     } = props
-
+console.log('donation', donation)
     const thisPersona = new Persona()
 
     useEffect(
@@ -66,8 +65,8 @@ export default function MemberCard(props) {
          
         async function fetchData() {
 
-          if(accountName){
-            let result = await thisPersona.getPersona(accountName)
+          if(accountId){
+            let result = await thisPersona.getPersona(accountId)
             if(result){
               result.date ? setDate(result.date) : setDate('')
               result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
@@ -105,21 +104,18 @@ export default function MemberCard(props) {
           </div>
          
           <CardHeader
-          subheader={ <><center><Chip size="small" color="primary" label={accountName}/><br></br><Typography variant="overline" align="center">Joined: {formatDate(joined)}</Typography></center></>}
+          subheader={ <><center><Chip size="small" color="primary" label={accountId}/><br></br>
+          <Typography variant="overline" align="center">Contributed: {formatDate(contributed)}</Typography></center></>}
           className={classes.header}
           />
  
           <CardContent>
             <Grid container alignItems="center" style={{marginTop: '-20px', marginBottom:'20px', display:'inherit'}}>
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                <Typography variant="overline" align="center">{shares > 1 ? shares + ' shares' : shares + ' share' }</Typography>
-              </Grid>
-              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                <Typography variant="overline">{`Voting Power: ${shares && memberCount ? (shares / memberCount)*100 : '100'}%`}</Typography>
+                <Typography variant="h6" align="center">{donation} Ⓝ</Typography>
               </Grid>
             </Grid>
           </CardContent>
-          {summoner == accountName ? <center><Chip size="small" color="secondary" label='summoner' style={{marginTop: '-30px'}}/></center> : null} 
         </Card>
         </>
     )

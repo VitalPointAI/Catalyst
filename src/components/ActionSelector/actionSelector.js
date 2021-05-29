@@ -8,6 +8,7 @@ import GuildKickProposal from '../GuildKickProposal/guildKickProposal'
 import MemberProposal from '../MemberProposal/memberProposal'
 import VotingProposal from '../VotingRights/votingRightsProposal'
 import PayoutProposal from '../PayoutProposal/payoutProposal'
+import Donation from '../Donation/donation'
 
 // Material UI Components
 import { makeStyles } from '@material-ui/core/styles'
@@ -27,6 +28,7 @@ import ThumbUpAltIcon from '@material-ui/icons/ThumbUpAlt'
 import RemoveCircleIcon from '@material-ui/icons/RemoveCircle'
 import HowToVoteIcon from '@material-ui/icons/HowToVote'
 import EnhancedEncryptionIcon from '@material-ui/icons/EnhancedEncryption'
+import MoneyIcon from '@material-ui/icons/Money'
 import Snackbar from '@material-ui/core/Snackbar'
 import MuiAlert from '@material-ui/lab/Alert'
 
@@ -78,6 +80,7 @@ export default function ActionSelector(props) {
   const [memberProposalClicked, setMemberProposalClicked] = useState(false)
   const [fundingProposalClicked, setFundingProposalClicked] = useState(false)
   const [payoutProposalClicked, setPayoutProposalClicked] = useState(false)
+  const [donationProposalClicked, setDonationProposalClicked] = useState(false)
   const [whiteListClicked, setWhiteListClicked] = useState(false)
   const [guildKickClicked, setGuildKickClicked] = useState(false)
   const [votingProposalClicked, setVotingProposalClicked] = useState(false)
@@ -107,6 +110,12 @@ export default function ActionSelector(props) {
   const {
     contractId
   } = useParams()
+
+  const handleDonationProposalClick = () => {
+    handleExpanded()
+    handleTabValueState('5')
+    setDonationProposalClicked(true)
+  }
 
   const handleFundingProposalClick = () => {
     handleExpanded()
@@ -142,7 +151,11 @@ export default function ActionSelector(props) {
     handleExpanded()
     handleTabValueState('2')
     handlePayoutProposalClickState(true)
-  };
+  }
+
+  function handleDonationProposalClickState(property) {
+    setDonationProposalClicked(property)
+  }
 
   function handleWhiteListClickState(property) {
     setWhiteListClicked(property)
@@ -226,6 +239,12 @@ export default function ActionSelector(props) {
             </ListItemIcon>
             <ListItemText primary="New Member Proposal" />
           </StyledMenuItem>
+          <StyledMenuItem button onClick={handleDonationProposalClick}>
+            <ListItemIcon>
+              <MoneyIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Donate to Community Fund" />
+          </StyledMenuItem>
           <StyledMenuItem button onClick={handleFundingProposalClick}>
             <ListItemIcon>
               <EnhancedEncryptionIcon fontSize="small" />
@@ -258,6 +277,12 @@ export default function ActionSelector(props) {
               <EmojiPeopleIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText primary="New Member Proposal" />
+          </StyledMenuItem>
+          <StyledMenuItem button onClick={handleDonationProposalClick}>
+            <ListItemIcon>
+              <MoneyIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Donate to Community Fund" />
           </StyledMenuItem>
         </StyledMenu>
       )}
@@ -334,6 +359,18 @@ export default function ActionSelector(props) {
 
       /> : null }
 
+      {donationProposalClicked ? <Donation
+        contractId={contractId}
+        state={state}
+        proposalDeposit={proposalDeposit}
+        depositToken={depositToken}
+        handleDonationProposalClickState={handleDonationProposalClickState} 
+        accountId={accountId} 
+        handleSnackBarOpen={handleSnackBarOpen}
+        handleErrorMessage={handleErrorMessage}
+        handleSuccessMessage={handleSuccessMessage}
+      /> : null }
+  
       {payoutProposalClicked ? <PayoutProposal
         contractId={contractId}
         state={state}

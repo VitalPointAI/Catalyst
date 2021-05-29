@@ -189,11 +189,14 @@ const handleEditPersonaClick = () => {
                     </>
                     ) : (<>
                     <Grid container justify="space-evenly" alignItems="center" spacing={1}>
-                        <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
+                        <Grid item xs={4} sm={4} md={4} lg={4} xl={4}>
                             <Link to={`/dao/${contractId}/about`} variant="body1">About</Link>
                         </Grid>
-                        <Grid item xs={10} sm={10} md={10} lg={10} xl={10}>
-                            <Link to={`/dao/${contractId}/how`} variant="body1">Community Guidelines</Link>
+                        <Grid item xs={4} sm={4} md={4} lg={4} xl={4}>
+                            <Link to={`/dao/${contractId}/how`} variant="body1">Guidelines</Link>
+                        </Grid>
+                        <Grid item xs={4} sm={4} md={4} lg={4} xl={4}>
+                            <Link to={`/supporters/${contractId}`} variant="body1">Supporters</Link>
                         </Grid>
                     </Grid>
                     </>) }               
