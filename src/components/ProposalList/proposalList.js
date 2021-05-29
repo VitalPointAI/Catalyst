@@ -105,6 +105,8 @@ export default function ProposalList(props) {
     contractId,
     proposalDeposit,
     allMemberInfo,
+    handleUpdate,
+    isUpdated,
 
     tabValue,
     handleTabValueState,
@@ -558,6 +560,8 @@ export default function ProposalList(props) {
           contractIdx={contractIdx}
           joined={fr.joined}
           updated={fr.updated}
+          handleUpdate={handleUpdate}
+          isUpdated={isUpdated}
         />
       )
     })

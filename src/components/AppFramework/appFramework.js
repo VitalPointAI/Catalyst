@@ -88,6 +88,7 @@ export default function AppFramework(props) {
     const [initialized, setInitialized] = useState()
     const [initLoad, setInitLoad] = useState(false)
     const [started, setStarted] = useState(false)
+    const [isUpdated, setIsUpdated] = useState(false)
     
     const classes = useStyles()
     
@@ -513,6 +514,10 @@ export default function AppFramework(props) {
         return false
       }
     }
+
+    function handleUpdate(property){
+      setIsUpdated(property)
+    }
     
     return (
       <>
@@ -595,6 +600,8 @@ export default function AppFramework(props) {
                 contract={daoContract}
                 memberStatus={memberStatus}
                 proposalDeposit={proposalDeposit}
+                handleUpdate={handleUpdate}
+                isUpdated={isUpdated}
                
         
 

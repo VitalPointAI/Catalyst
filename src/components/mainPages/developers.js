@@ -40,9 +40,11 @@ export default function Developers(props) {
         () => {
           async function fetchData() {
 
-          let accountId = 'player4.testnet'
+          let accountId = 'testing2.testnet'
+          console.log('accountid', accountId)
 
           let Persona = new Personas()
+          console.log(Persona)
           let result = await Persona.getPersona(accountId)
           
           console.log('dev result', result)
@@ -57,7 +59,7 @@ export default function Developers(props) {
         
         <div className={classes.root}>
         <Header state={state}/>
-        Persona avatar <img src={result.avatar}></img>
+        {result && result.avatar ? <img src={result.avatar}></img> : 'no avatar' }
         </div>
         
     )

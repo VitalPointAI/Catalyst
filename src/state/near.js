@@ -770,6 +770,10 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId)
 
     let logMembers = await curDaoIdx.get('members', curDaoIdx.id)
 
+    if(!logMembers){
+        logMembers = { events: [] }
+    }
+
     let i = 0
     if(member && member.length > 0){
         while(i < logMembers.events.length){

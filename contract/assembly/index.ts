@@ -24,9 +24,8 @@ export function hasDID(accountId: string) : bool {
 }
 
 export function putDID(accountId: string, did: string): bool {
-  assert(accountId == Context.predecessor, 'only account owner can register a did for it')
+  assert(accountId == Context.predecessor, 'only account owner can register or change a did for it')
   assert(env.isValidAccountID(accountId), 'not a valid near account')
-  assert(!registry.contains(accountId), 'did already registered for this near account')
   registry.set(accountId, did)
   logging.log('registered DID' + accountId + ':' + did)
   return true

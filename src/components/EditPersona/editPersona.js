@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
+import { appStore, onAppMount } from '../../state/app';
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import FileUpload from '../IPFSupload/ipfsUpload'
@@ -58,11 +59,13 @@ export default function EditPersonaForm(props) {
     const [name, setName] = useState('')
     const [avatar, setAvatar] = useState(imageName)
     const [shortBio, setShortBio] = useState('')
+    const [isUpdated, setIsUpdated] = useState(false)
 
     const { register, handleSubmit, watch, errors } = useForm()
 
+    const { state, dispatch, update } = useContext(appStore)
+
     const {
-        state,
         handleUpdate,
         handleEditPersonaClickState,
         accountId,
@@ -135,9 +138,10 @@ export default function EditPersonaForm(props) {
      
         let result = await curPersonaIdx.set('profile', record)
      
-
+      setIsUpdated(true)
       setFinished(true)
-      handleUpdate(true)
+      update('', { isUpdated })
+  //    handleUpdate(true)
       setOpen(false)
       handleClose()
     }

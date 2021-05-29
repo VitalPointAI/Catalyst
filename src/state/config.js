@@ -19,6 +19,8 @@ let config = {
     GAS: '200000000000000',
     FACTORY_DEPOSIT: '2',
     APP_OWNER_ACCOUNT: 'vitalpointai.testnet',
+  //  CERAMIC_API_URL: 'https://ceramic-clay.3boxlabs.com',
+    CERAMIC_API_URL: 'http://20.151.200.193:7007',
     IPFS_PROVIDER: 'https://ipfs.io/ipfs/',
     networkId: 'testnet',
     nodeUrl: 'https://rpc.testnet.near.org',

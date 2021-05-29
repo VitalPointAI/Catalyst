@@ -132,7 +132,7 @@ export default function Logo(props) {
         logo != catalystLogo ?
             logo == defaultLogo ? 
                 (<>
-            <Link to={`${contractId}`}>
+            <Link to={`/dao/${contractId}`}>
                 <div style={{width: '180px', 
                 height: '100px', 
                 float: 'right', 

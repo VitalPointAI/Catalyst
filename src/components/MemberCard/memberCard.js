@@ -41,7 +41,7 @@ export default function MemberCard(props) {
     const [did, setDid] = useState()
     const [curUserIdx, setCurUserIdx] = useState()
     const [joined, setJoined] = useState(props.joined)
-
+    
     const { state, dispatch, update } = useContext(appStore)
 
     const {
@@ -56,17 +56,18 @@ export default function MemberCard(props) {
       accountName, 
       shares, 
       memberCount, 
-      summoner,
+      summoner
     } = props
 
-    const thisPersona = new Persona()
+    
 
     useEffect(
         () => {
          
         async function fetchData() {
-
-          if(accountName){
+          state.isUpdated
+          if(accountName && state){
+            const thisPersona = new Persona()
             let result = await thisPersona.getPersona(accountName)
             if(result){
               result.date ? setDate(result.date) : setDate('')
@@ -82,7 +83,7 @@ export default function MemberCard(props) {
            
           })
 
-    }, [avatar]
+    }, [avatar, state.isUpdated]
     )
     
     function formatDate(timestamp) {

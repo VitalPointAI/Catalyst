@@ -50,7 +50,6 @@ export default function Persona(props) {
     const [profileExists, setProfileExists] = useState(false)
     const [editPersonaClicked, setEditPersonaClicked] = useState(false)
     const [anchorEl, setAnchorEl] = useState(null)
-    const [isUpdated, setIsUpdated] = useState(false)
     const [finished, setFinished] = useState(false)
     const [avatar, setAvatar] = useState(props.avatar)
     const [claimCount, setClaimedCount] = useState(0)
@@ -70,7 +69,8 @@ export default function Persona(props) {
     } = state
 
     const {
-        balance
+        balance,
+        handleUpdate
     } = props
 
     const {
@@ -83,9 +83,10 @@ export default function Persona(props) {
         async function fetchData() {
             setFinished(false)
             if(state) {
+                state.isUpdated
                 if (curUserIdx){
                     let result = await curUserIdx.get('profile', curUserIdx.id)
-                  
+                 
                     if(result){
                         result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                     }
@@ -128,15 +129,12 @@ export default function Persona(props) {
              setFinished(true)
             })
         
-    }, [state, curUserIdx, links, claimed, isUpdated]
+    }, [state.isUpdated]
     )
 
 const classes = useStyles()
 
 
-function handleUpdate(property){
-    setIsUpdated(property)
-  }
 
 const handleEditPersonaClick = () => {
     handleExpanded()

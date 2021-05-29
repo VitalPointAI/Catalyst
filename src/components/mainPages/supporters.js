@@ -17,8 +17,7 @@ const useStyles = makeStyles((theme) => ({
         margin: 'auto',
       //  marginTop: 50,
         marginBottom: 50,
-        minHeight: 550,
-        padding: '20px',
+        minHeight: 550
     },
     menuButton: {
       marginRight: theme.spacing(0),
@@ -65,8 +64,8 @@ export default function Supporters(props) {
         
         <div className={classes.root}>
         <Header state={state}/>
-        <Grid container alignItems="center" justify="space-between" spacing={3} style={{padding: '20px'}}>
-          <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
+        <Grid container alignItems="center" justify="space-between" spacing={0} style={{paddingLeft: '50px', paddingRight: '50px'}}>
+          <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom:'30px'}}>
             <Typography variant='h3'>Community Supporters</Typography>
             <Typography variant='body1'>These pers have made donations to our community fund - Thank-You.</Typography>
           </Grid>

@@ -13,7 +13,7 @@ import Typography from '@material-ui/core/Typography'
 import '../../App.css'
 import { LinearProgress } from '@material-ui/core';
 
-export const Header = ({ state, handleSnackBarOpen, handleSuccessMessage, handleErrorMessage, snackBarOpen, severity, errorMessage, successMessage }) => {
+export const Header = ({ state, handleSnackBarOpen, handleSuccessMessage, handleErrorMessage, snackBarOpen, severity, errorMessage, successMessage, handleUpdate, isUpdated }) => {
    
     const {
         wallet
@@ -22,6 +22,7 @@ export const Header = ({ state, handleSnackBarOpen, handleSuccessMessage, handle
     const {
         contractId
     } = useParams()
+
     
     return (
         <>

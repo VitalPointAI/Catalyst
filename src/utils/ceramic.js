@@ -29,7 +29,7 @@ const axios = require('axios').default
 
 export const {
     FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, REDIRECT, KEY_REDIRECT, APP_OWNER_ACCOUNT, IPFS_PROVIDER, FACTORY_DEPOSIT,
-    networkId, nodeUrl, walletUrl, nameSuffix,
+    CERAMIC_API_URL, networkId, nodeUrl, walletUrl, nameSuffix,
     contractName, didRegistryContractName
 } = config
 
@@ -156,9 +156,7 @@ async makeSeed(account){
         seed = await this.getLocalAccountSeed(account.accountId)
       }
     }
-    // const API_URL = 'https://ceramic-clay.3boxlabs.com'
-    const API_URL = 'http://localhost:7007'
-    const ceramic = new CeramicClient(API_URL, {cacheDocCommits: true, docSyncEnabled: false, docSynchInterval: 30000})
+    const ceramic = new CeramicClient(CERAMIC_API_URL, {cacheDocCommits: true, docSyncEnabled: false, docSynchInterval: 30000})
     const provider = new Ed25519Provider(seed)
     const resolver = {...KeyDidResolver.getResolver()}
     const did = new DID({ resolver })
@@ -171,9 +169,7 @@ async makeSeed(account){
   async getAppCeramic() {
     let retrieveSeed = await axios.get('https://vpbackend.azurewebsites.net/appseed')
     const seed = Buffer.from((retrieveSeed.data).slice(0, 32))
-    //const API_URL = 'https://ceramic-clay.3boxlabs.com'
-    const API_URL = 'http://localhost:7007'
-    const ceramic = new CeramicClient(API_URL, {docSyncEnabled: false, docSynchInterval: 30000})
+    const ceramic = new CeramicClient(CERAMIC_API_URL, {docSyncEnabled: false, docSynchInterval: 30000})
     const provider = new Ed25519Provider(seed)
     const resolver = {...KeyDidResolver.getResolver()}
     const did = new DID({ resolver })
@@ -187,10 +183,16 @@ async makeSeed(account){
 
     // ensure it's registered in the contract, if not, put it back there
     let exists = await contract.hasDID({accountId: accountId})
-
-    if(exists) return ceramic.did.id
+    let different = false
+    if(exists){
+      let contractDid = await contract.getDID({accountId: accountId})
+      if(contractDid != ceramic.did.id){
+        different = true
+      }
+    }
+    if(exists && !different) return ceramic.did.id
     
-    if(!exists){
+    if(!exists || different){
       try {
       //  let didContract = await this.useDidContractFullAccessKey()
           await contract.putDID({
@@ -539,6 +541,7 @@ async makeSeed(account){
         return false
       }
       let currentUserCeramicClient = await this.getCeramic(account, seed)
+      console.log('currentuserceramicclient', currentUserCeramicClient)
       this.associateDID(account.accountId, contract, currentUserCeramicClient)
       let curUserIdx = new IDX({ ceramic: currentUserCeramicClient, aliases: appIdx._aliases})
       return curUserIdx
