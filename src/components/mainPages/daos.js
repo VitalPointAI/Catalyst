@@ -84,7 +84,7 @@ export default function Daos(props) {
                 (<>
                   {console.log('daos', daos)}
                
-                {daos.filter(dao => dao.summoner == accountId).map(({ contractId, created, summoner }, i) =>
+                {daos.filter(dao => dao.summoner == accountId).reverse().map(({ contractId, created, summoner }, i) =>
                 <DaoCard
                     key={i}
                     contractId={contractId}
