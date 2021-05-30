@@ -19,6 +19,7 @@ class Factory {
         const factorycontract = new nearApiJs.Contract(account, factoryContractName, {
             viewMethods: [
                 'getDaoList',
+                'getDaoListLength',
                 'findDAO'
             ],
             // Change methods can modify the state. But you don't receive the returned value when called.

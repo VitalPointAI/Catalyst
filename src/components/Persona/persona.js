@@ -6,6 +6,7 @@ import { get, set, del } from '../../utils/storage'
 import EditPersonaForm from '../../components/EditPersona/editPersona'
 import { makeStyles } from '@material-ui/core/styles'
 import { ceramic } from '../../utils/ceramic'
+import Persona from '@aluhning/get-personas-js'
 
 // Material UI Components
 import Avatar from '@material-ui/core/Avatar'
@@ -46,7 +47,7 @@ const useStyles = makeStyles((theme) => ({
 
 const imageName = require('../../img/default-profile.png') // default no-image avatar
 
-export default function Persona(props) {
+export default function PersonaInfo(props) {
     const [profileExists, setProfileExists] = useState(false)
     const [editPersonaClicked, setEditPersonaClicked] = useState(false)
     const [anchorEl, setAnchorEl] = useState(null)
@@ -64,7 +65,7 @@ export default function Persona(props) {
       accountId,
       curUserIdx,
       claimed,
-      daoList,
+      currentDaosList,
       links
     } = state
 
@@ -76,6 +77,8 @@ export default function Persona(props) {
     const {
         contractId
     } = useParams()
+
+    const Dao = new Persona()
    
     useEffect(
         () => {
@@ -84,9 +87,10 @@ export default function Persona(props) {
             setFinished(false)
             if(state) {
                 state.isUpdated
+                console.log('currentdaoslist', currentDaosList)
                 if (curUserIdx){
                     let result = await curUserIdx.get('profile', curUserIdx.id)
-                 
+                    console.log('result', result)
                     if(result){
                         result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                     }
@@ -104,11 +108,13 @@ export default function Persona(props) {
                     setClaimedCount(count)
                 }  
                
-                if(daoList && daoList.daoList.length > 0){
+                if(currentDaosList && currentDaosList.length > 0){
                     let count = 0
                     let i = 0
-                    while(i < daoList.daoList.length){
-                        if(daoList.daoList[i].summoner == accountId){
+                    while(i < currentDaosList.length){
+                        let thisDao = await Dao.getDao(currentDaosList[i].contractId)
+                        console.log('thisDao', thisDao)
+                        if(thisDao.summoner == accountId){
                             count++
                         }
                         i++
@@ -116,7 +122,7 @@ export default function Persona(props) {
                     setDaoCount(count)
                 }
  
-                if((links && links.length > 0) || (claimed && claimed.length > 0) || (daoList && daoList.daoList.length > 0)){
+                if((links && links.length > 0) || (claimed && claimed.length > 0) || (currentDaosList && currentDaosList.length > 0)){
                     return true
                 }
 

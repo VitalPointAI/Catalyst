@@ -81,7 +81,7 @@ export default function Initialize(props) {
 
     const {
       accountId,
-      daoList
+      currentDaosList
     } = state
 
     const {
@@ -98,9 +98,9 @@ export default function Initialize(props) {
       () => {
        // let daoOwner = get(DAO_LINKS, [])
         let i = 0
-        while(i < daoList.daoList.length){
-          if(daoList.daoList[i].contractId == contractId){
-            let owner = daoList.daoList[i].summoner
+        while(i < currentDaosList.length){
+          if(currentDaosList[i].contractId == contractId){
+            let owner = currentDaosList[i].summoner
             setSummoner(owner)
             break
           }

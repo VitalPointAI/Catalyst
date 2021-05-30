@@ -54,16 +54,16 @@ export default function Daos(props) {
 
     const {
       accountId,
-      daoList,
+      currentDaosList,
     } = state
 
     useEffect(
         () => {
-            if(daoList){
-                let sortedDaos = _.sortBy(daoList.daoList, 'date').reverse()
+            if(currentDaosList){
+                let sortedDaos = _.sortBy(currentDaosList, 'created').reverse()
                 setDaos(sortedDaos)
             }
-    }, [daoList, isUpdated]
+    }, [currentDaosList, isUpdated]
     )
     
     function handleEditDaoClick(property){
@@ -84,16 +84,12 @@ export default function Daos(props) {
                 (<>
                   {console.log('daos', daos)}
                
-                {daos.filter(dao => dao.summoner == accountId).map(({ contractId, date, summoner, name, purpose, category, logo }, i) =>
+                {daos.filter(dao => dao.summoner == accountId).map(({ contractId, created, summoner }, i) =>
                 <DaoCard
                     key={i}
                     contractId={contractId}
                     summoner={summoner}
-                    date={date}
-                    name={name}
-                    purpose={purpose}
-                    category={category}
-                    logo={logo}
+                    created={created}
                     link={''}
                     state={state}
                     handleEditDaoClick={handleEditDaoClick}

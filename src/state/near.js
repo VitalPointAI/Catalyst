@@ -66,6 +66,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     })
 
     const daoFactoryContract = new nearAPI.Contract(wallet.account(), factoryContractName, {
+        viewMethods: ['getDaoList'],
         changeMethods: ['createDemDAO'],
     })
 
@@ -182,14 +183,14 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
                     upLinks.push({ key: keyPair.secretKey, contractId: accountId, summoner: summoner, created: Date.now() })
                     await ceramic.storeKeysSecret(state.appIdx, upLinks, 'daoKeys')
 
-                    let daoAdded = await addDaoToList(state.appIdx, accountId, summoner, Date.now())
+                   // let daoAdded = await addDaoToList(state.appIdx, accountId, summoner, Date.now())
 
                     let link = '/dao/' + accountId
                     set(REDIRECT, {action: true, link: link})
 
-                    if(daoAdded) {
+                   // if(daoAdded) {
                         await daoFactoryContract.createDemDAO({ accountId: accountId, deposit: FACTORY_DEPOSIT }, GAS, parseNearAmount(FACTORY_DEPOSIT))
-                    }
+                  //  }
                 }
             } catch (err) {
                 console.log('error setting up new Dao', err)
@@ -223,7 +224,34 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
 
     //** INITIALIZE FACTORY CONTRACT */
     const daoFactory = await factory.initFactoryContract(account)
+
+    let currentDaosLength = await daoFactory.getDaoListLength()
+    console.log('currentdaoslength', currentDaosLength)
+
    
+    let t = 0
+    let start = 0
+    let end
+    let interval = 20
+    let currentDaosList = []
+
+    while(t < currentDaosLength){
+        if(currentDaosLength < interval){
+            end = currentDaosLength
+        }
+        let newDaoList = await daoFactory.getDaoList({start: start, end: end})
+        for(let i = 0; i < newDaoList.length; i++){
+            currentDaosList.push(newDaoList[i])
+        }
+        start = end
+        if(end + interval > currentDaosLength){
+            end = currentDaosLength
+        } else {
+        end = end + interval
+        }
+        t++        
+    }
+
     // Set Current User Ceramic Client
 
     let curUserIdx
@@ -237,9 +265,9 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     if(!existingDid){
         curUserIdx = await ceramic.getCurrentUserIdxNoDid(appIdx, didRegistryContract, account, null, null, accountId)
     }
-
-    update('', { didRegistryContract, appIdx, accountId, curUserIdx, daoFactory })
    
+    update('', { didRegistryContract, appIdx, accountId, curUserIdx, daoFactory, currentDaosList })
+    
     if(curUserIdx){
         // check localLinks, see if they're still valid
         let state = getState()
@@ -320,14 +348,15 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         const claimed = localLinks.filter(({claimed}) => !!claimed)
         const links = localLinks.filter(({claimed}) => !claimed)
     
-        let daoList = await state.appIdx.get('daoList')
-        console.log('daoList', daoList)
+       // let daoList = await state.appIdx.get('daoList')
+       // console.log('daoList', daoList)
     
-        update('', { links, claimed, daoList })
+        update('', { links, claimed })
     }
     }
 
     finished = true
+    console.log('finished', finished)
     update('', { near, wallet, finished})
 }
 

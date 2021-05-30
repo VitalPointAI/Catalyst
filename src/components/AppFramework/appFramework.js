@@ -247,7 +247,6 @@ export default function AppFramework(props) {
                          if (loggedVote) {
                            newVotes[x].new = false
                            set(NEW_VOTE, newVotes)
-                           setTabValue(newVotes[x].tabValue)
                            setChange(!change)
                          }
                        }
@@ -468,7 +467,7 @@ export default function AppFramework(props) {
                           console.log('get period issue', err)
                         }
                         if(started == false){
-                          setTimeout(refreshCurrentPeriod, 20000)
+                         setTimeout(refreshCurrentPeriod, 20000)
                           setStarted(true)
                         }
                       }, 20000)

@@ -58,7 +58,7 @@ export default function RepDaoCard(props) {
         successMessage,
         daoContract,
         handleInitChange,
-        daoList,
+        currentDaosList,
         depositToken,
         proposalDeposit,
         contractId,

@@ -6,6 +6,7 @@ import Fuse from 'fuse.js'
 import DaoCard from '../DAOCard/daoCard'
 import { Header } from '../Header/header'
 import SearchBar from '../../components/common/SearchBar/search'
+import Persona from '@aluhning/get-personas-js'
 
 // Material UI components
 import { makeStyles } from '@material-ui/core/styles'
@@ -63,28 +64,46 @@ export default function ExploreDaos(props) {
     const { state, dispatch, update } = useContext(appStore)
 
     const {
-      daoList,
+      currentDaosList,
       near
     } = state
+
+    const Dao = new Persona()
 
     useEffect(
         () => {
             async function fetchData() {
-                if(daoList){
-                    console.log('daolist', daoList)
-                    setDaoCount(daoList.daoList.length)
-                    let sortedDaos = _.sortBy(daoList.daoList, 'date').reverse()
-                    setDaos(sortedDaos)
+                if(currentDaosList){
+                    console.log('daolist', currentDaosList)
+                    setDaoCount(currentDaosList.length)
+                    // let daos = []
+                    // let z = 0
+                    // while(z < currentDaosList.length){
+                    //     try{
+                    //         let thisDao = await Dao.getDao(currentDaosList[z])
+                    //         console.log('this dao', thisDao)
+                    //         if(thisDao && thisDao.contractId == currentDaosList[z]){
+                    //             daos.push(thisDao)
+                    //         }
+                    //     } catch (err) {
+                    //         console.log('can not retrieve dao info', err)
+                    //     }
+                    //     z++                        
+                    // }
+                    // console.log('daos', daos)
+                    // let sortedDaos = _.sortBy(daos, (new Date('date')).getTime()).reverse()
+                    // setDaos(sortedDaos)
+                   //setDaos(currentDaosList)
 
                     let i = 0
                     let balance = 0
-                    while (i < daoList.daoList.length){
+                    while (i < currentDaosList.length){
                         let account
                         try {
                             account = await near.connection.provider.query({
                                 request_type: "view_account",
                                 finality: "final",
-                                account_id: daoList.daoList[i].contractId,
+                                account_id: currentDaosList[i].contractId,
                             })
                         } catch (err) {
                             console.log('problem retrieving account', err)
@@ -106,11 +125,16 @@ export default function ExploreDaos(props) {
 
             fetchData()
 
-    }, [daoList, near, nearPrice, isUpdated]
+    }, [near, currentDaosList]
     )
     
     function handleEditDaoClick(property){
         setEditDaoClicked(property)
+    }
+
+    function handleDaoUpdate(result){
+        let newDaos = daos.push(result)
+        setDaos(newDaos)
     }
 
     function handleUpdate(){
@@ -119,7 +143,7 @@ export default function ExploreDaos(props) {
 
     const searchData = (pattern) => {
         if (!pattern) {
-            let sortedDaos = _.sortBy(daoList.daoList, 'date').reverse()
+            let sortedDaos = _.sortBy(daos, 'date').reverse()
             setDaos(sortedDaos)
             return
         }
@@ -189,16 +213,13 @@ export default function ExploreDaos(props) {
         {daoCount > 0 ? 
                 (<>
                   
-                {daos.map(({ contractId, summoner, date, category, logo, purpose, name }, i) => 
+                {currentDaosList.map(({contractId, created, summoner}, i) => 
                     <DaoCard
                         key={i}
                         contractId={contractId}
+                        created={created}
                         summoner={summoner}
-                        date={date}
-                        name={name}
-                        purpose={purpose}
-                        category={category}
-                        logo={logo}
+                        
                         link={''}
                         state={state}
                         handleEditDaoClick={handleEditDaoClick}

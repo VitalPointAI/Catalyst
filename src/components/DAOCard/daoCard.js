@@ -7,6 +7,7 @@ import { IDX } from '@ceramicstudio/idx'
 import EditDaoForm from '../EditDao/editDao'
 import AppFramework from '../AppFramework/appFramework'
 import * as nearAPI from 'near-api-js'
+import Persona from '@aluhning/get-personas-js'
 
 
 // Material UI Components
@@ -59,6 +60,7 @@ export default function DaoCard(props) {
     const [slogo, setsLogo] = useState(imageName)
     const [spurpose, setsPurpose] = useState('')
     const [scategory, setsCategory] = useState('')
+    const [owner, setOwner] = useState('')
 
     const [editDaoClicked, setEditDaoClicked] = useState(false)
     const [claimed, setClaimed] = useState(false)
@@ -68,38 +70,46 @@ export default function DaoCard(props) {
     const [anchorEl, setAnchorEl] = useState(null)
     const [did, setDid] = useState()
     const [finished, setFinished] = useState(false)
-    const [created, setCreated] = useState(formatDate(props.date))
+    const [created, setCreated] = useState(formatDate(props.created))
 
     const classes = useStyles();
 
     const { 
       summoner,
       contractId,
-      logo,
-      date,
-      name,
-      category,
-      purpose,
       link,
       handleUpdate
    } = props
-
+   console.log('props', props)
+console.log('contractId', contractId)
    const {
      near,
      didRegistryContract,
      appIdx
    } = state
 
+   const Dao = new Persona()
+console.log('created', props.created)
     useEffect(
       () => {
 
       async function fetchData() {
          isUpdated
-          name != '' ? setsName(name) : setsName('')
-          date ? setsDate(date) : setsDate('')
-          logo !='' ? setsLogo(logo) : setsLogo(imageName)
-          purpose != '' ? setsPurpose(purpose) : setsPurpose('')
-          category != '' ? setsCategory(category) : setsCategory('')
+         if(contractId){
+           console.log('contractid', contractId)
+           let result = await Dao.getDao(contractId)
+           console.log('result dao', result)
+           if(result){
+                  result.name != '' ? setsName(result.name) : setsName('')
+                  result.date ? setsDate(result.date) : setsDate('')
+                  result.logo !='' ? setsLogo(result.logo) : setsLogo(imageName)
+                  result.purpose != '' ? setsPurpose(result.purpose) : setsPurpose('')
+                  result.category != '' ? setsCategory(result.category) : setsCategory('')
+                  result.owner != '' ? setOwner(result.owner) : setOwner('')
+                 
+           }
+         }
+    //      
               // if(summoner == state.accountId){
               //   setDisplay(true)
               // }
@@ -136,7 +146,7 @@ export default function DaoCard(props) {
             setFinished(true)
           })
 
-  }, [near, name, date, logo, purpose, created]
+  }, [contractId]
   )
 
   const handleEditDaoClick = () => {
@@ -152,12 +162,17 @@ export default function DaoCard(props) {
     setAnchorEl(null)
   }
 
+  // function formatDate(timestamp) {
+  //   let intDate = parseInt(timestamp)
+  //   let options = {year: 'numeric', month: 'long', day: 'numeric'}
+  //   return new Date(intDate).toLocaleString('en-US', options)
+  // }
+  
   function formatDate(timestamp) {
-    let intDate = parseInt(timestamp)
+    let stringDate = timestamp.toString()
     let options = {year: 'numeric', month: 'long', day: 'numeric'}
-    return new Date(intDate).toLocaleString('en-US', options)
+    return new Date(parseInt(stringDate.slice(0,13))).toLocaleString('en-US', options)
   }
-    
 
     return(
         <>
@@ -179,7 +194,7 @@ export default function DaoCard(props) {
             </div>
             </Link>
                 <Typography  variant="overline" display="inline" noWrap={true} style={{lineHeight: 0}}>
-                  {sname ? sname : contractId.split('.')[0]}<br></br>
+                  {sname != '' ? sname : contractId.split('.')[0]}<br></br>
                   {finished ? (<span style={{fontSize: '80%'}}>Updated: {created}</span>) : <LinearProgress />}<br></br>
                   {scategory ? (<span style={{fontSize: '80%'}}>Category: {scategory}</span>): (<span style={{fontSize: '80%'}}>Category: Undefined</span>)}
                 </Typography>

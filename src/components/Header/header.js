@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import LeftSideDrawer from '../LeftSideDrawer/leftSideDrawer'
 import LogoutButton from '../LogoutButton/logoutButton'
 import LoginButton from '../LogInButton/loginButton'
-import Persona from '../Persona/persona'
+import PersonaInfo from '../Persona/persona'
 import Logo from '../Logo/logo'
 
 // Material UI
@@ -64,7 +64,7 @@ export const Header = ({ state, handleSnackBarOpen, handleSuccessMessage, handle
             ) : (
                 <>
                 <Grid item xs={4} sm={4} md={7} lg={7} xl={7}>
-                    {wallet && wallet.signedIn ? <Persona balance={wallet.balance} /> : <LinearProgress /> }
+                    {wallet && wallet.signedIn ? <PersonaInfo balance={wallet.balance} /> : <LinearProgress /> }
                 </Grid>
                 <Grid item xs={4} sm={4} md={2} lg={2} xl={2} style={{textAlign: 'right'}}>
                     <LogoutButton /> 

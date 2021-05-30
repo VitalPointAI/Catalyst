@@ -15,6 +15,7 @@ import { CircularProgress } from '@material-ui/core'
 const useStyles = makeStyles((theme) => ({
     logo: {
         maxWidth: 175,
+        maxHeight: 60,
         margin: 'auto',
         paddingLeft: '10px'
     },
@@ -134,10 +135,10 @@ export default function Logo(props) {
                 (<>
             <Link to={`/dao/${contractId}`}>
                 <div style={{width: '180px', 
-                height: '100px', 
+                height: '60px', 
                 float: 'right', 
                 backgroundImage: `url(${logo})`, 
-                backgroundSize: '180px 100px', 
+                backgroundSize: 'contain', 
                 backgroundPosition: 'left', 
                 backgroundRepeat: 'no-repeat',
                 backgroundOrigin: 'content-box'
@@ -148,7 +149,7 @@ export default function Logo(props) {
            
             </>
         ) : (
-            <Link to={`${contractId}`}>
+            <Link to={`/dao/${contractId}`}>
                 <img src={logo} alt="Logo" className={classes.logo}/>
             </Link>
         ) : (

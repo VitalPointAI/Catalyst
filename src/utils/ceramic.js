@@ -315,11 +315,9 @@ async makeSeed(account){
     let alias
     try {
       let aliasExists = await contract.hasAlias({alias: accountId+':'+aliasName})
-      console.log('aliasExists', aliasExists)
       if(aliasExists){
         try{
           alias = await contract.retrieveAlias({alias: accountId+':'+aliasName})
-        console.log('alias', alias)
         return alias
         } catch (err) {
           console.log('alias is misformed', err)

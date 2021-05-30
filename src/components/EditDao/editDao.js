@@ -157,25 +157,25 @@ export default function EditDaoForm(props) {
      
         let result = await curDaoIdx.set('daoProfile', record)
 
-        let m = 0
-        let updateDaoList = state.daoList
-        while (m < updateDaoList.daoList.length){
-          if(updateDaoList.daoList[m].contractId == contractId){
-            let newRecord = {
-              contractId: contractId,
-              summoner: state.accountId,
-              date: now,
-              category: category,
-              name: name,
-              logo: logo,
-              purpose: purpose
-            }
-            updateDaoList.daoList[m] = newRecord
-          }
-          m++
-        }
+        // let m = 0
+        // let updateDaoList = state.currentDaosList
+        // while (m < updateDaoList.length){
+        //   if(updateDaoList[m].contractId == contractId){
+        //     let newRecord = {
+        //       contractId: contractId,
+        //       summoner: state.accountId,
+        //       date: now,
+        //       category: category,
+        //       name: name,
+        //       logo: logo,
+        //       purpose: purpose
+        //     }
+        //     updateDaoList[m] = newRecord
+        //   }
+        //   m++
+        // }
 
-        let daoResult = await state.appIdx.set('daoList', updateDaoList)
+        // let daoResult = await state.appIdx.set('daoList', updateDaoList)
      
 
       setFinished(true)
