@@ -1,8 +1,10 @@
 import React from 'react' 
 import MainBanner from './MainBanner'
 import Stories from './Stories'
-import Button from '@material-ui/core/Button'
+
+// Material UI Components
 import { makeStyles } from '@material-ui/core'
+import Button from '@material-ui/core/Button'
 import Grid from '@material-ui/core/Grid'
 
 const useStyles = makeStyles((theme) => ({
@@ -73,7 +75,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-export const FrontPage = () => {
+const FrontPage = () => {
     const classes = useStyles(); 
     return(
     <>

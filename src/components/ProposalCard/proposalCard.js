@@ -7,6 +7,8 @@ import EditMemberProposalForm from '../EditProposal/editMemberProposal'
 import MemberProposalDetails from '../ProposalDetails/memberProposalDetails'
 import EditFundingProposalForm from '../EditProposal/editFundingProposal'
 import FundingProposalDetails from '../ProposalDetails/fundingProposalDetails'
+import EditPayoutProposalForm from '../EditProposal/editPayoutProposal'
+import PayoutProposalDetails from '../ProposalDetails/payoutProposalDetails'
 
 // Material UI Components
 import { makeStyles, withStyles } from '@material-ui/core/styles'
@@ -40,7 +42,8 @@ const useStyles = makeStyles((theme) => ({
     },
     card: {
       marginTop: '10px',
-      maxWidth: '250px'
+      maxWidth: '250px',
+      minWidth: '250px'
     },
     votes: {
       paddingLeft: 0,
@@ -97,6 +100,8 @@ export default function ProposalCard(props) {
 
     const[title, setTitle] = useState('Proposal Details')
 
+    const[payoutTitle, setPayoutTitle] = useState('Payout Details')
+
     const [proposals, setProposals] = useState()
 
     const [isUpdated, setIsUpdated] = useState(false)
@@ -112,6 +117,9 @@ export default function ProposalCard(props) {
 
     const [editFundingProposalDetailsClicked, setEditFundingProposalDetailsClicked] = useState(false)
     const [fundingProposalDetailsClicked, setFundingProposalDetailsClicked] = useState(false)
+
+    const [editPayoutProposalDetailsClicked, setEditPayoutProposalDetailsClicked] = useState(false)
+    const [payoutProposalDetailsClicked, setPayoutProposalDetailsClicked] = useState(false)
 
     const [anchorEl, setAnchorEl] = useState(null);
     
@@ -203,6 +211,22 @@ export default function ProposalCard(props) {
                   i++
                 }
               }
+            }
+
+            // Set Existing Payout Proposal Data       
+             if(curDaoIdx){
+              let propResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
+              console.log('payout propresult', propResult)
+              if(propResult) {
+                let i = 0
+                while (i < propResult.proposals.length){
+                  if(propResult.proposals[i].proposalId == requestId){
+                    propResult.proposals[i].title ? setPayoutTitle(propResult.proposals[i].title) : setPayoutTitle('')
+                    break
+                  }
+                  i++
+                }
+              }
             }  
                     
             return true  
@@ -259,6 +283,26 @@ export default function ProposalCard(props) {
     function handleFundingProposalDetailsClickState(property){
       setFundingProposalDetailsClicked(property)
     }
+
+    // Payout Proposal Functions
+
+    const handleEditPayoutProposalDetailsClick = () => {
+      handleExpanded()
+      handleEditPayoutProposalDetailsClickState(true)
+    }
+  
+    function handleEditPayoutProposalDetailsClickState(property){
+      setEditPayoutProposalDetailsClicked(property)
+    }
+
+    const handlePayoutProposalDetailsClick = () => {
+      handleExpanded()
+      handlePayoutProposalDetailsClickState(true)
+    }
+  
+    function handlePayoutProposalDetailsClickState(property){
+      setPayoutProposalDetailsClicked(property)
+    }
   
     function handleExpanded() {
       setAnchorEl(null)
@@ -312,7 +356,7 @@ export default function ProposalCard(props) {
                       {title ? title.replace(/(<([^>]+)>)/gi, ""): 'Add Details'}
                     </Typography>
                   </Badge> :
-                  <Typography variant="h6" noWrap={true} style={{fontWeight: '800', color: 'black'}}>
+                  <Typography variant="h6" noWrap={true} style={{fontWeight: '800', color: 'black'}} onClick={handleFundingProposalDetailsClick}>
                       {title ? title.replace(/(<([^>]+)>)/gi, ""): 'Add Details'}
                   </Typography>}
                   </>}
@@ -333,6 +377,50 @@ export default function ProposalCard(props) {
                  }
              /></>
            ) : null }
+
+           {proposalType === 'Payout' ? (
+            <> 
+            <Typography variant="h6" align="left" style={{float: 'left', marginLeft: '5px'}} color="textSecondary">{proposalType} Proposal</Typography>
+            <Typography variant="h6" align="right" style={{float: 'right', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
+            <div style={{clear: 'both'}}></div>
+            <StyledBadgeProposer                        
+              badgeContent={applicant}
+              style={{marginLeft: '10px'}}
+            >
+              <Avatar src={avatar}  />
+            </StyledBadgeProposer>
+            <div style={{clear: 'both'}}></div>
+            <CardHeader
+               align="center"
+               title={<>
+                {accountId == proposer && status == 'Submitted' ? 
+                  <Badge badgeContent={'change'} {...defaultProps} onClick={handleEditPayoutProposalDetailsClick}>
+                    <Typography variant="h6" noWrap={true} style={{fontWeight: '800', color: 'black'}}>
+                      {payoutTitle ? payoutTitle.replace(/(<([^>]+)>)/gi, ""): 'Add Details'}
+                    </Typography>
+                  </Badge> :
+                  <Typography variant="h6" noWrap={true} style={{fontWeight: '800', color: 'black'}} onClick={handlePayoutProposalDetailsClick}>
+                      {payoutTitle ? payoutTitle.replace(/(<([^>]+)>)/gi, ""): 'Add Details'}
+                  </Typography>}
+                  </>}
+               subheader={
+                 <Grid container alignItems="center" justify="space-evenly">
+                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
+                      <Typography variant="overline">Proposed: {created}</Typography>
+                   </Grid>
+                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                      
+                   </Grid>
+                   {status == 'Sponsored' ? (
+                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                     <Typography variant="overline" color="textSecondary">Sponsor: {sponsor}</Typography>
+                   </Grid>
+                   ) : null }
+                 </Grid>
+                 }
+             /></>
+           ) : null }
+
 
           {proposalType === 'GuildKick' ? (
             <> <Typography variant="h6" align="center" color="textSecondary">{proposalType} Proposal</Typography>
@@ -392,6 +480,20 @@ export default function ProposalCard(props) {
                 </Grid>    
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                   <Typography variant="h5" align="center" style={{marginBottom: '10px'}}>Funding Requested</Typography>
+                </Grid>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                  <Typography variant="h5" align="center">{`${funding} Ⓝ`}</Typography>
+                </Grid>
+              </Grid>
+            ) : null}
+
+            {proposalType == 'Payout' ? (
+              <Grid container alignItems="center" justify="space-evenly" style={{marginTop: '-20px', marginBottom:'20px'}}>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                 
+                </Grid>    
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                  <Typography variant="h5" align="center" style={{marginBottom: '10px'}}>Payout Requested</Typography>
                 </Grid>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                   <Typography variant="h5" align="center">{`${funding} Ⓝ`}</Typography>
@@ -525,7 +627,7 @@ export default function ProposalCard(props) {
                   {(accountId != proposer && accountId != applicant) && status=='Submitted' && memberStatus == true ? 
                   <><Button 
                       color="primary" 
-                      onClick={(e) => handleSponsorConfirmationClick(requestId, e)}
+                      onClick={(e) => handleSponsorConfirmationClick(requestId, proposalType, funding)}
                     >
                     Sponsor
                     </Button>
@@ -541,7 +643,7 @@ export default function ProposalCard(props) {
                   <><Button color="primary" onClick={() => handleCancelAction(requestId, proposalDeposit, tribute)}>
                     Cancel
                   </Button>
-                  {proposalType === 'Member' || proposalType === 'GuildKick' || proposalType === 'Payout' ? (
+                  {proposalType === 'Member' || proposalType === 'GuildKick' ? (
                     <><Button 
                         color="primary" 
                         onClick={handleEditMemberProposalDetailsClick}>
@@ -549,20 +651,25 @@ export default function ProposalCard(props) {
                       </Button>
                     </>)
                   : null }
-                {proposalType === 'Commitment' ? (
-                  <><Button 
-                      color="primary" 
-                      onClick={handleEditFundingProposalDetailsClick}>
-                        Edit
-                    </Button>
-                  </>) : null } </>: <LinearProgress /> : null }
+                  {proposalType === 'Commitment' ? (
+                    <><Button 
+                        color="primary" 
+                        onClick={handleEditFundingProposalDetailsClick}>
+                          Edit
+                      </Button>
+                    </>) : null } 
+                  {proposalType === 'Payout' ? (
+                    <><Button 
+                        color="primary" 
+                        onClick={handleEditPayoutProposalDetailsClick}>
+                          Edit
+                      </Button>
+                    </>) : null }
+                  </>: <LinearProgress /> : null }
               </Grid>
-            
               </Grid>
-
-                
-               
         </Card>
+
 
         {editMemberProposalDetailsClicked ? <EditMemberProposalForm
           state={state}
@@ -586,6 +693,19 @@ export default function ProposalCard(props) {
           accountId={accountId}
           proposalId={requestId}
           /> : null }
+        
+        {editPayoutProposalDetailsClicked ? <EditPayoutProposalForm
+          state={state}
+          handleEditPayoutProposalDetailsClickState={handleEditPayoutProposalDetailsClickState}
+          curDaoIdx={curDaoIdx}
+          curPersonaIdx={curPersonaIdx}
+          applicant={applicant}
+          proposer={proposer}
+          handleUpdate={handleUpdate}
+          accountId={accountId}
+          proposalId={requestId}
+          /> : null }
+
 
         {memberProposalDetailsClicked ? <MemberProposalDetails
           proposer={proposer}
@@ -600,6 +720,16 @@ export default function ProposalCard(props) {
         {fundingProposalDetailsClicked ? <FundingProposalDetails
           proposer={proposer}
           handleFundingProposalDetailsClickState={handleFundingProposalDetailsClickState}
+          curDaoIdx={curDaoIdx}
+          curPersonaIdx={curPersonaIdx}
+          applicant={applicant}
+          handleUpdate={handleUpdate}
+          proposalId={requestId}
+          /> : null }
+
+        {payoutProposalDetailsClicked ? <PayoutProposalDetails
+          proposer={proposer}
+          handlePayoutProposalDetailsClickState={handlePayoutProposalDetailsClickState}
           curDaoIdx={curDaoIdx}
           curPersonaIdx={curPersonaIdx}
           applicant={applicant}

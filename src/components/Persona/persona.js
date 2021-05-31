@@ -112,9 +112,7 @@ export default function PersonaInfo(props) {
                     let count = 0
                     let i = 0
                     while(i < currentDaosList.length){
-                        let thisDao = await Dao.getDao(currentDaosList[i].contractId)
-                        console.log('thisDao', thisDao)
-                        if(thisDao.summoner == accountId){
+                        if(currentDaosList[i].summoner == accountId){
                             count++
                         }
                         i++
@@ -135,7 +133,7 @@ export default function PersonaInfo(props) {
              setFinished(true)
             })
         
-    }, [state.isUpdated]
+    }, [state.isUpdated, currentDaosList]
     )
 
 const classes = useStyles()

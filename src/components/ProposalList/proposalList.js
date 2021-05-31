@@ -5,10 +5,10 @@ import { cancelProposal, processProposal, submitVote, GAS } from '../../state/ne
 
 import MemberCard from '../MemberCard/memberCard'
 import ProposalCard from '../ProposalCard/proposalCard'
-import MemberProposalForm from '../MemberProposal/memberProposalForm'
-import MemberProposalDetails from '../MemberProposal/memberProposalDetails'
-import FundingProposalForm from '../FundingProposal/fundingProposalForm'
-import FundingProposalDetails from '../FundingProposal/fundingProposalDetails'
+import MemberProposalForm from '../EditProposal/editMemberProposal'
+import MemberProposalDetails from '../ProposalDetails/memberProposalDetails'
+import FundingProposalForm from '../EditProposal/editFundingProposal'
+import FundingProposalDetails from '../ProposalDetails/fundingProposalDetails'
 import SponsorConfirmation from '../Confirmation/sponsorConfirmation'
 import DonationConfirmation from '../Confirmation/donationConfirmation'
 import RageQuit from '../RageQuit/rageQuit'
@@ -83,6 +83,8 @@ export default function ProposalList(props) {
   const [memberProposalStatus, setMemberProposalStatus] = useState()
   const [done, setDone] = useState(true)
   const [memberProposalType, setMemberProposalType] = useState()
+  const [sponsorProposalType, setSponsorProposalType] = useState()
+  const [paymentRequested, setPaymentRequested] = useState()
   
   const classes = useStyles()
   const theme = useTheme()
@@ -187,75 +189,77 @@ export default function ProposalList(props) {
     setExpanded(!expanded)
   }
 
-  const handleSponsorConfirmationClick = (requestId) => {
+  const handleSponsorConfirmationClick = (requestId, proposalType, funding) => {
     setProposalIdentifier(requestId)
+    setSponsorProposalType(proposalType)
+    setPaymentRequested(funding)
     handleTabValueState(tabValue)
     setSponsorConfirmationClicked(true)
   }
 
-  const handleMemberProposalDetailsClick = async (id, applicant, status, proposer, proposalType, avatar, name) => {
-    setMemberProposalStatus(status)
-    setMemberProposalType(proposalType)
-    if(accountId != applicant && proposalType == 'Member') {
-        handleTabValueState(tabValue)
-        setMemberProposalId(id)
-        setAvatar(avatar)
-        setName(name)
-        setMemberProposalDetailsClicked(true)
-    }
-    if(accountId == applicant){
-        handleTabValueState(tabValue)
-        setMemberProposalId(id)
-        setAvatar(avatar)
-        setName(name)
-        setMemberProposalDetailsEmptyClicked(true)
-    }
-    if(accountId != applicant && accountId == proposer && proposalType == 'GuildKick'){
-      handleTabValueState(tabValue)
-      setMemberProposalId(id)
-      setAvatar(avatar)
-      setName(name)
-      setMemberProposalDetailsEmptyClicked(true)
-    }
-  }
+  // const handleMemberProposalDetailsClick = async (id, applicant, status, proposer, proposalType, avatar, name) => {
+  //   setMemberProposalStatus(status)
+  //   setMemberProposalType(proposalType)
+  //   if(accountId != applicant && proposalType == 'Member') {
+  //       handleTabValueState(tabValue)
+  //       setMemberProposalId(id)
+  //       setAvatar(avatar)
+  //       setName(name)
+  //       setMemberProposalDetailsClicked(true)
+  //   }
+  //   if(accountId == applicant){
+  //       handleTabValueState(tabValue)
+  //       setMemberProposalId(id)
+  //       setAvatar(avatar)
+  //       setName(name)
+  //       setMemberProposalDetailsEmptyClicked(true)
+  //   }
+  //   if(accountId != applicant && accountId == proposer && proposalType == 'GuildKick'){
+  //     handleTabValueState(tabValue)
+  //     setMemberProposalId(id)
+  //     setAvatar(avatar)
+  //     setName(name)
+  //     setMemberProposalDetailsEmptyClicked(true)
+  //   }
+  // }
 
   const handleRageQuitClick = () => {
     handleExpanded()
     setRageQuitClicked(true)
   }
 
-  function handleMemberProposalDetailsClickState(property) {
-    setMemberProposalDetailsClicked(property)
-  }
+  // function handleMemberProposalDetailsClickState(property) {
+  //   setMemberProposalDetailsClicked(property)
+  // }
 
-  function handleMemberProposalDetailsEmptyClickState(property) {
-  setMemberProposalDetailsEmptyClicked(property)
-  }
+  // function handleMemberProposalDetailsEmptyClickState(property) {
+  // setMemberProposalDetailsEmptyClicked(property)
+  // }
 
-  const handleFundingProposalDetailsClick = async (id, applicant, status) => {
-    console.log('click status', status)
-    setFundingProposalStatus(status)
-    if(accountId != applicant) {
-        handleExpanded()
-        handleTabValueState(tabValue)
-        setFundingProposalId(id)
-        setFundingProposalDetailsClicked(true)
+  // const handleFundingProposalDetailsClick = async (id, applicant, status) => {
+  //   console.log('click status', status)
+  //   setFundingProposalStatus(status)
+  //   if(accountId != applicant) {
+  //       handleExpanded()
+  //       handleTabValueState(tabValue)
+  //       setFundingProposalId(id)
+  //       setFundingProposalDetailsClicked(true)
         
-    } else {
-        handleExpanded()
-        handleTabValueState(tabValue)
-        setFundingProposalId(id)
-        setFundingProposalDetailsEmptyClicked(true)
-    }
-  }
+  //   } else {
+  //       handleExpanded()
+  //       handleTabValueState(tabValue)
+  //       setFundingProposalId(id)
+  //       setFundingProposalDetailsEmptyClicked(true)
+  //   }
+  // }
 
-  function handleFundingProposalDetailsClickState(property) {
-    setFundingProposalDetailsClicked(property)
-  }
+  // function handleFundingProposalDetailsClickState(property) {
+  //   setFundingProposalDetailsClicked(property)
+  // }
 
-  function handleFundingProposalDetailsEmptyClickState(property) {
-  setFundingProposalDetailsEmptyClicked(property)
-  }
+  // function handleFundingProposalDetailsEmptyClickState(property) {
+  // setFundingProposalDetailsEmptyClicked(property)
+  // }
 
   function handleSponsorConfirmationClickState(property) {
     setSponsorConfirmationClicked(property)
@@ -596,8 +600,8 @@ export default function ProposalList(props) {
           cancelFinish={cancelFinish}
           tributeToken={tributeToken}
           currentPeriod={currentPeriod}
-          handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
-          handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
+          // handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
+          // handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
         />
@@ -633,8 +637,8 @@ export default function ProposalList(props) {
           currentPeriod={currentPeriod}
           periodDuration={periodDuration}
           done={done}
-          handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
-          handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
+          // handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
+          // handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
           handleVotingAction={handleVotingAction}
@@ -668,8 +672,8 @@ export default function ProposalList(props) {
           currentPeriod={currentPeriod}
           gracePeriod={fr.gracePeriod}
           handleProcessAction={handleProcessAction}
-          handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
-          handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
+          // handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
+          // handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
         />
@@ -697,8 +701,8 @@ export default function ProposalList(props) {
           status={fr[0].status}
           startingPeriod={fr[0].startingPeriod}
           handleProcessAction={handleProcessAction}
-          handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
-          handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
+          // handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
+          // handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
         />
@@ -726,8 +730,8 @@ export default function ProposalList(props) {
           loot={fr[0].loot}
           status={fr[0].status}
         
-          handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
-          handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
+          // handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
+          // handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
         />
@@ -818,50 +822,6 @@ export default function ProposalList(props) {
     </Alert>
     </Snackbar>
 
-    
-    {memberProposalDetailsEmptyClicked ? <MemberProposalForm
-      contract={contract}
-      avatar={avatar}
-      name={name}
-      memberProposalId={memberProposalId}
-      memberProposalType={memberProposalType}
-      status={memberProposalStatus}
-      accountId={accountId}
-      handleProposalDetailsEmptyClickState={handleMemberProposalDetailsEmptyClickState}  
-      handleTabValueState={handleTabValueState}/> : null }
-    
-    {memberProposalDetailsClicked ? <ProposalDetails
-      contract={contract}
-      avatar={avatar}
-      name={name}
-      curDaoIdx={curDaoIdx}
-      memberStatus={memberStatus}
-      memberProposalType={memberProposalType}
-      memberProposalId={memberProposalId}
-      accountId={accountId}
-      status={memberProposalStatus}
-      proposalComments={proposalComments}
-      handleProposalDetailsClickState={handleMemberProposalDetailsClickState}  
-      handleTabValueState={handleTabValueState}/> : null }
-  
-    {fundingProposalDetailsEmptyClicked ? <FundingProposalForm
-      contract={contract}
-      fundingProposalId={fundingProposalId}
-      status={fundingProposalStatus}
-      accountId={accountId}
-      handleProposalDetailsEmptyClickState={handleFundingProposalDetailsEmptyClickState}  
-      handleTabValueState={handleTabValueState}/> : null }
-  
-    {fundingProposalDetailsClicked ? <FundingProposalDetails
-      contract={contract}
-      memberStatus={memberStatus}
-      fundingProposalId={fundingProposalId}
-      proposalComments={proposalComments}
-      status={fundingProposalStatus}
-      accountId={accountId}
-      handleProposalDetailsClickState={handleFundingProposalDetailsClickState}  
-      handleTabValueState={handleTabValueState}/> : null }
-
     {sponsorConfirmationClicked ? <SponsorConfirmation
       contract={contract}
       contractId={contractId}
@@ -875,6 +835,8 @@ export default function ProposalList(props) {
       depositToken={depositToken}
       getCurrentPeriod={getCurrentPeriod}
       proposalIdentifier={proposalIdentifier}
+      paymentRequested={paymentRequested}
+      sponsorProposalType={sponsorProposalType}
       handleSnackBarOpen={handleSnackBarOpen}
       handleErrorMessage={handleErrorMessage}
       handleSuccessMessage={handleSuccessMessage}

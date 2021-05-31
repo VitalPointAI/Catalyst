@@ -76,6 +76,8 @@ export default function ExploreDaos(props) {
                 if(currentDaosList){
                     console.log('daolist', currentDaosList)
                     setDaoCount(currentDaosList.length)
+                    let sortedDaos = _.sortBy(currentDaosList, 'created').reverse()
+                    setDaos(sortedDaos)
                     // let daos = []
                     // let z = 0
                     // while(z < currentDaosList.length){
@@ -210,10 +212,10 @@ export default function ExploreDaos(props) {
         </Grid>
 
         <Grid container alignItems="center" justify="space-between" spacing={3} style={{padding: '20px'}}>
-        {daoCount > 0 ? 
+        {daos && daoCount > 0 ? 
                 (<>
                   
-                {currentDaosList.map(({contractId, created, summoner}, i) => 
+                {daos.map(({contractId, created, summoner}, i) => 
                     <DaoCard
                         key={i}
                         contractId={contractId}

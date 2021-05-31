@@ -12,7 +12,7 @@ import Logo from './Logo/logo'
 import Import from './Import/import'
 import { KEY_REDIRECT } from '../state/near'
 import { Header } from './Header/header'
-import FrontPage from './Home/Home'
+import FrontPage from './LandingSite/Home'
 
 // Material UI
 import { makeStyles } from '@material-ui/core/styles'
@@ -83,7 +83,7 @@ export const Home = ({ children, state, handleSnackBarOpen, handleSuccessMessage
             <Grid container spacing={0}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                     {wallet && wallet.signedIn ?  
-                        key ? (<Import />) : <FrontPage height='100%'></FrontPage>
+                        key ? (<Import />) : <FrontPage/>
                 : <SignIn wallet={wallet} state={state}/>}
                 </Grid>
            </Grid>
@@ -108,7 +108,9 @@ export const Home = ({ children, state, handleSnackBarOpen, handleSuccessMessage
                 </div>
             </div>
         }
+        
     </div>
+    <Footer />
     </>
     )
 }

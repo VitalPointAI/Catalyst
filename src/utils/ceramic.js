@@ -20,6 +20,7 @@ import { summonSchema } from '../schemas/summonEvent'
 import { proposalSchema } from '../schemas/proposals'
 import { memberProposalDetailsSchema } from '../schemas/memberProposals'
 import { fundingProposalDetailsSchema } from '../schemas/fundingProposals'
+import { payoutProposalDetailsSchema } from '../schemas/payoutProposals'
 import { commentsSchema } from '../schemas/comments'
 import { donationsSchema } from '../schemas/donations'
 
@@ -489,6 +490,7 @@ async makeSeed(account){
     const fundingProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'fundingProposalDetails', appClient, fundingProposalDetailsSchema, 'funding proposal details', contract)
     const comments = this.getAlias(APP_OWNER_ACCOUNT, 'comments', appClient, commentsSchema, 'comments', contract)
     const donations = this.getAlias(APP_OWNER_ACCOUNT, 'donations', appClient, donationsSchema, 'donations', contract)
+    const payoutProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'payoutProposalDetails', appClient, payoutProposalDetailsSchema, 'payout proposal details', contract)
     const done = await Promise.all([
       appDid, 
       definitions, 
@@ -504,7 +506,8 @@ async makeSeed(account){
       memberProposalDetails,
       fundingProposalDetails, 
       comments,
-      donations
+      donations,
+      payoutProposalDetails
     ])
     
     let rootAliases = {
@@ -521,7 +524,8 @@ async makeSeed(account){
       memberProposalDetails: done[11],
       fundingProposalDetails: done[12],
       comments: done[13],
-      donations: done[14]
+      donations: done[14],
+      payoutProposalDetails: done[15]
     }
 
     const appIdx = new IDX({ ceramic: appClient, aliases: rootAliases})

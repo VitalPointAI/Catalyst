@@ -26,7 +26,7 @@ import ReactQuill from 'react-quill';
 
 // CSS Styles
 import '../../../node_modules/react-quill/dist/quill.snow.css'
-import { CircularProgress } from '@material-ui/core';
+import { CircularProgress, setRef } from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
     progress: {
@@ -50,28 +50,39 @@ const useStyles = makeStyles((theme) => ({
 
 const imageName = require('../../img/default-profile.png') // default no-image avatar
 
-export default function EditMemberProposalForm(props) {
+export default function EditPayoutProposalForm(props) {
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
     const [loaded, setLoaded] = useState(false)
 
-    // Persona Fields
-    const [date, setDate] = useState('')
-    const [name, setName] = useState('')
-    const [avatar, setAvatar] = useState(imageName)
-    const [shortBio, setShortBio] = useState('')
+     // Persona Fields
+     const [date, setDate] = useState('')
+     const [name, setName] = useState('')
+     const [avatar, setAvatar] = useState(imageName)
+     const [shortBio, setShortBio] = useState('')
+ 
+     // Funding Proposal Fields
+     const [title, setTitle] = useState('')
+     const [details, setDetails] = useState('')
+ 
 
-    // Proposal Fields
-    const [intro, setIntro] = useState('')
+    // Payout Proposal Fields
+    const [payoutTitle, setPayoutTitle] = useState('')
+    const [refFundingId, setRefFundingId] = useState('')
+    const [milestoneId, setMilestoneId] = useState('')
+    const [detailsOfCompletion, setDetailsOfCompletion] = useState('')
+
 
     const { register, handleSubmit, watch, errors } = useForm()
 
     const {
         handleUpdate,
-        handleEditMemberProposalDetailsClickState,
+        handleEditPayoutProposalDetailsClickState,
         applicant,
+        proposer,
         curDaoIdx,
         curPersonaIdx,
+        fundingProposalId,
         proposalId,
     } = props
     
@@ -93,15 +104,18 @@ export default function EditMemberProposalForm(props) {
               }
            }
 
-           // Set Existing Proposal Data       
+           // Set Existing Payout Proposal Data       
            if(curDaoIdx){
-              let propResult = await curDaoIdx.get('proposalDetails', curDaoIdx.id)
+              let propResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
               console.log('propResult', propResult)
               if(propResult) {
                 let i = 0
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == proposalId){
-                    propResult.proposals[i].intro ? setIntro(propResult.proposals[i].intro) : setIntro('')
+                    propResult.proposals[i].title ? setPayoutTitle(propResult.proposals[i].title) : setPayoutTitle('')
+                    propResult.proposals[i].milestoneId ? setMilestoneId(propResult.proposals[i].milestoneId) : setMilestoneId('')
+                    propResult.proposals[i].referencedFundingProposalId ? setRefFundingId(propResult.proposals[i].referencedFundingProposalId) : setRefFundingId('')
+                    propResult.proposals[i].detailsOfCompletion ? setDetailsOfCompletion(propResult.proposals[i].detailsOfCompletion) : setDetailsOfCompletion('')
                     break
                   }
                   i++
@@ -114,20 +128,23 @@ export default function EditMemberProposalForm(props) {
           .then((res) => {
             setLoaded(true)
           })
-    },[curPersonaIdx])
-
-    function handleFileHash(hash) {
-      setAvatar(IPFS_PROVIDER + hash)
-    }
+    },[])
 
     const handleClose = () => {
-        handleEditMemberProposalDetailsClickState(false)
+        handleEditPayoutProposalDetailsClickState(false)
         setOpen(false)
     }
 
-    const handleNameChange = (event) => {
-        let value = event.target.value;
-        setName(value)
+    const handlePayoutTitleChange = (event) => {
+        setPayoutTitle(event.target.value)
+    }
+
+    const handleMilestoneIdChange = (event) => {
+      setMilestoneId(event.target.value)
+    }
+
+    const handleReferencedFundingProposalIdChange = (event) => {
+      setRefFundingId(event.target.value)
     }
 
     function formatDate(timestamp) {
@@ -136,12 +153,8 @@ export default function EditMemberProposalForm(props) {
       return new Date(intDate).toLocaleString('en-US', options)
     }
 
-    const handleShortBioChange = (content, delta, source, editor) => {
-        setShortBio(content)
-    }
-
-    const handleIntroChange = (content, delta, source, editor) => {
-      setIntro(content)
+    const handleDetailsOfCompletionChange = (content, delta, source, editor) => {
+        setDetailsOfCompletion(content)
     }
 
     const onSubmit = async (values) => {
@@ -152,17 +165,21 @@ export default function EditMemberProposalForm(props) {
       let formattedDate = formatDate(now)
   
       // Load existing array of details
-      let detailRecords = await curDaoIdx.get('memberProposalDetails', curDaoIdx.id)
-      console.log('detailRecords', detailRecords)
+      let detailRecords = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
+      console.log('funding detailRecords', detailRecords)
       if(!detailRecords){
         detailRecords = { proposals: [] }
       }
-
+     
       let proposalRecord = {
           proposalId: proposalId.toString(),
-          intro: intro,
-          applicant: applicant,
-          updated: formattedDate
+          referencedFundingProposalId: refFundingId,
+          milestoneId: milestoneId,
+          title: payoutTitle,
+          detailsOfCompletion: detailsOfCompletion,
+          proposer: proposer,
+          submitDate: now,
+          published: true
       }
 
       // Update existing records
@@ -171,7 +188,7 @@ export default function EditMemberProposalForm(props) {
       while (i < detailRecords.proposals.length){
         if(detailRecords.proposals[i].proposalId == proposalId){
           detailRecords.proposals[i] = proposalRecord
-          await curDaoIdx.set('memberProposalDetails', detailRecords)
+          await curDaoIdx.set('payoutProposalDetails', detailRecords)
           exists = true
           break
         }
@@ -182,7 +199,7 @@ export default function EditMemberProposalForm(props) {
       if(!exists){
         detailRecords.proposals.push(proposalRecord)
         console.log('detailrecords.proposals', detailRecords.proposals)
-        await curDaoIdx.set('memberProposalDetails', detailRecords)
+        await curDaoIdx.set('payoutProposalDetails', detailRecords)
       }
      
       setFinished(true)
@@ -214,26 +231,74 @@ export default function EditMemberProposalForm(props) {
        
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             { loaded ? (<>
-              <DialogTitle id="form-dialog-title">Proposal Details</DialogTitle>
+              <DialogTitle id="form-dialog-title">Payout Proposal Details</DialogTitle>
               <DialogContent>
                   <DialogContentText style={{marginBottom: 10}}>
-                  Please introduce:
+                  Please provide details of completion of milestone for referenced funded project id:
                   
                   </DialogContentText>
-                  <div><Avatar src={avatar} /></div>
-                  <Typography variant="h6">{name}</Typography>
+                  
+                  <TextField
+                      autoFocus
+                      margin="dense"
+                      id="payout-proposal-title"
+                      variant="outlined"
+                      name="payoutProposalTitle"
+                      label="Payout Proposal Title"
+                      placeholder="Payout Request for Milestone # of Commitment #"
+                      value={payoutTitle}
+                      onChange={handlePayoutTitleChange}
+                      inputRef={register({
+                          required: true                              
+                      })}
+                  />
+                  {errors.payoutProposalTitle && <p style={{color: 'red'}}>You must provide a payout proposal title.</p>}
+
+                  <TextField
+                    autoFocus
+                    margin="dense"
+                    id="payout-proposal-fundingId"
+                    variant="outlined"
+                    name="referencedFundingId"
+                    label="Referenced Funding Commitment ID"
+                    placeholder="enter funding commitment id"
+                    value={refFundingId}
+                    onChange={handleReferencedFundingProposalIdChange}
+                    inputRef={register({
+                        required: true                              
+                    })}
+                  />
+                  {errors.referencedFundingId && <p style={{color: 'red'}}>You must provide the funding commitment id.</p>}
+
+                  <TextField
+                    autoFocus
+                    margin="dense"
+                    id="payout-proposal-milestoneId"
+                    variant="outlined"
+                    name="milestoneId"
+                    label="Milestone ID"
+                    placeholder="enter milestone Id of funding commitment"
+                    value={milestoneId}
+                    onChange={handleMilestoneIdChange}
+                    inputRef={register({
+                        required: true                              
+                    })}
+                  />
+                  {errors.milestoneId && <p style={{color: 'red'}}>You must provide the corresponding milestone Id.</p>}
+              
                   <ReactQuill
                     theme="snow"
                     modules={modules}
                     formats={formats}
-                    name="intro"
-                    value={intro}
-                    onChange={handleIntroChange}
+                    name="detailsOfCompletion"
+                    value={detailsOfCompletion}
+                    onChange={handleDetailsOfCompletionChange}
                     style={{height:'200px', marginBottom:'100px'}}
                     inputRef={register({
-                        required: false
+                        required: true
                     })}
                   />
+                  {errors.detailsOfCompletion && <p style={{color: 'red'}}>You must provide the details showing proof of project completion.</p>}
                    
                 </DialogContent>
                

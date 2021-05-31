@@ -46,7 +46,7 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-export const MainBanner = () => {
+const MainBanner = () => {
     const classes = useStyles(); 
     return (
     <Grid classNamw={classes.root} container justify="center">  

@@ -48,7 +48,7 @@ const useStyles = makeStyles((theme) => ({
         fontSize: "48px", 
     }
 }));
-export const Stories = () => {
+const Stories = () => {
     const classes = useStyles(); 
 
     return(

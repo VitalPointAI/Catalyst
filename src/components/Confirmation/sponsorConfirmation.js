@@ -69,7 +69,9 @@ export default function SponsorConfirmation(props) {
   const classes = useStyles()
   const { register, handleSubmit, watch, errors } = useForm()
 
-  const { handleSponsorConfirmationClickState, 
+  const { handleSponsorConfirmationClickState,
+    sponsorProposalType,
+    paymentRequested,
     handleProposalEventChange,
     handleGuildBalanceChanges,
     handleEscrowBalanceChanges,
@@ -100,7 +102,7 @@ export default function SponsorConfirmation(props) {
     setFinished(false)
     let finished
     try{
-      await sponsorProposal(contract, contractId, proposalIdentifier, depositToken, proposalDeposit, curDaoIdx)
+      await sponsorProposal(contract, contractId, proposalIdentifier, depositToken, proposalDeposit)
     } catch (err) {
         console.log('problem sponsoring proposal', err)
         let split = err.message.split(': ')
