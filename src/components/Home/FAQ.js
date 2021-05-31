@@ -131,7 +131,7 @@ export const FAQ = () =>{
             </AccordionSummary>
             <AccordionDetails>
                 <Typography>
-                In order to join and participate within a community, you must submit a membership proposal. This proposal pleads your case for entrance into that community, and allows you to set a contribution amount that will be donated to the community fund should your proposal be approved. The community is then given a period upon which they can vote on your membership proposal.  
+                In order to join and participate within a community, you must submit a membership proposal. This proposal pleads your case for entrance into that community, and allows you to set a contribution amount that will be donated to the community fund should your proposal be approved, this contribution amount determines how much influence you will have within the community if your membership proposal is approved, working out to 1 voting share for every 1 NEAR contributed. The community is then given a period upon which they can vote on your membership proposal. 
                 </Typography>
             </AccordionDetails>
         </Accordion>
@@ -153,7 +153,7 @@ export const FAQ = () =>{
         <Accordion>
             <AccordionSummary>
                 <Typography>
-                I didn’t contribute any NEAR, so why does this proposal still cost me? 
+                Why does this proposal cost more than I contributed? 
                 </Typography>
             </AccordionSummary> 
             <AccordionDetails>   
