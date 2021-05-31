@@ -65,7 +65,7 @@ export const FAQ = () =>{
             </AccordionSummary>  
             <AccordionDetails>
                 <Typography>
-                Transparency! When you create a community on Catalyst, the rules dictating how that community will run are coded on the NEAR blockchain. This means that any action not in accordance with the chosen rules will simply fail to be execute. Additionally, since everything on the blockchain is public, and unable to be changed, there is no way to change those rules without being noticed. Not even we can change the rules once they’ve been set, leaving all of the control with the community from that point forward, allowing for the elimination of centralized authority. 
+                Transparency! When you create a community on Catalyst, the rules dictating how that community will run are coded on the NEAR blockchain. This means that any action not in accordance with the chosen rules will fail to be execute, without exception. Plus, since everything on the blockchain is public, and unable to be changed, there is no way to change those rules without being noticed. Not even we can alter the rules once they’ve been set, leaving all of the control with the community from that point forward, allowing for the elimination of centralized authority. 
                 <br />
                 <br />
                 Because of this distinction, Catalyst communities are considered decentralized autonomous organizations, or DAOs for short.  
