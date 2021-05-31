@@ -33,6 +33,18 @@ export const FAQ = () =>{
         <Accordion>
             <AccordionSummary>  
                 <Typography>
+                      What is Catalyst?
+                </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+                <Typography>
+                    Catalyst is a platform that allows anyone to create a community completely controlled by its members with the click of the button. Blockchain technology introduces the possibility for incorruptible democratic communities, and Catalyst introduces a way for you to easily make your own!
+                </Typography>
+            </AccordionDetails> 
+        </Accordion>
+        <Accordion>
+            <AccordionSummary>  
+                <Typography>
                       What is NEAR?
                 </Typography>
             </AccordionSummary>
