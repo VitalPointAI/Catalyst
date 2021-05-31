@@ -45,7 +45,7 @@ const useStyles = makeStyles((theme) => ({
         height: '33%',
     },
     icon:{
-        fontSize: "47px", 
+        fontSize: "48px", 
     }
 }));
 export const Stories = () => {

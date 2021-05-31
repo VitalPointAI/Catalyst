@@ -54,7 +54,7 @@ const useStyles = makeStyles((theme) => ({
     },
     button2:
     {
-        marginTop: 30, 
+        marginTop: 20, 
         backgroundColor: '#ffa366',
         boxShadow: '3px 5px',
         margin: 'auto',

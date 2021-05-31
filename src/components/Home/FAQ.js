@@ -119,7 +119,7 @@ export const FAQ = () =>{
             </AccordionSummary>
             <AccordionDetails>
                 <Typography>
-                In order to join and participate within a community, you must submit a membership proposal. This proposal pleads your case for entrance into that community, and allows you to set a tribute amount that will be donated to the community fund should your proposal be approved. The community is then given a period upon which they can vote on your membership proposal.  
+                In order to join and participate within a community, you must submit a membership proposal. This proposal pleads your case for entrance into that community, and allows you to set a contribution amount that will be donated to the community fund should your proposal be approved. The community is then given a period upon which they can vote on your membership proposal.  
                 </Typography>
             </AccordionDetails>
         </Accordion>
