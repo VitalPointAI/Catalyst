@@ -7,7 +7,7 @@ import Accordion from '@material-ui/core/Accordion'
 import AccordionSummary from '@material-ui/core/AccordionSummary'
 import AccordionDetails from '@material-ui/core/AccordionDetails'
 import Typography from '@material-ui/core/Typography'
-
+import Link from '@material-ui/core/Link'
 const useStyles = makeStyles((theme) => ({
     top: {
         background: 'linear-gradient(60deg, #ffcc99, #ff6600)',
@@ -174,7 +174,7 @@ export const FAQ = () =>{
             </AccordionSummary>
             <AccordionDetails>
                 <Typography>
-                Everywhere! In order to maintain decentralization, all of the data for Catalyst is sliced up and dispersed among many different computers all over the world. This means that it isn’t congregated on one central server, under the control of some hopefully benevolent overlord, as is the case with most data today. Catalyst accomplishes this through the use of Ceramic, which you can read more about on their website here: https://ceramic.network/
+                Everywhere! In order to maintain decentralization, all of the data for Catalyst is sliced up and dispersed among many different computers all over the world. This means that it isn’t congregated on one central server, under the control of some hopefully benevolent overlord, as is the case with most data today. Catalyst accomplishes this through the use of Ceramic, which you can read more about on their website <a href="https://ceramic.network/">here</a> 
                 </Typography>
             </AccordionDetails>
         </Accordion>
@@ -186,7 +186,7 @@ export const FAQ = () =>{
             </AccordionSummary>
             <AccordionDetails>
                 <Typography>
-                Not necessarily! NEAR Protocol -- which Catalyst runs on -- is entirely carbon neutral. You can read more about it here: https://near.org/blog/near-climate-neutral-product/
+                Not necessarily! NEAR Protocol -- which Catalyst runs on -- is entirely carbon neutral. You can read more about it  <a href='https://near.org/blog/near-climate-neutral-product/'>here</a>
                 </Typography>
             </AccordionDetails>
         </Accordion>
