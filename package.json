@@ -59,6 +59,7 @@
         "startup": "npm run clean && env-cmd -f ./.env parcel src/index.html --public-url ./ --no-source-maps",
         "startup1": "parcel src/index.html --no-source-maps --no-hmr",
         "startup2": "npm run clean && node --max-old-space-size=8192 ./node_modules/.bin/parcel src/index.html --no-source-maps",
+        "startup3": "node --max-old-space-size=8192 ./node_modules/.bin/parcel src/index.html --no-source-maps",
         "start": "node server.js"
     }
 }

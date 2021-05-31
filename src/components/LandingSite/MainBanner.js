@@ -5,6 +5,7 @@ import Grid from '@material-ui/core/Grid'
 import { makeStyles } from '@material-ui/core'
 import { ArrowRightAltRounded } from '@material-ui/icons'
 import bannerImage from './bannerimage.png'
+import Typography from '@material-ui/core/Typography'
 
 const useStyles = makeStyles((theme) => ({
 
@@ -50,7 +51,7 @@ const MainBanner = () => {
     const classes = useStyles(); 
     return (
     <Grid className={classes.root} container justify="center">  
-        <Grid item xs={5}>  
+        <Grid item xs={6}>  
             <Grid container spacing={0}>   
                     <Typography variant="h1"><span className={classes.specialtext}> Kickstart</span><br />
                          <span className={classes.text}>Community</span></Typography>
