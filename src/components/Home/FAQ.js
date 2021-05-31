@@ -8,6 +8,8 @@ import AccordionSummary from '@material-ui/core/AccordionSummary'
 import AccordionDetails from '@material-ui/core/AccordionDetails'
 import Typography from '@material-ui/core/Typography'
 import Link from '@material-ui/core/Link'
+import Footer from '../common/Footer/footer'
+
 const useStyles = makeStyles((theme) => ({
     top: {
         background: 'linear-gradient(60deg, #ffcc99, #ff6600)',
@@ -202,7 +204,7 @@ export const FAQ = () =>{
                 </Typography>
             </AccordionDetails>
         </Accordion>
-
+        <Footer></Footer>
         </>
     )
 }
