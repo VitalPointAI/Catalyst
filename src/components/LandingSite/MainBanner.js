@@ -49,21 +49,19 @@ const useStyles = makeStyles((theme) => ({
 const MainBanner = () => {
     const classes = useStyles(); 
     return (
-    <Grid classNamw={classes.root} container justify="center">  
-        <Grid  item xs={5}>  
-            <Grid container spacing={3}>   
-                <div>
-                    <h1> <span className={classes.specialtext}> Kickstart</span><br />
-                         <span className={classes.text}>Community</span></h1> 
-                 </div> 
+    <Grid className={classes.root} container justify="center">  
+        <Grid item xs={5}>  
+            <Grid container spacing={0}>   
+                    <Typography variant="h1"><span className={classes.specialtext}> Kickstart</span><br />
+                         <span className={classes.text}>Community</span></Typography>
                 <Grid item xs={12}>
-                    <h5> Organize Differently</h5>
+                    <Typography variant="h5">Organize Differently</Typography>
                 </Grid>
-             <Grid container justify="left" item xs={12}>
+             <Grid container justify="flex-start" item xs={12}>
                 <Grid item>
                      <Button variant="contained" className={classes.button} >Get Started</Button>
                 </Grid>
-        </Grid>
+            </Grid>
         </Grid>
         </Grid>
     <Grid item xs={6}>
