@@ -38,7 +38,7 @@ export const FAQ = () =>{
             </AccordionSummary>
             <AccordionDetails>
                 <Typography>
-                    Catalyst is a platform that allows anyone to create a community completely controlled by its members with the click of the button. Blockchain technology introduces the possibility for incorruptible democratic communities, and Catalyst introduces a way for you to easily make your own!
+                    Catalyst is a platform that allows anyone to create a community completely controlled by its members with the click of the button. Blockchain technology introduces the possibility for incorruptible communities, and Catalyst introduces a way for you to easily make your own!
                 </Typography>
             </AccordionDetails> 
         </Accordion>
