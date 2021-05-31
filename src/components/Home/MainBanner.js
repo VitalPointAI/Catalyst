@@ -57,7 +57,7 @@ export const MainBanner = () => {
                          <span className={classes.text}>Community</span></h1> 
                  </div> 
                 <Grid item xs={12}>
-                    <h5> - A New Way to Organize</h5>
+                    <h5> Organize Differently</h5>
                 </Grid>
              <Grid container justify="left" item xs={12}>
                 <Grid item>

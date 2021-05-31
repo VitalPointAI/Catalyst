@@ -20,7 +20,7 @@ import { Home } from './components/Home'
 import Daos from './components/mainPages/daos'
 import Developers from './components/mainPages/developers'
 import Supporters from './components/mainPages/supporters'
-
+import FAQ from './components/Home/FAQ'
 // Material-UI Components
 import { CircularProgress } from '@material-ui/core'
 
@@ -141,6 +141,9 @@ const App = () => {
                 </Route>
                 <Route path="/newKey">
                     <NewKey />
+                </Route>
+                <Route path ="/FAQ">
+                    <FAQ /> 
                 </Route>
                 <Route path="/dao/:contractId">
                     <AppFramework

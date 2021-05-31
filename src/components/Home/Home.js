@@ -89,7 +89,7 @@ export const FrontPage = () => {
         <Grid item xs={12}>
              <h2 className={classes.bottomtext}>...or learn about how it works</h2>
         </Grid>
-        <Button className={classes.button2}>Visit the FAQ</Button>
+        <Button href='/FAQ' className={classes.button2}>Visit the FAQ</Button>
     </Grid>
     <br />
     <br />

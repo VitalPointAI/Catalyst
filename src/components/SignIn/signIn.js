@@ -12,7 +12,7 @@ import CardContent from '@material-ui/core/CardContent'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography';
 import LockOpenTwoToneIcon from '@material-ui/icons/LockOpenTwoTone';
-
+import FrontPage from '../Home/Home'
 const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
@@ -42,11 +42,6 @@ export default function SignIn(props) {
 const classes = useStyles()
 
     return (
-        <Grid container spacing={0} className={classes.root}>
-          <Grid item xs={12}>
-           <Typography>Placeholder</Typography>
-         
-          </Grid>
-        </Grid>
+        <FrontPage></FrontPage>
     )
 }

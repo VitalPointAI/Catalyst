@@ -45,7 +45,7 @@ const useStyles = makeStyles((theme) => ({
         height: '33%',
     },
     icon:{
-        fontSize: "46px", 
+        fontSize: "47px", 
     }
 }));
 export const Stories = () => {
@@ -58,7 +58,7 @@ export const Stories = () => {
                     <h3 className={classes.text}>
                     <img className={classes.image} src={nearlogo} /> 
                     <br />   <br/>   <br/>   
-                    Read about how the Near Communit Fund uses Catalyst 
+                    Read about how the Near Community Fund uses Catalyst 
                     to foster innovation, and fund new projects.
                     <br />   <br/>   <br/>
                     <Button className={classes.button}>Take Me There</Button>
