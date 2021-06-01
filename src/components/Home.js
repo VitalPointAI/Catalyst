@@ -77,13 +77,14 @@ export const Home = ({ children, state, handleSnackBarOpen, handleSuccessMessage
         snackBarOpen={snackBarOpen}
         severity={severity}
         errorMessage={errorMessage}
-        successMessage={successMessage}/>
+        successMessage={successMessage}
+        />
        
         {finished ? 
             <Grid container spacing={0}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                     {wallet && wallet.signedIn ?  
-                        key ? (<Import />) : <FrontPage/>
+                        key ? (<Import />) : <div>Placeholder</div>
                 : <SignIn wallet={wallet} state={state}/>}
                 </Grid>
            </Grid>

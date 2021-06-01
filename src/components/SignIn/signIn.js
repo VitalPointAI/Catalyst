@@ -42,6 +42,6 @@ export default function SignIn(props) {
 const classes = useStyles()
 
     return (
-        <FrontPage></FrontPage>
+        <FrontPage />
     )
 }

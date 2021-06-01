@@ -104,7 +104,8 @@ class Ceramic {
 
   async downloadKeysSecret(idx, key) {
     let records = await idx.get(key)
-    if(records){
+    console.log('records', records)
+    if(Object.keys(records).length != 0){
       return await idx._ceramic.did.decryptDagJWE(records.seeds[0])
     }
     return []
@@ -576,6 +577,9 @@ async makeSeed(account){
 
   // current dao IDX
   async getCurrentDaoIdx(contractAccount, appIdx, contract){
+    console.log('get appidx', appIdx)
+    console.log('contractaccount', contractAccount)
+    console.log('contract', contract)
     let seed
     let daoKeys =  await this.downloadKeysSecret(appIdx, 'daoKeys')
     console.log('daoKeys', daoKeys)

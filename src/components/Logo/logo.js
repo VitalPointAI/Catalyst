@@ -87,6 +87,11 @@ export default function Logo(props) {
                     }
                 }
 
+                if(!thisCurDaoIdx){
+                    setLogo(defaultLogo)
+                    setLoaded(true)
+                }
+
                 let contract
                 try{
                     contract = await dao.initDaoContract(wallet.account(), contractId)
@@ -126,7 +131,7 @@ export default function Logo(props) {
     function handleExpanded() {
         setAnchorEl(null)
     }
-    
+ 
     return (
         <>
         {loaded ? (

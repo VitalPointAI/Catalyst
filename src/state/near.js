@@ -1017,7 +1017,7 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId) {
         console.log('error retrieving proposal for this id', err)
     }
 
-    if(proposal) {
+    if(proposal && curDaoIdx) {
        
         // Log New Proposal Event
         let proposalEventRecord = await curDaoIdx.get('proposals', curDaoIdx.id)
@@ -1073,48 +1073,55 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
 
     let proposal = await daoContract.getProposal({proposalId: proposalId})   
 
-    if(proposal) {
+    if(proposal && curDaoIdx) {
 
         // Load existing proposal details
-        let proposalRecords = await curDaoIdx.get('proposals', curDaoIdx.id)
+        let proposalRecords
+        try{
+            proposalRecords = await curDaoIdx.get('proposals', curDaoIdx.id)
+        } catch (err) {
+            console.log('problem loading proposal records', err)
+        }
 
         // Update an existing proposal
         let exists = false
         let i = 0
-        while (i < proposalRecords.events.length){
-            if(proposalRecords.events[i].proposalId == (proposal.pI).toString()){
-                let updatedProposalRecord = {
-                    proposalId: (proposal.pI).toString(),
-                    applicant: proposal.a,
-                    proposer: proposal.p,
-                    sponsor: proposal.s,
-                    sharesRequested: proposal.sR,
-                    lootRequested: proposal.lR,
-                    tributeOffered: proposal.tO,
-                    tributeToken: proposal.tT,
-                    paymentRequested: proposal.pR,
-                    paymentToken: proposal.pT,
-                    startingPeriod: proposal.sP,
-                    yesVote: proposal.yV,
-                    noVote: proposal.nV,
-                    flags: proposal.f,
-                    maxTotalSharesAndLootAtYesVote: proposal.mT,
-                    proposalSubmission: parseInt(proposal.pS),
-                    votingPeriod: proposal.vP,
-                    gracePeriod: proposal.gP,
-                    voteFinalized: parseInt(proposal.voteFinalized)
+        if(proposalRecords && proposalRecords.events.length > 0){
+            while (i < proposalRecords.events.length){
+                if(proposalRecords.events[i].proposalId == (proposal.pI).toString()){
+                    let updatedProposalRecord = {
+                        proposalId: (proposal.pI).toString(),
+                        applicant: proposal.a,
+                        proposer: proposal.p,
+                        sponsor: proposal.s,
+                        sharesRequested: proposal.sR,
+                        lootRequested: proposal.lR,
+                        tributeOffered: proposal.tO,
+                        tributeToken: proposal.tT,
+                        paymentRequested: proposal.pR,
+                        paymentToken: proposal.pT,
+                        startingPeriod: proposal.sP,
+                        yesVote: proposal.yV,
+                        noVote: proposal.nV,
+                        flags: proposal.f,
+                        maxTotalSharesAndLootAtYesVote: proposal.mT,
+                        proposalSubmission: parseInt(proposal.pS),
+                        votingPeriod: proposal.vP,
+                        gracePeriod: proposal.gP,
+                        voteFinalized: parseInt(proposal.voteFinalized)
+                        }
+                    proposalRecords.events[i] = updatedProposalRecord
+                    try{
+                        await curDaoIdx.set('proposals', proposalRecords)
+                        exists = true
+                        processLogged = true
+                        break
+                    } catch (err) {
+                        console.log('error logging process event', err)
                     }
-                proposalRecords.events[i] = updatedProposalRecord
-                try{
-                    await curDaoIdx.set('proposals', proposalRecords)
-                    exists = true
-                    processLogged = true
-                    break
-                } catch (err) {
-                    console.log('error logging process event', err)
                 }
+            i++
             }
-         i++
         }
     }
     
@@ -1223,7 +1230,7 @@ export async function logVoteEvent(curDaoIdx, daoContract, proposalId, accountId
         console.log('issue getting proposal', err)
     }
 
-    if(proposal) {
+    if(proposal && curDaoIdx) {
         // Load existing proposal details
         let proposalRecords = await curDaoIdx.get('proposals', curDaoIdx.id)
 
@@ -1324,7 +1331,7 @@ export async function logSponsorEvent (curDaoIdx, daoContract, proposalId) {
 
     let proposal = await daoContract.getProposal({proposalId: parseInt(proposalId)})
 
-    if(proposal) {
+    if(proposal && curDaoIdx) {
         // Load existing proposal details
         let proposalRecords = await curDaoIdx.get('proposals', curDaoIdx.id)
 
@@ -1382,7 +1389,7 @@ export async function logCancelEvent (curDaoIdx, daoContract, proposalId) {
 
     let proposal = await daoContract.getProposal({proposalId: parseInt(proposalId)})
 
-    if(proposal) {
+    if(proposal && curDaoIdx) {
         // Load existing proposal details
         let proposalRecords = await curDaoIdx.get('proposals', curDaoIdx.id)
         
@@ -1446,7 +1453,7 @@ export async function logDonationEvent (curDaoIdx, daoContract, donationId, cont
         console.log('error retrieving donation for this id', err)
     }
 
-    if(donation) {
+    if(donation && curDaoIdx) {
        
         // Log New donation Event
         let donationEventRecord = await curDaoIdx.get('donations', curDaoIdx.id)
