@@ -132,42 +132,18 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
             return update('app.wasValidated', true)
         }
 
-        // // get DAO Key from Accounts
-        // let accountLinks = get(ACCOUNT_LINKS, [])
-        // let d = 0
-        // let daoKey
-        // while(d < accountLinks.length) {
-        //     if(accountLinks[d].accountId == accountId){
-        //         daoKey = accountLinks[d].key
-        //         break
-        //     }
-        //     d++
-        // }
+        let daoCreated = await isAccountTaken(accountId)
+        console.log('daocreated', daoCreated)
 
-        const keyPair = KeyPair.fromRandom('ed25519')
+      
+            const keyPair = KeyPair.fromRandom('ed25519')
 
-        let state = getState()
+            let state = getState()
 
-        let upLinks = await ceramic.downloadKeysSecret(state.appIdx, 'daoKeys')
-        console.log('uplinks', upLinks)
+            let upLinks = await ceramic.downloadKeysSecret(state.appIdx, 'daoKeys')
+            console.log('uplinks', upLinks)
 
-       // const links = get(DAO_LINKS, [])
-        const daoInit = get(DAO_FIRST_INIT, [])
-
-        // let c = 0
-        // let accountExists
-        // while(c < links.length) {
-        //     if(links[c].accountId == accountId){
-        //         accountExists = true
-        //         alert('This dao already exists in local storage, it will be updated.')
-        //         links[c] = { key: daoKey, contractId: accountId, summoner: summoner, created: Date.now() }
-        //         break
-        //     } else {
-        //         accountExists = false
-        //     }
-        // c++
-        // }
-        // if(!accountExists){
+            const daoInit = get(DAO_FIRST_INIT, [])
 
             try{
                 let i = 0
@@ -181,21 +157,20 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
                 }
                 if(!exists){
                     upLinks.push({ key: keyPair.secretKey, contractId: accountId, summoner: summoner, created: Date.now() })
-                    await ceramic.storeKeysSecret(state.appIdx, upLinks, 'daoKeys')
-
-                   // let daoAdded = await addDaoToList(state.appIdx, accountId, summoner, Date.now())
+                    let result = await ceramic.storeKeysSecret(state.appIdx, upLinks, 'daoKeys')
 
                     let link = '/dao/' + accountId
                     set(REDIRECT, {action: true, link: link})
 
-                   // if(daoAdded) {
+                    if(result){
                         await daoFactoryContract.createDemDAO({ accountId: accountId, deposit: FACTORY_DEPOSIT }, GAS, parseNearAmount(FACTORY_DEPOSIT))
-                  //  }
+                    }
+                 
                 }
             } catch (err) {
                 console.log('error setting up new Dao', err)
             }
-        // }
+        
     }
 
     if(wallet.signedIn){
@@ -349,6 +324,23 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         }
         set(ACCOUNT_LINKS, localLinks)
         await ceramic.storeKeysSecret(curUserIdx, localLinks, 'accountsKeys')
+
+        const daoLinks = await ceramic.downloadKeysSecret(state.appIdx, 'daoKeys')
+        console.log('daolinks', daoLinks)
+        for (let i = 0; i < daoLinks.length; i++) {
+            const { contractId } = daoLinks[i]
+            const exists = await isAccountTaken(contractId)
+            if(!exists){
+                daoLinks.splice(i, 1)
+                console.log('daoLinks after', daoLinks)
+                try{
+                await ceramic.storeKeysSecret(state.appIdx, daoLinks, 'daoKeys')
+                } catch (err) {
+                    console.log('error removing missing dao account', err)
+                }
+                continue
+            }
+        }
 
         const claimed = localLinks.filter(({claimed}) => !!claimed)
         const links = localLinks.filter(({claimed}) => !claimed)

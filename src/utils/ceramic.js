@@ -85,8 +85,13 @@ class Ceramic {
     const jwe = await idx._ceramic.did.createDagJWE(payload, access)
   
     record = { seeds: [jwe] }
-  
+    try{
     await idx.set(key, record)
+    return true
+    } catch (err) {
+      console.log('error setting keys records', err)
+      return false
+    }
   }
   
   async downloadSecret(idx, key, did) {

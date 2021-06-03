@@ -87,7 +87,9 @@ export default function AddDaoForm(props) {
         setOpen(false)
         handleClose()
       }
-      setFinished(false)
+      setFinished(true)
+      setOpen(false)
+      handleClose()
     }
     
         return (

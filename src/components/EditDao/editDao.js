@@ -82,6 +82,7 @@ export default function EditDaoForm(props) {
     useEffect(() => {
         async function fetchData() {
           setLoaded(false)
+          state.isUpdated
            // Set Card Persona Idx       
            if(contractId && state.near){
              // Set Dao Idx
@@ -107,7 +108,7 @@ export default function EditDaoForm(props) {
           .then((res) => {
             setLoaded(true)
           })
-    },[])
+    },[state.near, state.isUpdated])
 
     function handleFileHash(hash) {
       setLogo(IPFS_PROVIDER + hash)
