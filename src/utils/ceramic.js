@@ -4,7 +4,10 @@ import { get, set, del } from './storage'
 import { IDX } from '@ceramicstudio/idx'
 import { createDefinition, publishSchema } from '@ceramicstudio/idx-tools'
 import { Ed25519Provider } from 'key-did-provider-ed25519'
+import ThreeIdProvider from '3id-did-provider'
 import KeyDidResolver from 'key-did-resolver'
+import ThreeIdResolver from '@ceramicnetwork/3id-did-resolver'
+import { ThreeIdConnect, NearAuthProvider } from '@3id/connect'
 import { DID } from 'dids'
 
 // schemas
@@ -27,6 +30,8 @@ import { donationsSchema } from '../schemas/donations'
 import { config } from '../state/config'
 
 const axios = require('axios').default
+
+
 
 export const {
     FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, REDIRECT, KEY_REDIRECT, APP_OWNER_ACCOUNT, IPFS_PROVIDER, FACTORY_DEPOSIT,
@@ -105,7 +110,7 @@ class Ceramic {
   async downloadKeysSecret(idx, key) {
     let records = await idx.get(key)
     console.log('records', records)
-    if(Object.keys(records).length != 0){
+    if(records && Object.keys(records).length != 0){
       return await idx._ceramic.did.decryptDagJWE(records.seeds[0])
     }
     return []
@@ -160,7 +165,7 @@ async makeSeed(account){
     }
     const ceramic = new CeramicClient(CERAMIC_API_URL, {cacheDocCommits: true, docSyncEnabled: false, docSynchInterval: 30000})
     const provider = new Ed25519Provider(seed)
-    const resolver = {...KeyDidResolver.getResolver()}
+    const resolver = {...KeyDidResolver.getResolver(), ...ThreeIdResolver.getResolver(ceramic)}
     const did = new DID({ resolver })
     ceramic.setDID(did)
     ceramic.did.setProvider(provider)
@@ -171,7 +176,8 @@ async makeSeed(account){
   async getAppCeramic() {
     let retrieveSeed = await axios.get('https://vpbackend.azurewebsites.net/appseed')
     const seed = Buffer.from((retrieveSeed.data).slice(0, 32))
-    const ceramic = new CeramicClient(CERAMIC_API_URL, {docSyncEnabled: false, docSynchInterval: 30000})
+   // const ceramic = new CeramicClient(CERAMIC_API_URL, {docSyncEnabled: false, docSynchInterval: 30000})
+    const ceramic = new CeramicClient(CERAMIC_API_URL)
     const provider = new Ed25519Provider(seed)
     const resolver = {...KeyDidResolver.getResolver()}
     const did = new DID({ resolver })

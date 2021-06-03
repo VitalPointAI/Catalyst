@@ -27,10 +27,10 @@ let config = {
     nodeUrl: 'https://rpc.testnet.near.org',
     walletUrl: 'https://wallet.testnet.near.org',
     nameSuffix: '.testnet',
-    factorySuffix: '.factory.vitalpointai.testnet',
+    factorySuffix: '.factory1.vitalpointai.testnet',
     contractName: 'testnet',
-    didRegistryContractName: 'dids.vitalpointai.testnet',
-    factoryContractName: 'factory.vitalpointai.testnet'
+    didRegistryContractName: 'dids1.vitalpointai.testnet',
+    factoryContractName: 'factory1.vitalpointai.testnet'
 }
 
 if (process.env.REACT_APP_ENV === 'prod') {

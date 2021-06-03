@@ -63,6 +63,8 @@ export default function ExploreDaos(props) {
 
     const { state, dispatch, update } = useContext(appStore)
 
+    let someDaos = []
+
     const {
       currentDaosList,
       near
@@ -139,19 +141,37 @@ export default function ExploreDaos(props) {
         setDaos(newDaos)
     }
 
+    function makeSearchDaos(dao){
+        let i = 0
+        let exists
+        if(dao != false){
+            while(i < searchDaos.length){
+                if(searchDaos[i].contractId == dao.contractId){
+                    exists = true
+                }
+                i++
+            }
+            if(!exists){
+                someDaos.push(dao)
+                setSearchDaos(someDaos)
+            }
+            console.log('search daos', searchDaos)
+        }
+    }
+
     function handleUpdate(){
         setIsUpdated(!isUpdated)
     }
 
     const searchData = (pattern) => {
         if (!pattern) {
-            let sortedDaos = _.sortBy(daos, 'date').reverse()
+            let sortedDaos = _.sortBy(currentDaosList, 'created').reverse()
             setDaos(sortedDaos)
             return
         }
-        console.log('daos', daos)
+        console.log('searchDaos', searchDaos)
         
-        const fuse = new Fuse(daos, {
+        const fuse = new Fuse(searchDaos, {
             keys: ['category']
         })
         console.log('fuse', fuse)
@@ -215,18 +235,24 @@ export default function ExploreDaos(props) {
         {daos && daoCount > 0 ? 
                 (<>
                   
-                {daos.map(({contractId, created, summoner}, i) => 
-                    <DaoCard
-                        key={i}
-                        contractId={contractId}
-                        created={created}
-                        summoner={summoner}
-                        
-                        link={''}
-                        state={state}
-                        handleEditDaoClick={handleEditDaoClick}
-                        handleUpdate={handleUpdate}
-                    />
+                {daos.map(({contractId, created, summoner}, i) => {
+                   
+                    return ( 
+                        <DaoCard
+                            key={i}
+                            contractId={contractId}
+                            created={created}
+                            summoner={summoner}
+                            
+                            link={''}
+                            state={state}
+                            handleEditDaoClick={handleEditDaoClick}
+                            handleUpdate={handleUpdate}
+                            makeSearchDaos={makeSearchDaos}
+                        />
+                   )
+                }
+                   
                     )}
                 </>)
             : null

@@ -11,7 +11,8 @@ const getLink = (accountId, key, wallet, owner) => `?accountId=${accountId}&key=
 import { makeStyles } from '@material-ui/core/styles'
 import Grid from '@material-ui/core/Grid'
 import Divider from '@material-ui/core/Divider'
-import Typography from '@material-ui/core/Typography';
+import Typography from '@material-ui/core/Typography'
+import Paper from '@material-ui/core/Paper'
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -25,6 +26,7 @@ const useStyles = makeStyles((theme) => ({
         padding: theme.spacing(2),
         textAlign: 'center',
         color: theme.palette.text.secondary,
+        minHeight: 550
     },
     menuButton: {
       marginRight: theme.spacing(0),
@@ -92,43 +94,55 @@ export const PersonaPage = ({ state, update, dispatch }) => {
         <Router>
         <>
         <div className={classes.root}>
-        <Grid container alignItems="center" justify="flex-start" spacing={2} style={{marginBottom: '20px'}}>
+        <Grid container alignItems="flex-start" justify="center" spacing={2} style={{padding: '20px'}}>
             {countOfLinks > 0 ? 
-                (<> <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{textAlign: 'center'}}>
+                (<> <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
+                    <Paper className={classes.paper}>
                         <Typography variant="h5" style={{marginBottom: '20px'}}>Reserved Personas</Typography>
+                    <Grid container alignItems="flex-start" justify="center" spacing={2} style={{padding: '20px'}}>
+                        {links.filter(person => person.owner == accountId).map(({ key, accountId, owner }) =>
+                            <PersonaCard
+                                key={key}
+                                accountId={accountId}
+                                owner={owner}
+                                link={getLink(accountId, key, wallet, owner)}
+                                state={state}
+                                handleEditPersonaClick={handleEditPersonaClick}
+                                />
+                        )}
                     </Grid>
-                    {links.filter(person => person.owner == accountId).map(({ key, accountId, owner }) =>
-                        <PersonaCard
-                            key={key}
-                            accountId={accountId}
-                            owner={owner}
-                            link={getLink(accountId, key, wallet, owner)}
-                            state={state}
-                            handleEditPersonaClick={handleEditPersonaClick}
-                            />
-                
-                    )}
+                    </Paper>
+                    </Grid>
                 </>)
-                : null
+                :  <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
+                <Paper className={classes.paper}>
+                    <Typography variant="h5" style={{marginBottom: '20px'}}>Reserved Personas</Typography>
+                    <Typography variant="overline">No Personas Reserved for Claiming.</Typography>
+                </Paper>
+                </Grid>
+             
             }
-        </Grid>
-        <Divider variant="middle" style={{marginBottom: '20px'}}/>
-        <Grid container alignItems="center" justify="space-between" spacing={2} style={{padding: '20px'}}>
+      
+       
             { countOfClaims > 0 ? 
                 (<>
-                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                    <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" >
+                    <Paper className={classes.paper}>
                         <Typography variant="h5" style={{marginBottom: '20px'}}>Claimed Personas</Typography>
-                    </Grid>
-                {claimed.filter(person => person.owner == accountId).map(({ key, accountId, owner }) =>
-                    <PersonaCard
-                        key={key}
-                        accountId={accountId}
-                        owner={owner}
-                        link={''}
-                        state={state}
-                        handleEditPersonaClick={handleEditPersonaClick}
-                    />              
-                )}
+                        <Grid container alignItems="flex-start" justify="center" spacing={2} style={{padding: '20px'}}>
+                            {claimed.filter(person => person.owner == accountId).map(({ key, accountId, owner }) =>
+                                <PersonaCard
+                                    key={key}
+                                    accountId={accountId}
+                                    owner={owner}
+                                    link={''}
+                                    state={state}
+                                    handleEditPersonaClick={handleEditPersonaClick}
+                                />              
+                            )}
+                        </Grid>
+                </Paper>
+                </Grid>
             </>)
             : null
             } 

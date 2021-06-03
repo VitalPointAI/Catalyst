@@ -8,7 +8,7 @@ import * as nearAPI from 'near-api-js'
 
 
 // Material UI Components
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles, withStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
 import CardActions from '@material-ui/core/CardActions'
@@ -17,6 +17,9 @@ import Typography from '@material-ui/core/Typography'
 import Link from '@material-ui/core/Link'
 import { red } from '@material-ui/core/colors'
 import Button from '@material-ui/core/Button'
+import Badge from '@material-ui/core/Badge'
+import EditIcon from '@material-ui/icons/Edit'
+import IconButton from '@material-ui/core/IconButton'
 import { CardHeader, LinearProgress } from '@material-ui/core'
 
 import { config } from '../../state/config'
@@ -31,9 +34,10 @@ const useStyles = makeStyles((theme) => ({
     },
     card: {
       minWidth: '200px',
-      maxWidth: '200px',
-      cursor: 'pointer',
-      verticalAlign: 'middle'
+      //maxWidth: '200px',
+  //    cursor: 'pointer',
+      verticalAlign: 'middle',
+      margin: 'auto'
     },
     avatar: {
       backgroundColor: red[500],
@@ -44,6 +48,16 @@ const useStyles = makeStyles((theme) => ({
       marginTop: '5px',
     }
   }));
+
+const StyledBadgeProposer = withStyles((theme) => ({
+  badge: {
+    backgroundColor: '#f9f1f1',
+    right: -30,
+    top: 25,
+    border: `1px solid #000000`,
+    padding: '0 4px',
+  },
+}))(Badge)
 
 const imageName = require('../../img/default-profile.png') // default no-image avatar
 
@@ -177,13 +191,18 @@ export default function PersonaCard(props) {
       
           (
             <Card className={classes.card}>
-              <CardContent onClick={handleEditPersonaClick}>
-                <Avatar variant="rounded" src={avatar} className={classes.square} />
-                <Typography  variant="overline" display="inline" noWrap={true} style={{lineHeight: 0}}>
-                  {name ? name : accountId}<br></br>
-                  {finished ? (<span style={{fontSize: '80%'}}>{date}</span>) : <LinearProgress />}
-                </Typography>
-              </CardContent>
+              <CardHeader
+              avatar={
+                <Avatar src={avatar}  />
+              }
+              action={
+                <IconButton aria-label="edit" onClick={handleEditPersonaClick}>
+                  <EditIcon />
+                </IconButton>
+              }
+              title={name ? name : accountId}
+              subheader={<>{finished ? (<span style={{fontSize: '80%'}}>{date}</span>) : <LinearProgress />}</>}
+              />
               <CardActions>
                 <Link color="primary" href={link}>
                   Claim
@@ -194,13 +213,19 @@ export default function PersonaCard(props) {
           : 
           (
             <Card className={classes.card}>
-              <CardContent onClick={handleEditPersonaClick}>
-                <Avatar variant="rounded" src={avatar} className={classes.square} />
-                  <Typography  variant="overline" display="inline" noWrap={true} style={{lineHeight: 0}}>
-                    {name ? name : accountId}<br></br>
-                    {finished ? (<span style={{fontSize: '80%'}}>{date}</span>) : <LinearProgress />}
-                  </Typography>
-              </CardContent>
+            <CardHeader
+            avatar={
+              <Avatar src={avatar}  />
+            }
+            action={
+              <IconButton aria-label="edit" onClick={handleEditPersonaClick}>
+                <EditIcon />
+              </IconButton>
+            }
+            title={name ? name : accountId}
+            subheader={<>{finished ? (<span style={{fontSize: '80%'}}>{date}</span>) : <LinearProgress />}</>}
+          />
+           
             </Card>
           )
         }

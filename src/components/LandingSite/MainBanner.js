@@ -26,7 +26,6 @@ const useStyles = makeStyles((theme) => ({
         }
     },
     specialtext: {
-        margin: 'center', 
         fontSize: '70px',
         fontWeight: 800, 
         textAlign: 'left',
@@ -35,6 +34,7 @@ const useStyles = makeStyles((theme) => ({
         WebkitTextFillColor: 'transparent',
         "&:hover": {
         backgroundImage: '-webkit-linear-gradient(45deg, #80d4ff, white)',
+        marginBottom: '-50px'
         }
     },
     text: {
@@ -53,8 +53,12 @@ const MainBanner = () => {
     <Grid className={classes.root} container justify="center">  
         <Grid item xs={6}>  
             <Grid container spacing={0}>   
-                    <Typography variant="h1"><span className={classes.specialtext}> Kickstart</span><br />
-                         <span className={classes.text}>Community</span></Typography>
+                    <Typography>
+                        <span className={classes.specialtext}>Kickstart</span>
+                    </Typography>
+                    <Typography>
+                        <span className={classes.text}>Community</span>
+                    </Typography>
                 <Grid item xs={12}>
                     <Typography variant="h5">Organize Differently</Typography>
                 </Grid>

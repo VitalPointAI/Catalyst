@@ -70,7 +70,7 @@ export default function DaoCard(props) {
     const [anchorEl, setAnchorEl] = useState(null)
     const [did, setDid] = useState()
     const [finished, setFinished] = useState(false)
-    const [created, setCreated] = useState(formatDate(props.created))
+    const [created, setCreated] = useState()
 
     const classes = useStyles();
 
@@ -78,10 +78,10 @@ export default function DaoCard(props) {
       summoner,
       contractId,
       link,
-      handleUpdate
+      handleUpdate,
+      makeSearchDaos
    } = props
-   console.log('props', props)
-console.log('contractId', contractId)
+ 
    const {
      near,
      didRegistryContract,
@@ -89,7 +89,7 @@ console.log('contractId', contractId)
    } = state
 
    const Dao = new Persona()
-console.log('created', props.created)
+
     useEffect(
       () => {
 
@@ -108,6 +108,7 @@ console.log('created', props.created)
                   result.owner != '' ? setOwner(result.owner) : setOwner('')
                  
            }
+           makeSearchDaos(result)
          }
     //      
               // if(summoner == state.accountId){
@@ -195,7 +196,7 @@ console.log('created', props.created)
             </Link>
                 <Typography  variant="overline" display="inline" noWrap={true} style={{lineHeight: 0}}>
                   {sname != '' ? sname : contractId.split('.')[0]}<br></br>
-                  {finished ? (<span style={{fontSize: '80%'}}>Updated: {created}</span>) : <LinearProgress />}<br></br>
+                  {finished ? (<span style={{fontSize: '80%'}}>Updated: {sdate}</span>) : <LinearProgress />}<br></br>
                   {scategory ? (<span style={{fontSize: '80%'}}>Category: {scategory}</span>): (<span style={{fontSize: '80%'}}>Category: Undefined</span>)}
                 </Typography>
               </CardContent>
