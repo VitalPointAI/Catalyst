@@ -59,31 +59,3 @@ Contact me:  [Twitter](https://twitter.com/Aaron_Luhning), [Discord](https://dis
 
 ## Roadmap
 ![roadmap|690x375](upload://msnLgi5NgNL78qfQhxQfl2ehU0C.png)
-
-#### Thanks for considering Catalyst and putting your trust in Vital Point AI to deliver.
-
-[poll name=poll1 type=regular results=on_vote public=true chartType=bar groups=Community_Council]
-# Community Council Poll
-* Yes
-* No
-* Abstain
-[/poll]
-
-
-
-
-[poll name=poll2 type=regular results=always public=true chartType=bar groups=trust_level_1,trust_level_2,trust_level_3,trust_level_4]
-# Open Community Poll (min trust_level_1 required)
-* Yes
-* No 
-* Abstain
-[/poll]
-
-
-> Voting and quorum thresholds:
-> 
-> <2K$ - 1X Yes - no minimum quorum (* quorum defined as min number of members needed for the vote to be valid)
-> 2-10K$ - 2X Yes - no min quorum
-> 10-30K$ - 3X Yes - min quorum 4 of 7 - 4X members should vote in either direction
-> Above 30K$ requires Erik or Illia’s additional approval (Head of NF/Chairman of NFC)
-> Above 100K$ requires NEAR Foundation Council approval
