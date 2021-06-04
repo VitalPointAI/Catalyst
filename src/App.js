@@ -21,7 +21,8 @@ import Daos from './components/mainPages/daos'
 import Developers from './components/mainPages/developers'
 import Supporters from './components/mainPages/supporters'
 import FAQ from './components/LandingSite/FAQ'
-
+import ArtStory from './components/LandingSite/artistStory.js'
+import NearStory from './components/LandingSite/nearStory.js'
 // Material-UI Components
 import { CircularProgress } from '@material-ui/core'
 
@@ -145,6 +146,12 @@ const App = () => {
                 </Route>
                 <Route path ="/FAQ">
                     <FAQ /> 
+                </Route>
+                <Route path ="/artistStory">
+                    <ArtStory /> 
+                </Route>
+                <Route path ="/nearStory">
+                    <NearStory /> 
                 </Route>
                 <Route path="/dao/:contractId">
                     <AppFramework

@@ -12,7 +12,7 @@ import Logo from './Logo/logo'
 import Import from './Import/import'
 import { KEY_REDIRECT } from '../state/near'
 import { Header } from './Header/header'
-import FrontPage from './LandingSite/Home'
+import FrontPage from './LandingSite/home'
 
 // Material UI
 import { makeStyles } from '@material-ui/core/styles'
