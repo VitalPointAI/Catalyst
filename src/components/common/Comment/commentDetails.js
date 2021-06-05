@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../../state/app'
 import * as nearAPI from 'near-api-js'
 import { ceramic } from '../../../utils/ceramic'
+import Persona from '@aluhning/get-personas-js'
 
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
@@ -57,21 +58,27 @@ export default function CommentDetails(props) {
         async function fetchData() {
          
             if(commentAuthor){
-              let existingDid = await didRegistryContract.hasDID({accountId: commentAuthor})
+                const thisPersona = new Persona()
+                let result = await thisPersona.getPersona(commentAuthor)
+                    if(result){
+                      result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
+                      result.name ? setName(result.name) : setName('')
+                    }
+            //   let existingDid = await didRegistryContract.hasDID({accountId: commentAuthor})
             
-              if(existingDid){
+            //   if(existingDid){
                  
-                  let authorAccount = new nearAPI.Account(near.connection, commentAuthor)
+            //       let authorAccount = new nearAPI.Account(near.connection, commentAuthor)
 
-                  let thisAuthorIdx = await ceramic.getCurrentUserIdx(authorAccount, appIdx, didRegistryContract)
+            //       let thisAuthorIdx = await ceramic.getCurrentUserIdx(authorAccount, appIdx, didRegistryContract)
               
-                  let result = await thisAuthorIdx.get('profile', thisAuthorIdx.id)
+            //       let result = await thisAuthorIdx.get('profile', thisAuthorIdx.id)
                   
-                  if(result){
-                    result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-                    result.name ? setName(result.name) : setName('')
-                  }
-              }
+            //       if(result){
+            //         result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
+            //         result.name ? setName(result.name) : setName('')
+            //       }
+            //   }
             }
             setFinished(false)
            
@@ -101,9 +108,9 @@ export default function CommentDetails(props) {
         formatCommentDate = 'undefined'
     }
 
-    const commentMember = () => {
-        comments.filter((comment) => ((comment[2] == commentAuthor) || comment.commentAuthor == commentAuthor))[0]
-    }
+    // const commentMember = () => {
+    //     comments.filter((comment) => ((comment[2] == commentAuthor) || comment.commentAuthor == commentAuthor))[0]
+    // }
 
     const deleteComment = () => {
         handleDelete()
