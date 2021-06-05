@@ -179,7 +179,7 @@ export default function ProposalList(props) {
       fetchData()
     }
    
-  },[proposalEvents, currentPeriod, allMemberInfo])
+  },[proposalEvents, allMemberInfo, currentPeriod])
 
   const handleTabChange = (event, newValue) => {
       handleTabValueState(newValue);

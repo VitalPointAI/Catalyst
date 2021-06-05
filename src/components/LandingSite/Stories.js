@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import Paper from '@material-ui/core/Paper'
 import Grid from '@material-ui/core/Grid'
 import { makeStyles } from '@material-ui/core'
@@ -61,7 +62,10 @@ const Stories = () => {
                     Read about how the Near Community Fund uses Catalyst 
                     to foster innovation, and fund new projects.
                     <br />   <br/>   <br/>
-                    <Button className={classes.button}>Take Me There</Button>
+                    <Link to="/nearStory">
+                        <Button className={classes.button}>Take Me There</Button>
+                    </Link>
+                   
                     </h3>
                 </Paper>
             </Grid> 
@@ -73,7 +77,9 @@ const Stories = () => {
                         Read about how Karen has created a community 
                         centered around her watercolour art.
                         <br/>   <br/>   <br/>   <br/>
-                        <Button className={classes.button}>Take Me There</Button>
+                        <Link to="/artistStory">
+                            <Button className={classes.button}>Take Me There</Button>
+                        </Link>
                          </h5>
                 </Paper>
             </Grid>

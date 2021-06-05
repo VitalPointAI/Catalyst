@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react'
+import { appStore, onAppMount } from '../../state/app'
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import FileUpload from '../IPFSupload/ipfsUpload'
@@ -63,6 +64,7 @@ export default function EditDaoForm(props) {
     const [loaded, setLoaded] = useState(false)
     const [date, setDate] = useState('')
     const [name, setName] = useState('')
+    const [isUpdated, setIsUpdated] = useState(false)
     const [logo, setLogo] = useState(imageName)
     const [purpose, setPurpose] = useState('')
     const [category, setCategory] = useState('')
@@ -70,26 +72,33 @@ export default function EditDaoForm(props) {
 
     const { register, handleSubmit, watch, errors } = useForm()
 
+    const { state, dispatch, update } = useContext(appStore)
+
     const {
-        state,
         handleUpdate,
         handleEditDaoClickState,
         contractId
     } = props
+
+    const {
+      near,
+      appIdx,
+      didRegistryContract
+    } = state
     
     const classes = useStyles()
 
     useEffect(() => {
         async function fetchData() {
           setLoaded(false)
-          state.isUpdated
+         
            // Set Card Persona Idx       
-           if(contractId && state.near){
+           if(contractId && near){
              // Set Dao Idx
                                
-              let daoAccount = new nearAPI.Account(state.near.connection, contractId)
+              let daoAccount = new nearAPI.Account(near.connection, contractId)
             
-              let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, state.appIdx, state.didRegistryContract)
+              let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
               setCurDaoIdx(thisCurDaoIdx)
 
               let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
@@ -108,7 +117,7 @@ export default function EditDaoForm(props) {
           .then((res) => {
             setLoaded(true)
           })
-    },[state.near, state.isUpdated])
+    },[near])
 
     function handleFileHash(hash) {
       setLogo(IPFS_PROVIDER + hash)
@@ -178,9 +187,10 @@ export default function EditDaoForm(props) {
 
         // let daoResult = await state.appIdx.set('daoList', updateDaoList)
      
-
+      setIsUpdated(true)
       setFinished(true)
-      handleUpdate()
+      update('', { isUpdated })
+      handleUpdate(true)
       setOpen(false)
       handleClose()
     }

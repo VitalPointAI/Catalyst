@@ -23,11 +23,11 @@ import Divider from '@material-ui/core/Divider'
 
 
 // ReactQuill Component
-import ReactQuill from 'react-quill';
+import ReactQuill from 'react-quill'
 
 // CSS Styles
 import '../../../node_modules/react-quill/dist/quill.snow.css'
-import { CircularProgress } from '@material-ui/core';
+import { CircularProgress } from '@material-ui/core'
 
 const useStyles = makeStyles((theme) => ({
     progress: {
@@ -141,7 +141,7 @@ export default function EditPersonaForm(props) {
       setIsUpdated(true)
       setFinished(true)
       update('', { isUpdated })
-  //    handleUpdate(true)
+      handleUpdate(true)
       setOpen(false)
       handleClose()
     }

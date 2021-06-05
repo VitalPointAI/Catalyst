@@ -720,62 +720,74 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
 
     let exists = false
 
-    let contractProposals = await daoContract.getProposalsLength()
+    let contractProposals
+    try{
+        contractProposals = await daoContract.getProposalsLength()
+    console.log('xproposal length', contractProposals)
+    } catch (err) {
+        console.log('problem retrieving proposal length', err)
+    }
     let proposalEventRecord = await curDaoIdx.get('proposals', curDaoIdx.id)
+    console.log('xproposalEventRecord', proposalEventRecord)
 
     if(!proposalEventRecord){
         proposalEventRecord = { events: [] }
     }
 
-    if(contractProposals != proposalEventRecord.events.length) {
-        let i = 0
-        while (i < contractProposals){
-            let proposal = await daoContract.getProposal({proposalId: i})
+    if(proposalEventRecord.events.length > 0){
+        if(proposalEventRecord.events.length > contractProposals){
+            proposalEventRecord = { events: [] }
+        }
+        if(contractProposals != proposalEventRecord.events.length) {
+            let i = 0
+            while (i < contractProposals){
+                let proposal = await daoContract.getProposal({proposalId: i})
 
-            if(proposal) {
-                let k = 0
-                while (k < proposalEventRecord.events.length){
-                    if(proposalEventRecord.events[k] == (proposal.pI).toString()){
-                        exists = true
-                        break
+                if(proposal) {
+                    let k = 0
+                    while (k < proposalEventRecord.events.length){
+                        if(proposalEventRecord.events[k] == (proposal.pI).toString()){
+                            exists = true
+                            break
+                        }
+                        k++
                     }
-                    k++
-                }
 
-                if(!exists){
-                    let indivProposalRecord = {
-                        proposalId: (proposal.pI).toString(),
-                        applicant: proposal.a,
-                        proposer: proposal.p,
-                        sponsor: proposal.s,
-                        sharesRequested: proposal.sR,
-                        lootRequested: proposal.lR,
-                        tributeOffered: proposal.tO,
-                        tributeToken: proposal.tT,
-                        paymentRequested: proposal.pR,
-                        paymentToken: proposal.pT,
-                        startingPeriod: proposal.sP,
-                        yesVote: proposal.yV,
-                        noVote: proposal.nV,
-                        flags: proposal.f,
-                        maxTotalSharesAndLootAtYesVote: proposal.mT,
-                        proposalSubmission: parseInt(proposal.pS),
-                        votingPeriod: proposal.vP,
-                        gracePeriod: proposal.gP,
-                        voteFinalized: parseInt(proposal.voteFinalized)
-                        }
+                    if(!exists){
+                        let indivProposalRecord = {
+                            proposalId: (proposal.pI).toString(),
+                            applicant: proposal.a,
+                            proposer: proposal.p,
+                            sponsor: proposal.s,
+                            sharesRequested: proposal.sR,
+                            lootRequested: proposal.lR,
+                            tributeOffered: proposal.tO,
+                            tributeToken: proposal.tT,
+                            paymentRequested: proposal.pR,
+                            paymentToken: proposal.pT,
+                            startingPeriod: proposal.sP,
+                            yesVote: proposal.yV,
+                            noVote: proposal.nV,
+                            flags: proposal.f,
+                            maxTotalSharesAndLootAtYesVote: proposal.mT,
+                            proposalSubmission: parseInt(proposal.pS),
+                            votingPeriod: proposal.vP,
+                            gracePeriod: proposal.gP,
+                            voteFinalized: parseInt(proposal.voteFinalized)
+                            }
 
-                        proposalEventRecord.events.push(indivProposalRecord)
-    
-                        try {
-                            await curDaoIdx.set('proposals', proposalEventRecord)
-                           
-                        } catch (err) {
-                            console.log('error logging proposal', err)
-                        }
+                            proposalEventRecord.events.push(indivProposalRecord)
+        
+                            try {
+                                await curDaoIdx.set('proposals', proposalEventRecord)
+                            
+                            } catch (err) {
+                                console.log('error logging proposal', err)
+                            }
+                    }
                 }
+            i++
             }
-        i++
         }
     }
     return true

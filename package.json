@@ -56,7 +56,7 @@
         "preinstall": "npx npm-force-resolutions",
         "deploy": "REACT_APP_ENV=\"prod\" yarn build && cp -a static/* dist && gh-pages -d dist",
         "prebuild": "npm run clean",
-        "build": "npm install --production && npx npm-force-resolutions && parcel build src/index.html --no-scope-hoist",
+        "build": "node --max-old-space-size=8192 ./node_modules/.bin/parcel build src/index.html --no-scope-hoist",
         "clean": "rimraf ./dist && rimraf .parcel-cache",
         "fix": "eslint src/ --fix",
         "startup": "npm run clean && env-cmd -f ./.env parcel src/index.html --public-url ./ --no-source-maps",

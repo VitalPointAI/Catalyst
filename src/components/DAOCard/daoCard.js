@@ -78,7 +78,6 @@ export default function DaoCard(props) {
       summoner,
       contractId,
       link,
-      handleUpdate,
       makeSearchDaos
    } = props
  
@@ -94,7 +93,7 @@ export default function DaoCard(props) {
       () => {
 
       async function fetchData() {
-         isUpdated
+        
          if(contractId){
            console.log('contractid', contractId)
            let result = await Dao.getDao(contractId)
@@ -147,8 +146,12 @@ export default function DaoCard(props) {
             setFinished(true)
           })
 
-  }, [contractId]
+  }, [isUpdated]
   )
+
+  function handleUpdate(property){
+    setIsUpdated(property)
+  }
 
   const handleEditDaoClick = () => {
     handleExpanded()
