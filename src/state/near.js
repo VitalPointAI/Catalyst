@@ -815,11 +815,11 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId)
         logMembers = { events: [] }
     }
 
+    //add summoner as needed
+
     let i = 0
     if(member && member.length > 0){
-        if(logMembers.events.length > member.length + 1){
-            logMembers = { events: [] }
-        }
+        // add processed members
         while(i < logMembers.events.length){
             if(logMembers.events[i].delegateKey == member[0].delegateKey){
                 exists = true

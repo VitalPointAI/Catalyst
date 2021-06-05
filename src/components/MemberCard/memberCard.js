@@ -116,7 +116,7 @@ export default function MemberCard(props) {
                 <Typography variant="overline" align="center">{shares > 1 ? shares + ' shares' : shares + ' share' }</Typography>
               </Grid>
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                <Typography variant="overline">{`Voting Power: ${shares && memberCount ? (shares / memberCount)*100 : '100'}%`}</Typography>
+                <Typography variant="overline">{`Voting Power: ${shares && memberCount ? Math.round((shares / memberCount)*100, 2) : '100'}%`}</Typography>
               </Grid>
             </Grid>
           </CardContent>
