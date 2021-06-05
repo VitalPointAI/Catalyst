@@ -799,8 +799,11 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId)
     let exists = false
 
     let member
+    let summoner
     try{
         member = await daoContract.getMemberInfo({member: accountId})
+        summoner = await daoContract.getSummoner()
+        console.log('synch summoner', summoner)
         console.log('member', member)
     } catch (err) {
         console.log('current user does not appear to be a member', err)
@@ -814,7 +817,7 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId)
 
     let i = 0
     if(member && member.length > 0){
-        if(logMembers.events.length > member.length){
+        if(logMembers.events.length > member.length + 1){
             logMembers = { events: [] }
         }
         while(i < logMembers.events.length){
