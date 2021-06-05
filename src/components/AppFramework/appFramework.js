@@ -298,11 +298,11 @@ export default function AppFramework(props) {
                   //  console.log('proposalCheck', proposalCheck)
 
                 //************SYNCH PROPOSALS AND CONTRACT AND MEMBERS */
-
+                  let proposals
                   try {
                     let synched = await synchProposalEvent(thisCurDaoIdx, contract)
                     if(synched){
-                      let proposals = await thisCurDaoIdx.get('proposals', thisCurDaoIdx.id)
+                        proposals = await thisCurDaoIdx.get('proposals', thisCurDaoIdx.id)
                       setAllProposals(proposals.events)
                     }
                   } catch (err) {

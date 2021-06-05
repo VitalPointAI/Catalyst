@@ -814,6 +814,9 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId)
 
     let i = 0
     if(member && member.length > 0){
+        if(logMembers.events.length > member.length){
+            logMembers = { events: [] }
+        }
         while(i < logMembers.events.length){
             if(logMembers.events[i].delegateKey == member[0].delegateKey){
                 exists = true
@@ -843,7 +846,7 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId)
             
             try {
             await curDaoIdx.set('members', logMembers)
-            memberLogged = true
+           
             } catch (err) {
                 console.log('error adding new member', err)
             }

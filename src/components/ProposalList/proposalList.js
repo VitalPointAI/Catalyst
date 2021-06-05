@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app';
 import { utils } from 'near-api-js'
-import { cancelProposal, processProposal, submitVote, GAS } from '../../state/near'
+import { cancelProposal, processProposal, submitVote, GAS, synchMember } from '../../state/near'
 
 import MemberCard from '../MemberCard/memberCard'
 import ProposalCard from '../ProposalCard/proposalCard'
@@ -55,6 +55,7 @@ const StyledBadge = withStyles((theme) => ({
 export default function ProposalList(props) {
   const [avatar, setAvatar] = useState()
   const [name, setName] = useState()
+  const [intro, setIntro] = useState('')
 
   const [loaded, setLoaded] = useState(false)
   const [proposalList, setProposalList] = useState([])
@@ -172,12 +173,34 @@ console.log('prop list curdaoidx', curDaoIdx)
       setVoteCount(newLists.votingProposals.length)
       setProcessedCount(newLists.processedProposals.length)
       setQueueCount(newLists.queueProposals.length)
+
+      if(newLists.processedProposals.length > 0){
+        console.log('newlist processed', newLists.processedProposals)
+        let i = 0
+        while (i < newLists.processedProposals.length){
+          console.log('prop type here newlist processed', newLists.processedProposals)
+          console.log('prop type here', newLists.processedProposals[i][i].proposalType)
+          if(newLists.processedProposals[i][i].proposalType == 'Member'){
+            console.log('here I am')
+            await synchMember(curDaoIdx, contract, contractId, newLists.processedProposals[i][i].applicant)
+          }
+          i++
+        }
+
+      
+      }
+
+      
     }
     
     if(proposalEvents && proposalEvents.length > 0){
       console.log('proposalEvents', proposalEvents)
       fetchData()
     }
+
+    
+  
+    
    
   },[proposalEvents, allMemberInfo, currentPeriod])
 
@@ -614,6 +637,7 @@ console.log('prop list curdaoidx', curDaoIdx)
    Votes = votingList.map((fr) => {
       return (
         <ProposalCard 
+          curDaoIdx={curDaoIdx}
           key={fr[0].requestId} 
           applicant={fr[0].applicant}
           created={fr[0].date}
@@ -654,6 +678,7 @@ console.log('prop list curdaoidx', curDaoIdx)
     Queued = queueList.map((fr) => {
       return (
         <ProposalCard 
+          curDaoIdx={curDaoIdx}
           key={fr.requestId} 
           applicant={fr.applicant}
           created={fr.date}
@@ -685,6 +710,7 @@ console.log('prop list curdaoidx', curDaoIdx)
     Queued = queueList.map((fr) => {
       return (
         <ProposalCard 
+          curDaoIdx={curDaoIdx}
           key={fr[0].requestId} 
           applicant={fr[0].applicant}
           created={fr[0].date}
@@ -714,7 +740,8 @@ console.log('prop list curdaoidx', curDaoIdx)
   if (processedList && processedList.length > 0 && tabValue == '5') {
     Processed = processedList.map((fr) => {
       return (
-        <ProposalCard 
+        <ProposalCard  
+          curDaoIdx={curDaoIdx}
           key={fr[0].requestId} 
           applicant={fr[0].applicant}
           created={fr[0].date}
