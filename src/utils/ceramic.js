@@ -550,6 +550,7 @@ async makeSeed(account){
     console.log('get contract', contract)
       set(KEY_REDIRECT, {action: false, link: ''})
       let seed = await this.getLocalAccountSeed(account.accountId)
+      console.log('seed', seed)
       if(seed == false){
         set(KEY_REDIRECT, {action: true, link: '/newKey'})
         return false
@@ -558,6 +559,7 @@ async makeSeed(account){
       console.log('currentuserceramicclient', currentUserCeramicClient)
       this.associateDID(account.accountId, contract, currentUserCeramicClient)
       let curUserIdx = new IDX({ ceramic: currentUserCeramicClient, aliases: appIdx._aliases})
+      console.log('curuseridx here', curUserIdx)
       return curUserIdx
   }
 

@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 import * as nearAPI from 'near-api-js'
 import { ceramic } from '../../utils/ceramic'
+import Persona from '@aluhning/get-personas-js'
 import EditMemberProposalForm from '../EditProposal/editMemberProposal'
 import MemberProposalDetails from '../ProposalDetails/memberProposalDetails'
 import EditFundingProposalForm from '../EditProposal/editFundingProposal'
@@ -152,7 +153,7 @@ export default function ProposalCard(props) {
         contract,
         proposalDeposit
     } = props
-
+console.log('prop card curuseridx', curDaoIdx)
     useEffect(
         () => {
          
@@ -161,25 +162,31 @@ export default function ProposalCard(props) {
          
             // Get Applicant Persona Information
             let thisCurPersonaIdx
+            console.log('applicant', applicant)
             if(applicant){
-              let existingDid = await didRegistryContract.hasDID({accountId: applicant})
+              // let existingDid = await didRegistryContract.hasDID({accountId: applicant})
+              // console.log('existingDID app', existingDid)
             
-              if(existingDid){
+              // if(existingDid){
                  
-                  let personaAccount = new nearAPI.Account(near.connection, applicant)
+              //     let personaAccount = new nearAPI.Account(near.connection, applicant)
+              //     console.log('personaAccount', personaAccount)
 
-                  thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, didRegistryContract)
-                  setCurPersonaIdx(thisCurPersonaIdx)
+              //     thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, didRegistryContract)
+              //     console.log('app thiscurpersonaidx', thisCurPersonaIdx)
+              //     setCurPersonaIdx(thisCurPersonaIdx)
               
-                  let result = await thisCurPersonaIdx.get('profile', thisCurPersonaIdx.id)
-                  console.log('result proposal persona card', result)
-                  
+              //     let result = await thisCurPersonaIdx.get('profile', thisCurPersonaIdx.id)
+              //     console.log('result proposal persona card', result)
+              const thisPersona = new Persona()
+              let result = await thisPersona.getPersona(applicant)
                   if(result){
                     result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                     result.name ? setName(result.name) : setName('')
                   }
-              }
-            }
+             }
+            
+            
 
             // Set Existing Member Proposal Data       
             if(curDaoIdx){
@@ -237,7 +244,7 @@ export default function ProposalCard(props) {
 
             })
           
-    }, [applicant, avatar, intro, title, isUpdated]
+    }, [applicant, avatar, intro, title, isUpdated, curDaoIdx]
     )
 
     function handleUpdate(property){
@@ -311,30 +318,50 @@ export default function ProposalCard(props) {
     return(
         <>
         <Card raised={true} className={classes.card}>
+          
+
           {proposalType === 'Member' ? (
-           <> 
-           <Typography variant="h6" align="left" style={{float: 'left', marginLeft: '5px'}} color="textSecondary">{proposalType} Proposal</Typography>
-           <Typography variant="h6" align="right" style={{float: 'right', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
-           <div style={{clear: 'both'}}></div>
-           <CardHeader
-              title={<><center><Avatar src={avatar} className={classes.large} /><Typography variant="h6">{name + ' (' + applicant + ')'}</Typography></center></>}
-              subheader={
-                <Grid container alignItems="center" justify="space-evenly">
-                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
-                    <Typography variant="overline">Proposed: {created}</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
-                    <Typography variant="overline">Proposed By: {proposer}</Typography>
-                  </Grid>
-                  {status == 'Sponsored' ? (
-                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                    <Typography variant="overline" color="textSecondary">Sponsor: {sponsor}</Typography>
-                  </Grid>
-                  ) : null }
-                </Grid>
-                }
-            /></>
-          ) : null }
+            <> 
+            <Typography variant="h6" align="left" style={{float: 'left', marginLeft: '5px'}} color="textSecondary">{proposalType}Proposal</Typography>
+            <Typography variant="h6" align="right" style={{float: 'right', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
+            <div style={{clear: 'both'}}></div>
+            <StyledBadgeProposer                        
+              badgeContent={applicant}
+              style={{marginLeft: '10px'}}
+            >
+              <Avatar src={avatar}  />
+            </StyledBadgeProposer>
+            <div style={{clear: 'both'}}></div>
+            <CardHeader
+               align="center"
+               title={<>
+                {accountId == proposer && status == 'Submitted' ? 
+                  <Badge badgeContent={'change'} {...defaultProps} onClick={handleEditMemberProposalDetailsClick}>
+                    <Typography variant="h6" noWrap={true} style={{fontWeight: '800', color: 'black'}}>
+                      {intro ? intro.replace(/(<([^>]+)>)/gi, ""): 'Add Introduction'}
+                    </Typography>
+                  </Badge> :
+                  <Typography variant="h6" noWrap={true} style={{fontWeight: '800', color: 'black'}} onClick={handleMemberProposalDetailsClick}>
+                      {intro ? intro.replace(/(<([^>]+)>)/gi, ""): 'No Details'}
+                  </Typography>}
+                  </>}
+               subheader={
+                 <Grid container alignItems="center" justify="space-evenly">
+                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
+                      <Typography variant="overline">Proposed: {created}</Typography>
+                   </Grid>
+                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                      
+                   </Grid>
+                   {status == 'Sponsored' ? (
+                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                     <Typography variant="overline" color="textSecondary">Sponsor: {sponsor}</Typography>
+                   </Grid>
+                   ) : null }
+                 </Grid>
+                 }
+             /></>
+           ) : null }
 
           {proposalType === 'Commitment' ? (
             <> 

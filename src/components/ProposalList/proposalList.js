@@ -141,7 +141,7 @@ export default function ProposalList(props) {
     curUserIdx,
     appClient
   } = props
-
+console.log('prop list curdaoidx', curDaoIdx)
   useEffect(() => {
 
     if(allMemberInfo){
