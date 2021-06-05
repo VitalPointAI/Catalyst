@@ -12,7 +12,7 @@ import CardContent from '@material-ui/core/CardContent'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography';
 import LockOpenTwoToneIcon from '@material-ui/icons/LockOpenTwoTone';
-import FrontPage from '../LandingSite/Home'
+import FrontPage from '../LandingSite/home'
 const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
