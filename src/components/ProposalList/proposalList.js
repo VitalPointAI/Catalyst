@@ -704,7 +704,8 @@ console.log('prop list curdaoidx', curDaoIdx)
         />
       )
     })
-  }
+  } else {
+    
   //why?????
   if (queueList && queueList.length > 1 && tabValue == '4') {
     Queued = queueList.map((fr) => {
@@ -735,6 +736,7 @@ console.log('prop list curdaoidx', curDaoIdx)
       )
     })
   }
+}
 
   let Processed
   if (processedList && processedList.length > 0 && tabValue == '5') {
