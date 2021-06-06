@@ -61,6 +61,7 @@ const useStyles = makeStyles((theme) => ({
     large: {
       width: theme.spacing(7),
       height: theme.spacing(7),
+      float: 'left'
     },
     greenButton: {
       backgroundColor: '#43a047'
@@ -79,8 +80,8 @@ const useStyles = makeStyles((theme) => ({
   const StyledBadgeProposer = withStyles((theme) => ({
     badge: {
       backgroundColor: '#f9f1f1',
-      right: -30,
-      top: 25,
+   //   right: -30,
+   //   top: 25,
       border: `1px solid #000000`,
       padding: '0 4px',
     },
@@ -95,9 +96,12 @@ const useStyles = makeStyles((theme) => ({
 
 export default function ProposalCard(props) {
 
-    const [name, setName] = useState('')
-    const [avatar, setAvatar] = useState(imageName)
+    const [applicantName, setApplicantName] = useState('')
+    const [applicantAvatar, setApplicantAvatar] = useState(imageName)
     const [intro, setIntro] = useState()
+
+    const [proposerAvatar, setProposerAvatar] = useState(imageName)
+    const [proposerName, setProposerName] = useState('')
 
     const[title, setTitle] = useState('Proposal Details')
 
@@ -181,9 +185,14 @@ console.log('prop card curuseridx', curDaoIdx)
               const thisPersona = new Persona()
               let result = await thisPersona.getPersona(applicant)
                   if(result){
-                    result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-                    result.name ? setName(result.name) : setName('')
+                    result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
+                    result.name ? setApplicantName(result.name) : setApplicantName('')
                   }
+              let resultb = await thisPersona.getPersona(proposer)
+              if(resultb){
+                resultb.avatar ? setProposerAvatar(resultb.avatar) : setProposerAvatar(imageName)
+                resultb.name ? setProposerName(resultb.name) : setProposerName('')
+              }
              }
             
             
@@ -244,7 +253,7 @@ console.log('prop card curuseridx', curDaoIdx)
 
             })
           
-    }, [applicant, avatar, intro, title, isUpdated, curDaoIdx]
+    }, [isUpdated, curDaoIdx]
     )
 
     function handleUpdate(property){
@@ -317,42 +326,35 @@ console.log('prop card curuseridx', curDaoIdx)
 
     return(
         <>
-        <Card raised={true} className={classes.card}
-      
-        
-        >
-          
+        <Card raised={true} className={classes.card}>          
 
           {proposalType === 'Member' ? (
             <> 
-            <Typography variant="h6" align="left" style={{float: 'left', marginLeft: '5px'}} color="textSecondary">{proposalType}Proposal</Typography>
-            <Typography variant="h6" align="right" style={{float: 'right', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
+            <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px'}} color="textSecondary">{proposalType}Proposal</Typography>
+            <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
             <div style={{clear: 'both'}}></div>
-            <center><Avatar src={avatar} className={classes.large}/></center>
-            <Typography variant="h6"align="center">{name ? name : null}</Typography>
-            <center><Chip label={applicant} /></center>
-            <div style={{clear: 'both'}}></div>
+            <Grid container justify="space-evenly" spacing={1} style={{marginTop:'20px'}}>
+              <Button
+              color="primary"
+              onClick={handleMemberProposalDetailsClick}
+              >
+                <Avatar src={applicantAvatar} className={classes.large}  />
+                <center><Chip label={applicantName != '' ? applicantName : applicant} style={{marginBottom: '3px'}}/><br></br>
+                <Chip variant="outlined" label={applicant} style={{fontSize: '60%'}}/></center>
+              </Button>
+            </Grid>
             <CardHeader
                style={{display: 'block'}}
                align="center"
-               title={<>
-                {accountId == proposer && status == 'Submitted' ? 
-                  <Badge badgeContent={'change'} {...defaultProps} onClick={handleEditMemberProposalDetailsClick}>
-                    <Typography variant="h6" noWrap={true} style={{fontWeight: '800', color: 'black'}}>
-                      {intro ? intro.replace(/(<([^>]+)>)/gi, ""): 'Add Introduction'}
-                    </Typography>
-                  </Badge> :
-                  <Typography variant="h6" noWrap={true} style={{fontWeight: '800', color: 'black'}} onClick={handleMemberProposalDetailsClick}>
-                      {intro ? intro.replace(/(<([^>]+)>)/gi, ""): 'No Introduction Yet'}
-                  </Typography>}
-                  </>}
+              
                subheader={
                  <Grid container alignItems="center" justify="space-evenly">
                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
                       <Typography variant="overline">Proposed: {created}</Typography>
                    </Grid>
                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                      
+                    <Typography variant="overline">By:</Typography>
+                    <Chip avatar={<Avatar src={proposerAvatar} className={classes.small}  />} label={proposerName != '' ? proposerName : proposer}/>
                    </Grid>
                    {status == 'Sponsored' ? (
                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
@@ -366,36 +368,33 @@ console.log('prop card curuseridx', curDaoIdx)
 
           {proposalType === 'Commitment' ? (
             <> 
-            <Typography variant="h6" align="left" style={{float: 'left', marginLeft: '5px'}} color="textSecondary">Funding {proposalType}</Typography>
-            <Typography variant="h6" align="right" style={{float: 'right', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
-            <StyledBadgeProposer                        
-              badgeContent={name != '' ? name : proposer}
-              style={{marginLeft: '10px'}}
-            >
-              <Avatar src={avatar}  />
-            </StyledBadgeProposer>
+            <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px'}} color="textSecondary">Funding {proposalType}</Typography>
+            <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
+            
             <div style={{clear: 'both'}}></div>
             <CardHeader
                style={{display: 'block'}}
                align="center"
-               title={<>
-                {accountId == proposer && status == 'Submitted' ? 
-                  <Badge badgeContent={'change'} {...defaultProps} onClick={handleEditFundingProposalDetailsClick}>
-                    <Typography variant="h6" noWrap={true} style={{fontWeight: '800', color: 'black'}}>
-                      {title ? title.replace(/(<([^>]+)>)/gi, ""): 'Add Details'}
-                    </Typography>
-                  </Badge> :
-                  <Typography variant="h6" noWrap={true} style={{fontWeight: '800', color: 'black'}} onClick={handleFundingProposalDetailsClick}>
-                      {title ? title.replace(/(<([^>]+)>)/gi, ""): 'Add Details'}
-                  </Typography>}
-                  </>}
+               title={
+                 <>
+                 <Button 
+                  color="primary"
+                  noWrap={true} 
+                  style={{fontWeight: '800', fontSize: '110%', lineHeight: '1.1em'}}
+                  onClick={handleFundingProposalDetailsClick}
+                 >
+                  {title ? title.replace(/(<([^>]+)>)/gi, ""): 'No Details Yet.'}
+                 </Button>
+                 </>
+                }
                subheader={
                  <Grid container alignItems="center" justify="space-evenly">
                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
                       <Typography variant="overline">Proposed: {created}</Typography>
                    </Grid>
                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                      
+                   <Typography variant="overline">By:</Typography>
+                   <Chip avatar={<Avatar src={proposerAvatar} className={classes.small}  />} label={proposerName != '' ? proposerName : proposer}/>
                    </Grid>
                    {status == 'Sponsored' ? (
                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
@@ -409,36 +408,30 @@ console.log('prop card curuseridx', curDaoIdx)
 
            {proposalType === 'Payout' ? (
             <> 
-            <Typography variant="h6" align="left" style={{float: 'left', marginLeft: '5px'}} color="textSecondary">{proposalType} Proposal</Typography>
-            <Typography variant="h6" align="right" style={{float: 'right', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
-            <div style={{clear: 'both'}}></div>
-            <StyledBadgeProposer                        
-              badgeContent={name != '' ? name : proposer}
-              style={{marginLeft: '10px'}}
-            >
-              <Avatar src={avatar}  />
-            </StyledBadgeProposer>
+            <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px'}} color="textSecondary">{proposalType} Proposal</Typography>
+            <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
             <div style={{clear: 'both'}}></div>
             <CardHeader
                style={{display: 'block'}}
                align="center"
-               title={<>
-                {accountId == proposer && status == 'Submitted' ? 
-                  <Badge badgeContent={'change'} {...defaultProps} onClick={handleEditPayoutProposalDetailsClick}>
-                    <Typography variant="h6" noWrap={true} style={{fontWeight: '800', color: 'black'}}>
-                      {payoutTitle ? payoutTitle.replace(/(<([^>]+)>)/gi, ""): 'Add Details'}
-                    </Typography>
-                  </Badge> :
-                  <Typography variant="h6" noWrap={true} style={{fontWeight: '800', color: 'black'}} onClick={handlePayoutProposalDetailsClick}>
-                      {payoutTitle ? payoutTitle.replace(/(<([^>]+)>)/gi, ""): 'Add Details'}
-                  </Typography>}
-                  </>}
+               title={ <>
+                <Button 
+                 color="primary"
+                 noWrap={true} 
+                 style={{fontWeight: '800', fontSize: '110%', lineHeight: '1.1em'}}
+                 onClick={handleFundingProposalDetailsClick}
+                >
+                 {payoutTitle ? payoutTitle.replace(/(<([^>]+)>)/gi, ""): 'No Details Yet.'}
+                </Button>
+                </>}
                subheader={
                 <><Typography variant="overline">Proposed: {created}</Typography>
                  <Grid container alignItems="center" justify="space-between">
                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
-                      
-                   </Grid>
+                    <Typography variant="overline">By:</Typography>
+                    <Chip avatar={<Avatar src={proposerAvatar} className={classes.small}  />} label={proposerName != '' ? proposerName : proposer}/>
+                   </Grid> 
+                 
                   
                    {status == 'Sponsored' ? (
                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
@@ -502,7 +495,7 @@ console.log('prop card curuseridx', curDaoIdx)
                  
                 </Grid>    
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                  <Typography variant="h5" align="center" style={{marginBottom: '10px'}}>Funding Requested</Typography>
+                  <Typography variant="h6" align="center" style={{marginBottom: '10px'}}>Funding Requested</Typography>
                 </Grid>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                   <Typography variant="h5" align="center">{`${funding} Ⓝ`}</Typography>
@@ -516,7 +509,7 @@ console.log('prop card curuseridx', curDaoIdx)
                  
                 </Grid>    
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                  <Typography variant="h5" align="center" style={{marginBottom: '10px'}}>Payout Requested</Typography>
+                  <Typography variant="h6" align="center" style={{marginBottom: '10px'}}>Payout Requested</Typography>
                 </Grid>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                   <Typography variant="h5" align="center">{`${funding} Ⓝ`}</Typography>

@@ -273,13 +273,14 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
                             allAccounts[k].key = storageLinks[j].key
                             allAccounts[k].owner = storageLinks[j].owner
                             allAccounts[k].keyStored = storageLinks[j].keyStored
+                            break
                         }
-                       
                         j++
                     }
                 k++
                 }
-                await ceramic.storeKeysSecret(curUserIdx, allAccounts, 'accountsKeys')
+                let test = await ceramic.storeKeysSecret(curUserIdx, allAccounts, 'accountsKeys')
+                console.log('test', test)
 
                 // add any accounts that are missing
                 let p = 0
@@ -829,10 +830,19 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId)
         }
 
         if(!exists){
-            let nextMemberId = logMembers.events.length + 1
+            let totalMembers
+            try {
+                totalMembers = await daoContract.getTotalMembers()
+                console.log('total Members', totalMembers)
+            } catch (err) {
+                console.log('no members', err)
+                return false
+            }
+           
+            let memberId = parseInt(totalMembers)
 
             let indivMemberRecord = {
-                memberId: nextMemberId.toString(),
+                memberId: memberId.toString(),
                 contractId: contractId,
                 delegateKey: member[0].delegateKey,
                 shares: member[0].shares,
@@ -1160,7 +1170,7 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
         // Log Member Event
         let memberEventRecord = await curDaoIdx.get('members', curDaoIdx.id)
 
-        if(!memberEventRecord){
+        if(member.length > 0 && !memberEventRecord){
             memberEventRecord = { events: [] }
         
     
@@ -1189,7 +1199,7 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
             }
             
         } else {
-
+            if(member.length > 0){
             // Update an existing member
             let exists = false
             let i = 0
@@ -1221,6 +1231,10 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                     }
                 }
             i++
+            }
+            } else {
+                memberLogged=true
+                processLogged = true
             }
         }
     }
@@ -1306,11 +1320,6 @@ export async function logVoteEvent(curDaoIdx, contractId, daoContract, proposalI
             console.log('total Members', totalMembers)
         } catch (err) {
             console.log('no members', err)
-            return false
-        }
-    
-        // Do not log if this is not the first member (>1 means the DAO was already initialized)
-        if (totalMembers > 1) {
             return false
         }
        

@@ -55,6 +55,7 @@ export default function PersonaInfo(props) {
     const [avatar, setAvatar] = useState(props.avatar)
     const [claimCount, setClaimedCount] = useState(0)
     const [daoCount, setDaoCount] = useState()
+    const [isUpdated, setIsUpdated] = useState()
 
     const { state, dispatch, update } = useContext(appStore)
 
@@ -70,8 +71,7 @@ export default function PersonaInfo(props) {
     } = state
 
     const {
-        balance,
-        handleUpdate
+        balance
     } = props
 
     const {
@@ -133,7 +133,7 @@ export default function PersonaInfo(props) {
              setFinished(true)
             })
         
-    }, [state.isUpdated, currentDaosList]
+    }, [isUpdated, currentDaosList]
     )
 
 const classes = useStyles()
@@ -151,6 +151,10 @@ const handleEditPersonaClick = () => {
 
   function handleExpanded() {
     setAnchorEl(null)
+  }
+
+  function handleUpdate(property){
+      setIsUpdated(property)
   }
 
     return (

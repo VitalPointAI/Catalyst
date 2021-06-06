@@ -17,6 +17,7 @@ target
 
 # testing
 /coverage
+/ipfs
 
 
 # production
