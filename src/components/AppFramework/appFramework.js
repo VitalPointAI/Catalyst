@@ -238,7 +238,8 @@ export default function AppFramework(props) {
                        if(newVotes[x].contractId==contractId && newVotes[x].new == true){
                          
                           let loggedVote = await logVoteEvent(
-                           thisCurDaoIdx, 
+                           thisCurDaoIdx,
+                           contractId,
                            contract, 
                            newVotes[x].proposalId,
                            accountId

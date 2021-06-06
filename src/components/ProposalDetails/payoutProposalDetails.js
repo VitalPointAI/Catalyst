@@ -3,6 +3,7 @@ import { appStore, onAppMount } from '../../state/app'
 import { makeStyles } from '@material-ui/core/styles'
 import CommentForm from '../common/Comment/commentForm'
 import CommentDetails from '../common/Comment/commentDetails'
+import Persona from '@aluhning/get-personas-js'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -106,13 +107,19 @@ export default function PayoutProposalDetails(props) {
             // Get Applicant Persona Information
            
             if(applicant){                           
-                  let result = await curPersonaIdx.get('profile', curPersonaIdx.id)
-                  console.log('result proposal details persona card', result)
+                  // let result = await curPersonaIdx.get('profile', curPersonaIdx.id)
+                  // console.log('result proposal details persona card', result)
                   
-                  if(result){
-                    result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-                    result.name ? setName(result.name) : setName('')
-                  }
+                  // if(result){
+                  //   result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
+                  //   result.name ? setName(result.name) : setName('')
+                  // }
+                  const thisPersona = new Persona()
+                  let result = await thisPersona.getPersona(applicant)
+                      if(result){
+                        result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
+                        result.name ? setName(result.name) : setName('')
+                      }
             }
             
 
@@ -142,7 +149,7 @@ export default function PayoutProposalDetails(props) {
                 commentResult = { comments: [] }
               }
               console.log('commentResult', commentResult)
-              if(commentResult) {
+              if(commentResult && Object.keys(commentResult).length != 0) {
                 let j = 0
                 let comments = []
                 while (j < commentResult.comments.length){
@@ -164,11 +171,11 @@ export default function PayoutProposalDetails(props) {
               setFinished(true)
             })
           
-    }, [applicant, avatar, title, detailsOfCompletion, milestoneId, refFundingId, name, isUpdated]
+    }, [applicant, avatar, payoutTitle, detailsOfCompletion, milestoneId, refFundingId, name, isUpdated]
     )
 
     const handleClose = () => {
-        handleFundingProposalDetailsClickState(false)
+        handlePayoutProposalDetailsClickState(false)
         setOpen(false)
     }
 

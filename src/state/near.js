@@ -742,7 +742,7 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
             let i = 0
             while (i < contractProposals){
                 let proposal = await daoContract.getProposal({proposalId: i})
-
+                console.log('xproposal', proposal)
                 if(proposal) {
                     let k = 0
                     while (k < proposalEventRecord.events.length){
@@ -1130,6 +1130,7 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                         await curDaoIdx.set('proposals', proposalRecords)
                         exists = true
                         processLogged = true
+                        memberLogged = true
                         break
                     } catch (err) {
                         console.log('error logging process event', err)
@@ -1144,6 +1145,7 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
 
         let member = await daoContract.getMemberInfo({member: proposal.a})
         console.log('member process', member)
+
         let totalMembers
         try {
             totalMembers = await daoContract.getTotalMembers()
@@ -1154,15 +1156,14 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
         }
 
         let memberId = parseInt(totalMembers)
-        if(member.length == 1){
-            if(memberId) {
-            
-            // Log Member Event
-            let memberEventRecord = await curDaoIdx.get('members', curDaoIdx.id)
-            if(!memberEventRecord){
-                memberEventRecord = { events: [] }
-            }
+       
+        // Log Member Event
+        let memberEventRecord = await curDaoIdx.get('members', curDaoIdx.id)
+
+        if(!memberEventRecord){
+            memberEventRecord = { events: [] }
         
+    
             let indivMemberEventRecord = {
                 memberId: memberId.toString(),
                 contractId: contractId,
@@ -1175,28 +1176,25 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                 joined: parseInt(member[0].joined),
                 updated: parseInt(member[0].updated)
             }
-        
+    
             memberEventRecord.events.push(indivMemberEventRecord)
             console.log('memberEventRecord.events', memberEventRecord.events)
-            
+                
             try {
             await curDaoIdx.set('members', memberEventRecord)
             memberLogged = true
+            processLogged = true
             } catch (err) {
                 console.log('error adding new member', err)
             }
-            }
+            
         } else {
-            let member = await daoContract.getMemberInfo({member: accountId})
-            console.log('member processed', member)
-
-            let memberEventRecord = await curDaoIdx.get('members', curDaoIdx.id)
 
             // Update an existing member
             let exists = false
             let i = 0
             while (i < memberEventRecord.events.length){
-                if(memberEventRecord.events[i].memberId == memberId.toString()){
+                if(memberEventRecord.events[i].delegateKey == member[0].delegateKey){
                     let updatedMemberRecord = {
                         memberId: memberId.toString(),
                         contractId: contractId,
@@ -1209,11 +1207,14 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                         joined: parseInt(member[0].joined),
                         updated: parseInt(member[0].updated)
                         }
+
                     memberEventRecord.events[i] = updatedMemberRecord
+
                     try {
                         await curDaoIdx.set('members', memberEventRecord)
                         exists = true
                         memberLogged = true
+                        processLogged = true
                         break
                     } catch (err) {
                         console.log('error updating member', err)
@@ -1224,7 +1225,7 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
         }
     }
     console.log('processLogged', processLogged)
-    console.log('memberLogged', memberLogged)
+    console.log('memberprocessLogged', memberLogged)
     if(processLogged && memberLogged){
         return true
     } else {
@@ -1233,7 +1234,7 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
 }
 
 // Logs a Vote Event
-export async function logVoteEvent(curDaoIdx, daoContract, proposalId, accountId) {
+export async function logVoteEvent(curDaoIdx, contractId, daoContract, proposalId, accountId) {
 
     let voteLogged = false
     let memberLogged = false
@@ -1299,28 +1300,45 @@ export async function logVoteEvent(curDaoIdx, daoContract, proposalId, accountId
 
         let memberEventRecord = await curDaoIdx.get('members', curDaoIdx.id)
 
+        let totalMembers
+        try {
+            totalMembers = await daoContract.getTotalMembers()
+            console.log('total Members', totalMembers)
+        } catch (err) {
+            console.log('no members', err)
+            return false
+        }
+    
+        // Do not log if this is not the first member (>1 means the DAO was already initialized)
+        if (totalMembers > 1) {
+            return false
+        }
+       
+        let memberId = parseInt(totalMembers)
+
          // Update the existing voting member
-         let memberExists = false
+         let memberExists
          let j = 0
          while (j < memberEventRecord.events.length){
              console.log('member', member)
-             if(memberEventRecord.events[j].memberId == member.memberId){
+             if(memberEventRecord.events[j].delegateKey == member[0].delegateKey){
                  let updatedMemberRecord = {
-                    memberId: member.memberId.toString(),
+                    memberId: memberId.toString(),
                     contractId: contractId,
-                    delegateKey: member.member[0].delegateKey,
-                    shares: member.member[0].shares,
-                    loot: member.member[0].loot,
-                    existing: member.member[0].existing,
-                    highestIndexYesVote: member.member[0].highestIndexYesVote,
-                    jailed: member.member[0].jailed,
-                    joined: member.member[0].joined,
-                    updated: member.member[0].updated
+                    delegateKey: member[0].delegateKey,
+                    shares: member[0].shares,
+                    loot: member[0].loot,
+                    existing: member[0].existing,
+                    highestIndexYesVote: member[0].highestIndexYesVote,
+                    jailed: member[0].jailed,
+                    joined: parseInt(member[0].joined),
+                    updated: parseInt(member[0].updated)
                      }
                  memberEventRecord.events[j] = updatedMemberRecord
 
                  try{
-                    await curDaoIdx.set('members', memberEventRecord)
+                    let memberlog = await curDaoIdx.set('members', memberEventRecord)
+                    console.log('memberlog', memberlog)
                     memberExists = true
                     memberLogged = true
                     break

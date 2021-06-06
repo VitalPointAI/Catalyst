@@ -138,11 +138,12 @@ export default function MemberProposalDetails(props) {
             // Set Existing Proposal Comments      
             if(curDaoIdx){
               let commentResult = await curDaoIdx.get('comments', curDaoIdx.id)
+              console.log('commentresult', commentResult)
               if(!commentResult){
                 commentResult = { comments: [] }
               }
               console.log('commentResult', commentResult)
-              if(commentResult) {
+              if(commentResult && Object.keys(commentResult).length != 0) {
                 let j = 0
                 let comments = []
                 while (j < commentResult.comments.length){

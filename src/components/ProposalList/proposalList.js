@@ -179,10 +179,10 @@ console.log('prop list curdaoidx', curDaoIdx)
         let i = 0
         while (i < newLists.processedProposals.length){
           console.log('prop type here newlist processed', newLists.processedProposals)
-          console.log('prop type here', newLists.processedProposals[i][i].proposalType)
-          if(newLists.processedProposals[i][i].proposalType == 'Member'){
+          console.log('prop type here', newLists.processedProposals[i][0].proposalType)
+          if(newLists.processedProposals[i][0].proposalType == 'Member'){
             console.log('here I am')
-            await synchMember(curDaoIdx, contract, contractId, newLists.processedProposals[i][i].applicant)
+            await synchMember(curDaoIdx, contract, contractId, newLists.processedProposals[i][0].applicant)
           }
           i++
         }
@@ -330,7 +330,7 @@ console.log('prop list curdaoidx', curDaoIdx)
   }
 
   function getStatus(flags) {
-    // flags [sponsored, processed, didPass, cancelled, whitelist, guildkick, member]
+    // flags [sponsored, processed, didPass, cancelled, whitelist, guildkick, member, commitment]
     let status = ''
     if(!flags[0] && !flags[1] && !flags[2] && !flags[3]) {
     status = 'Submitted'
@@ -338,7 +338,7 @@ console.log('prop list curdaoidx', curDaoIdx)
     if(flags[0] && !flags[1] && !flags[2] && !flags[3]) {
     status = 'Sponsored'
     }
-    if(flags[0] && flags[1] && !flags[2] && !flags[3]) {
+    if(flags[0] && flags[1] && !flags[3]) {
     status = 'Processed'
     }
     if(flags[0] && flags[1] && flags[2] && !flags[3]) {
