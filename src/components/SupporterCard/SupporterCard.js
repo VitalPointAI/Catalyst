@@ -19,7 +19,7 @@ const useStyles = makeStyles((theme) => ({
         marginTop: 0,
     },
     card: {
-      marginTop: '10px'
+      margin: 'auto'
     },
     avatar: {
       backgroundColor: red[500],
@@ -57,7 +57,7 @@ export default function SupporterCard(props) {
       donation,
       contributed,
     } = props
-console.log('donation', donation)
+
     const thisPersona = new Persona()
 
     useEffect(

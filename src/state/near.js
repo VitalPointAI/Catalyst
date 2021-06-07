@@ -508,6 +508,37 @@ export async function initDao(wallet, contractId, periodDuration, votingPeriodLe
     return true
 }
 
+function sendMessage(content, type, data){
+    let request = new XMLHttpRequest()
+
+    switch(type){
+        case 'member':
+            request.open("POST", 'https://discord.com/api/webhooks/851413881570066442/pmuovskYG-5uibZ3edWdZSt5VY9xyd6YVd2wg_Fejcv8jBAZUNNWxINLaHpahza6xDfP')
+
+            request.setRequestHeader('Content-type', 'application/json')
+
+            let embeddedData = {
+                author: {
+                    name: data.applicant,
+                    url: data.url
+                }
+            }
+
+            let params = {
+                username: 'Member Manager',
+                content: content,
+                embeds: [embeddedData]
+            }
+
+            request.send(JSON.stringify(params))
+            return true
+        
+
+        default:
+            return false
+    }
+}
+
 // Initializes a DAO by setting its key components
 export async function submitProposal(
     wallet, 
@@ -1084,6 +1115,14 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId) {
         }
 
     if(logged){
+        // Discord Integration
+        if(proposal.f[6]){
+            let data = {
+                applicant: proposal.a,
+                url: 'http://localhost:1234/dao/' + curDaoIdx.id
+            }
+            sendMessage('New member application received for ' + proposal.a, 'member', data)
+        }
         return true
     } else {
         return false
