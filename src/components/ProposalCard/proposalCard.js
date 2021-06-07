@@ -473,7 +473,7 @@ console.log('prop card curuseridx', curDaoIdx)
             {proposalType == 'Member' ? (
               <Grid container alignItems="center" justify="space-evenly" style={{marginBottom:'5px'}}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-20px'}}>
-                  <Typography variant="overline">Shares: {shares} | </Typography>
+                  <Typography variant="overline">Shares: {shares}</Typography><br></br>
                   <Typography variant="overline">{`Tribute: ${tribute} Ⓝ`}</Typography>
                 </Grid>
               </Grid>
@@ -614,7 +614,7 @@ console.log('prop card curuseridx', curDaoIdx)
               ) : null }
 
               {status == 'Passed' || status == 'Not Passed' ? (
-                <Grid container alignItems="center" justify="space-between" spacing={1}>
+                <Grid container alignItems="center" justify="space-between" spacing={1} >
                   <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="left" >
                     <StyledBadge badgeContent={yesVotes} color="primary">
                       <IconButton onClick={(e) => handleVotingAction(requestId, 'yes')} disabled={true}>
@@ -637,6 +637,7 @@ console.log('prop card curuseridx', curDaoIdx)
                 </Grid>
               ) : null }
                
+              
               <Grid container alignItems="center" justify="space-evenly" spacing={1}>
 
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
