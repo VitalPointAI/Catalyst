@@ -99,7 +99,6 @@ export const onAppMount = () => async ({ update, getState, dispatch }) => {
                 }
             }
         }
-        
     } else {
         dispatch(initNear());
     }
