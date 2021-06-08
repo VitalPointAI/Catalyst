@@ -12,8 +12,8 @@ import RedditIcon from '@material-ui/icons/Reddit';
 import TelegramIcon from '@material-ui/icons/Telegram';
 import LinkedInIcon from '@material-ui/icons/LinkedIn';
 import Grid from '@material-ui/core/Grid'
-//other libraries
 
+//other libraries
 import {
     FacebookShareButton,
     LinkedinShareButton,
