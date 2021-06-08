@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react'
 import logo from '../../img/catalyst-by-vpai.png'
-
+import Persona from '@aluhning/get-personas-js'
 import { login } from '../../state/near'
 //material ui imports
 import { CircularProgress } from '@material-ui/core'
@@ -16,13 +16,24 @@ import Typography from '@material-ui/core/Typography'
 //...
 
 const Receiver = ({state}) => {
+
     const {
         app, wallet, links, claimed, accountId, curInfo, finished
     } = state
+    const [sname, setsName] = useState('')
     const linkArray = (window.location.pathname.split("/")).slice(2);
     const link = window.location.origin + "/" + `${linkArray[0]}` + "/" + `${linkArray[1]}`
-    const daoName = (linkArray[1].split("."))[0]
+    const dao = new Persona(); 
+
     useEffect(() => {
+        async function fetchData(){
+            let result = await dao.getDao(`${linkArray[1]}`)
+            console.log('result dao', result)
+            if(result){
+                   result.name != '' ? setsName(result.name) : setsName('')
+            }
+        }
+        fetchData()
     },[]);
 
     return (
@@ -33,12 +44,12 @@ const Receiver = ({state}) => {
                     <img style={{width: 300}} src={logo}/>
                 </Grid>
                 <Grid item xs={6}>
-                    <Typography style={{fontSize: 24}}>You've been invited to {`${daoName}`}!</Typography>
+                    <Typography style={{fontSize: 24}}>You've been invited to {`${sname}`}!</Typography>
                 </Grid>
                 <Grid item xs={6}>
                 {wallet && wallet.signedIn? 
                   <Button  style={{backgroundColor: '#ffa366'}} variant="outlined" href={link}>
-                    Accept Invitation
+                    Go to Community
                   </Button>
                  :
                  <Button style={{backgroundColor: '#ffa366'}} variant="contained" onClick={login}>
