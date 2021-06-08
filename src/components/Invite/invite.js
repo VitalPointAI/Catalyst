@@ -11,6 +11,7 @@ import EmailIcon from '@material-ui/icons/Email';
 import RedditIcon from '@material-ui/icons/Reddit';
 import TelegramIcon from '@material-ui/icons/Telegram';
 import LinkedInIcon from '@material-ui/icons/LinkedIn';
+import Grid from '@material-ui/core/Grid'
 //other libraries
 
 import {
@@ -46,14 +47,28 @@ const Invite = (props) => {
         <Dialog open={open}>
             <DialogTitle>Share Link</DialogTitle>
             <TextField style={{width: 400}} placeholder={`${link}`} id="linkField"/>
-            <Button onClick={handleClose}>Close</Button> 
             <Button onClick={handleCopy}>Copy</Button>
-            <FacebookShareButton url={link}><FacebookIcon></FacebookIcon></FacebookShareButton>
-            <TwitterShareButton url={link}><TwitterIcon></TwitterIcon></TwitterShareButton>
-            <EmailShareButton url={link}><EmailIcon></EmailIcon></EmailShareButton>
-            <RedditShareButton url={link}><RedditIcon></RedditIcon></RedditShareButton>
-            <TelegramShareButton url={link}><TelegramIcon></TelegramIcon></TelegramShareButton>
-            <LinkedinShareButton url={link}><LinkedInIcon></LinkedInIcon></LinkedinShareButton>
+            <Grid style={{padding: 2}} container justify='center' spacing={4}>
+            <Grid item xs={2}>
+            <FacebookShareButton style={{width: 40}} url={link}><FacebookIcon style={{fontSize: "35px"}}></FacebookIcon></FacebookShareButton>
+            </Grid>
+            <Grid item xs={2}>
+            <TwitterShareButton style={{width: 40}} url={link}><TwitterIcon style={{fontSize: "35px"}}></TwitterIcon></TwitterShareButton>
+            </Grid>
+            <Grid item xs={2}>
+            <EmailShareButton style={{width: 40}} url={link}><EmailIcon style={{fontSize: "35px"}}></EmailIcon></EmailShareButton>
+            </Grid>
+            <Grid item xs={2}>
+            <RedditShareButton style={{width: 40}} url={link}><RedditIcon style={{fontSize: "35px"}}></RedditIcon></RedditShareButton>
+            </Grid>
+            <Grid item xs={2}>
+            <LinkedinShareButton style={{width: 40}} url={link}><LinkedInIcon style={{fontSize: "35px"}}></LinkedInIcon></LinkedinShareButton>
+            </Grid>
+            <Grid item xs={2}>
+            <TelegramShareButton style={{width: 40}} url={link}><TelegramIcon style={{fontSize: "35px"}}></TelegramIcon></TelegramShareButton>
+            </Grid>
+            </Grid>
+            <Button onClick={handleClose}>Close</Button>
         </Dialog>
         </div>
     ); 
