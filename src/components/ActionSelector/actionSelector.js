@@ -9,7 +9,7 @@ import MemberProposal from '../MemberProposal/memberProposal'
 import VotingProposal from '../VotingRights/votingRightsProposal'
 import PayoutProposal from '../PayoutProposal/payoutProposal'
 import Donation from '../Donation/donation'
-
+import Invite from '../Invite/invite'
 // Material UI Components
 import { makeStyles } from '@material-ui/core/styles'
 import { withStyles } from '@material-ui/core/styles'
@@ -78,6 +78,7 @@ export default function ActionSelector(props) {
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = useState(null);
   const [memberProposalClicked, setMemberProposalClicked] = useState(false)
+  const [inviteClicked, setInviteClicked] = useState(false); 
   const [fundingProposalClicked, setFundingProposalClicked] = useState(false)
   const [payoutProposalClicked, setPayoutProposalClicked] = useState(false)
   const [donationProposalClicked, setDonationProposalClicked] = useState(false)
@@ -153,8 +154,16 @@ export default function ActionSelector(props) {
     handlePayoutProposalClickState(true)
   }
 
+  const  handleInvite = () => {
+    handleInviteClickState(true); 
+  }
+
   function handleDonationProposalClickState(property) {
     setDonationProposalClicked(property)
+  }
+
+  function handleInviteClickState(property) {
+    setInviteClicked(property)
   }
 
   function handleWhiteListClickState(property) {
@@ -224,6 +233,16 @@ export default function ActionSelector(props) {
         onClick={handleClick}
       >
         Submit Proposals
+      </Button>
+      <Button
+        style={{marginLeft: 5}}
+        aria-controls="fade-menu"
+        aria-haspopup="true"
+        variant="contained"
+        color="primary"
+        onClick={handleInvite}
+      >
+        Invite
       </Button>
       {memberStatus ? (
       <StyledMenu
@@ -331,6 +350,10 @@ export default function ActionSelector(props) {
       didsContract={didsContract}
       idx={idx}
       handleTabValueState={handleTabValueState}/> : null }
+ 
+      {inviteClicked ? <Invite 
+      handleInviteClickState={handleInviteClickState}
+      />: null}
 
       {fundingProposalClicked ? <FundingProposal
       contractId={contractId}
