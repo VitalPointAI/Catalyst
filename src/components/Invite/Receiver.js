@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react'
 import logo from '../../img/catalyst-by-vpai.png'
 import Persona from '@aluhning/get-personas-js'
 import { login } from '../../state/near'
+import { config } from '../../state/config'
 //material ui imports
 import { CircularProgress } from '@material-ui/core'
 import Grid from '@material-ui/core/Grid'
@@ -22,12 +23,12 @@ const Receiver = ({state}) => {
     } = state
     const [sname, setsName] = useState('')
     const linkArray = (window.location.pathname.split("/")).slice(2);
-    const link = window.location.origin + "/" + `${linkArray[0]}` + "/" + `${linkArray[1]}`
+    const link = window.location.origin + "/dao/" + `${linkArray[0]}` + "." + `${config.factoryContractName}`
     const dao = new Persona(); 
 
     useEffect(() => {
         async function fetchData(){
-            let result = await dao.getDao(`${linkArray[1]}`)
+            let result = await dao.getDao(`${linkArray[0]}` + "." + `${config.factoryContractName}`)
             console.log('result dao', result)
             if(result){
                    result.name != '' ? setsName(result.name) : setsName('')
