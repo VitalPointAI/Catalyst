@@ -23,6 +23,7 @@ import Supporters from './components/mainPages/supporters'
 import FAQ from './components/LandingSite/FAQ'
 import ArtStory from './components/LandingSite/artistStory.js'
 import NearStory from './components/LandingSite/nearStory.js'
+import ReceiveInvite from './components/Invite/Receiver'
 // Material-UI Components
 import { CircularProgress } from '@material-ui/core'
 
@@ -139,6 +140,11 @@ const App = () => {
                         severity={severity}
                         errorMessage={errorMessage}
                         successMessage={successMessage}
+                    />
+                </Route>
+                <Route path="/invitation">
+                    <ReceiveInvite
+                        state={state}
                     />
                 </Route>
                 <Route path="/newKey">
