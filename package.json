@@ -1,7 +1,8 @@
 {
     "name": "catalyst",
     "version": "1.0.1",
-    "description": "Build personas for NEAR accounts",
+    "homepage": ".",
+    "description": "Catalyzing self organization with community DAOs.",
     "author": "Aaron Luhning",
     "license": "ISC",
     "dependencies": {
@@ -45,9 +46,6 @@
         "babel-plugin-react-html-attrs": "^3.0.5",
         "parcel": "^2.0.0-beta.2",
         "rimraf": "^3.0.2"
-    },
-    "engines": {
-        "node": "14.16.1"
     },
     "browserslist": [
         "last 1 Chrome versions"
