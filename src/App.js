@@ -142,7 +142,7 @@ const App = () => {
                         successMessage={successMessage}
                     />
                 </Route>
-                <Route path="/invitation">
+                <Route path="/inv">
                     <ReceiveInvite
                         state={state}
                     />

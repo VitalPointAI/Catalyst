@@ -11,6 +11,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import Chip from '@material-ui/core/Chip'
 import RightSideDrawer from '../AppFramework/RightSideDrawer'
 import { CircularProgress } from '@material-ui/core'
+import { Autocomplete } from '@material-ui/lab'
 
 const useStyles = makeStyles((theme) => ({
     logo: {
@@ -133,7 +134,7 @@ export default function Logo(props) {
     }
  
     return (
-        <>
+        <>        
         {loaded ? (
         logo != catalystLogo ?
             logo == defaultLogo ? 

@@ -25,8 +25,8 @@ const useStyles = makeStyles((theme) => ({
       //  maxWidth: 640,
         margin: 'auto',
       //  marginTop: 50,
-        marginBottom: 50,
-        minHeight: 550,
+      //  marginBottom: 50,
+     //   minHeight: 550,
         padding: '0px',
     },
     paper: {
@@ -72,19 +72,15 @@ export const Container = ({ children, state, handleSnackBarOpen, handleSuccessMe
         successMessage={successMessage}/>
        
         
-        {finished ? (
-            <Grid container spacing={0}>
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                {wallet && wallet.signedIn ? children : <SignIn wallet={wallet} state={state}/>}
-                </Grid>
-            </Grid>
-            ) : state.accountData ? (
-                <Grid container spacing={0}>
-                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+        {finished ? 
+           
+                wallet && wallet.signedIn ? children : <SignIn wallet={wallet} state={state}/>
+               
+             : state.accountData ? (
+                
                         {children}
-                    </Grid>
-              </Grid>
-            ) : <CircularProgress/> 
+                   
+            ) : <div style={{width: '100%', textAlign: 'center'}}><CircularProgress/></div>
         }
             
    
@@ -101,8 +97,9 @@ export const Container = ({ children, state, handleSnackBarOpen, handleSuccessMe
                 </div>
             </div>
         }
+       
     </div>
-    <Footer />
+    
     </>
     )
 }

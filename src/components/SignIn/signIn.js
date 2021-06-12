@@ -15,11 +15,11 @@ import LockOpenTwoToneIcon from '@material-ui/icons/LockOpenTwoTone';
 import FrontPage from '../LandingSite/home'
 const useStyles = makeStyles((theme) => ({
     root: {
-        flexGrow: 1,
+     //   flexGrow: 1,
       //  maxWidth: '95%',
-        margin: 'auto',
-        marginTop: 50,
-        minHeight: 500,
+     //   margin: 'auto',
+     //   marginTop: 50,
+     //   minHeight: 500,
     },
     customCard: {
         maxWidth: '95%',

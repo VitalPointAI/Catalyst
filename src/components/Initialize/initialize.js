@@ -66,6 +66,8 @@ export default function Initialize(props) {
     const [gracePeriodLength, setGracePeriodLength] = useState('')
     const [proposalDeposit, setProposalDeposit] = useState('')
     const [dilutionBound, setDilutionBound] = useState('')
+    const [summonerContribution, setSummonerContribution] = useState('')
+
     const [confirm, setConfirm] = useState(false)
     const [clicked, setClicked] = useState(false)
     const [summoner, setSummoner] = useState()
@@ -128,6 +130,10 @@ export default function Initialize(props) {
       const handleProposalDepositChange = (event) => {
           setProposalDeposit(event.target.value);
       }
+
+      const handleSummonerContributionChange = (event) => {
+        setSummonerContribution(event.target.value)
+      }
   
       const handleConfirmChange = (event) => {
         setConfirm(event.target.checked);
@@ -143,10 +149,9 @@ export default function Initialize(props) {
             votingPeriodLength, 
             gracePeriodLength, 
             proposalDeposit, 
-            dilutionBound, 
-            'Democracy', 
-            state.appIdx, 
-            state.didRegistryContract)
+            dilutionBound,
+            summonerContribution
+            )
           
           handleSuccessMessage('Successfully created Democracy DAO.', 'success')
           handleSnackBarOpen(true)
@@ -286,6 +291,31 @@ export default function Initialize(props) {
                   </>
                 }}
               />
+                 
+              <TextField
+                fullWidth
+                margin="dense"
+                id="summoner-contribution"
+                required={true}
+                variant="outlined"
+                name="summonerContribution"
+                label="Initial Contribution"
+                placeholder="e.g. 100000"
+                value={summonerContribution}
+                onChange={handleSummonerContributionChange}
+                inputRef={register({
+                    required: true,
+                    validate: value => value != '' || <p style={{color:'red'}}>You must specify the amount that will be contributed to the community on initialization.</p>
+                })}
+                InputProps={{
+                  endAdornment: <><InputAdornment position="end">Ⓝ</InputAdornment>
+                  <Tooltip TransitionComponent={Zoom} title="The amount of Ⓝ the community creator is contributing. This will allocate 1 voting share per 1 Ⓝ contributed.">
+                      <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
+                  </Tooltip>
+                  </>
+                }}
+              />
+
               </CardContent>
               </Card>
         </Grid>

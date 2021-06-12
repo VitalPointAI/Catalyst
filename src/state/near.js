@@ -483,23 +483,25 @@ export const keyRotation = () => async ({ update, getState, dispatch }) => {
 }
 
 // Initializes a DAO by setting its key components
-export async function initDao(wallet, contractId, periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound) {
+export async function initDao(wallet, contractId, periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound, summonerContribution) {
 
     try {
         const daoContract = await dao.initDaoContract(wallet.account(), contractId)
 
         // set trigger for first init to log summon and member events
         let firstInit = get(DAO_FIRST_INIT, [])
-        firstInit.push({contractId: contractId, init: true })
+        firstInit.push({contractId: contractId, contribution: summonerContribution, init: true })
         set(DAO_FIRST_INIT, firstInit)
-
+       
         await daoContract.init({
             _periodDuration: parseInt(periodDuration),
             _votingPeriodLength: parseInt(votingPeriodLength),
             _gracePeriodLength: parseInt(gracePeriodLength),
             _proposalDeposit: proposalDeposit,
-            _dilutionBound: parseInt(dilutionBound)
-        }, GAS)
+            _dilutionBound: parseInt(dilutionBound),
+            _shares: summonerContribution,
+            _contractId: contractId
+        }, GAS, parseNearAmount(summonerContribution))
 
     } catch (err) {
         console.log('init failed', err)
@@ -942,7 +944,7 @@ export async function addDaoToList (appIdx, contractId, summoner, created, categ
 }
 
 // Logs the initial member and summoning event when a DAO is created
-export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType, accountId) {
+export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType, accountId, contribution) {
 
     let summoner
     let periodDuration
@@ -999,7 +1001,7 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
         memberId: memberId.toString(),
         contractId: contractId,
         delegateKey: accountId,
-        shares: '1',
+        shares: contribution,
         loot: '0',
         existing: true,
         highestIndexYesVote: 0,

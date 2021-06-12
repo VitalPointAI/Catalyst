@@ -18,8 +18,10 @@ const useStyles = makeStyles((theme) => ({
         margin: 'auto',
       //  marginTop: 50,
       //  marginBottom: '50px',
-        minHeight: 700,
-        padding: '0px',
+      height: '100vh',
+      position: 'relative',
+      display: 'flex',
+      flexDirection: 'column'
     },
     featureDAO: {
         minHeight: '200px',

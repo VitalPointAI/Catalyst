@@ -1,27 +1,35 @@
 import React from 'react' 
 import MainBanner from './mainBanner'
 import Stories from './stories'
+import Footer from '../../components/common/Footer/footer'
 
 // Material UI Components
 import { makeStyles } from '@material-ui/core'
 import Button from '@material-ui/core/Button'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
+import useMediaQuery from '@material-ui/core/useMediaQuery'
+import Divider from '@material-ui/core/Divider'
 
 const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
-        minHeight: '100%',
         margin: 'auto',
-        width: 1000,
         paddingTop: 20, 
+       
     },
     top: {
-        background: 'linear-gradient(180deg, #80d4ff, white)',
-        height: '45px',
-        margin: 0,
-        minWidth: '100%',
-        padding: 0,
+        backgroundImage: 'linear-gradient(180deg, #80d4ff, white)',
+       // height: '45px',
+      //  margin: 'auto',
+        backgroundSize: '100%',
+    //    margin: 0,
+    //    minWidth: '100%',
+    //    padding: 0,
+  
+    position: 'relative',
+    display: 'flex',
+    flexDirection: 'column'
     },
     bottom: {
         background: 'linear-gradient(360deg, #80d4ff, white)',
@@ -70,26 +78,49 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const FrontPage = () => {
-    const classes = useStyles(); 
+    const classes = useStyles()
+    const matches = useMediaQuery('(max-width:420px)')
+
     return(
     <>
-    <div className = {classes.top}></div>
-    <Grid container justify="center" className={classes.root} spacing={2}>
-        <Grid item xs={12}>
-                <MainBanner></MainBanner>
-        </Grid> 
-        <Grid item xs={12}>
-              <h2 className={classes.center}>Discover some ways <span className={classes.specialtext}>Catalyst</span> is being used...</h2>
-              <Stories></Stories>
+   <div className={classes.top}>
+   {!matches ?
+        <Grid container justify="center" alignItems="center" spacing={3} >
+            <Grid item xs={12} sm={12} md={10} lg={8} xl={8} style={{marginTop: '50px', marginBottom: '50px'}}>
+                <MainBanner />
+            </Grid> 
+            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                <Typography variant="h3" align="center" style={{marginBottom: '20px'}}>
+                    Discover the communities growing with <span className={classes.specialtext}>Catalyst</span>...
+                </Typography>
+                <Stories/>
+            </Grid>
+            <Grid item xs={12}>
+                <h2 className={classes.bottomtext}>...or learn how Catalyst works</h2>
+            </Grid>
+            <Button href='/FAQ' className={classes.button2}>Visit the FAQ</Button>
         </Grid>
-        <Grid item xs={12}>
-             <h2 className={classes.bottomtext}>...or learn about how it works</h2>
+    :
+        <Grid container justify="center" alignItems="center" spacing={0} >
+            <Grid item xs={12} sm={12} md={10} lg={8} xl={8} style={{marginTop: '20px', marginBottom: '50px'}}>
+                <MainBanner />
+            </Grid>
+          
+            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                <Typography variant="h4" align="center" style={{marginBottom: '20px'}}>
+                    Discover the communities growing with <span className={classes.specialtext}>Catalyst</span>...
+                </Typography>
+                <Stories/>
+            </Grid>
+            <Grid item xs={12}>
+                <h2 className={classes.bottomtext}>...or learn how Catalyst works</h2>
+            </Grid>
+            <Button href='/FAQ' className={classes.button2}>Visit the FAQ</Button>
         </Grid>
-        <Button href='/FAQ' className={classes.button2}>Visit the FAQ</Button>
-    </Grid>
-    <br />
-    <br />
-    <div className = {classes.bottom}></div>
+
+    }
+    </div>
+    <Footer />
     </>
     )
 }

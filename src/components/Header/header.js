@@ -9,6 +9,9 @@ import Logo from '../Logo/logo'
 // Material UI
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
+import useMediaQuery from '@material-ui/core/useMediaQuery'
+import Button from '@material-ui/core/Button'
+
 
 import '../../App.css'
 import { LinearProgress } from '@material-ui/core';
@@ -23,55 +26,103 @@ export const Header = ({ state, handleSnackBarOpen, handleSuccessMessage, handle
         contractId
     } = useParams()
 
+    const matches = useMediaQuery('(max-width:420px)');
+
     
     return (
         <>
-        <Grid container justify="space-between" alignItems="center" style={{padding: '20px'}} position="sticky">
-            <Grid item xs={8} sm={8} md={3} lg={3} xl={3} align="left">
-            {wallet && wallet.signedIn ? (
-                <>
-                <LeftSideDrawer
-                state={state}
-                handleSnackBarOpen={handleSnackBarOpen}
-                handleSuccessMessage={handleSuccessMessage}
-                handleErrorMessage={handleErrorMessage}
-                snackBarOpen={snackBarOpen}
-                severity={severity}
-                errorMessage={errorMessage}
-                successMessage={successMessage}
-                /> <Logo /></>) :
-                <Logo />}
-            </Grid>
+        <Grid container justify="space-between" alignItems="flex-start" style={{padding: '20px'}}>
             
-            {wallet && !wallet.signedIn ? (
-                <>
-            <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
-                <Typography style={{textAlign: 'center', margin: 'auto'}}>About Catalyst</Typography>
-            </Grid>
-            <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
-                <Typography style={{textAlign: 'center', margin: 'auto'}}>Products</Typography>
-            </Grid>
-            <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
-                <Typography style={{textAlign: 'center', margin: 'auto'}}>Developers</Typography>
-            </Grid>
-            <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
-                <Typography style={{textAlign: 'center', margin: 'auto'}}>Learn</Typography>
-            </Grid>
-            <Grid item xs={4} sm={4} md={4} lg={4} xl={4}>
-                <LoginButton />
-            </Grid>
-                </>
-            ) : (
-                <>
-                <Grid item xs={4} sm={4} md={7} lg={7} xl={7}>
-                    {wallet && wallet.signedIn ? <PersonaInfo balance={wallet.balance} /> : <LinearProgress /> }
-                </Grid>
-                <Grid item xs={4} sm={4} md={2} lg={2} xl={2} style={{textAlign: 'right'}}>
-                    <LogoutButton /> 
-                </Grid>
-                </>
+            {wallet && wallet.signedIn ? 
+                !matches ? (
+                    <>
+                    <Grid item xs={1} sm={1} md={3} lg={3} xl={3}>
+                        <LeftSideDrawer
+                        state={state}
+                        handleSnackBarOpen={handleSnackBarOpen}
+                        handleSuccessMessage={handleSuccessMessage}
+                        handleErrorMessage={handleErrorMessage}
+                        snackBarOpen={snackBarOpen}
+                        severity={severity}
+                        errorMessage={errorMessage}
+                        successMessage={successMessage}
+                        /> 
+                        <Logo />
+                    </Grid>
+                    <Grid item xs={1} sm={1} md={7} lg={7} xl={7}>
+                        <PersonaInfo balance={wallet.balance} /> 
+                    </Grid>
+                    <Grid item xs={4} sm={4} md={2} lg={2} xl={2}>
+                        {wallet && !wallet.signedIn ? <LoginButton /> : <LogoutButton />}
+                    </Grid>
+                    </>
+                ) : (
+                    <>
+                        <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
+                            <LeftSideDrawer
+                            state={state}
+                            handleSnackBarOpen={handleSnackBarOpen}
+                            handleSuccessMessage={handleSuccessMessage}
+                            handleErrorMessage={handleErrorMessage}
+                            snackBarOpen={snackBarOpen}
+                            severity={severity}
+                            errorMessage={errorMessage}
+                            successMessage={successMessage}
+                            /> 
+                        </Grid>
+                        <Grid item xs={7} sm={7} md={8} lg={8} xl={8}>
+                            <Logo />
+                        </Grid>
+                        <Grid item xs={4} sm={4} md={3} lg={3} xl={3} style={{marginTop: '3px'}}>
+                            {wallet && !wallet.signedIn ? <LoginButton /> : <LogoutButton />}
+                        </Grid>
+                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                            <PersonaInfo balance={wallet.balance} /> 
+                        </Grid>
+                    </>
                 )
-            }
+            :  
+            wallet && !wallet.signedIn ? 
+                !matches ? (
+                    <>
+                    <Grid item xs={7} sm={7} md={3} lg={3} xl={3}>
+                        <Logo />
+                    </Grid>
+                    <Grid item xs={2} sm={2} md={7} lg={7} xl={7} style={{display: 'inline-flex'}}>
+                        <Button style={{textAlign: 'center', marginRight: '30px'}}>About Catalyst</Button>
+                        <Button style={{textAlign: 'center', marginRight: '30px'}}>Developers</Button>
+                        <Button style={{textAlign: 'center', marginRight: '30px'}}>Learn</Button>
+                        <Button style={{textAlign: 'center'}}>Contact</Button>
+                    </Grid>
+                    <Grid item xs={4} sm={4} md={2} lg={2} xl={2}>
+                        {wallet && !wallet.signedIn ? <LoginButton /> : <LogoutButton />}
+                    </Grid>
+                    </>
+                ) : (
+                    <>
+                    <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
+                        <LeftSideDrawer
+                            state={state}
+                            handleSnackBarOpen={handleSnackBarOpen}
+                            handleSuccessMessage={handleSuccessMessage}
+                            handleErrorMessage={handleErrorMessage}
+                            snackBarOpen={snackBarOpen}
+                            severity={severity}
+                            errorMessage={errorMessage}
+                            successMessage={successMessage}
+                        /> 
+                    </Grid>
+                    <Grid item xs={7} sm={7} md={7} lg={7} xl={7}>
+                        <Logo />
+                    </Grid>
+                    <Grid item xs={4} sm={4} md={4} lg={4} xl={4} style={{marginTop: '3px'}}>
+                        {wallet && !wallet.signedIn ? <LoginButton /> : <LogoutButton />}
+                    </Grid>
+                    </>
+                ) 
+            : null
+        }
+            
         </Grid>
     </>
     )

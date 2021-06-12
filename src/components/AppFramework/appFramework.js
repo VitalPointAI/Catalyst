@@ -154,7 +154,8 @@ export default function AppFramework(props) {
                          thisCurDaoIdx, 
                          contract, 
                          'Democracy', 
-                         state.accountId)
+                         state.accountId,
+                         firstInit[c].contribution)
                          
                        if (logged) {
                          firstInit[c].init = false

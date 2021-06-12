@@ -11,11 +11,12 @@ import Persona from '@aluhning/get-personas-js'
 // Material UI Components
 import Avatar from '@material-ui/core/Avatar'
 import Grid from '@material-ui/core/Grid'
-import Typography from '@material-ui/core/Typography';
-import Tooltip from '@material-ui/core/Tooltip';
-import Zoom from '@material-ui/core/Zoom';
-import InfoIcon from '@material-ui/icons/Info';
+import Typography from '@material-ui/core/Typography'
+import Tooltip from '@material-ui/core/Tooltip'
+import Zoom from '@material-ui/core/Zoom'
+import InfoIcon from '@material-ui/icons/Info'
 import { LinearProgress } from '@material-ui/core'
+import useMediaQuery from '@material-ui/core/useMediaQuery'
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -77,6 +78,8 @@ export default function PersonaInfo(props) {
     const {
         contractId
     } = useParams()
+
+    const matches = useMediaQuery('(max-width:420px)');
 
     const Dao = new Persona()
    
@@ -158,7 +161,7 @@ const handleEditPersonaClick = () => {
   }
 
     return (
-        <Grid container justify="space-between" alignItems="flex-start" spacing={1} className={classes.root}>
+        <Grid container justify="flex-start" alignItems="center" spacing={1} className={classes.root}>
             <Grid item xs={12} sm={12} md={6} lg={6} xl={6} style={{textAlign: 'center'}}>
                 {profileExists && contractId == undefined ? (
                     <>
@@ -172,11 +175,11 @@ const handleEditPersonaClick = () => {
                         
                     </Typography>
                     <Typography variant="overline" display="inline" style={{marginLeft: '10px'}}>
-                        <Tooltip TransitionComponent={Zoom} title="The number of DAOs the signed in persona has founded.">
+                        <Tooltip TransitionComponent={Zoom} title="The number of communities the signed in persona has founded.">
                             <InfoIcon fontSize="small" style={{marginLeft: '5px', marginRight:'5px', marginTop:'-3px'}} />
                         </Tooltip>
                         <Link to="/daos">
-                            Your DAOs: {daoCount}
+                            Your Communities: {daoCount}
                         </Link>
                     </Typography>
                     </>)
@@ -188,9 +191,9 @@ const handleEditPersonaClick = () => {
                         </Tooltip>Your Personas: 0
                     </Typography>
                     <Typography variant="overline" display="inline">
-                        <Tooltip TransitionComponent={Zoom} title="The number of DAOs the signed in persona has founded.">
+                        <Tooltip TransitionComponent={Zoom} title="The number of communities the signed in persona has founded.">
                             <InfoIcon fontSize="small" style={{marginLeft: '5px', marginRight:'5px', marginTop:'-3px'}} />
-                        </Tooltip>Your DAOs: 0
+                        </Tooltip>Your Communities: 0
                     </Typography>
                     </>
                     ) : (<>
@@ -208,17 +211,34 @@ const handleEditPersonaClick = () => {
                     </>) }               
                 
             </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
-            {finished ? (
-                <>
-                <Typography variant="overline" display="block" onClick={handleEditPersonaClick} style={{float:'right', marginLeft:'10px'}}>
-                    {accountId}: {balance} Ⓝ
-                </Typography>
-                <Avatar src={avatar} className={classes.small} onClick={handleEditPersonaClick}/>
-                </>
-            ) : <LinearProgress />
+            {!matches ?
+                <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                {finished ? (
+                    <>
+                    <Typography variant="overline" display="block" style={{display: 'inline-flex', float: 'right'}} onClick={handleEditPersonaClick}>
+                        <Avatar src={avatar} className={classes.small} style={{marginRight: '5px'}} onClick={handleEditPersonaClick}/>
+                        {accountId}: {balance} Ⓝ
+                    </Typography>
+                    
+                    </>
+                ) : <LinearProgress />
+                }
+                </Grid>
+            :
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
+                {finished ? (
+                    <>
+                    
+                    <Typography variant="overline" display="block" style={{display: 'inline-flex'}} onClick={handleEditPersonaClick}>
+                        <Avatar src={avatar} className={classes.small} style={{marginRight: '5px'}} onClick={handleEditPersonaClick}/>
+                        {accountId}: {balance} Ⓝ
+                    </Typography>
+                   
+                    </>
+                ) : <LinearProgress />
+                }
+                </Grid>
             }
-            </Grid>
             {editPersonaClicked ? <EditPersonaForm
                 state={state}
                 handleEditPersonaClickState={handleEditPersonaClickState}

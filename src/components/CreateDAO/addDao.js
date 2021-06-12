@@ -75,7 +75,7 @@ export default function AddDaoForm(props) {
     }
 
     const handleConfirmChange = (event) => {
-      setConfirm(event.target.checked);
+      setConfirm(event.target.checked)
     }
 
     const onSubmit = async (values) => {
@@ -95,7 +95,7 @@ export default function AddDaoForm(props) {
         return (
             <div>
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" className={classes.root}>
-              <DialogTitle id="form-dialog-title">Create DAO</DialogTitle>
+              <DialogTitle id="form-dialog-title">Create Community</DialogTitle>
               <DialogContent>
                     
                         <TextField
@@ -127,11 +127,10 @@ export default function AddDaoForm(props) {
                               wallet.isDaoAccountTaken(v)
                           }}
                         />
-                    {errors.id && <p style={{color: 'red'}}>You must provide an Dao name.</p>}
+                    {errors.id && <p style={{color: 'red'}}>You must provide an community account name.</p>}
                     <div>
                         {app.accountTaken ? 'Dao name is already taken' : null}
-                    </div>
-
+                    </div>                
                    
                     <Card>
                       <CardContent>
@@ -152,8 +151,8 @@ export default function AddDaoForm(props) {
           
                           <Grid item xs={11} sm={11} md={11} lg={11} xl={11} style={{margin:'auto'}}>
                               <WarningIcon fontSize='large' className={classes.warning} />
-                              <Typography variant="body2" gutterBottom>Creating a Democracy DAO requires you to deposit <b>{parseInt(FACTORY_DEPOSIT)} Ⓝ</b>.</Typography>
-                              <Typography variant="body2">The <b>{FACTORY_DEPOSIT} Ⓝ</b> you are about to transfer covers the cost of storage of the DAO contract.  As this is a democracy DAO, you will have to submit a proposal that receives 51% of the vote in order to delete the DAO and recover this deposit.</Typography>     
+                              <Typography variant="body2" gutterBottom>Creating a community requires you to deposit <b>{parseInt(FACTORY_DEPOSIT)} Ⓝ</b>.</Typography>
+                              <Typography variant="body2">The <b>{FACTORY_DEPOSIT} Ⓝ</b> you are about to transfer covers the cost of storage of the code that runs the community on the NEAR blockchain.  As this is a decentralized community, you will have to submit a proposal that passes in order to shut down the community and recover this deposit.</Typography>     
                           </Grid>
                         </Grid>
                       </CardContent>
@@ -169,7 +168,7 @@ export default function AddDaoForm(props) {
                 color="primary"
                 onClick={handleSubmit(onSubmit)}
                 >
-                CREATE DAO
+                CREATE COMMUNITY
               </Button>
               
                 <Button onClick={handleClose} color="primary">

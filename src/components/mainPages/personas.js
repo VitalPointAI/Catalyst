@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { MemoryRouter as Router } from 'react-router';
+import Footer from '../../components/common/Footer/footer'
 import PersonaCard from '../../components/PersonaCard/personaCard'
 
 
@@ -18,9 +19,12 @@ const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
         //maxWidth: 640,
-        margin: 'auto',
+       // margin: 'auto',
       //  marginTop: 50,
-        minHeight: 550,
+      height: '100vh',
+      position: 'relative',
+      display: 'flex',
+      flexDirection: 'column'
     },
     paper: {
         padding: theme.spacing(2),
@@ -148,6 +152,7 @@ export const PersonaPage = ({ state, update, dispatch }) => {
             } 
         </Grid>
         </div>
+        <Footer />
     </>
     </Router>
     )

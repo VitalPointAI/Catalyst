@@ -10,7 +10,25 @@
  
     vertical-align: middle;
     margin-bottom: 0% !important;
+    margin-top:calc(5% + 60px);
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+}
+
+.footer-mobile {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.7em;
+    font-weight: light;
+    color: #4A4F54;
+    display: flex;
+    justify-content: space-between;
+    background-color: #f8f8f8;
+    max-width: 100%;
  
+    vertical-align: middle;
+    margin-bottom: 0% !important;
+    margin-top:calc(5% + 50px);
     left: 0px;
     right: 0px;
     bottom: 0px;

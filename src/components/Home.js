@@ -24,13 +24,17 @@ import '../App.css'
 
 const useStyles = makeStyles((theme) => ({
     root: {
-        flexGrow: 1,
+      //  flexGrow: 1,
       //  maxWidth: 640,
-        margin: 'auto',
+      //  margin: 'auto',
       //  marginTop: 50,
-        marginBottom: 50,
-        minHeight: 550,
-        padding: '0px',
+      //  marginBottom: 50,
+     //   minHeight: 550,
+     //   padding: '0px',
+        height: '100vh',
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column'
     },
     paper: {
         padding: theme.spacing(2),
@@ -81,21 +85,17 @@ export const Home = ({ children, state, handleSnackBarOpen, handleSuccessMessage
         />
        
         {finished ? 
-            <Grid container spacing={0}>
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                    {wallet && wallet.signedIn ?  
+           
+                    wallet && wallet.signedIn ?  
                         key ? (<Import />) : <div>Placeholder</div>
-                : <SignIn wallet={wallet} state={state}/>}
-                </Grid>
-           </Grid>
+                : <SignIn wallet={wallet} state={state}/>
+               
             
             : state.accountData ? (
-            <Grid container spacing={0}>
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+           
                     {children}
-                </Grid>
-            </Grid>
-            ) : <CircularProgress/>
+                
+            ) : <div style={{width: '100%', textAlign: 'center'}}><CircularProgress/></div>
         }       
         
         { state.app.alert &&

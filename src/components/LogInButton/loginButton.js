@@ -31,7 +31,7 @@ export default function LoginButton(props) {
         className={classes.button}
         startIcon={<LockOpenTwoToneIcon />}
         onClick={login}
-        >Get Started</Button>
+        >Sign In</Button>
            
       </>
     )

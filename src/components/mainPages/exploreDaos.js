@@ -3,6 +3,7 @@ import { appStore, onAppMount } from '../../state/app'
 import { utils } from 'near-api-js'
 import Fuse from 'fuse.js'
 
+import Footer from '../../components/common/Footer/footer'
 import DaoCard from '../DAOCard/daoCard'
 import { Header } from '../Header/header'
 import SearchBar from '../../components/common/SearchBar/search'
@@ -21,11 +22,12 @@ const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
       //  maxWidth: 640,
-        margin: 'auto',
+      //  margin: 'auto',
       //  marginTop: 50,
-        marginBottom: 50,
-        minHeight: 550,
-        padding: '0px',
+      height: '100vh',
+      position: 'relative',
+      display: 'flex',
+      flexDirection: 'column'
     },
     featureDAO: {
         minHeight: '200px',
@@ -258,6 +260,7 @@ export default function ExploreDaos(props) {
             : null
             }
         </Grid>
+        <Footer />
         </div>
         
     )
