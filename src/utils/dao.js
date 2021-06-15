@@ -66,6 +66,7 @@ class DAO {
                 'submitGuildKickProposal',
                 'submitMemberProposal',
                 'submitCommitmentProposal',
+                'submitOpportunityProposal',
                 'sponsorProposal',
                 'submitVote',
                 'processProposal',

@@ -20,10 +20,7 @@ const axios = require('axios').default
 
 const useStyles = makeStyles((theme) => ({
     root: {
-        flexGrow: 1,
-      //  maxWidth: 640,
-      //  margin: 'auto',
-      //  marginTop: 50,
+      flexGrow: 1,
       height: '100vh',
       position: 'relative',
       display: 'flex',
@@ -82,24 +79,6 @@ export default function ExploreDaos(props) {
                     setDaoCount(currentDaosList.length)
                     let sortedDaos = _.sortBy(currentDaosList, 'created').reverse()
                     setDaos(sortedDaos)
-                    // let daos = []
-                    // let z = 0
-                    // while(z < currentDaosList.length){
-                    //     try{
-                    //         let thisDao = await Dao.getDao(currentDaosList[z])
-                    //         console.log('this dao', thisDao)
-                    //         if(thisDao && thisDao.contractId == currentDaosList[z]){
-                    //             daos.push(thisDao)
-                    //         }
-                    //     } catch (err) {
-                    //         console.log('can not retrieve dao info', err)
-                    //     }
-                    //     z++                        
-                    // }
-                    // console.log('daos', daos)
-                    // let sortedDaos = _.sortBy(daos, (new Date('date')).getTime()).reverse()
-                    // setDaos(sortedDaos)
-                   //setDaos(currentDaosList)
 
                     let i = 0
                     let balance = 0

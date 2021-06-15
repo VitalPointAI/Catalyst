@@ -24,6 +24,8 @@ import FAQ from './components/LandingSite/FAQ'
 import ArtStory from './components/LandingSite/artistStory.js'
 import NearStory from './components/LandingSite/nearStory.js'
 import ReceiveInvite from './components/Invite/Receiver'
+import Opportunities from './components/mainPages/opportunities'
+
 // Material-UI Components
 import { CircularProgress } from '@material-ui/core'
 
@@ -173,6 +175,9 @@ const App = () => {
                 </Route>
                 <Route path="/supporters/:contractId">
                     <Supporters />
+                </Route>
+                <Route path="/opportunities/:contractId">
+                    <Opportunities />
                 </Route>
             </Switch>
         </Router>

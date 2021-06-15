@@ -4,7 +4,6 @@ import { makeStyles } from '@material-ui/core/styles'
 import FileUpload from '../IPFSupload/ipfsUpload'
 import { flexClass } from '../../App'
 import { IPFS_PROVIDER } from '../../utils/ceramic'
-import Persona from '@aluhning/get-personas-js'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -19,7 +18,12 @@ import Avatar from '@material-ui/core/Avatar'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import Divider from '@material-ui/core/Divider'
-
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import Switch from '@material-ui/core/Switch'
+import InputAdornment from '@material-ui/core/InputAdornment'
+import Tooltip from '@material-ui/core/Tooltip'
+import Zoom from '@material-ui/core/Zoom'
+import InfoIcon from '@material-ui/icons/Info'
 
 
 // ReactQuill Component
@@ -51,7 +55,7 @@ const useStyles = makeStyles((theme) => ({
 
 const imageName = require('../../img/default-profile.png') // default no-image avatar
 
-export default function EditFundingProposalForm(props) {
+export default function EditOpportunityProposalForm(props) {
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
     const [loaded, setLoaded] = useState(false)
@@ -62,19 +66,25 @@ export default function EditFundingProposalForm(props) {
     const [avatar, setAvatar] = useState(imageName)
     const [shortBio, setShortBio] = useState('')
 
-    // Funding Proposal Fields
+    // Opportunity Proposal Fields
     const [title, setTitle] = useState('')
     const [details, setDetails] = useState('')
+    const [reward, setReward] = useState('')
+    const [category, setCategory] = useState('')
+    const [projectName, setProjectName] = useState('')
+    const [status, setStatus] = useState('')
+    const [permission, setPermission] = useState('')
 
     const { register, handleSubmit, watch, errors } = useForm()
 
     const {
         handleUpdate,
-        handleEditFundingProposalDetailsClickState,
+        handleEditOpportunityProposalDetailsClickState,
         applicant,
         proposer,
         curDaoIdx,
-        proposalId,
+        curPersonaIdx,
+        opportunityId,
     } = props
     
     const classes = useStyles()
@@ -84,27 +94,32 @@ export default function EditFundingProposalForm(props) {
           setLoaded(false)
            
             // Set Existing Persona Data      
-            if(applicant){
-              const thisPersona = new Persona()
-              let result = await thisPersona.getPersona(applicant)
-                  if(result){
-                    result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-                    result.name ? setName(result.name) : setName('')
-                    result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
-                    result.date ? setDate(result.date) : setDate('')
-                  }
+            if(curPersonaIdx){
+              let result = await curPersonaIdx.get('profile', curPersonaIdx.id)
+              console.log('result edit', result)
+              if(result) {
+                result.date ? setDate(result.date) : setDate('')
+                result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
+                result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
+                result.name ? setName(result.name) : setName('')
+              }
            }
 
            // Set Existing Proposal Data       
            if(curDaoIdx){
-              let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
+              let propResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
               console.log('propResult', propResult)
               if(propResult) {
                 let i = 0
-                while (i < propResult.proposals.length){
-                  if(propResult.proposals[i].proposalId == proposalId){
-                    propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
-                    propResult.proposals[i].details ? setDetails(propResult.proposals[i].details) : setDetails('')
+                while (i < propResult.opportunities.length){
+                  if(propResult.opportunities[i].opportunityId == opportunityId){
+                    propResult.opportunities[i].title ? setTitle(propResult.opportunities[i].title) : setTitle('')
+                    propResult.opportunities[i].details ? setDetails(propResult.opportunities[i].details) : setDetails('')
+                    propResult.opportunities[i].reward ? setReward(propResult.opportunities[i].reward) : setReward('')
+                    propResult.opportunities[i].category ? setCategory(propResult.opportunities[i].category) : setCategory('')
+                    propResult.opportunities[i].projectName ? setProjectName(propResult.opportunities[i].projectName) : setProjectName('')
+                    propResult.opportunities[i].status ? setStatus(propResult.opportunities[i].status) : setStatus('')
+                    propResult.opportunities[i].permission ? setPermission(propResult.opportunities[i].permission) : setPermission('')
                     break
                   }
                   i++
@@ -117,20 +132,34 @@ export default function EditFundingProposalForm(props) {
           .then((res) => {
             setLoaded(true)
           })
-    },[curDaoIdx])
+    },[curPersonaIdx])
 
     function handleFileHash(hash) {
       setAvatar(IPFS_PROVIDER + hash)
     }
 
     const handleClose = () => {
-        handleEditFundingProposalDetailsClickState(false)
+        handleEditOpportunityProposalDetailsClickState(false)
         setOpen(false)
+    }
+
+    const handleStatusChange = (event) => {
+      setStatus(event.target.checked)
     }
 
     const handleTitleChange = (event) => {
         let value = event.target.value;
         setTitle(value)
+    }
+   
+    const handleRewardChange = (event) => {
+      let value = event.target.value;
+      setReward(value)
+    }
+
+    const handleCategoryChange = (event) => {
+      let value = event.target.value;
+      setCategory(value)
     }
 
     function formatDate(timestamp) {
@@ -151,28 +180,32 @@ export default function EditFundingProposalForm(props) {
       let formattedDate = formatDate(now)
   
       // Load existing array of details
-      let detailRecords = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
-      console.log('funding detailRecords', detailRecords)
+      let detailRecords = await curDaoIdx.get('opportunities', curDaoIdx.id)
+      console.log('opportunity detailRecords', detailRecords)
       if(!detailRecords){
-        detailRecords = { proposals: [] }
+        detailRecords = { opportunities: [] }
       }
-
+      
       let proposalRecord = {
-          proposalId: proposalId.toString(),
+          opportunityId: opportunityId.toString(),
           title: title,
           details: details,
           proposer: proposer,
           submitDate: now,
-          published: true
+          reward: reward,
+          category: category,
+          projectName: projectName,
+          status: status,
+          permission: permission
       }
 
       // Update existing records
       let exists
       let i = 0
-      while (i < detailRecords.proposals.length){
-        if(detailRecords.proposals[i].proposalId == proposalId){
-          detailRecords.proposals[i] = proposalRecord
-          await curDaoIdx.set('fundingProposalDetails', detailRecords)
+      while (i < detailRecords.opportunities.length){
+        if(detailRecords.opportunities[i].opportunityId == opportunityId){
+          detailRecords.opportunities[i] = proposalRecord
+          await curDaoIdx.set('opportunities', detailRecords)
           exists = true
           break
         }
@@ -181,9 +214,9 @@ export default function EditFundingProposalForm(props) {
 
       // Add record if it doesn't exist
       if(!exists){
-        detailRecords.proposals.push(proposalRecord)
-        console.log('detailrecords.proposals', detailRecords.proposals)
-        await curDaoIdx.set('fundingProposalDetails', detailRecords)
+        detailRecords.opportunities.push(proposalRecord)
+        console.log('detailrecords.opportunities', detailRecords.opportunities)
+        await curDaoIdx.set('opportunities', detailRecords)
       }
      
       setFinished(true)
@@ -215,10 +248,10 @@ export default function EditFundingProposalForm(props) {
        
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             { loaded ? (<>
-              <DialogTitle id="form-dialog-title">Funding Commitment Proposal Details</DialogTitle>
+              <DialogTitle id="form-dialog-title">Opportunity Proposal Details</DialogTitle>
               <DialogContent>
                   <DialogContentText style={{marginBottom: 10}}>
-                  Please describe the project:
+                  Please describe the opportunity requirements:
                   
                   </DialogContentText>
                   
@@ -237,7 +270,64 @@ export default function EditFundingProposalForm(props) {
                       })}
                   />
                   {errors.fundingProposalTitle && <p style={{color: 'red'}}>You must give your proposal a title.</p>}
-              
+
+                  <Grid container justify="center" alignItems="center" spacing={1}>
+                  <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
+                    <TextField
+                      fullWidth
+                      id="base-reward"
+                      variant="outlined"
+                      required={true}
+                      name="baseReward"
+                      label="Base Reward"
+                      placeholder="10"
+                      value={reward}
+                      onChange={handleRewardChange}
+                      inputRef={register({
+                          required: true, 
+                      })}
+                      InputProps={{
+                        endAdornment: <><InputAdornment position="end">Ⓝ</InputAdornment>
+                        <Tooltip TransitionComponent={Zoom} title="Minimum (base) reward amount in NEAR that will be paid out for completion of this opportunity">
+                            <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                        </Tooltip>
+                        </>
+                      }}
+                      style={{marginBottom: '10px'}}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
+                    <TextField
+                      autoFocus
+                      margin="dense"
+                      id="opportunity-category"
+                      variant="outlined"
+                      name="opportunityCategory"
+                      label="Category"
+                      placeholder="Content,Data,NFT"
+                      value={category}
+                      onChange={handleCategoryChange}
+                      inputRef={register({
+                          required: true                              
+                      })}
+                      InputProps={{
+                        endAdornment: <>
+                        <Tooltip TransitionComponent={Zoom} title="Make it easier for people to find the opportunities by entering meaningful categories separated by commas">
+                            <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                        </Tooltip>
+                        </>
+                      }}
+                    />
+                  {errors.opportunityCategory && <p style={{color: 'red'}}>You must categorize the opportunity.</p>}
+                  </Grid>
+                  <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
+                    <FormControlLabel
+                    control={<Switch checked={status} onChange={handleStatusChange} name="status" color="primary"/>}
+                    label="Active"
+                  />
+                  </Grid>
+                  </Grid>
+
                   <ReactQuill
                     theme="snow"
                     modules={modules}
@@ -250,7 +340,8 @@ export default function EditFundingProposalForm(props) {
                         required: false
                     })}
                   />
-                   
+
+                   {console.log('status', status)}
                 </DialogContent>
                
               {!finished ? <LinearProgress className={classes.progress} style={{marginBottom: '25px' }}/> : (

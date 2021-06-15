@@ -31,20 +31,32 @@ export const opportunitiesSchema = {
           type: 'number',
           minimum: 0,
         },
+        "updatedDate": {
+          type: 'number',
+          minimum: 0,
+        },
         "reward": {
-          type: 'boolean'
+          type: 'string',
         },
         "category": {
           type: 'string',
         },
         "projectName": {
-          type: 'string'
+          type: 'string',
         },
         "status": {
-          type: 'string'
+          type: 'boolean',
         },
         "permission": {
-          type: 'string'
+          type: 'string',
+        },
+        "acceptedCount": {
+          type: 'number',
+          minimum: 0
+        },
+        "completedCount": {
+          type: 'number',
+          minimum: 0
         }
       },
     }

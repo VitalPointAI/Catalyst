@@ -8,8 +8,10 @@ import GuildKickProposal from '../GuildKickProposal/guildKickProposal'
 import MemberProposal from '../MemberProposal/memberProposal'
 import VotingProposal from '../VotingRights/votingRightsProposal'
 import PayoutProposal from '../PayoutProposal/payoutProposal'
+import OpportunityProposal from '../OpportunityProposal/opportunityProposal'
 import Donation from '../Donation/donation'
 import Invite from '../Invite/invite'
+
 // Material UI Components
 import { makeStyles } from '@material-ui/core/styles'
 import { withStyles } from '@material-ui/core/styles'
@@ -28,6 +30,7 @@ import ThumbUpAltIcon from '@material-ui/icons/ThumbUpAlt'
 import RemoveCircleIcon from '@material-ui/icons/RemoveCircle'
 import HowToVoteIcon from '@material-ui/icons/HowToVote'
 import EnhancedEncryptionIcon from '@material-ui/icons/EnhancedEncryption'
+import AddAlertIcon from '@material-ui/icons/AddAlert'
 import MoneyIcon from '@material-ui/icons/Money'
 import Snackbar from '@material-ui/core/Snackbar'
 import MuiAlert from '@material-ui/lab/Alert'
@@ -82,6 +85,7 @@ export default function ActionSelector(props) {
   const [fundingProposalClicked, setFundingProposalClicked] = useState(false)
   const [payoutProposalClicked, setPayoutProposalClicked] = useState(false)
   const [donationProposalClicked, setDonationProposalClicked] = useState(false)
+  const [opportunityProposalClicked, setOpportunityProposalClicked] = useState(false)
   const [whiteListClicked, setWhiteListClicked] = useState(false)
   const [guildKickClicked, setGuildKickClicked] = useState(false)
   const [votingProposalClicked, setVotingProposalClicked] = useState(false)
@@ -154,6 +158,12 @@ export default function ActionSelector(props) {
     handlePayoutProposalClickState(true)
   }
 
+  const handleOpportunityProposalClick = () => {
+    handleExpanded()
+    handleTabValueState('2')
+    handleOpportunityProposalClickState(true)
+  }
+
   const  handleInvite = () => {
     handleInviteClickState(true); 
   }
@@ -188,6 +198,10 @@ export default function ActionSelector(props) {
 
   function handleMemberProposalClickState(property) {
     setMemberProposalClicked(property)
+  }
+
+  function handleOpportunityProposalClickState(property) {
+    setOpportunityProposalClicked(property)
   }
 
   function handleErrorMessage(message, severity) {
@@ -256,25 +270,31 @@ export default function ActionSelector(props) {
             <ListItemIcon>
               <EmojiPeopleIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="New Member Proposal" />
+            <ListItemText primary="New Member" />
           </StyledMenuItem>
           <StyledMenuItem button onClick={handleDonationProposalClick}>
             <ListItemIcon>
               <MoneyIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Donate to Community Fund" />
+            <ListItemText primary="Donation (no Votes)" />
+          </StyledMenuItem>
+          <StyledMenuItem button onClick={handleOpportunityProposalClick}>
+            <ListItemIcon>
+              <AddAlertIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Opportunity" />
           </StyledMenuItem>
           <StyledMenuItem button onClick={handleFundingProposalClick}>
             <ListItemIcon>
               <EnhancedEncryptionIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Request Funding Commitment" />
+            <ListItemText primary="Funding Commitment" />
           </StyledMenuItem>
           <StyledMenuItem button onClick={handlePayoutProposalClick}>
           <ListItemIcon>
             <MonetizationOnIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText primary="Request Payout" />
+          <ListItemText primary="Payout" />
         </StyledMenuItem>
           <StyledMenuItem button onClick={handleGuildKickClick}>
             <ListItemIcon>
@@ -295,13 +315,13 @@ export default function ActionSelector(props) {
             <ListItemIcon>
               <EmojiPeopleIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="New Member Proposal" />
+            <ListItemText primary="New Member" />
           </StyledMenuItem>
           <StyledMenuItem button onClick={handleDonationProposalClick}>
             <ListItemIcon>
               <MoneyIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Donate to Community Fund" />
+            <ListItemText primary="Donate (no Voting Rights)" />
           </StyledMenuItem>
         </StyledMenu>
       )}
@@ -364,6 +384,20 @@ export default function ActionSelector(props) {
       tokenName={tokenName}
       accountId={accountId} 
      
+      handleSnackBarOpen={handleSnackBarOpen}
+      handleErrorMessage={handleErrorMessage}
+      handleSuccessMessage={handleSuccessMessage}
+      /> : null }
+
+      {opportunityProposalClicked ? <OpportunityProposal
+      contractId={contractId}
+      handleOpportunityProposalClickState={handleOpportunityProposalClickState}
+      state={state}
+      depositToken={depositToken}
+      proposalDeposit={proposalDeposit}
+      tokenName={tokenName}
+      accountId={accountId} 
+      
       handleSnackBarOpen={handleSnackBarOpen}
       handleErrorMessage={handleErrorMessage}
       handleSuccessMessage={handleSuccessMessage}

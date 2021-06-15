@@ -4,6 +4,7 @@ import { appStore, onAppMount } from '../../state/app'
 import { Header } from '../Header/header'
 import Personas from '@aluhning/get-personas-js'
 import SupporterCard from '../SupporterCard/SupporterCard'
+import Footer from '../../components/common/Footer/footer'
 
 // Material UI components
 import { makeStyles } from '@material-ui/core/styles'
@@ -11,13 +12,12 @@ import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 
 const useStyles = makeStyles((theme) => ({
-    root: {
-        flexGrow: 1,
-      //  maxWidth: 640,
-        margin: 'auto',
-      //  marginTop: 50,
-        marginBottom: 50,
-        minHeight: 550
+  root: {
+      flexGrow: 1,
+      height: '100vh',
+      position: 'relative',
+      display: 'flex',
+      flexDirection: 'column'
     },
     menuButton: {
       marginRight: theme.spacing(0),
@@ -84,6 +84,7 @@ export default function Supporters(props) {
               }) : null }
          
         </Grid>
+        <Footer />
         </div>
     )
 }

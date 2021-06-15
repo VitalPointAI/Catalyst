@@ -4,12 +4,18 @@ import { appStore, onAppMount } from '../../state/app'
 import * as nearAPI from 'near-api-js'
 import { ceramic } from '../../utils/ceramic'
 import Persona from '@aluhning/get-personas-js'
+
 import EditMemberProposalForm from '../EditProposal/editMemberProposal'
 import MemberProposalDetails from '../ProposalDetails/memberProposalDetails'
+
 import EditFundingProposalForm from '../EditProposal/editFundingProposal'
 import FundingProposalDetails from '../ProposalDetails/fundingProposalDetails'
+
 import EditPayoutProposalForm from '../EditProposal/editPayoutProposal'
 import PayoutProposalDetails from '../ProposalDetails/payoutProposalDetails'
+
+import EditOpportunityProposalForm from '../EditProposal/editOpportunityProposal'
+import OpportunityProposalDetails from '../ProposalDetails/opportunityProposalDetails'
 
 // Material UI Components
 import { makeStyles, withStyles } from '@material-ui/core/styles'
@@ -126,7 +132,10 @@ export default function ProposalCard(props) {
     const [editPayoutProposalDetailsClicked, setEditPayoutProposalDetailsClicked] = useState(false)
     const [payoutProposalDetailsClicked, setPayoutProposalDetailsClicked] = useState(false)
 
-    const [anchorEl, setAnchorEl] = useState(null);
+    const [editOpportunityProposalDetailsClicked, setEditOpportunityProposalDetailsClicked] = useState(false)
+    const [opportunityProposalDetailsClicked, setOpportunityProposalDetailsClicked] = useState(false)
+
+    const [anchorEl, setAnchorEl] = useState(null)
     
     const { state, dispatch, update } = useContext(appStore)
 
@@ -157,7 +166,7 @@ export default function ProposalCard(props) {
         contract,
         proposalDeposit
     } = props
-console.log('prop card curuseridx', curDaoIdx)
+
     useEffect(
         () => {
          
@@ -222,6 +231,22 @@ console.log('prop card curuseridx', curDaoIdx)
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == requestId){
                     propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
+                    break
+                  }
+                  i++
+                }
+              }
+            }
+
+            // Set Existing Opportunity Proposal Data       
+            if(curDaoIdx){
+              let propResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
+              console.log('propResult', propResult)
+              if(propResult) {
+                let i = 0
+                while (i < propResult.opportunities.length){
+                  if(propResult.opportunities[i].opportunityId == requestId){
+                    propResult.opportunities[i].title ? setTitle(propResult.opportunities[i].title) : setTitle('')
                     break
                   }
                   i++
@@ -298,6 +323,26 @@ console.log('prop card curuseridx', curDaoIdx)
   
     function handleFundingProposalDetailsClickState(property){
       setFundingProposalDetailsClicked(property)
+    }
+
+     // Opportunity Proposal Functions
+
+     const handleEditOpportunityProposalDetailsClick = () => {
+      handleExpanded()
+      handleEditOpportunityProposalDetailsClickState(true)
+    }
+  
+    function handleEditOpportunityProposalDetailsClickState(property){
+      setEditOpportunityProposalDetailsClicked(property)
+    }
+
+    const handleOpportunityProposalDetailsClick = () => {
+      handleExpanded()
+      handleOpportunityProposalDetailsClickState(true)
+    }
+  
+    function handleOpportunityProposalDetailsClickState(property){
+      setOpportunityProposalDetailsClicked(property)
     }
 
     // Payout Proposal Functions
@@ -382,6 +427,46 @@ console.log('prop card curuseridx', curDaoIdx)
                   noWrap={true} 
                   style={{fontWeight: '800', fontSize: '110%', lineHeight: '1.1em'}}
                   onClick={handleFundingProposalDetailsClick}
+                 >
+                  {title ? title.replace(/(<([^>]+)>)/gi, ""): 'No Details Yet.'}
+                 </Button>
+                 </>
+                }
+               subheader={
+                 <Grid container alignItems="center" justify="space-evenly">
+                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
+                      <Typography variant="overline">Proposed: {created}</Typography>
+                   </Grid>
+                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                   <Typography variant="overline">By:</Typography>
+                   <Chip avatar={<Avatar src={proposerAvatar} className={classes.small}  />} label={proposerName != '' ? proposerName : proposer}/>
+                   </Grid>
+                   {status == 'Sponsored' ? (
+                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                     <Typography variant="overline" color="textSecondary">Sponsor: {sponsor}</Typography>
+                   </Grid>
+                   ) : null }
+                 </Grid>
+                 }
+             /></>
+           ) : null }
+
+           {proposalType === 'Opportunity' ? (
+            <> 
+            <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px'}} color="textSecondary">{proposalType} Proposal</Typography>
+            <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
+            
+            <div style={{clear: 'both'}}></div>
+            <CardHeader
+               style={{display: 'block'}}
+               align="center"
+               title={
+                 <>
+                 <Button 
+                  color="primary"
+                  noWrap={true} 
+                  style={{fontWeight: '800', fontSize: '110%', lineHeight: '1.1em'}}
+                  onClick={handleOpportunityProposalDetailsClick}
                  >
                   {title ? title.replace(/(<([^>]+)>)/gi, ""): 'No Details Yet.'}
                  </Button>
@@ -682,6 +767,13 @@ console.log('prop card curuseridx', curDaoIdx)
                           Edit
                       </Button>
                     </>) : null }
+                  {proposalType === 'Opportunity' ? (
+                    <><Button 
+                        color="primary" 
+                        onClick={handleEditOpportunityProposalDetailsClick}>
+                          Edit
+                      </Button>
+                    </>) : null }
                   </>: <LinearProgress /> : null }
               </Grid>
               </Grid>
@@ -723,6 +815,18 @@ console.log('prop card curuseridx', curDaoIdx)
           proposalId={requestId}
           /> : null }
 
+        {editOpportunityProposalDetailsClicked ? <EditOpportunityProposalForm
+          state={state}
+          handleEditOpportunityProposalDetailsClickState={handleEditOpportunityProposalDetailsClickState}
+          curDaoIdx={curDaoIdx}
+          curPersonaIdx={curPersonaIdx}
+          applicant={applicant}
+          proposer={proposer}
+          handleUpdate={handleUpdate}
+          accountId={accountId}
+          opportunityId={requestId}
+          /> : null }
+
 
         {memberProposalDetailsClicked ? <MemberProposalDetails
           proposer={proposer}
@@ -752,6 +856,16 @@ console.log('prop card curuseridx', curDaoIdx)
           applicant={applicant}
           handleUpdate={handleUpdate}
           proposalId={requestId}
+          /> : null }
+
+        {opportunityProposalDetailsClicked ? <OpportunityProposalDetails
+          proposer={proposer}
+          handleOpportunityProposalDetailsClickState={handleOpportunityProposalDetailsClickState}
+          curDaoIdx={curDaoIdx}
+          curPersonaIdx={curPersonaIdx}
+          applicant={applicant}
+          handleUpdate={handleUpdate}
+          opportunityId={requestId}
           /> : null }
 
         </>

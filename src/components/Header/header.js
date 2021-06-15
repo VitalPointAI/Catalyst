@@ -31,7 +31,7 @@ export const Header = ({ state, handleSnackBarOpen, handleSuccessMessage, handle
     
     return (
         <>
-        <Grid container justify="space-between" alignItems="flex-start" style={{padding: '20px'}}>
+        <Grid container justify="space-between" alignItems="center" style={{padding: '20px'}}>
             
             {wallet && wallet.signedIn ? 
                 !matches ? (

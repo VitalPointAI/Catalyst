@@ -594,6 +594,18 @@ export async function submitProposal(
                     return false
                 }
                 break
+        case 'Opportunity':
+            try{
+                await daoContract.submitOpportunityProposal({
+                    creator: applicant,
+                    depositToken: depositToken,
+                    contractId: contractId
+                    }, GAS, parseNearAmount(parseInt(proposalDeposit).toString()))
+                } catch (err) {
+                    console.log('submit opportunity proposal failed', err)
+                    return false
+                }
+                break
         case 'Payout':
             try{
                 await daoContract.submitProposal({
@@ -1064,7 +1076,7 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
 }
 
 // Logs a new Proposal Event
-export async function logProposalEvent(curDaoIdx, daoContract, proposalId) {
+export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contractId) {
 
     let logged = false
 
@@ -1073,6 +1085,16 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId) {
         proposal = await daoContract.getProposal({proposalId: parseInt(proposalId)})
     } catch (err) {
         console.log('error retrieving proposal for this id', err)
+        // reset new proposal flag
+        let newProposal = get(NEW_PROPOSAL, [])     
+        let d = 0
+        while(d < newProposal.length){
+            if(newProposal[d].contractId==contractId && newProposal[d].new == true){
+                newProposal[d].new = false
+                set(NEW_PROPOSAL, newProposal)
+            }
+        d++
+        }
     }
 
     if(proposal && curDaoIdx) {
@@ -1660,3 +1682,27 @@ export const hasKey = async (key, accountId, near) => {
     }
     return false
 }
+
+export function getStatus(flags) {
+    // flags [sponsored, processed, didPass, cancelled, whitelist, guildkick, member, commitment]
+    let status = ''
+    if(!flags[0] && !flags[1] && !flags[2] && !flags[3]) {
+    status = 'Submitted'
+    }
+    if(flags[0] && !flags[1] && !flags[2] && !flags[3]) {
+    status = 'Sponsored'
+    }
+    if(flags[0] && flags[1] && !flags[3]) {
+    status = 'Processed'
+    }
+    if(flags[0] && flags[1] && flags[2] && !flags[3]) {
+    status = 'Passed'
+    }
+    if(flags[0] && flags[1] && !flags[2] && !flags[3]) {
+    status = 'Not Passed'
+    }
+    if(flags[3]) {
+    status = 'Cancelled'
+    }
+    return status
+  }

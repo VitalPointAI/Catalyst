@@ -18,9 +18,6 @@ import Paper from '@material-ui/core/Paper'
 const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
-        //maxWidth: 640,
-       // margin: 'auto',
-      //  marginTop: 50,
       height: '100vh',
       position: 'relative',
       display: 'flex',

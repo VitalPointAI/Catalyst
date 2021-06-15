@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app';
 import { utils } from 'near-api-js'
-import { cancelProposal, processProposal, submitVote, GAS, synchMember } from '../../state/near'
+import { cancelProposal, processProposal, submitVote, GAS, synchMember, getStatus } from '../../state/near'
 
 import MemberCard from '../MemberCard/memberCard'
 import ProposalCard from '../ProposalCard/proposalCard'
@@ -328,33 +328,10 @@ console.log('prop list curdaoidx', curDaoIdx)
         handleSnackBarOpen(true)
       }
   }
-
-  function getStatus(flags) {
-    // flags [sponsored, processed, didPass, cancelled, whitelist, guildkick, member, commitment]
-    let status = ''
-    if(!flags[0] && !flags[1] && !flags[2] && !flags[3]) {
-    status = 'Submitted'
-    }
-    if(flags[0] && !flags[1] && !flags[2] && !flags[3]) {
-    status = 'Sponsored'
-    }
-    if(flags[0] && flags[1] && !flags[3]) {
-    status = 'Processed'
-    }
-    if(flags[0] && flags[1] && flags[2] && !flags[3]) {
-    status = 'Passed'
-    }
-    if(flags[0] && flags[1] && !flags[2] && !flags[3]) {
-    status = 'Not Passed'
-    }
-    if(flags[3]) {
-    status = 'Cancelled'
-    }
-    return status
-  }
+ 
 
   function getProposalType(flags) {
-    // flags [sponsored, processed, didPass, cancelled, whitelist, guildkick, member, commitment]
+    // flags [sponsored, processed, didPass, cancelled, whitelist, guildkick, member, commitment, opportunity]
     let type = ''
     if(flags[4]) {
     type = 'Whitelist'
@@ -367,8 +344,11 @@ console.log('prop list curdaoidx', curDaoIdx)
     }
     if(flags[7]) {
       type = 'Commitment'
-      }
-    if(!flags[4] && !flags[5] && !flags[6] &&!flags[7]) {
+    }
+    if(flags[8]) {
+      type = 'Opportunity'
+    }
+    if(!flags[4] && !flags[5] && !flags[6] &&!flags[7] &&!flags[8]) {
     type = 'Payout'
     }
     return type
@@ -794,7 +774,7 @@ console.log('prop list curdaoidx', curDaoIdx)
               <ListAltIcon fontSize='large'/>
             </StyledBadge>
           } 
-          label="NEW PROPOSALS" 
+          label="PROPOSALS" 
           value="2"
         />
         <Tab 

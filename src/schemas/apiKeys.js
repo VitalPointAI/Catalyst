@@ -3,13 +3,13 @@ export const apiKeysSchema = {
     "type": "object",
     "title": "ApiKeys",
     "properties": {
-      "keys": {
+      "seeds": {
         "type": "array",
         "items": { "$ref": "#/definitions/ApiKeys" }
       }
     },
     "additionalProperties": false,
-    "required": [ "keys" ],
+    "required": [ "seeds" ],
     "definitions": {
       "ApiKeys": {
         "type": "object",

@@ -175,7 +175,8 @@ export default function AppFramework(props) {
                        let loggedProposal = await logProposalEvent(
                          thisCurDaoIdx, 
                          contract, 
-                         newProposal[d].proposalId
+                         newProposal[d].proposalId,
+                         contractId
                          )
                          
                        if (loggedProposal) {

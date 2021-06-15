@@ -17,6 +17,7 @@ import Zoom from '@material-ui/core/Zoom'
 import InfoIcon from '@material-ui/icons/Info'
 import { LinearProgress } from '@material-ui/core'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
+import Button from '@material-ui/core/Button'
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -161,58 +162,62 @@ const handleEditPersonaClick = () => {
   }
 
     return (
-        <Grid container justify="flex-start" alignItems="center" spacing={1} className={classes.root}>
-            <Grid item xs={12} sm={12} md={6} lg={6} xl={6} style={{textAlign: 'center'}}>
+        <Grid container justify="flex-start" alignItems="center" spacing={1} >
+            <Grid item xs={12} sm={12} md={7} lg={7} xl={7}>
                 {profileExists && contractId == undefined ? (
                     <>
-                    <Typography variant="overline" display="inline">
-                        <Tooltip TransitionComponent={Zoom} title="The number of personas claimed by the signed in persona.">
-                            <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
-                        </Tooltip>
+                        <div style={{display: 'inline', width: '50%'}}>
+                       
                         <Link to="/personas">
-                            Your Personas: {claimCount}
+                            <Button color="primary" style={{textAlign: 'center'}}>Your Personas: {claimCount ? claimCount : '0'}</Button>
                         </Link>
-                        
-                    </Typography>
-                    <Typography variant="overline" display="inline" style={{marginLeft: '10px'}}>
-                        <Tooltip TransitionComponent={Zoom} title="The number of communities the signed in persona has founded.">
-                            <InfoIcon fontSize="small" style={{marginLeft: '5px', marginRight:'5px', marginTop:'-3px'}} />
+                        <Tooltip TransitionComponent={Zoom} title="The number of personas claimed by the signed in persona.">
+                            <InfoIcon fontSize="small" style={{marginLeft:'3px', marginTop:'-3px'}} />
                         </Tooltip>
+                        </div>
+                        <div style={{display: 'inline', width: '50%'}}>
                         <Link to="/daos">
-                            Your Communities: {daoCount}
+                            <Button color="primary" style={{textAlign: 'center'}}>Your Communities: {daoCount ? daoCount : '0'}</Button>
                         </Link>
-                    </Typography>
+                        <Tooltip TransitionComponent={Zoom} title="The number of communities the signed in persona has founded.">
+                            <InfoIcon fontSize="small" style={{marginLeft: '3px', marginTop:'-3px'}} />
+                        </Tooltip>
+                        </div>                 
                     </>)
                     :
                     contractId == undefined ? (<>
                     <Typography variant="overline" display="inline" style={{marginLeft: '10px'}}>
                         <Tooltip TransitionComponent={Zoom} title="The number of personas claimed by the signed in persona.">
-                            <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
-                        </Tooltip>Your Personas: 0
+                            <InfoIcon fontSize="small" style={{marginRight:'3px', marginTop:'-3px'}} />
+                        </Tooltip>
+                        <Button style={{textAlign: 'center', marginRight: '10px'}}>Your Personas: 0</Button>
                     </Typography>
                     <Typography variant="overline" display="inline">
                         <Tooltip TransitionComponent={Zoom} title="The number of communities the signed in persona has founded.">
-                            <InfoIcon fontSize="small" style={{marginLeft: '5px', marginRight:'5px', marginTop:'-3px'}} />
-                        </Tooltip>Your Communities: 0
+                            <InfoIcon fontSize="small" style={{marginLeft: '3px', marginRight:'5px', marginTop:'-3px'}} />
+                        </Tooltip>
+                        <Button style={{textAlign: 'center'}}>Your Communities: 0</Button>
                     </Typography>
                     </>
                     ) : (<>
-                    <Grid container justify="space-evenly" alignItems="center" spacing={1}>
-                        <Grid item xs={4} sm={4} md={4} lg={4} xl={4}>
-                            <Link to={`/dao/${contractId}/about`} variant="body1">About</Link>
+                   
+                        <Grid item xs={2} sm={2} md={6} lg={6} xl={6} style={{display: 'inline-flex'}}>
+                            <Link to={`/dao/${contractId}/about`} variant="body1">
+                                <Button style={{textAlign: 'center', marginRight: '30px'}}>About</Button>
+                            </Link>
+                            <Link to={`/opportunities/${contractId}`} variant="body1">
+                                <Button style={{textAlign: 'center', marginRight: '30px'}}>Opportunities</Button>
+                            </Link>
+                            <Link to={`/supporters/${contractId}`} variant="body1">
+                                <Button style={{textAlign: 'center', marginRight: '30px'}}>Supporters</Button>
+                            </Link>
                         </Grid>
-                        <Grid item xs={4} sm={4} md={4} lg={4} xl={4}>
-                            <Link to={`/dao/${contractId}/how`} variant="body1">Guidelines</Link>
-                        </Grid>
-                        <Grid item xs={4} sm={4} md={4} lg={4} xl={4}>
-                            <Link to={`/supporters/${contractId}`} variant="body1">Supporters</Link>
-                        </Grid>
-                    </Grid>
+                  
                     </>) }               
                 
             </Grid>
             {!matches ?
-                <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                <Grid item xs={12} sm={12} md={5} lg={5} xl={5}>
                 {finished ? (
                     <>
                     <Typography variant="overline" display="block" style={{display: 'inline-flex', float: 'right'}} onClick={handleEditPersonaClick}>
