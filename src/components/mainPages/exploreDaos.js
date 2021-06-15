@@ -212,7 +212,7 @@ export default function ExploreDaos(props) {
             </Grid>
         </Grid>
 
-        <Grid container alignItems="center" justify="space-between" spacing={3} style={{padding: '20px'}}>
+        <Grid container alignItems="center" justify="center" spacing={3} style={{padding: '20px'}}>
         {daos && daoCount > 0 ? 
                 (<>
                   

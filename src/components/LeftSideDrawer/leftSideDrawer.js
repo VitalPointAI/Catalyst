@@ -31,6 +31,7 @@ const useStyles = makeStyles((theme) => ({
     },
     menuButton: {
         marginTop: '5px',
+        float: 'left',
         
     },
     small: {

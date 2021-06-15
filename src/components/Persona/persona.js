@@ -162,88 +162,112 @@ const handleEditPersonaClick = () => {
   }
 
     return (
-        <Grid container justify="flex-start" alignItems="center" spacing={1} >
-            <Grid item xs={12} sm={12} md={7} lg={7} xl={7}>
+        <>    
+        <Grid container justify="center" alignItems="center" spacing={1} >        
+            <Grid item xs={12} sm={12} md={7} lg={7} xl={7} align="center">
                 {profileExists && contractId == undefined ? (
                     <>
-                        <div style={{display: 'inline', width: '50%'}}>
-                       
-                        <Link to="/personas">
-                            <Button color="primary" style={{textAlign: 'center'}}>Your Personas: {claimCount ? claimCount : '0'}</Button>
-                        </Link>
-                        <Tooltip TransitionComponent={Zoom} title="The number of personas claimed by the signed in persona.">
-                            <InfoIcon fontSize="small" style={{marginLeft:'3px', marginTop:'-3px'}} />
-                        </Tooltip>
-                        </div>
-                        <div style={{display: 'inline', width: '50%'}}>
-                        <Link to="/daos">
-                            <Button color="primary" style={{textAlign: 'center'}}>Your Communities: {daoCount ? daoCount : '0'}</Button>
-                        </Link>
-                        <Tooltip TransitionComponent={Zoom} title="The number of communities the signed in persona has founded.">
-                            <InfoIcon fontSize="small" style={{marginLeft: '3px', marginTop:'-3px'}} />
-                        </Tooltip>
-                        </div>                 
+                    <Grid container justify="center" alignItems="center" spacing={1} >
+                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                            <div style={{display: 'inline', width: '50%'}}>
+                        
+                            <Link to="/personas">
+                                <Button color="primary" style={{textAlign: 'center'}}>Your Personas: {claimCount ? claimCount : '0'}</Button>
+                            </Link>
+                            <Tooltip TransitionComponent={Zoom} title="The number of personas claimed by the signed in persona.">
+                                <InfoIcon fontSize="small" style={{marginLeft:'3px', marginTop:'-3px'}} />
+                            </Tooltip>
+                            </div>
+                            <div style={{display: 'inline', width: '50%'}}>
+                            <Link to="/daos">
+                                <Button color="primary" style={{textAlign: 'center'}}>Your Communities: {daoCount ? daoCount : '0'}</Button>
+                            </Link>
+                            <Tooltip TransitionComponent={Zoom} title="The number of communities the signed in persona has founded.">
+                                <InfoIcon fontSize="small" style={{marginLeft: '3px', marginTop:'-3px'}} />
+                            </Tooltip>
+                            </div>
+                        </Grid>
+                    </Grid>   
                     </>)
                     :
-                    contractId == undefined ? (<>
-                    <Typography variant="overline" display="inline" style={{marginLeft: '10px'}}>
-                        <Tooltip TransitionComponent={Zoom} title="The number of personas claimed by the signed in persona.">
-                            <InfoIcon fontSize="small" style={{marginRight:'3px', marginTop:'-3px'}} />
-                        </Tooltip>
-                        <Button style={{textAlign: 'center', marginRight: '10px'}}>Your Personas: 0</Button>
-                    </Typography>
-                    <Typography variant="overline" display="inline">
-                        <Tooltip TransitionComponent={Zoom} title="The number of communities the signed in persona has founded.">
-                            <InfoIcon fontSize="small" style={{marginLeft: '3px', marginRight:'5px', marginTop:'-3px'}} />
-                        </Tooltip>
-                        <Button style={{textAlign: 'center'}}>Your Communities: 0</Button>
-                    </Typography>
-                    </>
-                    ) : (<>
-                   
-                        <Grid item xs={2} sm={2} md={6} lg={6} xl={6} style={{display: 'inline-flex'}}>
-                            <Link to={`/dao/${contractId}/about`} variant="body1">
-                                <Button style={{textAlign: 'center', marginRight: '30px'}}>About</Button>
-                            </Link>
-                            <Link to={`/opportunities/${contractId}`} variant="body1">
-                                <Button style={{textAlign: 'center', marginRight: '30px'}}>Opportunities</Button>
-                            </Link>
-                            <Link to={`/supporters/${contractId}`} variant="body1">
-                                <Button style={{textAlign: 'center', marginRight: '30px'}}>Supporters</Button>
-                            </Link>
+                    contractId == undefined ? (
+                    <>
+                        <Grid container justify="center" alignItems="center" spacing={1} >
+                            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                                <Typography variant="overline" display="inline" style={{marginLeft: '10px'}}>
+                                    <Tooltip TransitionComponent={Zoom} title="The number of personas claimed by the signed in persona.">
+                                        <InfoIcon fontSize="small" style={{marginRight:'3px', marginTop:'-3px'}} />
+                                    </Tooltip>
+                                    <Button style={{textAlign: 'center', marginRight: '10px'}}>Your Personas: 0</Button>
+                                </Typography>
+                                <Typography variant="overline" display="inline">
+                                    <Tooltip TransitionComponent={Zoom} title="The number of communities the signed in persona has founded.">
+                                        <InfoIcon fontSize="small" style={{marginLeft: '3px', marginRight:'5px', marginTop:'-3px'}} />
+                                    </Tooltip>
+                                    <Button style={{textAlign: 'center'}}>Your Communities: 0</Button>
+                                </Typography>
+                            </Grid>
                         </Grid>
-                  
-                    </>) }               
-                
+                    </>
+                    ) 
+                    : (
+                    <>
+                        <Grid container justify="flex-start" alignItems="center" spacing={1} >    
+                            <Grid item xs={2} sm={2} md={6} lg={6} xl={6} style={{display: 'inline-flex'}}>
+                                <Link to={`/dao/${contractId}/about`} variant="body1">
+                                    <Button style={{textAlign: 'center', marginRight: '30px'}}>About</Button>
+                                </Link>
+                                <Link to={`/opportunities/${contractId}`} variant="body1">
+                                    <Button style={{textAlign: 'center', marginRight: '30px'}}>Opportunities</Button>
+                                </Link>
+                                <Link to={`/supporters/${contractId}`} variant="body1">
+                                    <Button style={{textAlign: 'center', marginRight: '30px'}}>Supporters</Button>
+                                </Link>
+                            </Grid>
+                        </Grid>
+                    </>
+                    )
+                }
             </Grid>
+
             {!matches ?
-                <Grid item xs={12} sm={12} md={5} lg={5} xl={5}>
+               
+            <Grid item xs={12} sm={12} md={5} lg={5} xl={5}>
+                
                 {finished ? (
                     <>
-                    <Typography variant="overline" display="block" style={{display: 'inline-flex', float: 'right'}} onClick={handleEditPersonaClick}>
-                        <Avatar src={avatar} className={classes.small} style={{marginRight: '5px'}} onClick={handleEditPersonaClick}/>
-                        {accountId}: {balance} Ⓝ
-                    </Typography>
-                    
+                    <Grid container justify="center" alignItems="center" spacing={1} >
+                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                            <Typography variant="overline" display="block" style={{display: 'inline-flex', float: 'right'}} onClick={handleEditPersonaClick}>
+                                <Avatar src={avatar} className={classes.small} style={{marginRight: '5px'}} onClick={handleEditPersonaClick}/>
+                                {accountId}: {balance} Ⓝ
+                            </Typography>
+                        </Grid>
+                    </Grid>                    
                     </>
                 ) : <LinearProgress />
                 }
-                </Grid>
+            </Grid>            
+               
             :
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
+            <Grid item xs={12} sm={12} md={3} lg={3} xl={3} align="center">
                 {finished ? (
                     <>
-                    
-                    <Typography variant="overline" display="block" style={{display: 'inline-flex'}} onClick={handleEditPersonaClick}>
-                        <Avatar src={avatar} className={classes.small} style={{marginRight: '5px'}} onClick={handleEditPersonaClick}/>
-                        {accountId}: {balance} Ⓝ
-                    </Typography>
-                   
+                    <Grid container justify="center" alignItems="center" spacing={1} >
+                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                            <Typography variant="overline" display="block" style={{display: 'inline-flex'}} onClick={handleEditPersonaClick}>
+                                <Avatar src={avatar} className={classes.small} style={{marginRight: '5px'}} onClick={handleEditPersonaClick}/>
+                                {accountId}: {balance} Ⓝ
+                            </Typography>
+                        </Grid>
+                    </Grid>
                     </>
                 ) : <LinearProgress />
                 }
-                </Grid>
+            </Grid>
             }
+       
+
             {editPersonaClicked ? <EditPersonaForm
                 state={state}
                 handleEditPersonaClickState={handleEditPersonaClickState}
@@ -251,6 +275,8 @@ const handleEditPersonaClick = () => {
                 handleUpdate={handleUpdate}
                 accountId={accountId}
                 /> : null }
+       
         </Grid>
+      </>
     )
 }

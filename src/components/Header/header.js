@@ -36,7 +36,7 @@ export const Header = ({ state, handleSnackBarOpen, handleSuccessMessage, handle
             {wallet && wallet.signedIn ? 
                 !matches ? (
                     <>
-                    <Grid item xs={1} sm={1} md={3} lg={3} xl={3}>
+                    <Grid item xs={1} sm={1} md={2} lg={2} xl={2}>
                         <LeftSideDrawer
                         state={state}
                         handleSnackBarOpen={handleSnackBarOpen}
@@ -46,10 +46,11 @@ export const Header = ({ state, handleSnackBarOpen, handleSuccessMessage, handle
                         severity={severity}
                         errorMessage={errorMessage}
                         successMessage={successMessage}
+                        
                         /> 
                         <Logo />
                     </Grid>
-                    <Grid item xs={1} sm={1} md={7} lg={7} xl={7}>
+                    <Grid item xs={1} sm={1} md={8} lg={8} xl={8}>
                         <PersonaInfo balance={wallet.balance} /> 
                     </Grid>
                     <Grid item xs={4} sm={4} md={2} lg={2} xl={2}>
@@ -68,6 +69,7 @@ export const Header = ({ state, handleSnackBarOpen, handleSuccessMessage, handle
                             severity={severity}
                             errorMessage={errorMessage}
                             successMessage={successMessage}
+                            style={{float: 'left'}}
                             /> 
                         </Grid>
                         <Grid item xs={7} sm={7} md={8} lg={8} xl={8}>
@@ -115,7 +117,7 @@ export const Header = ({ state, handleSnackBarOpen, handleSuccessMessage, handle
                     <Grid item xs={7} sm={7} md={7} lg={7} xl={7}>
                         <Logo />
                     </Grid>
-                    <Grid item xs={4} sm={4} md={4} lg={4} xl={4} style={{marginTop: '3px'}}>
+                    <Grid item xs={4} sm={4} md={4} lg={4} xl={4} style={{marginTop: '3px'}} align="right">
                         {wallet && !wallet.signedIn ? <LoginButton /> : <LogoutButton />}
                     </Grid>
                     </>

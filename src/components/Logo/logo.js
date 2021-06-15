@@ -15,7 +15,7 @@ import { Autocomplete } from '@material-ui/lab'
 
 const useStyles = makeStyles((theme) => ({
     logo: {
-        maxWidth: 175,
+        maxWidth: 150,
         maxHeight: 60,
         margin: 'auto',
         paddingLeft: '10px'
@@ -140,9 +140,10 @@ export default function Logo(props) {
             logo == defaultLogo ? 
                 (<>
             <Link to={`/dao/${contractId}`}>
-                <div style={{width: '180px', 
+                <div style={{width: '150px', 
                 height: '60px', 
-                float: 'right', 
+                marginLeft: '30px',
+                marginTop: '-4px',
                 backgroundImage: `url(${logo})`, 
                 backgroundSize: 'contain', 
                 backgroundPosition: 'left', 
@@ -156,11 +157,33 @@ export default function Logo(props) {
             </>
         ) : (
             <Link to={`/dao/${contractId}`}>
-                <img src={logo} alt="Logo" className={classes.logo}/>
+                <div style={{width: '150px', 
+                height: '60px', 
+                marginLeft: '30px',
+                marginTop: '-4px',
+                backgroundImage: `url(${logo})`, 
+                backgroundSize: 'contain', 
+                backgroundPosition: 'left', 
+                backgroundRepeat: 'no-repeat',
+                backgroundOrigin: 'content-box'
+            }}>
+            </div>
             </Link>
+            
         ) : (
             <Link to='/'>
-            <img src={logo} alt=" Catalyst Logo" className={classes.logo}/>
+            <div style={{width: '150px', 
+            height: '60px', 
+            marginLeft: '30px',
+            marginTop: '-4px',
+            backgroundImage: `url(${logo})`, 
+            backgroundSize: 'contain', 
+            backgroundPosition: 'left', 
+            backgroundRepeat: 'no-repeat',
+            backgroundOrigin: 'content-box'
+        }}>
+        </div>
+           
         </Link>
         )) : <CircularProgress />}
         
