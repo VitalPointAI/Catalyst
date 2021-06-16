@@ -582,7 +582,7 @@ export async function submitProposal(
             break
         case 'Tribute':
             try{
-            await daoContract.submitProposal({
+            await daoContract.submitTributeProposal({
                 a: applicant,
                 sR: sharesRequested,
                 lR: loot,
@@ -1231,7 +1231,7 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
         }
     }
     
-    if(proposalType == 'Member'){
+    if(proposalType == 'Member' || proposalType == 'Tribute'){
 
         let member = await daoContract.getMemberInfo({member: proposal.a})
         console.log('member process', member)

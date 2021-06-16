@@ -96,7 +96,8 @@ export default function ProposalList(props) {
   const {
     didRegistryContract,
     appIdx,
-    accountId
+    accountId,
+    wallet
   } = state
 
   const {
@@ -220,69 +221,10 @@ console.log('prop list curdaoidx', curDaoIdx)
     setSponsorConfirmationClicked(true)
   }
 
-  // const handleMemberProposalDetailsClick = async (id, applicant, status, proposer, proposalType, avatar, name) => {
-  //   setMemberProposalStatus(status)
-  //   setMemberProposalType(proposalType)
-  //   if(accountId != applicant && proposalType == 'Member') {
-  //       handleTabValueState(tabValue)
-  //       setMemberProposalId(id)
-  //       setAvatar(avatar)
-  //       setName(name)
-  //       setMemberProposalDetailsClicked(true)
-  //   }
-  //   if(accountId == applicant){
-  //       handleTabValueState(tabValue)
-  //       setMemberProposalId(id)
-  //       setAvatar(avatar)
-  //       setName(name)
-  //       setMemberProposalDetailsEmptyClicked(true)
-  //   }
-  //   if(accountId != applicant && accountId == proposer && proposalType == 'GuildKick'){
-  //     handleTabValueState(tabValue)
-  //     setMemberProposalId(id)
-  //     setAvatar(avatar)
-  //     setName(name)
-  //     setMemberProposalDetailsEmptyClicked(true)
-  //   }
-  // }
-
   const handleRageQuitClick = () => {
     handleExpanded()
     setRageQuitClicked(true)
   }
-
-  // function handleMemberProposalDetailsClickState(property) {
-  //   setMemberProposalDetailsClicked(property)
-  // }
-
-  // function handleMemberProposalDetailsEmptyClickState(property) {
-  // setMemberProposalDetailsEmptyClicked(property)
-  // }
-
-  // const handleFundingProposalDetailsClick = async (id, applicant, status) => {
-  //   console.log('click status', status)
-  //   setFundingProposalStatus(status)
-  //   if(accountId != applicant) {
-  //       handleExpanded()
-  //       handleTabValueState(tabValue)
-  //       setFundingProposalId(id)
-  //       setFundingProposalDetailsClicked(true)
-        
-  //   } else {
-  //       handleExpanded()
-  //       handleTabValueState(tabValue)
-  //       setFundingProposalId(id)
-  //       setFundingProposalDetailsEmptyClicked(true)
-  //   }
-  // }
-
-  // function handleFundingProposalDetailsClickState(property) {
-  //   setFundingProposalDetailsClicked(property)
-  // }
-
-  // function handleFundingProposalDetailsEmptyClickState(property) {
-  // setFundingProposalDetailsEmptyClicked(property)
-  // }
 
   function handleSponsorConfirmationClickState(property) {
     setSponsorConfirmationClicked(property)
@@ -348,7 +290,10 @@ console.log('prop list curdaoidx', curDaoIdx)
     if(flags[8]) {
       type = 'Opportunity'
     }
-    if(!flags[4] && !flags[5] && !flags[6] &&!flags[7] &&!flags[8]) {
+    if(flags[9]) {
+      type = 'Tribute'
+    }
+    if(!flags[4] && !flags[5] && !flags[6] &&!flags[7] &&!flags[8] &&!flags[9]) {
     type = 'Payout'
     }
     return type
@@ -607,6 +552,7 @@ console.log('prop list curdaoidx', curDaoIdx)
           // handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
+          summoner={summoner}
         />
       )
     })
@@ -647,6 +593,7 @@ console.log('prop list curdaoidx', curDaoIdx)
           handleCancelAction={handleCancelAction}
           handleVotingAction={handleVotingAction}
           handleRageQuitClick={handleRageQuitClick}
+          summoner={summoner}
         />
       )
     })
@@ -681,6 +628,7 @@ console.log('prop list curdaoidx', curDaoIdx)
           // handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
+          summoner={summoner}
         />
       )
     })
@@ -712,6 +660,7 @@ console.log('prop list curdaoidx', curDaoIdx)
           // handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
+          summoner={summoner}
         />
       )
     })
@@ -743,6 +692,7 @@ console.log('prop list curdaoidx', curDaoIdx)
           // handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
+          summoner={summoner}
         />
       )
     })

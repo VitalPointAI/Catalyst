@@ -173,7 +173,7 @@ export default function TributeProposal(props) {
         <Card>
         <CardContent>
           <WarningIcon fontSize='large' className={classes.warning} />
-          <Typography variant="body1" gutterBottom>You are proposing a tribute of {tribute} Ⓝ which will give <b>{applicant}</b> {tribute} voting shares. After submitting
+          <Typography variant="body1" gutterBottom>You are proposing a tribute of {tribute} Ⓝ which will give <b>{applicant}</b> {tribute} additional voting shares. After submitting
           this proposal, you must provide enough supporting detail to help other members vote on and decide whether to approve your proposal or not.</Typography> 
           <Grid container className={classes.confirmation} spacing={1}>
             <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
@@ -194,7 +194,7 @@ export default function TributeProposal(props) {
                   <Typography variant="body2"><u>Proposal passes:</u></Typography>
                     <ul style={{paddingInlineStart:'10px', paddingInlineEnd:'10px'}}>
                       <li>
-                        <Typography variant="body2">Applicant receives {tribute} voting shares.</Typography>
+                        <Typography variant="body2">Applicant receives additinal {tribute} voting shares.</Typography>
                       </li>
                       <li>
                         <Typography variant="body2">Community fund will increase by {tribute} Ⓝ.</Typography>

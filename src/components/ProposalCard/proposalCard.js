@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 import * as nearAPI from 'near-api-js'
 import { ceramic } from '../../utils/ceramic'
+import { dao } from '../../utils/dao'
 import Persona from '@aluhning/get-personas-js'
 
 import EditMemberProposalForm from '../EditProposal/editMemberProposal'
@@ -126,6 +127,8 @@ export default function ProposalCard(props) {
     
     
     const[curPersonaIdx, setCurPersonaIdx] = useState()
+
+    const [totalMembers, setTotalMembers] = useState()
    
     const [editMemberProposalDetailsClicked, setEditMemberProposalDetailsClicked] = useState(false)
     const [memberProposalDetailsClicked, setMemberProposalDetailsClicked] = useState(false)
@@ -150,7 +153,8 @@ export default function ProposalCard(props) {
       didRegistryContract,
       near,
       appIdx,
-      accountId
+      accountId,
+      wallet
     } = state
 
     const {
@@ -171,7 +175,8 @@ export default function ProposalCard(props) {
         daoDid,
         memberStatus,
         contract,
-        proposalDeposit
+        proposalDeposit,
+        summoner
     } = props
 
     useEffect(
@@ -277,7 +282,13 @@ export default function ProposalCard(props) {
                   i++
                 }
               }
-            }  
+            }
+
+            if(wallet){
+              let daoContract = await dao.initDaoContract(wallet.account(), contractId)
+              let members = await daoContract.getTotalMembers()
+              setTotalMembers(members)
+            }
                     
             return true  
           }
@@ -453,7 +464,6 @@ export default function ProposalCard(props) {
                  <>
                  <Button 
                   color="primary"
-                  noWrap={true} 
                   style={{fontWeight: '800', fontSize: '110%', lineHeight: '1.1em'}}
                   onClick={handleFundingProposalDetailsClick}
                  >
@@ -493,7 +503,6 @@ export default function ProposalCard(props) {
                  <>
                  <Button 
                   color="primary"
-                  noWrap={true} 
                   style={{fontWeight: '800', fontSize: '110%', lineHeight: '1.1em'}}
                   onClick={handleTributeProposalDetailsClick}
                  >
@@ -533,7 +542,6 @@ export default function ProposalCard(props) {
                  <>
                  <Button 
                   color="primary"
-                  noWrap={true} 
                   style={{fontWeight: '800', fontSize: '110%', lineHeight: '1.1em'}}
                   onClick={handleOpportunityProposalDetailsClick}
                  >
@@ -571,7 +579,6 @@ export default function ProposalCard(props) {
                title={ <>
                 <Button 
                  color="primary"
-                 noWrap={true} 
                  style={{fontWeight: '800', fontSize: '110%', lineHeight: '1.1em'}}
                  onClick={handleFundingProposalDetailsClick}
                 >
@@ -656,6 +663,15 @@ export default function ProposalCard(props) {
                 </Grid>
               </Grid>
             ) : null}
+
+            {proposalType == 'Tribute' ? (
+              <Grid container alignItems="center" justify="space-evenly" style={{marginBottom:'5px'}}>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-20px'}}>
+                  <Typography variant="overline">Shares: {shares}</Typography><br></br>
+                  <Typography variant="overline">{`Tribute: ${tribute} Ⓝ`}</Typography>
+                </Grid>
+              </Grid>
+            ) : null }
 
             {proposalType == 'Payout' ? (
               <Grid container alignItems="center" justify="space-evenly" style={{marginTop: '-20px', marginBottom:'20px'}}>
@@ -803,6 +819,17 @@ export default function ProposalCard(props) {
                     Sponsor
                     </Button>
                   </> : null }
+                  {console.log('summoner', summoner)}
+                  {console.log('accountId', accountId)}
+                  {console.log('totalMembers', totalMembers)}
+                  {(accountId == summoner && totalMembers == 1) && status=='Submitted' && memberStatus == true ? 
+                  <><Button 
+                      color="primary" 
+                      onClick={(e) => handleSponsorConfirmationClick(requestId, proposalType, funding)}
+                    >
+                    Sponsor
+                    </Button>
+                  </> : null }
                 </Grid>
 
                 <Grid item xs={4} sm={4} md={4} lg={4} xl={4}>
@@ -826,6 +853,13 @@ export default function ProposalCard(props) {
                     <><Button 
                         color="primary" 
                         onClick={handleEditFundingProposalDetailsClick}>
+                          Edit
+                      </Button>
+                    </>) : null } 
+                  {proposalType === 'Tribute' ? (
+                    <><Button 
+                        color="primary" 
+                        onClick={handleEditTributeProposalDetailsClick}>
                           Edit
                       </Button>
                     </>) : null } 
@@ -863,6 +897,18 @@ export default function ProposalCard(props) {
         {editFundingProposalDetailsClicked ? <EditFundingProposalForm
           state={state}
           handleEditFundingProposalDetailsClickState={handleEditFundingProposalDetailsClickState}
+          curDaoIdx={curDaoIdx}
+          curPersonaIdx={curPersonaIdx}
+          applicant={applicant}
+          proposer={proposer}
+          handleUpdate={handleUpdate}
+          accountId={accountId}
+          proposalId={requestId}
+          /> : null }
+
+        {editTributeProposalDetailsClicked ? <EditTributeProposalForm
+          state={state}
+          handleEditTributeProposalDetailsClickState={handleEditTributeProposalDetailsClickState}
           curDaoIdx={curDaoIdx}
           curPersonaIdx={curPersonaIdx}
           applicant={applicant}
@@ -910,6 +956,16 @@ export default function ProposalCard(props) {
         {fundingProposalDetailsClicked ? <FundingProposalDetails
           proposer={proposer}
           handleFundingProposalDetailsClickState={handleFundingProposalDetailsClickState}
+          curDaoIdx={curDaoIdx}
+          curPersonaIdx={curPersonaIdx}
+          applicant={applicant}
+          handleUpdate={handleUpdate}
+          proposalId={requestId}
+          /> : null }
+
+        {tributeProposalDetailsClicked ? <TributeProposalDetails
+          proposer={proposer}
+          handleTributeProposalDetailsClickState={handleTributeProposalDetailsClickState}
           curDaoIdx={curDaoIdx}
           curPersonaIdx={curPersonaIdx}
           applicant={applicant}
