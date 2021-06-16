@@ -11,6 +11,9 @@ import MemberProposalDetails from '../ProposalDetails/memberProposalDetails'
 import EditFundingProposalForm from '../EditProposal/editFundingProposal'
 import FundingProposalDetails from '../ProposalDetails/fundingProposalDetails'
 
+import TributeProposalForm from '../EditProposal/editTributeProposal'
+import TributeProposalDetails from '../ProposalDetails/tributeProposalDetails'
+
 import EditPayoutProposalForm from '../EditProposal/editPayoutProposal'
 import PayoutProposalDetails from '../ProposalDetails/payoutProposalDetails'
 
@@ -109,7 +112,8 @@ export default function ProposalCard(props) {
     const [proposerAvatar, setProposerAvatar] = useState(imageName)
     const [proposerName, setProposerName] = useState('')
 
-    const[title, setTitle] = useState('Proposal Details')
+    const[title, setTitle] = useState('Funding Proposal Details')
+    const [tributeTitle, setTributeTitle] = useState('Tribute Proposal Details')
 
     const[payoutTitle, setPayoutTitle] = useState('Payout Details')
 
@@ -128,6 +132,9 @@ export default function ProposalCard(props) {
 
     const [editFundingProposalDetailsClicked, setEditFundingProposalDetailsClicked] = useState(false)
     const [fundingProposalDetailsClicked, setFundingProposalDetailsClicked] = useState(false)
+
+    const [editTributeProposalDetailsClicked, setEditTributeProposalDetailsClicked] = useState(false)
+    const [tributeProposalDetailsClicked, setTributeProposalDetailsClicked] = useState(false)
 
     const [editPayoutProposalDetailsClicked, setEditPayoutProposalDetailsClicked] = useState(false)
     const [payoutProposalDetailsClicked, setPayoutProposalDetailsClicked] = useState(false)
@@ -175,22 +182,8 @@ export default function ProposalCard(props) {
          
             // Get Applicant Persona Information
             let thisCurPersonaIdx
-            console.log('applicant', applicant)
+           
             if(applicant){
-              // let existingDid = await didRegistryContract.hasDID({accountId: applicant})
-              // console.log('existingDID app', existingDid)
-            
-              // if(existingDid){
-                 
-              //     let personaAccount = new nearAPI.Account(near.connection, applicant)
-              //     console.log('personaAccount', personaAccount)
-
-              //     thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, didRegistryContract)
-              //     console.log('app thiscurpersonaidx', thisCurPersonaIdx)
-              //     setCurPersonaIdx(thisCurPersonaIdx)
-              
-              //     let result = await thisCurPersonaIdx.get('profile', thisCurPersonaIdx.id)
-              //     console.log('result proposal persona card', result)
               const thisPersona = new Persona()
               let result = await thisPersona.getPersona(applicant)
                   if(result){
@@ -231,6 +224,22 @@ export default function ProposalCard(props) {
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == requestId){
                     propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
+                    break
+                  }
+                  i++
+                }
+              }
+            }
+
+            // Set Existing Tribute Proposal Data       
+            if(curDaoIdx){
+              let propResult = await curDaoIdx.get('tributeProposalDetails', curDaoIdx.id)
+              console.log('propResult', propResult)
+              if(propResult) {
+                let i = 0
+                while (i < propResult.proposals.length){
+                  if(propResult.proposals[i].proposalId == requestId){
+                    propResult.proposals[i].title ? setTributeTitle(propResult.proposals[i].title) : setTributeTitle('')
                     break
                   }
                   i++
@@ -323,6 +332,26 @@ export default function ProposalCard(props) {
   
     function handleFundingProposalDetailsClickState(property){
       setFundingProposalDetailsClicked(property)
+    }
+
+    // Tribute Proposal Functions
+
+    const handleEditTributeProposalDetailsClick = () => {
+      handleExpanded()
+      handleEditTributeProposalDetailsClickState(true)
+    }
+  
+    function handleEditTributeProposalDetailsClickState(property){
+      setEditTributeProposalDetailsClicked(property)
+    }
+
+    const handleTributeProposalDetailsClick = () => {
+      handleExpanded()
+      handleTributeProposalDetailsClickState(true)
+    }
+  
+    function handleTributeProposalDetailsClickState(property){
+      setTributeProposalDetailsClicked(property)
     }
 
      // Opportunity Proposal Functions
@@ -429,6 +458,46 @@ export default function ProposalCard(props) {
                   onClick={handleFundingProposalDetailsClick}
                  >
                   {title ? title.replace(/(<([^>]+)>)/gi, ""): 'No Details Yet.'}
+                 </Button>
+                 </>
+                }
+               subheader={
+                 <Grid container alignItems="center" justify="space-evenly">
+                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
+                      <Typography variant="overline">Proposed: {created}</Typography>
+                   </Grid>
+                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                   <Typography variant="overline">By:</Typography>
+                   <Chip avatar={<Avatar src={proposerAvatar} className={classes.small}  />} label={proposerName != '' ? proposerName : proposer}/>
+                   </Grid>
+                   {status == 'Sponsored' ? (
+                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                     <Typography variant="overline" color="textSecondary">Sponsor: {sponsor}</Typography>
+                   </Grid>
+                   ) : null }
+                 </Grid>
+                 }
+             /></>
+           ) : null }
+
+           {proposalType === 'Tribute' ? (
+            <> 
+            <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px'}} color="textSecondary">{proposalType} Proposal</Typography>
+            <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
+            
+            <div style={{clear: 'both'}}></div>
+            <CardHeader
+               style={{display: 'block'}}
+               align="center"
+               title={
+                 <>
+                 <Button 
+                  color="primary"
+                  noWrap={true} 
+                  style={{fontWeight: '800', fontSize: '110%', lineHeight: '1.1em'}}
+                  onClick={handleTributeProposalDetailsClick}
+                 >
+                  {tributeTitle ? tributeTitle.replace(/(<([^>]+)>)/gi, ""): 'No Details Yet.'}
                  </Button>
                  </>
                 }

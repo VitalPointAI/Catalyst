@@ -80,7 +80,7 @@ export default function PersonaInfo(props) {
         contractId
     } = useParams()
 
-    const matches = useMediaQuery('(max-width:420px)');
+    const matches = useMediaQuery('(max-width:500px)');
 
     const Dao = new Persona()
    

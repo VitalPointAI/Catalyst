@@ -26,7 +26,7 @@ export const Header = ({ state, handleSnackBarOpen, handleSuccessMessage, handle
         contractId
     } = useParams()
 
-    const matches = useMediaQuery('(max-width:420px)');
+    const matches = useMediaQuery('(max-width:500px)')
 
     
     return (

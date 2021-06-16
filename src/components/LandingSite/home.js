@@ -79,7 +79,7 @@ const useStyles = makeStyles((theme) => ({
 
 const FrontPage = () => {
     const classes = useStyles()
-    const matches = useMediaQuery('(max-width:420px)')
+    const matches = useMediaQuery('(max-width:500px)')
 
     return(
     <>

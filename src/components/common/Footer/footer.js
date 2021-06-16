@@ -8,7 +8,7 @@ import './footer.css'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
 
 const Footer = ({}) => {
-    const matches = useMediaQuery('(max-width:420px)')
+    const matches = useMediaQuery('(max-width:500px)')
 
     return (
     !matches ? 

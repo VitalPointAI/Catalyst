@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 
 import FundingProposal from '../FundingProposal/fundingProposal'
+import TributeProposal from '../TributeProposal/tributeProposal'
 import WhiteListProposal from '../WhiteListProposal/whitelistProposal'
 import GuildKickProposal from '../GuildKickProposal/guildKickProposal'
 import MemberProposal from '../MemberProposal/memberProposal'
@@ -83,6 +84,7 @@ export default function ActionSelector(props) {
   const [memberProposalClicked, setMemberProposalClicked] = useState(false)
   const [inviteClicked, setInviteClicked] = useState(false); 
   const [fundingProposalClicked, setFundingProposalClicked] = useState(false)
+  const [tributeProposalClicked, setTributeProposalClicked] = useState(false)
   const [payoutProposalClicked, setPayoutProposalClicked] = useState(false)
   const [donationProposalClicked, setDonationProposalClicked] = useState(false)
   const [opportunityProposalClicked, setOpportunityProposalClicked] = useState(false)
@@ -126,7 +128,13 @@ export default function ActionSelector(props) {
     handleExpanded()
     handleTabValueState('2')
     setFundingProposalClicked(true)
-  };
+  }
+
+  const handleTributeProposalClick = () => {
+    handleExpanded()
+    handleTabValueState('2')
+    setTributeProposalClicked(true)
+  }
 
   const handleVotingProposalClick = () => {
     handleExpanded()
@@ -190,6 +198,10 @@ export default function ActionSelector(props) {
 
   function handleFundingProposalClickState(property) {
     setFundingProposalClicked(property)
+  }
+
+  function handleTributeProposalClickState(property) {
+    setTributeProposalClicked(property)
   }
 
   function handlePayoutProposalClickState(property) {
@@ -278,6 +290,12 @@ export default function ActionSelector(props) {
             </ListItemIcon>
             <ListItemText primary="Donation (no Votes)" />
           </StyledMenuItem>
+          <StyledMenuItem button onClick={handleTributeProposalClick}>
+          <ListItemIcon>
+            <HowToVoteIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="Tribute (add Voting Shares)" />
+        </StyledMenuItem>
           <StyledMenuItem button onClick={handleOpportunityProposalClick}>
             <ListItemIcon>
               <AddAlertIcon fontSize="small" />
@@ -388,6 +406,21 @@ export default function ActionSelector(props) {
       handleErrorMessage={handleErrorMessage}
       handleSuccessMessage={handleSuccessMessage}
       /> : null }
+
+      {tributeProposalClicked ? <TributeProposal
+        contractId={contractId}
+        handleTributeProposalClickState={handleTributeProposalClickState}
+        state={state}
+        depositToken={depositToken}
+        proposalDeposit={proposalDeposit}
+        tokenName={tokenName}
+        accountId={accountId} 
+       
+        handleSnackBarOpen={handleSnackBarOpen}
+        handleErrorMessage={handleErrorMessage}
+        handleSuccessMessage={handleSuccessMessage}
+        /> : null }
+  
 
       {opportunityProposalClicked ? <OpportunityProposal
       contractId={contractId}

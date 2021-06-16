@@ -41,9 +41,10 @@ const axios = require('axios').default
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
-    margin: 'auto',
-    marginBottom: 50,
-    minHeight: 550,
+    height: '100vh',
+    position: 'relative',
+    display: 'flex',
+    flexDirection: 'column'
   },
     top: {
       marginBottom: '10px',

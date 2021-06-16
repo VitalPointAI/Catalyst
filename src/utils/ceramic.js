@@ -24,6 +24,7 @@ import { proposalSchema } from '../schemas/proposals'
 import { memberProposalDetailsSchema } from '../schemas/memberProposals'
 import { fundingProposalDetailsSchema } from '../schemas/fundingProposals'
 import { payoutProposalDetailsSchema } from '../schemas/payoutProposals'
+import { tributeProposalDetailsSchema } from '../schemas/tributeProposals'
 import { commentsSchema } from '../schemas/comments'
 import { donationsSchema } from '../schemas/donations'
 import { apiKeysSchema } from '../schemas/apiKeys'
@@ -507,6 +508,7 @@ async makeSeed(account){
     const payoutProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'payoutProposalDetails', appClient, payoutProposalDetailsSchema, 'payout proposal details', contract)
     const apiKeys = this.getAlias(APP_OWNER_ACCOUNT, 'apiKeys', appClient, apiKeysSchema, 'secure api keys', contract)
     const opportunities = this.getAlias(APP_OWNER_ACCOUNT, 'opportunities', appClient, opportunitiesSchema, 'opportunities to complete', contract)
+    const tributeProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'tributeProposalDetails', appClient, tributeProposalDetailsSchema, 'tribute proposal details', contract)
     const done = await Promise.all([
       appDid, 
       definitions, 
@@ -525,7 +527,8 @@ async makeSeed(account){
       donations,
       payoutProposalDetails,
       apiKeys,
-      opportunities
+      opportunities,
+      tributeProposalDetails
     ])
     
     let rootAliases = {
@@ -545,7 +548,8 @@ async makeSeed(account){
       donations: done[14],
       payoutProposalDetails: done[15],
       apiKeys: done[16],
-      opportunities: done[17]
+      opportunities: done[17],
+      tributeProposalDetails: done[18]
     }
 
     const appIdx = new IDX({ ceramic: appClient, aliases: rootAliases})

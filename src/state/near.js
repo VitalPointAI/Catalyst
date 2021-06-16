@@ -580,6 +580,23 @@ export async function submitProposal(
                 return false
             }
             break
+        case 'Tribute':
+            try{
+            await daoContract.submitProposal({
+                a: applicant,
+                sR: sharesRequested,
+                lR: loot,
+                tO: tribute,
+                tT: depositToken,
+                pR: paymentRequested,
+                pT: depositToken,
+                contractId: contractId
+                }, GAS, parseNearAmount((parseInt(tribute) + parseInt(proposalDeposit)).toString()))
+            } catch (err) {
+                console.log('submit tribute proposal failed', err)
+                return false
+            }
+            break
         case 'Commitment':
             try{
                 await daoContract.submitCommitmentProposal({

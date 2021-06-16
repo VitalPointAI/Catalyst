@@ -13,6 +13,7 @@ import Persona from '@aluhning/get-personas-js'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Grid from '@material-ui/core/Grid'
+import useMediaQuery from '@material-ui/core/useMediaQuery'
 
 const axios = require('axios').default
 
@@ -70,6 +71,8 @@ export default function ExploreDaos(props) {
     } = state
 
     const Dao = new Persona()
+
+    const matches = useMediaQuery('(max-width:500px)')
 
     useEffect(
         () => {
@@ -177,9 +180,11 @@ export default function ExploreDaos(props) {
         
         <div className={classes.root}>
         <Header state={state}/>
+        {!matches ? (<>
         <Grid container alignItems="center" justify="space-between" spacing={0} style={{marginTop:'40px', marginBottom:'40px'}}>
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12} className={classes.featureDAO}>
-                <Typography align="center" style={{color:'#1341a4', fontSize:'60px',fontWeight:'700', marginTop:'30px', lineHeight:'1em', verticalAlign:'middle'}}>Catalyst Powers</Typography>
+                <Typography align="center" style={{color:'#1341a4', fontSize:'60px',fontWeight:'700', marginTop:'30px', lineHeight:'1em', verticalAlign:'middle'}}>
+                Catalyst Powers</Typography>
                 <Grid container alignItems="center" justify="space-evenly" spacing={1}>
                     <Grid item xs={6} sm={6} md={6} lg={6} xl={6} align="center">
                         <Typography style={{color:'#1341a4', fontSize:'80px',fontWeight:'700', marginTop:'30px', lineHeight:'1em', verticalAlign:'middle'}}>
@@ -202,6 +207,37 @@ export default function ExploreDaos(props) {
                 </Grid>
             </Grid>
         </Grid>
+        </>
+        ) : (<>
+            <Grid container alignItems="center" justify="space-between" spacing={0} style={{marginTop:'0px', marginBottom:'40px'}}>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} className={classes.featureDAO}>
+                    <Typography align="center" style={{color:'#1341a4', fontSize:'40px',fontWeight:'700', marginTop:'10px', lineHeight:'1em', verticalAlign:'middle'}}>
+                    Catalyst Powers</Typography>
+                    <Grid container alignItems="center" justify="space-evenly" spacing={1}>
+                        <Grid item xs={6} sm={6} md={6} lg={6} xl={6} align="center">
+                            <Typography style={{color:'#1341a4', fontSize:'40px',fontWeight:'700', marginTop:'30px', lineHeight:'1em', verticalAlign:'middle'}}>
+                                {daos ? daoCount : null} 
+                            </Typography>
+                            <Typography variant="overline" style={{color:'#1341a4', fontSize:'20px',fontWeight:'700', lineHeight:'1em', verticalAlign:'middle'}}>
+                                {daos && daoCount > 1 ? 'Communities': null} 
+                                {daos && daoCount == 1 ? 'Community': null}
+                                {daos && daoCount == 0 ? 'Communities': null}
+                            </Typography>
+                        </Grid>
+                        <Grid item xs={6} sm={6} md={6} lg={6} xl={6} >
+                            <Typography align="center" style={{color:'#1341a4', fontSize:'40px',fontWeight:'700', marginTop:'30px', lineHeight:'1em', verticalAlign:'middle'}}>
+                                {resources && resources > 0 ? resources + ' Ⓝ' : null}
+                            </Typography>
+                            <Typography align="center" style={{color:'#1341a4', fontSize:'20px',fontWeight:'700', lineHeight:'1em', verticalAlign:'middle'}}>
+                                {resources && resources > 0 ? '$' + Math.round(resources * nearPrice, 2) + ' USD' : null}
+                            </Typography>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Grid>
+            </>
+
+        )}
       
         <Grid container alignItems="center" justify="space-between" spacing={0} >
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>

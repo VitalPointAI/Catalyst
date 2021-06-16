@@ -11,7 +11,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import Chip from '@material-ui/core/Chip'
 import RightSideDrawer from '../AppFramework/RightSideDrawer'
 import { CircularProgress } from '@material-ui/core'
-import { Autocomplete } from '@material-ui/lab'
+import useMediaQuery from '@material-ui/core/useMediaQuery'
 
 const useStyles = makeStyles((theme) => ({
     logo: {
@@ -53,6 +53,8 @@ export default function Logo(props) {
     const {
         contractId
     } = useParams()
+
+    const matches = useMediaQuery('(max-width:500px)');
 
     useEffect(() => {
 
@@ -139,7 +141,9 @@ export default function Logo(props) {
         logo != catalystLogo ?
             logo == defaultLogo ? 
                 (<>
+            
             <Link to={`/dao/${contractId}`}>
+            {!matches ? (
                 <div style={{width: '150px', 
                 height: '60px', 
                 marginLeft: '30px',
@@ -151,12 +155,26 @@ export default function Logo(props) {
                 backgroundOrigin: 'content-box'
             }}>
             </div>
+            ) : (
+                <div style={{width: '150px', 
+                height: '60px', 
+                marginLeft: '10px',
+                marginTop: '-4px',
+                backgroundImage: `url(${logo})`, 
+                backgroundSize: 'contain', 
+                backgroundPosition: 'left', 
+                backgroundRepeat: 'no-repeat',
+                backgroundOrigin: 'content-box'
+            }}>
+            </div>
+            )}
             </Link>
             {accountId == summoner ? <Chip label="Change" component="a" onClick={handleEditDaoClick} clickable variant="outlined" className={classes.chip}/> : null }
            
             </>
         ) : (
             <Link to={`/dao/${contractId}`}>
+            {!matches ? (
                 <div style={{width: '150px', 
                 height: '60px', 
                 marginLeft: '30px',
@@ -168,21 +186,48 @@ export default function Logo(props) {
                 backgroundOrigin: 'content-box'
             }}>
             </div>
+            ) : (
+                <div style={{width: '150px', 
+                height: '60px', 
+                marginLeft: '10px',
+                marginTop: '-4px',
+                backgroundImage: `url(${logo})`, 
+                backgroundSize: 'contain', 
+                backgroundPosition: 'left', 
+                backgroundRepeat: 'no-repeat',
+                backgroundOrigin: 'content-box'
+            }}>
+            </div>
+            )}
             </Link>
             
         ) : (
             <Link to='/'>
-            <div style={{width: '150px', 
-            height: '60px', 
-            marginLeft: '30px',
-            marginTop: '-4px',
-            backgroundImage: `url(${logo})`, 
-            backgroundSize: 'contain', 
-            backgroundPosition: 'left', 
-            backgroundRepeat: 'no-repeat',
-            backgroundOrigin: 'content-box'
-        }}>
-        </div>
+            {!matches ? (
+                <div style={{width: '150px', 
+                height: '60px', 
+                marginLeft: '30px',
+                marginTop: '-4px',
+                backgroundImage: `url(${logo})`, 
+                backgroundSize: 'contain', 
+                backgroundPosition: 'left', 
+                backgroundRepeat: 'no-repeat',
+                backgroundOrigin: 'content-box'
+            }}>
+            </div>
+            ) : (
+                <div style={{width: '150px', 
+                height: '60px', 
+                marginLeft: '10px',
+                marginTop: '-4px',
+                backgroundImage: `url(${logo})`, 
+                backgroundSize: 'contain', 
+                backgroundPosition: 'left', 
+                backgroundRepeat: 'no-repeat',
+                backgroundOrigin: 'content-box'
+            }}>
+            </div>
+            )}
            
         </Link>
         )) : <CircularProgress />}

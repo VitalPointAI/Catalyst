@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { flexClass } from '../App'
 import SignIn from './SignIn/signIn'
 import Footer from '../components/common/Footer/footer'
+import Dashboard from '../components/mainPages/dashboard'
 import LeftSideDrawer from './LeftSideDrawer/leftSideDrawer'
 import LogoutButton from './LogoutButton/logoutButton'
 import LoginButton from './LogInButton/loginButton'
@@ -24,18 +25,12 @@ import '../App.css'
 
 const useStyles = makeStyles((theme) => ({
     root: {
-      //  flexGrow: 1,
-      //  maxWidth: 640,
-      //  margin: 'auto',
-      //  marginTop: 50,
-      //  marginBottom: 50,
-     //   minHeight: 550,
-     //   padding: '0px',
+        flexGrow: 1,
         height: '100vh',
         position: 'relative',
         display: 'flex',
         flexDirection: 'column'
-    },
+      },
     paper: {
         padding: theme.spacing(2),
         textAlign: 'center',
@@ -74,28 +69,26 @@ export const Home = ({ children, state, handleSnackBarOpen, handleSuccessMessage
     return (
         <>
         <div className={classes.root}>
-        <Header state={state}
-        handleSnackBarOpen={handleSnackBarOpen}
-        handleSuccessMessage={handleSuccessMessage}
-        handleErrorMessage={handleErrorMessage}
-        snackBarOpen={snackBarOpen}
-        severity={severity}
-        errorMessage={errorMessage}
-        successMessage={successMessage}
-        />
+            <Header state={state}
+            handleSnackBarOpen={handleSnackBarOpen}
+            handleSuccessMessage={handleSuccessMessage}
+            handleErrorMessage={handleErrorMessage}
+            snackBarOpen={snackBarOpen}
+            severity={severity}
+            errorMessage={errorMessage}
+            successMessage={successMessage}
+            />
        
         {finished ? 
            
-                    wallet && wallet.signedIn ?  
-                        key ? (<Import />) : <div>Placeholder</div>
-                : <SignIn wallet={wallet} state={state}/>
+            wallet && wallet.signedIn ?  
+                key ? (<Import />) : <Dashboard />
+            : <SignIn wallet={wallet} state={state}/>
                
-            
             : state.accountData ? (
-           
-                    {children}
-                
-            ) : <div style={{width: '100%', textAlign: 'center'}}><CircularProgress/></div>
+                {children}
+            ) 
+            : <div style={{width: '100%', textAlign: 'center'}}><CircularProgress/></div>
         }       
         
         { state.app.alert &&
@@ -110,8 +103,8 @@ export const Home = ({ children, state, handleSnackBarOpen, handleSuccessMessage
             </div>
         }
         
-    </div>
-    <Footer />
+        </div>
+        <Footer />
     </>
     )
 }

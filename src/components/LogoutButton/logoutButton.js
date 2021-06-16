@@ -5,6 +5,7 @@ import { logout } from '../../state/near'
 // Material UI components
 import Button from '@material-ui/core/Button'
 import LockTwoToneIcon from '@material-ui/icons/LockTwoTone'
+import useMediaQuery from '@material-ui/core/useMediaQuery'
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -23,15 +24,28 @@ export default function LogoutButton(props) {
 
     const classes = useStyles()
 
+    const matches = useMediaQuery('(max-width:500px)')
+
     return (
-        <> 
-        <Button
+        <>
+        {!matches ? (
+          <Button
         variant="contained"
         color="primary"
         className={classes.button}
         startIcon={<LockTwoToneIcon />}
         onClick={logout}
         >Sign Out</Button>
+        ) : (
+        <Button
+        variant="contained"
+        size="small"
+        color="primary"
+        className={classes.button}
+        startIcon={<LockTwoToneIcon />}
+        onClick={logout}
+        >Sign Out</Button>
+        )}
            
       </>
     )
