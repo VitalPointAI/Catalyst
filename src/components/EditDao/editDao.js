@@ -20,8 +20,8 @@ import Avatar from '@material-ui/core/Avatar'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import Divider from '@material-ui/core/Divider'
-
-
+import Switch from '@material-ui/core/Switch'
+import Card from '@material-ui/core/Card'
 
 // ReactQuill Component
 import ReactQuill from 'react-quill';
@@ -68,7 +68,14 @@ export default function EditDaoForm(props) {
     const [logo, setLogo] = useState(imageName)
     const [purpose, setPurpose] = useState('')
     const [category, setCategory] = useState('')
+    const [webhook, setWebhook] = useState('')
     const [curDaoIdx, setCurDaoIdx] = useState()
+
+    const [discordActivated, setDiscordActivated] = useState(false)
+    const [proposalsActivated, setProposalsActivated] = useState(false)
+    const [passedProposalsActivated, setPassedProposalsActivated] = useState(false)
+    const [votingActivated, setVotingActivated] = useState(false) 
+    const [sponsorActivated, setSponsorActivated] = useState(false) 
 
     const { register, handleSubmit, watch, errors } = useForm()
 
@@ -103,12 +110,24 @@ export default function EditDaoForm(props) {
 
               let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
 
+              let webhook = await ceramic.downloadKeysSecret(thisCurDaoIdx, 'apiKeys')
+              console.log("webhook", webhook)
+              if(webhook && Object.keys(webhook).length > 0){
+                 setWebhook(webhook[0].api) 
+              }
+              else{
+                 setWebhook('')
+              }
               if(result) {
                 result.name ? setName(result.name) : setName('')
                 result.date ? setDate(result.date) : setDate('')
                 result.logo ? setLogo(result.logo) : setLogo(imageName)
                 result.purpose ? setPurpose(result.purpose) : setPurpose('')
                 result.category ? setCategory(result.category) : setCategory('')
+                result.discordActivation ? setDiscordActivated(true) : setDiscordActivated(false)
+                result.proposalActivation ? setProposalsActivated(true) : setProposalsActivated(false)
+                result.passedProposalActivation ? setPassedProposalsActivated(true) : setPassedProposalsActivated(false)
+                result.sponsorActivation ? setSponsorActivated(true) : setSponsorActivated(false)
               }
            }
         }
@@ -137,7 +156,10 @@ export default function EditDaoForm(props) {
       let value = event.target.value;
       setCategory(value)
     }
-
+    const handleWebhookChange = (event) => {
+      let value = event.target.value;
+      setWebhook(value)
+    }
     function formatDate(timestamp) {
       let intDate = parseInt(timestamp)
       let options = {year: 'numeric', month: 'long', day: 'numeric'}
@@ -145,7 +167,19 @@ export default function EditDaoForm(props) {
     }
 
     const handlePurposeChange = (content, delta, source, editor) => {
-        setPurpose(content)
+      setPurpose(content)
+    }
+    const handleDiscordActivation = () => {
+      setDiscordActivated(!discordActivated) 
+    }
+    const handleProposalActivation = () => {
+      setProposalsActivated(!proposalsActivated)
+    }
+    const handlePassedProposalActivation = () => {
+      setPassedProposalsActivated(!passedProposalsActivated)
+    }
+    const handleSponsorActivation = () => {
+      setSponsorActivated(!sponsorActivated)
     }
 
     const onSubmit = async (values) => {
@@ -162,10 +196,34 @@ export default function EditDaoForm(props) {
             category: category,
             name: name,
             logo: logo,
-            purpose: purpose
+            purpose: purpose,
+            discordActivation: discordActivated,
+            proposalActivation: proposalsActivated,
+            passedProposalActivation: passedProposalsActivated,
+            sponsorActivation: sponsorActivated
         }
      
         let result = await curDaoIdx.set('daoProfile', record)
+    
+        
+        //ADD WEBHOOK HERE
+        let hookArray = await ceramic.downloadKeysSecret(curDaoIdx, 'apiKeys')
+   
+        console.log('hookArray', hookArray)
+        // let hookArray = []
+        hookArray = [
+          {
+          api: webhook, 
+          discordActivation: discordActivated,
+          proposalActivation: proposalsActivated,
+          passedProposalActivation: passedProposalsActivated, 
+          sponsorActivation: sponsorActivated
+          }
+        ]
+
+         console.log("hook array", hookArray)
+         let result2 = await ceramic.storeKeysSecret(curDaoIdx, hookArray, 'apiKeys', curDaoIdx.id)
+         console.log("hook result", result2)
 
         // let m = 0
         // let updateDaoList = state.currentDaosList
@@ -189,7 +247,6 @@ export default function EditDaoForm(props) {
      
       setIsUpdated(true)
       setFinished(true)
-      update('', { isUpdated })
       handleUpdate(true)
       setOpen(false)
       handleClose()
@@ -257,6 +314,41 @@ export default function EditDaoForm(props) {
                     {errors.name && <p style={{color: 'red'}}>You must categorize your DAO so others can find it.</p>} 
                
                
+                    <TextField
+                      autoFocus
+                      margin="dense"
+                      id="discord-webhook"
+                      variant="outlined"
+                      name="WebHook"
+                      label="WebHook"
+                      placeholder="Web Hook"
+                      value={webhook}
+                      onChange={handleWebhookChange}
+                      inputRef={register({
+                          required: false                              
+                      })}
+                    />
+                  <Card>
+                      <Grid container>
+                      <Grid item xs={6}>     
+                      <Typography>Discord Notifications</Typography>
+                       <Switch checked={discordActivated} onChange={handleDiscordActivation}>Discord</Switch>
+                      </Grid>
+                      <Grid item xs={6}>
+                      <Typography>Proposal Notifications</Typography>
+                        <Switch checked={proposalsActivated} onChange={handleProposalActivation}>New Proposals</Switch>
+                      </Grid>
+                      <Grid item xs={6}>
+                      <Typography>Processing Notifications</Typography>
+                       <Switch checked={passedProposalsActivated} onChange={handlePassedProposalActivation}>Passed Proposals</Switch>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography>Sponsor Notifications</Typography>
+                        <Switch checked={sponsorActivated} onChange={handleSponsorActivation}>Sponsorships</Switch>
+                      </Grid>
+                    </Grid>
+                  </Card>
+
                   <ReactQuill
                     theme="snow"
                     modules={modules}

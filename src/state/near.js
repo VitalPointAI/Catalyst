@@ -510,35 +510,37 @@ export async function initDao(wallet, contractId, periodDuration, votingPeriodLe
     return true
 }
 
-function sendMessage(content, type, data){
+async function sendMessage(content, type, type2, data, curDaoIdx){
     let request = new XMLHttpRequest()
+    let hookArray = await ceramic.downloadKeysSecret(curDaoIdx, 'apiKeys')
+    let hook = hookArray[0].api
+    console.log("hook", hook)
 
-    switch(type){
-        case 'member':
-            request.open("POST", 'https://discord.com/api/webhooks/851413881570066442/pmuovskYG-5uibZ3edWdZSt5VY9xyd6YVd2wg_Fejcv8jBAZUNNWxINLaHpahza6xDfP')
+    if((type2 == 'proposal' && hookArray[0].discordActivation == true && hookArray[0].proposalActivation == true)
+    || (type2 == "sponsor" && hookArray[0].discordActivation == true && hookArray[0].sponsorActivation == true)
+    || (type2 == "process" && hookArray[0].discordActivation == true && hookArray[0].passedProposalActivation == true))
+    {
+        request.open("POST", `${hook}`)
 
-            request.setRequestHeader('Content-type', 'application/json')
+        request.setRequestHeader('Content-type', 'application/json')
 
             let embeddedData = {
-                author: {
+            author: {
                     name: data.applicant,
                     url: data.url
                 }
             }
 
             let params = {
-                username: 'Member Manager',
+                username: `${type}` + ' Manager',
                 content: content,
                 embeds: [embeddedData]
             }
 
             request.send(JSON.stringify(params))
             return true
-        
-
-        default:
-            return false
     }
+    return false
 }
 
 // Initializes a DAO by setting its key components
@@ -633,10 +635,13 @@ export async function sponsorProposal(daoContract, contractId, proposalId, depos
             contractId: contractId
             }, GAS, parseNearAmount((parseInt(proposalDeposit)).toString()))
 
+
     } catch (err) {
         console.log('sponsor proposal failed', err)
         return false
     }
+
+  
     return true
 }
 
@@ -1082,6 +1087,7 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId) {
         if(!proposalEventRecord){
             proposalEventRecord = { events: [] }
         }
+        
 
         let indivProposalRecord = {
             proposalId: (proposal.pI).toString(),
@@ -1118,15 +1124,37 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId) {
 
     if(logged){
         // Discord Integration
+        // 6 is member, 7 is funding, none is payout?
         if(proposal.f[6]){
             let data = {
                 applicant: proposal.a,
-                url: 'http://localhost:1234/dao/' + curDaoIdx.id
+                url: window.location.href
             }
-            sendMessage('New member application received for ' + proposal.a, 'member', data)
+            console.log("sending message")
+            sendMessage('New member application received for ' + proposal.a, 'Member', 'proposal', data, curDaoIdx)
+            
+        } 
+        else if(proposal.f[7]){
+            let data = {
+                applicant: proposal.a,
+                url: window.location.href
+            }
+            console.log("sending message")
+            sendMessage(proposal.a + " has requested a funding commitment of " + proposal.pR + " NEAR", 'Funding',
+            'proposal', data, curDaoIdx)
+        }
+        else{
+            let data = {
+                applicant: proposal.a,
+                url: window.location.href
+            }
+            console.log("sending message")
+            sendMessage(proposal.a + " has requested a payout of " + proposal.pR + " NEAR", 'Payout', 'proposal',
+             data, curDaoIdx)
         }
         return true
-    } else {
+    }
+    else {
         return false
     }
 }
@@ -1282,6 +1310,11 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
     console.log('processLogged', processLogged)
     console.log('memberprocessLogged', memberLogged)
     if(processLogged && memberLogged){
+        let data = {
+            applicant: proposal.a,
+            url: window.location.href
+        }
+        sendMessage(proposal.a+"'s Proposal "+proposalId + " has been processed", "Processing", "process", data, curDaoIdx)
         return true
     } else {
         return false
@@ -1459,6 +1492,12 @@ export async function logSponsorEvent (curDaoIdx, daoContract, proposalId) {
         }
     }
     if(logged){
+        let data = {
+            applicant: proposal.a,
+            url: window.location.href
+        }
+        sendMessage(proposal.a + "'s proposal " + proposalId + " has been sponsored by " + proposal.s
+        , "Sponsorship", "sponsor", data, curDaoIdx)
         return true
     } else {
         return false
