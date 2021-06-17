@@ -22,11 +22,6 @@ import '../App.css'
 const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
-      //  maxWidth: 640,
-        margin: 'auto',
-      //  marginTop: 50,
-      //  marginBottom: 50,
-     //   minHeight: 550,
         padding: '0px',
     },
     paper: {

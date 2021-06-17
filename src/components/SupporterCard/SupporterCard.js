@@ -19,7 +19,8 @@ const useStyles = makeStyles((theme) => ({
         marginTop: 0,
     },
     card: {
-      margin: 'auto'
+      margin: 'auto',
+      maxWidth: '250px'
     },
     avatar: {
       backgroundColor: red[500],

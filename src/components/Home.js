@@ -26,7 +26,6 @@ import '../App.css'
 const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
-        height: '100vh',
         position: 'relative',
         display: 'flex',
         flexDirection: 'column'

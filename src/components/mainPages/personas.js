@@ -17,8 +17,7 @@ import Paper from '@material-ui/core/Paper'
 
 const useStyles = makeStyles((theme) => ({
     root: {
-        flexGrow: 1,
-      height: '100vh',
+      flexGrow: 1,
       position: 'relative',
       display: 'flex',
       flexDirection: 'column'

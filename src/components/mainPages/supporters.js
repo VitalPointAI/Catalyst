@@ -14,7 +14,6 @@ import Typography from '@material-ui/core/Typography'
 const useStyles = makeStyles((theme) => ({
   root: {
       flexGrow: 1,
-      height: '100vh',
       position: 'relative',
       display: 'flex',
       flexDirection: 'column'
@@ -61,15 +60,15 @@ export default function Supporters(props) {
     )
     
     return (
-        
+        <>
         <div className={classes.root}>
         <Header state={state}/>
-        <Grid container alignItems="center" justify="center" spacing={3} style={{paddingLeft: '50px', paddingRight: '50px'}}>
+        <Grid container alignItems="center" justify="center" spacing={3}>
           <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom:'30px'}}>
-            <Typography variant='h3'>Community Supporters</Typography>
-            <Typography variant='body1'>These pers have made donations to our community fund - Thank-You.</Typography>
+            <Typography variant='h3' style={{marginTop: '20px'}}>Community Supporters</Typography>
+            <Typography variant='body1' style={{padding: '5px'}}>These pers have made donations to our community fund - Thank-You.</Typography>
           </Grid>
-        
+          <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom:'30px'}}>
             {donations && donations.donations.length > 0 ?
               donations.donations.map((fr, i) => {
                 console.log('donation fr', fr)
@@ -82,9 +81,10 @@ export default function Supporters(props) {
                   />
                 )
               }) : null }
-         
+          </Grid>
         </Grid>
-        <Footer />
         </div>
+        <Footer />
+        </>
     )
 }

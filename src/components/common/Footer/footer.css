@@ -10,10 +10,11 @@
  
     vertical-align: middle;
     margin-bottom: 0% !important;
-    margin-top:calc(8% + 50px);
+    
     left: 0px;
     right: 0px;
     bottom: 0px;
+    
 }
 
 .footer-mobile {

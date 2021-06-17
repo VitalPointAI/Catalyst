@@ -89,7 +89,7 @@ export default function ProposalList(props) {
   
   const classes = useStyles()
   const theme = useTheme()
-  const matches = useMediaQuery(theme.breakpoints.only('xs'))
+  const matches = useMediaQuery('(max-width:500px)')
 
   const { state, dispatch, update } = useContext(appStore);
 
@@ -701,14 +701,19 @@ console.log('prop list curdaoidx', curDaoIdx)
   return (
     <>
     <Paper square className={classes.root}>
+    {!matches ? (
       <Tabs
         value={tabValue}
         onChange={handleTabChange}
-        variant="fullWidth"
+       
         indicatorColor="primary"
         aria-label="icon label tabs example"
+        variant="fullWidth"
+        
        
       >
+     
+        
         <Tab 
           icon={     
             <StyledBadge badgeContent={memberCount} color="primary">
@@ -754,7 +759,67 @@ console.log('prop list curdaoidx', curDaoIdx)
           label="COMPLETE" 
           value="5"
         />
+        </Tabs>
+      ) : null }
+      {matches ? (
+        <Tabs
+        value={tabValue}
+        onChange={handleTabChange}
+       
+        indicatorColor="primary"
+        aria-label="icon label tabs example"
+        variant="scrollable"
+        scrollButtons="auto"
+       
+      >
+        <Tab 
+        icon={     
+          <StyledBadge badgeContent={memberCount} color="primary">
+            <PeopleAltIcon fontSize='small'/>
+          </StyledBadge>
+        } 
+        label="MEMBERS" 
+        value="1"
+      />
+      <Tab 
+        icon={
+          <StyledBadge badgeContent={proposalCount} color="primary">
+            <ListAltIcon fontSize='small'/>
+          </StyledBadge>
+        } 
+        label="PROPOSALS" 
+        value="2"
+      />
+      <Tab 
+        icon={
+          <StyledBadge badgeContent={voteCount} color="primary">
+            <HowToVoteIcon fontSize='small'/>
+          </StyledBadge>
+        } 
+        label="VOTING" 
+        value="3"
+      />
+      <Tab 
+        icon={
+          <StyledBadge badgeContent={queueCount} color="primary">
+            <QueueIcon fontSize='small'/>
+          </StyledBadge>
+        } 
+        label="PROCESSING" 
+        value="4"
+      />
+      <Tab
+        icon={
+          <StyledBadge badgeContent={processedCount} color="primary">
+            <AssignmentTurnedInIcon fontSize='small'/>
+          </StyledBadge>
+        }
+        label="COMPLETE" 
+        value="5"
+      />
       </Tabs>
+      ) : null}
+     
     </Paper>
     <TabContext value={tabValue}>
       <TabPanel value="1" className={classes.root}>

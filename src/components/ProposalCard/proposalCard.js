@@ -784,20 +784,20 @@ export default function ProposalCard(props) {
               ) : null }
 
               {status == 'Passed' || status == 'Not Passed' ? (
-                <Grid container alignItems="center" justify="space-between" spacing={1} >
-                  <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="left" >
+                <Grid container alignItems="center" justify="space-between" spacing={0} >
+                  <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center" >
                     <StyledBadge badgeContent={yesVotes} color="primary">
                       <IconButton onClick={(e) => handleVotingAction(requestId, 'yes')} disabled={true}>
                         <ThumbUpIcon fontSize='small' color="primary" />
                       </IconButton>
                     </StyledBadge>
                   </Grid>
-                  <Grid item xs={2} sm={2} md={2} lg={2} xl={2} align="center" >
+                  <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center" >
                     <Typography variant="body2">
                       {status}
                     </Typography>
                   </Grid>
-                  <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="center" >
+                  <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center" >
                     <StyledBadge badgeContent={noVotes} color="secondary">
                       <IconButton onClick={(e) => handleVotingAction(requestId, 'no')} disabled={true}>
                         <ThumbDownIcon fontSize='small' color="secondary" />

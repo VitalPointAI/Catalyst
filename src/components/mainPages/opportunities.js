@@ -12,14 +12,19 @@ import SearchBar from '../../components/common/SearchBar/search'
 import { makeStyles } from '@material-ui/core/styles'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
+import Card from '@material-ui/core/Card'
 
 const useStyles = makeStyles((theme) => ({
     root: {
       flexGrow: 1,
-      height: '100vh',
       position: 'relative',
       display: 'flex',
       flexDirection: 'column'
+    },
+    card: {
+      margin: 'auto',
+      maxWidth: '250px',
+      padding: '20px'
     },
     menuButton: {
       marginRight: theme.spacing(0),
@@ -92,24 +97,21 @@ export default function Opportunities(props) {
   }
     
     return (
-        
+        <>
         <div className={classes.root}>
         <Header state={state}/>
-        <Grid container alignItems="center" justify="center" spacing={3} style={{paddingLeft: '50px', paddingRight: '50px'}}>
+        <Grid container alignItems="center" justify="flex-start" spacing={0}>
           <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom:'30px'}}>
-            <Typography variant='h3'>Community Opportunities</Typography>
-            <Typography variant='body1'>These are the opportunitites currently available to the community.</Typography>
+            <Typography variant='h3' style={{marginTop: '20px'}}>Community Opportunities</Typography>
+            <Typography variant='body1' style={{padding: '5px'}}>These are the opportunitites currently available to the community.</Typography>
           </Grid>
-
-          <Grid container alignItems="center" justify="space-between" spacing={0} style={{marginBottom: '20px'}} >
-            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-              <SearchBar
-                  placeholder="Search"
-                  onChange={(e) => searchData(e.target.value)}
-              />
-            </Grid>
+            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{marginBottom:'30px'}}>
+          <SearchBar
+              placeholder="Search"
+              onChange={(e) => searchData(e.target.value)}
+          />
           </Grid>
-        
+          <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
             {opportunities && opportunities.length > 0 ?
               opportunities.map((fr, i) => {
                 console.log('opportunity fr', fr)
@@ -129,10 +131,13 @@ export default function Opportunities(props) {
                     permission={fr.permission}
                   />
                 )
-              }) : null }
-         
+              }) : <Card className={classes.card}>
+              <Typography variant="h5">No Opportunities Yet - Please Check Back Soon.</Typography>
+            </Card> }
+          </Grid>
         </Grid>
-        <Footer />
         </div>
+        <Footer />
+        </>
     )
 }

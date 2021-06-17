@@ -22,7 +22,6 @@ const axios = require('axios').default
 const useStyles = makeStyles((theme) => ({
     root: {
       flexGrow: 1,
-      height: '100vh',
       position: 'relative',
       display: 'flex',
       flexDirection: 'column'
@@ -177,7 +176,7 @@ export default function ExploreDaos(props) {
   
 
     return (
-        
+        <>
         <div className={classes.root}>
         <Header state={state}/>
         {!matches ? (<>
@@ -275,8 +274,8 @@ export default function ExploreDaos(props) {
             : null
             }
         </Grid>
-        <Footer />
         </div>
-        
+        <Footer />
+        </>
     )
 }

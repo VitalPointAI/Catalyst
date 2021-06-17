@@ -41,7 +41,6 @@ const axios = require('axios').default
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
-    height: '100vh',
     position: 'relative',
     display: 'flex',
     flexDirection: 'column'
@@ -592,7 +591,7 @@ export default function AppFramework(props) {
           
           <Divider variant="middle" align="center" style={{width:'75%', margin: 'auto'}}/>
 
-          <Grid container justify="space-evenly" alignItems="center" spacing={1}>
+          <Grid container justify="space-evenly" alignItems="center" spacing={1} >
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
               <ProposalList
                 contractId={contractId}
