@@ -31,12 +31,12 @@ export const Header = ({ state, handleSnackBarOpen, handleSuccessMessage, handle
     
     return (
         <>
-        <Grid container justify="space-between" alignItems="center" spacing={1}>
+        <Grid container justify="space-between" alignItems="center" spacing={0} style={{paddingRight: '5px', paddingLeft: '5px'}}>
             
             {wallet && wallet.signedIn ? 
                 !matches ? (
                     <>
-                    <Grid item xs={1} sm={1} md={2} lg={2} xl={2} style={{paddingLeft: '20px'}}>
+                    <Grid item xs={1} sm={1} md={2} lg={2} xl={2}>
                         <LeftSideDrawer
                         state={state}
                         handleSnackBarOpen={handleSnackBarOpen}
@@ -59,7 +59,7 @@ export const Header = ({ state, handleSnackBarOpen, handleSuccessMessage, handle
                     </>
                 ) : (
                     <>
-                        <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
+                        <Grid item xs={1} sm={1} md={1} lg={1} xl={1} style={{paddingLeft: '5px'}}>
                             <LeftSideDrawer
                             state={state}
                             handleSnackBarOpen={handleSnackBarOpen}

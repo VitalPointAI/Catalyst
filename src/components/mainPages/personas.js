@@ -94,7 +94,7 @@ export const PersonaPage = ({ state, update, dispatch }) => {
         <Router>
         <>
         <div className={classes.root}>
-        <Grid container alignItems="flex-start" justify="center" spacing={2} style={{padding: '20px'}}>
+        <Grid container alignItems="flex-start" justify="center" spacing={1} >
             {countOfLinks > 0 ? 
                 (<> <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
                     <Paper className={classes.paper}>

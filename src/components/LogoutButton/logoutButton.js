@@ -10,7 +10,8 @@ import useMediaQuery from '@material-ui/core/useMediaQuery'
 const useStyles = makeStyles((theme) => ({
   button: {
     margin: theme.spacing(0),
-    float: 'right'
+    float: 'right',
+    paddingRight: '5px'
   },
   accountButton: {
     margin: theme.spacing(0),

@@ -169,8 +169,9 @@ const handleEditPersonaClick = () => {
                     <>
                     <Grid container justify="center" alignItems="center" spacing={1} >
                         <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                        {!matches ? (
+                            <>
                             <div style={{display: 'inline', width: '50%'}}>
-                        
                             <Link to="/personas">
                                 <Button color="primary" style={{textAlign: 'center'}}>Your Personas: {claimCount ? claimCount : '0'}</Button>
                             </Link>
@@ -186,6 +187,28 @@ const handleEditPersonaClick = () => {
                                 <InfoIcon fontSize="small" style={{marginLeft: '3px', marginTop:'-3px'}} />
                             </Tooltip>
                             </div>
+                            </>
+                            ) : (
+                            <>
+                            <div style={{display: 'inline', width: '50%'}}>
+                            <Link to="/personas">
+                                <Button color="primary" style={{textAlign: 'center'}}>Your Personas: {claimCount ? claimCount : '0'}</Button>
+                            </Link>
+                            <Tooltip TransitionComponent={Zoom} title="The number of personas claimed by the signed in persona.">
+                                <InfoIcon fontSize="small" style={{marginLeft:'3px', marginTop:'-3px'}} />
+                            </Tooltip>
+                            </div>
+                            <br></br>
+                            <div style={{display: 'inline', width: '50%'}}>
+                            <Link to="/daos">
+                                <Button color="primary" style={{textAlign: 'center'}}>Your Communities: {daoCount ? daoCount : '0'}</Button>
+                            </Link>
+                            <Tooltip TransitionComponent={Zoom} title="The number of communities the signed in persona has founded.">
+                                <InfoIcon fontSize="small" style={{marginLeft: '3px', marginTop:'-3px'}} />
+                            </Tooltip>
+                            </div>
+                            </>
+                            )}
                         </Grid>
                     </Grid>   
                     </>)

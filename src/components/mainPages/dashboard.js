@@ -10,7 +10,6 @@ import Skeleton from '@material-ui/lab/Skeleton';
 
 const useStyles = makeStyles((theme) => ({
     card: {
-        minWidth: '350px',
         minHeight: '350px'
     },
   }));
@@ -29,7 +28,7 @@ export default function Dashboard(props) {
     return (
         <>
         <div>
-        <Grid container alignItems="center" justify="center" spacing={2} style={{padding: '20px'}}>
+        <Grid container alignItems="center" justify="center" spacing={1} style={{padding: '20px'}}>
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom:'30px'}}>
                 <Typography variant='h3'>Your Communities Dashboard</Typography>
                 <Typography variant='body1'>Community and participation metrics.</Typography>

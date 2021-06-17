@@ -20,6 +20,11 @@ import AccountBalanceIcon from '@material-ui/icons/AccountBalance'
 import Avatar from '@material-ui/core/Avatar'
 import GroupIcon from '@material-ui/icons/Group'
 import ExploreIcon from '@material-ui/icons/Explore'
+import useMediaQuery from '@material-ui/core/useMediaQuery'
+import InfoIcon from '@material-ui/icons/Info'
+import CodeIcon from '@material-ui/icons/Code'
+import SchoolIcon from '@material-ui/icons/School'
+import ContactSupportIcon from '@material-ui/icons/ContactSupport'
 
 const useStyles = makeStyles((theme) => ({
     list: {
@@ -45,7 +50,8 @@ const imageName = require('../../img/default-profile.png') // default no-image a
 
 export default function LeftSideDrawer(props) {
 
-const classes = useStyles();
+const classes = useStyles()
+const matches = useMediaQuery('(max-width:500px)')
 
 const [anchorEl, setAnchorEl] = useState(null);
 const [addPersonaClicked, setAddPersonaClicked] = useState(false)
@@ -102,6 +108,8 @@ const list = (anchor) => (
     onClick={toggleDrawer(anchor, false)}
     onKeyDown={toggleDrawer(anchor, false)}
 >
+{!matches ? (
+  <>
     <Typography variant='h6'>Personas</Typography>
     <List>
       <Link to='/personas'>
@@ -136,7 +144,75 @@ const list = (anchor) => (
         <ListItemText primary='Create Community'/>
       </ListItem>
     </List>
-    
+  </>
+  ) : (
+    <>
+    <List>
+    <Link to='/about'>
+      <ListItem button key={1}>
+        <ListItemIcon><InfoIcon /></ListItemIcon>
+        <ListItemText primary='About Catalyst'/>
+      </ListItem>
+    </Link>
+    <Link to='/developer'>
+      <ListItem button key={2}>
+        <ListItemIcon><CodeIcon /></ListItemIcon>
+        <ListItemText primary='Developers'/>
+      </ListItem>
+    </Link>
+    <Link to='/learn'>
+      <ListItem button key={3}>
+        <ListItemIcon><SchoolIcon /></ListItemIcon>
+        <ListItemText primary='Learn'/>
+      </ListItem>
+    </Link>
+    <Link to='/contact'>
+      <ListItem button key={4}>
+        <ListItemIcon><ContactSupportIcon /></ListItemIcon>
+        <ListItemText primary='Contact'/>
+      </ListItem>
+    </Link>
+    {state.wallet.signedIn ? (
+      <>
+    <Typography variant='h6'>Personas</Typography>
+    <List>
+      <Link to='/personas'>
+        <ListItem button key={5}>
+          <ListItemIcon><Avatar src={imageName} className={classes.small}/></ListItemIcon>
+          <ListItemText primary='My Personas'/>
+        </ListItem>
+      </Link>
+      <ListItem button key={6} onClick={(e) => addPersonaClick(e)}>
+        <ListItemIcon><AddBoxIcon /></ListItemIcon>
+        <ListItemText primary='Create Persona'/>
+      </ListItem>
+    </List>
+    <Divider />
+    <Typography variant='h6'>Communities</Typography>
+    <List>
+      <Link to='/daos'>
+        <ListItem button key={7}>
+          <ListItemIcon><GroupIcon /></ListItemIcon>
+          <ListItemText primary='My Communities'/>
+        </ListItem>
+      </Link>
+      
+    <Link to='/explore'>
+      <ListItem button key={8}>
+        <ListItemIcon><ExploreIcon /></ListItemIcon>
+        <ListItemText primary='Explore Communities'/>
+      </ListItem>
+    </Link>
+    <ListItem button key={9} onClick={(e) => addDaoClick(e)}>
+        <ListItemIcon><AddBoxIcon /></ListItemIcon>
+        <ListItemText primary='Create Community'/>
+      </ListItem>
+    </List>
+    </>
+    ) : null }
+    </List>
+  </>
+  )}
 </div>
 )
 
