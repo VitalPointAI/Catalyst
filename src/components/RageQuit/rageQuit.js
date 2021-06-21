@@ -108,7 +108,7 @@ export default function RageQuit(props) {
           try{
           let member = await contract.getMemberInfo({member: accountId})
           let updated = await memberEvent.updateMemberEvent(
-            member[0].delegateKey, member[0].shares, member[0].loot, member[0].existing, member[0].highestIndexYesVote, member[0].jailed, member[0].joined, member[0].updated) 
+            member[0].delegateKey, member[0].shares, member[0].loot, member[0].existing, member[0].highestIndexYesVote, member[0].jailed, member[0].joined, member[0].updated, member[0].active) 
             if(updated){
               handleSuccessMessage('Successful rage quit.', 'success')
               handleSnackBarOpen(true)

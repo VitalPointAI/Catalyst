@@ -10,6 +10,7 @@ import { logInitEvent,
   logProcessEvent, 
   logVoteEvent,
   logDonationEvent,
+  logExitEvent,
   synchProposalEvent, 
   synchMember } from '../../state/near'
 
@@ -23,7 +24,7 @@ import Initialize from '../Initialize/initialize'
 import { dao } from '../../utils/dao'
 import { ceramic } from '../../utils/ceramic'
 
-import { NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE, NEW_DONATION } from '../../state/near'
+import { NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE, NEW_DONATION, NEW_EXIT } from '../../state/near'
 
 // Material UI imports
 import { makeStyles } from '@material-ui/core/styles'
@@ -35,8 +36,18 @@ import AccessTimeIcon from '@material-ui/icons/AccessTime'
 import CheckCircleIcon from '@material-ui/icons/CheckCircle'
 import NotInterestedIcon from '@material-ui/icons/NotInterested'
 import CircularProgress from '@material-ui/core/CircularProgress'
+import useMediaQuery from '@material-ui/core/useMediaQuery'
 
 const axios = require('axios').default
+
+const {
+  utils: {
+      PublicKey,
+      format: {
+          parseNearAmount, formatNearAmount
+      }
+  }
+} = nearAPI
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -59,9 +70,11 @@ export default function AppFramework(props) {
 
     const [sharesLabel, setSharesLabel] = useState('Shares: 0')
     const [lootLabel, setLootLabel] = useState('Loot: 0')
+    const [fairShareLabel, setFairShareLabel] = useState('Current Share: 0')
     const [memberIcon, setMemberIcon] = useState(<NotInterestedIcon />)
     const [guildBalanceChip, setGuildBalanceChip] = useState()
     const [escrowBalanceChip, setEscrowBalanceChip] = useState()
+    const [currentShare, setCurrentShare] = useState()
     const [nearPrice, setNearPrice] = useState()
     const [change, setChange] = useState(false)
 
@@ -121,19 +134,25 @@ export default function AppFramework(props) {
     const {
       contractId
     } = useParams()
+
+    const matches = useMediaQuery('(max-width:500px)')
     
     useEffect(
       () => {
 
           async function fetchData() {
             
+            let urlVariables = window.location.search
+            console.log('url variables', urlVariables)
+
+            const urlParameters = new URLSearchParams(urlVariables)
+            let transactionHash = urlParameters.get('transactionHashes')
+            console.log('transaction hash', transactionHash)
+
             if(didRegistryContract && near){
               if(contractId){
                 let thisCurDaoIdx
                 let daoAccount = new nearAPI.Account(near.connection, contractId)
-                   console.log('daoAccount', daoAccount)
-                   console.log('appidx', appIdx)
-                   console.log('contract', didRegistryContract)
                 thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
                 console.log('thiscurdaoidx', thisCurDaoIdx)
                 setCurDaoIdx(thisCurDaoIdx)
@@ -155,7 +174,8 @@ export default function AppFramework(props) {
                          contract, 
                          'Democracy', 
                          state.accountId,
-                         firstInit[c].contribution)
+                         firstInit[c].contribution,
+                         transactionHash)
                          
                        if (logged) {
                          firstInit[c].init = false
@@ -176,7 +196,8 @@ export default function AppFramework(props) {
                          thisCurDaoIdx, 
                          contract, 
                          newProposal[d].proposalId,
-                         contractId
+                         contractId,
+                         transactionHash
                          )
                          
                        if (loggedProposal) {
@@ -197,7 +218,8 @@ export default function AppFramework(props) {
                        let loggedSponsor = await logSponsorEvent(
                          thisCurDaoIdx, 
                          contract, 
-                         newSponsor[f].proposalId)
+                         newSponsor[f].proposalId,
+                         transactionHash)
                          
                        if (loggedSponsor) {
                          newSponsor[f].new = false
@@ -220,7 +242,7 @@ export default function AppFramework(props) {
                           contractId,
                           newProcess[g].proposalId,
                           newProcess[g].type,
-                          accountId
+                          transactionHash
                           )
                           
                         if (loggedProcess) {
@@ -264,7 +286,8 @@ export default function AppFramework(props) {
                          let loggedCancel = await logCancelEvent(
                            thisCurDaoIdx, 
                            contract, 
-                           newCancel[h].proposalId)
+                           newCancel[h].proposalId,
+                           transactionHash)
                            
                          if (loggedCancel) {
                            newCancel[h].new = false
@@ -285,7 +308,8 @@ export default function AppFramework(props) {
                          thisCurDaoIdx, 
                          contract,
                          newDonation[y].donationId,
-                         newDonation[y].contractId)
+                         newDonation[y].contractId,
+                         transactionHash)
                          
                        if (loggedDonation) {
                          newDonation[y].new = false
@@ -294,6 +318,28 @@ export default function AppFramework(props) {
                        }
                      }
                      y++
+                   }
+
+                   // check for successfully added exit and log it
+                   let newExit = get(NEW_EXIT, [])
+                 
+                   let a = 0
+                   while(a < newExit.length){
+                     if(newExit[a].contractId==contractId && newExit[a].new == true){
+                       let loggedExit = await logExitEvent(
+                         contractId,
+                         thisCurDaoIdx, 
+                         contract,
+                         newExit[a].account,
+                         transactionHash)
+                         
+                       if (loggedExit) {
+                         newExit[a].new = false
+                         set(NEW_EXIT, newExit)
+                         setChange(!change)
+                       }
+                     }
+                     a++
                    }
 
                   // For debugging
@@ -353,18 +399,17 @@ export default function AppFramework(props) {
                 if(initialized){
                     let thisMemberInfo
                     let thisMemberStatus
-        
-                    try {
-                      thisMemberStatus = await contract.getMemberStatus({member: accountId})
-                      setMemberStatus(thisMemberStatus)
-                    } catch (err) {
-                      console.log('no member status yet')
-                    }
                     
                     try {
                       thisMemberInfo = await contract.getMemberInfo({member: accountId})
+                      thisMemberStatus = await contract.getMemberStatus({member: accountId})
                       console.log('thismemberinfo', thisMemberInfo)
                       setMemberInfo(thisMemberInfo)
+                      if(thisMemberStatus && thisMemberInfo[0].active){
+                        setMemberStatus(true)
+                      } else {
+                        setMemberStatus(false)
+                      }
                     } catch (err) {
                       console.log('no member info yet')
                     }
@@ -397,6 +442,14 @@ export default function AppFramework(props) {
                     } catch (err) {
                       console.log('no proposal deposit yet')
                     }
+
+                    try {
+                      let thisCurrentShare = await contract.getCurrentShare({member: accountId})
+                      setCurrentShare(formatNearAmount(thisCurrentShare, 2))
+                      setFairShareLabel('Current Share: ' + formatNearAmount(thisCurrentShare, 2) + 'Ⓝ')
+                    } catch (err) {
+                      console.log('no current share yet')
+                    }
         
                     try {
                       let duration = await contract.getPeriodDuration()
@@ -406,47 +459,47 @@ export default function AppFramework(props) {
                     }
                   
                     let ebalance
+                    let escrowRow
                     try {
                       ebalance = await contract.getEscrowTokenBalances()
                       setEscrowBalance(ebalance)
+
+                      if(ebalance) {
+                        for (let i = 0; i < ebalance.length; i++) {
+                          escrowRow = (<>{formatNearAmount(ebalance[i].balance, 2)} {ebalance[i].token}</>)
+                        }
+                      } else {
+                        escrowRow = '0 Ⓝ'
+                      }
+                      setEscrowBalanceChip(<>{escrowRow}</>)
                     } catch (err) {
                       console.log('no escrow balance')
                     }
         
                     let gbalance
+                    let guildRow
                     try {
                       gbalance = await contract.getGuildTokenBalances()
                       setGuildBalance(gbalance)
+
+                      if(gbalance) {
+                        for (let i = 0; i < gbalance.length; i++) {
+                          guildRow = (<>{formatNearAmount(gbalance[i].balance, 2)} {gbalance[i].token}</>)
+                        }
+                      } else {
+                        guildRow = '0 Ⓝ'
+                      }
+                      setGuildBalanceChip(<>{guildRow}</>)
                     } catch (err) {
                       console.log('no guild balance')
                     }
         
                     if(thisMemberStatus && thisMemberInfo !== undefined) {
-                      setMemberIcon(<CheckCircleIcon />)
+                      thisMemberInfo[0].actives ? setMemberIcon(<CheckCircleIcon />) : setMemberIcon(<NotInterestedIcon />)
                       setSharesLabel('Shares: ' + thisMemberInfo[0].shares)
                       setLootLabel('Loot: ' + thisMemberInfo[0].loot)
                     }
-        
-                    let guildRow
-                    if(gbalance) {
-                      for (let i = 0; i < gbalance.length; i++) {
-                        guildRow = (<>{gbalance[i].balance} {gbalance[i].token}</>)
-                      }
-                    } else {
-                      guildRow = '0 Ⓝ'
-                    }
-                    setGuildBalanceChip(<>{guildRow}</>)
-                      
-                    let escrowRow
-                    if(ebalance) {
-                      for (let i = 0; i < ebalance.length; i++) {
-                        escrowRow = (<>{ebalance[i].balance} {ebalance[i].token}</>)
-                      }
-                    } else {
-                      escrowRow = '0 Ⓝ'
-                    }
-                    setEscrowBalanceChip(<>{escrowRow}</>)
-                      
+ 
                     let getNearPrice = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd')
                     setNearPrice(getNearPrice.data.near.usd)
                     update('', nearPrice)
@@ -548,6 +601,7 @@ export default function AppFramework(props) {
                   contractIdx={contractIdx}
                   curUserIdx={curUserIdx}
                   memberStatus={memberStatus}
+                  fairShare={currentShare}
                 />
               </div>
               </Grid>
@@ -566,8 +620,8 @@ export default function AppFramework(props) {
                 </div>
                 ) : null }
                 <Chip variant="outlined" label="Member" icon={memberIcon} />
-                <Chip variant="outlined" label={lootLabel}  />
                 <Chip variant="outlined" label={sharesLabel}  />
+                <Chip variant="outlined" label={fairShareLabel}  />
                 <Chip variant="outlined" icon={<AccessTimeIcon />} label={'Period: ' + currentPeriod} />
                
                 </div>
@@ -576,16 +630,16 @@ export default function AppFramework(props) {
         
           <Grid container justify="center" alignItems="center" spacing={1} className={classes.top}> 
             <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
-              <Typography variant="h6" color="textPrimary" align="center">Fund: {guildBalanceChip} {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '($' + (parseInt(guildBalance[0].balance) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : null } </Typography>
+              <Typography variant="h6" color="textPrimary" align="center">Fund: {guildBalanceChip} {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '($' + (parseInt(formatNearAmount(guildBalance[0].balance, 2)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : null } </Typography>
             </Grid>
             <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
-              <Typography variant="h6" color="textPrimary" align="center">Escrow: {escrowBalanceChip} {escrowBalance && escrowBalance.length > 0 ? escrowBalance[0].balance > 0 ? '($' + (parseInt(escrowBalance[0].balance) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : null }</Typography>
+              <Typography variant="h6" color="textPrimary" align="center">Escrow: {escrowBalanceChip} {escrowBalance && escrowBalance.length > 0 ? escrowBalance[0].balance > 0 ? '($' + (parseInt(formatNearAmount(escrowBalance[0].balance, 2)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : null }</Typography>
             </Grid>
             <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
               <Typography variant="h6" color="textPrimary" align="center">Total Shares: {totalShares}</Typography>
             </Grid>
             <Grid item xs={12} sm={12} md={2} lg={2} xl={2}>
-              <Typography variant="h6" color="textPrimary" align="center">Share Value: {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '$' + ((guildBalance[0].balance/totalShares)*nearPrice).toFixed(2) + ' USD' : '$0.00 USD' : null }</Typography>
+              <Typography variant="h6" color="textPrimary" align="center">Share Value: {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '$' + ((formatNearAmount(guildBalance[0].balance, 2)/totalShares)*nearPrice).toFixed(2) + ' USD' : '$0.00 USD' : null }</Typography>
             </Grid>
           </Grid>
           

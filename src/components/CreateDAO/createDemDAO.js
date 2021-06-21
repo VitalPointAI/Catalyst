@@ -6,7 +6,7 @@ import { utils } from 'near-api-js'
 
 import { ceramic } from '../../utils/ceramic'
 
-import { daoProfileSchema } from '../../schemas/daoProfile-old'
+import { daoProfileSchema } from '../../schemas/daoProfile'
 import { summonSchema } from '../../schemas/summonEvent'
 import { memberSchema } from '../../schemas/members'
 import { memberProposalSchema } from '../../schemas/proposals'
@@ -250,7 +250,8 @@ export default function CreateDemDAO(props) {
             highestIndexYesVote: 0,
             jailed: 0,
             joined: numberSummonTime,
-            updated: numberSummonTime
+            updated: numberSummonTime,
+            active: true
           }
 
           memberEventRecord.events.push(indivMemberEventRecord)

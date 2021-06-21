@@ -52,7 +52,8 @@ class DAO {
                 'getDonation',
                 'getSummonTime',
                 'proveOwner',
-                'getDonationsLength'
+                'getDonationsLength',
+                'getCurrentShare'
             ],
             // Change methods can modify the state. But you don't receive the returned value when called.
             changeMethods: [
@@ -83,7 +84,8 @@ class DAO {
                 'addComment',
                 'deleteDAO',
                 'cancelProposal',
-                'makeDonation'
+                'makeDonation',
+                'leave'
             ]
             });
 

@@ -164,6 +164,7 @@ console.log('prop list curdaoidx', curDaoIdx)
           i++
       }
 
+      
       let newLists = await resolveStatus(proposalEvents)
       console.log('newlists', newLists)
       setProposalList(newLists.allProposals)
@@ -378,7 +379,11 @@ console.log('prop list curdaoidx', curDaoIdx)
             isVotingPeriod: isVotingPeriod,
             disabled: isDisabled,
             voted: fr.voted,
-            vote: fr.vote
+            vote: fr.vote,
+            submitTransactionHash: fr.submitTransactionHash,
+            cancelTransactionHash: fr.cancelTransactionHash,
+            processTransactionHash: fr.processTransactionHash,
+            sponsorTransactionHash: fr.sponsorTransactionHash
           }])
         }
 
@@ -406,7 +411,11 @@ console.log('prop list curdaoidx', curDaoIdx)
             isVotingPeriod: isVotingPeriod,
             disabled: isDisabled,
             voted: fr.voted,
-            vote: fr.vote
+            vote: fr.vote,
+            submitTransactionHash: fr.submitTransactionHash,
+            cancelTransactionHash: fr.cancelTransactionHash,
+            processTransactionHash: fr.processTransactionHash,
+            sponsorTransactionHash: fr.sponsorTransactionHash
           }])
         }
 
@@ -435,7 +444,11 @@ console.log('prop list curdaoidx', curDaoIdx)
             isVotingPeriod: isVotingPeriod,
             disabled: isDisabled,
             voted: fr.voted,
-            vote: fr.vote
+            vote: fr.vote,
+            submitTransactionHash: fr.submitTransactionHash,
+            cancelTransactionHash: fr.cancelTransactionHash,
+            processTransactionHash: fr.processTransactionHash,
+            sponsorTransactionHash: fr.sponsorTransactionHash
           })
         }
 
@@ -463,7 +476,11 @@ console.log('prop list curdaoidx', curDaoIdx)
             isVotingPeriod: isVotingPeriod,
             disabled: isDisabled,
             voted: fr.voted,
-            vote: fr.vote
+            vote: fr.vote,
+            submitTransactionHash: fr.submitTransactionHash,
+            cancelTransactionHash: fr.cancelTransactionHash,
+            processTransactionHash: fr.processTransactionHash,
+            sponsorTransactionHash: fr.sponsorTransactionHash
           }])
         }
       }) 
@@ -514,6 +531,7 @@ console.log('prop list curdaoidx', curDaoIdx)
           updated={fr.updated}
           handleUpdate={handleUpdate}
           isUpdated={isUpdated}
+          active={fr.active}
         />
       )
     })
@@ -544,6 +562,10 @@ console.log('prop list curdaoidx', curDaoIdx)
           funding={fr[0].funding}
           loot={fr[0].loot}
           status={fr[0].status}
+          submitTransactionHash={fr[0].submitTransactionHash}
+          cancelTransactionHash={fr[0].cancelTransactionHash}
+          processTransactionHash={fr[0].processTransactionHash}
+          sponsorTransactionHash={fr[0].sponsorTransactionHash}
           accountId={accountId}
           cancelFinish={cancelFinish}
           tributeToken={tributeToken}
@@ -586,6 +608,10 @@ console.log('prop list curdaoidx', curDaoIdx)
           votingPeriod={fr[0].votingPeriod}
           currentPeriod={currentPeriod}
           periodDuration={periodDuration}
+          submitTransactionHash={fr[0].submitTransactionHash}
+          cancelTransactionHash={fr[0].cancelTransactionHash}
+          processTransactionHash={fr[0].processTransactionHash}
+          sponsorTransactionHash={fr[0].sponsorTransactionHash}
           done={done}
           // handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
           // handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
@@ -623,6 +649,10 @@ console.log('prop list curdaoidx', curDaoIdx)
           startingPeriod={fr.startingPeriod}
           currentPeriod={currentPeriod}
           gracePeriod={fr.gracePeriod}
+          submitTransactionHash={fr[0].submitTransactionHash}
+          cancelTransactionHash={fr[0].cancelTransactionHash}
+          processTransactionHash={fr[0].processTransactionHash}
+          sponsorTransactionHash={fr[0].sponsorTransactionHash}
           handleProcessAction={handleProcessAction}
           // handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
           // handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
@@ -655,6 +685,10 @@ console.log('prop list curdaoidx', curDaoIdx)
           loot={fr[0].loot}
           status={fr[0].status}
           startingPeriod={fr[0].startingPeriod}
+          submitTransactionHash={fr[0].submitTransactionHash}
+          cancelTransactionHash={fr[0].cancelTransactionHash}
+          processTransactionHash={fr[0].processTransactionHash}
+          sponsorTransactionHash={fr[0].sponsorTransactionHash}
           handleProcessAction={handleProcessAction}
           // handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
           // handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
@@ -687,6 +721,10 @@ console.log('prop list curdaoidx', curDaoIdx)
           tribute={fr[0].tribute}
           loot={fr[0].loot}
           status={fr[0].status}
+          submitTransactionHash={fr[0].submitTransactionHash}
+          cancelTransactionHash={fr[0].cancelTransactionHash}
+          processTransactionHash={fr[0].processTransactionHash}
+          sponsorTransactionHash={fr[0].sponsorTransactionHash}
         
           // handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
           // handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}

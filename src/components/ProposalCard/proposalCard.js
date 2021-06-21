@@ -4,6 +4,7 @@ import { appStore, onAppMount } from '../../state/app'
 import * as nearAPI from 'near-api-js'
 import { ceramic } from '../../utils/ceramic'
 import { dao } from '../../utils/dao'
+import { formatNearAmount, explorerUrl } from '../../state/near'
 import Persona from '@aluhning/get-personas-js'
 
 import EditMemberProposalForm from '../EditProposal/editMemberProposal'
@@ -42,6 +43,8 @@ import CircularProgress from '@material-ui/core/CircularProgress'
 import PanToolIcon from '@material-ui/icons/PanTool'
 import Chip from '@material-ui/core/Chip'
 import Divider from '@material-ui/core/Divider'
+import Tooltip from '@material-ui/core/Tooltip'
+import ExploreIcon from '@material-ui/icons/Explore'
 
 const useStyles = makeStyles((theme) => ({
     pos: {
@@ -165,6 +168,10 @@ export default function ProposalCard(props) {
 
     const { applicant, created, noVotes, yesVotes, proposalType, proposer, requestId, tribute, vote, loot, shares, status, funding,
         isVotingPeriod, isGracePeriod, voted, gracePeriod, votingPeriod, currentPeriod, periodDuration, cancelFinish, sponsor, done,
+        cancelTransactionHash,
+        submitTransactionHash,
+        processTransactionHash,
+        sponsorTransactionHash,
         startingPeriod,
         handleSponsorConfirmationClick,
         handleCancelAction,
@@ -415,8 +422,49 @@ export default function ProposalCard(props) {
 
           {proposalType === 'Member' ? (
             <> 
-            <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px'}} color="textSecondary">{proposalType}Proposal</Typography>
-            <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
+          
+            {status=='Submitted' ? (<>
+            <Tooltip title="See transaction on explorer.">
+              <a href={explorerUrl + '/transactions/' + submitTransactionHash}>
+                <IconButton aria-label="delete" style={{float: 'left'}}>
+                  <ExploreIcon />
+                </IconButton>
+              </a>
+              </Tooltip>
+              </>
+            ) : null }
+            {status=='Sponsored' ? (<>
+              <Tooltip title="See transaction on explorer.">
+                <a href={explorerUrl + '/transactions/' + sponsorTransactionHash}>
+                  <IconButton aria-label="delete" style={{float: 'left'}}>
+                    <ExploreIcon />
+                  </IconButton>
+                </a>
+                </Tooltip>
+                </>
+              ) : null }
+            {status=='Processed' ? (<>
+              <Tooltip title="See transaction on explorer.">
+                <a href={explorerUrl + '/transactions/' + processTransactionHash}>
+                  <IconButton aria-label="delete" style={{float: 'left'}}>
+                    <ExploreIcon />
+                  </IconButton>
+                </a>
+                </Tooltip>
+                </>
+              ) : null }
+            {status=='Cancelled' ? (<>
+              <Tooltip title="See transaction on explorer.">
+                <a href={explorerUrl + '/transactions/' + cancelTransactionHash}>
+                  <IconButton aria-label="delete" style={{float: 'left'}}>
+                    <ExploreIcon />
+                  </IconButton>
+                </a>
+                </Tooltip>
+                </>
+              ) : null }
+              <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px', marginTop: '12px'}} color="textSecondary">{proposalType}Proposal</Typography>
+              <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
             <div style={{clear: 'both'}}></div>
             <Grid container justify="space-evenly" spacing={1} style={{marginTop:'20px'}}>
               <Button
@@ -453,9 +501,49 @@ export default function ProposalCard(props) {
 
           {proposalType === 'Commitment' ? (
             <> 
-            <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px'}} color="textSecondary">Funding {proposalType}</Typography>
-            <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
             
+            {status=='Submitted' ? (<>
+              <Tooltip title="See transaction on explorer.">
+                <a href={explorerUrl + '/transactions/' + submitTransactionHash}>
+                  <IconButton aria-label="delete" style={{float: 'left'}}>
+                    <ExploreIcon />
+                  </IconButton>
+                </a>
+                </Tooltip>
+                </>
+              ) : null }
+              {status=='Sponsored' ? (<>
+                <Tooltip title="See transaction on explorer.">
+                  <a href={explorerUrl + '/transactions/' + sponsorTransactionHash}>
+                    <IconButton aria-label="delete" style={{float: 'left'}}>
+                      <ExploreIcon />
+                    </IconButton>
+                  </a>
+                  </Tooltip>
+                  </>
+                ) : null }
+              {status=='Processed' ? (<>
+                <Tooltip title="See transaction on explorer.">
+                  <a href={explorerUrl + '/transactions/' + processTransactionHash}>
+                    <IconButton aria-label="delete" style={{float: 'left'}}>
+                      <ExploreIcon />
+                    </IconButton>
+                  </a>
+                  </Tooltip>
+                  </>
+                ) : null }
+              {status=='Cancelled' ? (<>
+                <Tooltip title="See transaction on explorer.">
+                  <a href={explorerUrl + '/transactions/' + cancelTransactionHash}>
+                    <IconButton aria-label="delete" style={{float: 'left'}}>
+                      <ExploreIcon />
+                    </IconButton>
+                  </a>
+                  </Tooltip>
+                  </>
+                ) : null }
+            <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px', marginTop: '12px'}} color="textSecondary">Funding {proposalType}</Typography>
+            <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
             <div style={{clear: 'both'}}></div>
             <CardHeader
                style={{display: 'block'}}
@@ -492,9 +580,49 @@ export default function ProposalCard(props) {
 
            {proposalType === 'Tribute' ? (
             <> 
-            <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px'}} color="textSecondary">{proposalType} Proposal</Typography>
-            <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
             
+            {status=='Submitted' ? (<>
+              <Tooltip title="See transaction on explorer.">
+                <a href={explorerUrl + '/transactions/' + submitTransactionHash}>
+                  <IconButton aria-label="delete" style={{float: 'left'}}>
+                    <ExploreIcon />
+                  </IconButton>
+                </a>
+                </Tooltip>
+                </>
+              ) : null }
+              {status=='Sponsored' ? (<>
+                <Tooltip title="See transaction on explorer.">
+                  <a href={explorerUrl + '/transactions/' + sponsorTransactionHash}>
+                    <IconButton aria-label="delete" style={{float: 'left'}}>
+                      <ExploreIcon />
+                    </IconButton>
+                  </a>
+                  </Tooltip>
+                  </>
+                ) : null }
+              {status=='Processed' ? (<>
+                <Tooltip title="See transaction on explorer.">
+                  <a href={explorerUrl + '/transactions/' + processTransactionHash}>
+                    <IconButton aria-label="delete" style={{float: 'left'}}>
+                      <ExploreIcon />
+                    </IconButton>
+                  </a>
+                  </Tooltip>
+                  </>
+                ) : null }
+              {status=='Cancelled' ? (<>
+                <Tooltip title="See transaction on explorer.">
+                  <a href={explorerUrl + '/transactions/' + cancelTransactionHash}>
+                    <IconButton aria-label="delete" style={{float: 'left'}}>
+                      <ExploreIcon />
+                    </IconButton>
+                  </a>
+                  </Tooltip>
+                  </>
+                ) : null }
+            <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px', marginTop: '12px'}} color="textSecondary">{proposalType} Proposal</Typography>
+            <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
             <div style={{clear: 'both'}}></div>
             <CardHeader
                style={{display: 'block'}}
@@ -531,9 +659,49 @@ export default function ProposalCard(props) {
 
            {proposalType === 'Opportunity' ? (
             <> 
-            <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px'}} color="textSecondary">{proposalType} Proposal</Typography>
-            <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
-            
+           
+            {status=='Submitted' ? (<>
+              <Tooltip title="See transaction on explorer.">
+                <a href={explorerUrl + '/transactions/' + submitTransactionHash}>
+                  <IconButton aria-label="delete" style={{float: 'left'}}>
+                    <ExploreIcon />
+                  </IconButton>
+                </a>
+                </Tooltip>
+                </>
+              ) : null }
+              {status=='Sponsored' ? (<>
+                <Tooltip title="See transaction on explorer.">
+                  <a href={explorerUrl + '/transactions/' + sponsorTransactionHash}>
+                    <IconButton aria-label="delete" style={{float: 'left'}}>
+                      <ExploreIcon />
+                    </IconButton>
+                  </a>
+                  </Tooltip>
+                  </>
+                ) : null }
+              {status=='Processed' ? (<>
+                <Tooltip title="See transaction on explorer.">
+                  <a href={explorerUrl + '/transactions/' + processTransactionHash}>
+                    <IconButton aria-label="delete" style={{float: 'left'}}>
+                      <ExploreIcon />
+                    </IconButton>
+                  </a>
+                  </Tooltip>
+                  </>
+                ) : null }
+              {status=='Cancelled' ? (<>
+                <Tooltip title="See transaction on explorer.">
+                  <a href={explorerUrl + '/transactions/' + cancelTransactionHash}>
+                    <IconButton aria-label="delete" style={{float: 'left'}}>
+                      <ExploreIcon />
+                    </IconButton>
+                  </a>
+                  </Tooltip>
+                  </>
+                ) : null }
+                <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px', marginTop: '12px'}} color="textSecondary">{proposalType} Proposal</Typography>
+                <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
             <div style={{clear: 'both'}}></div>
             <CardHeader
                style={{display: 'block'}}
@@ -570,7 +738,48 @@ export default function ProposalCard(props) {
 
            {proposalType === 'Payout' ? (
             <> 
-            <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px'}} color="textSecondary">{proposalType} Proposal</Typography>
+            
+            {status=='Submitted' ? (<>
+              <Tooltip title="See transaction on explorer.">
+                <a href={explorerUrl + '/transactions/' + submitTransactionHash}>
+                  <IconButton aria-label="delete" style={{float: 'left'}}>
+                    <ExploreIcon />
+                  </IconButton>
+                </a>
+                </Tooltip>
+                </>
+              ) : null }
+              {status=='Sponsored' ? (<>
+                <Tooltip title="See transaction on explorer.">
+                  <a href={explorerUrl + '/transactions/' + sponsorTransactionHash}>
+                    <IconButton aria-label="delete" style={{float: 'left'}}>
+                      <ExploreIcon />
+                    </IconButton>
+                  </a>
+                  </Tooltip>
+                  </>
+                ) : null }
+              {status=='Processed' ? (<>
+                <Tooltip title="See transaction on explorer.">
+                  <a href={explorerUrl + '/transactions/' + processTransactionHash}>
+                    <IconButton aria-label="delete" style={{float: 'left'}}>
+                      <ExploreIcon />
+                    </IconButton>
+                  </a>
+                  </Tooltip>
+                  </>
+                ) : null }
+              {status=='Cancelled' ? (<>
+                <Tooltip title="See transaction on explorer.">
+                  <a href={explorerUrl + '/transactions/' + cancelTransactionHash}>
+                    <IconButton aria-label="delete" style={{float: 'left'}}>
+                      <ExploreIcon />
+                    </IconButton>
+                  </a>
+                  </Tooltip>
+                  </>
+                ) : null }
+              <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px', marginTop: '12px'}} color="textSecondary">{proposalType} Proposal</Typography>
             <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
             <div style={{clear: 'both'}}></div>
             <CardHeader
@@ -606,8 +815,48 @@ export default function ProposalCard(props) {
 
 
           {proposalType === 'GuildKick' ? (
-            <> <Typography variant="h6" align="center" color="textSecondary">{proposalType} Proposal</Typography>
-          
+            <>
+            {status=='Submitted' ? (<>
+              <Tooltip title="See transaction on explorer.">
+                <a href={explorerUrl + '/transactions/' + submitTransactionHash}>
+                  <IconButton aria-label="delete" style={{float: 'left'}}>
+                    <ExploreIcon />
+                  </IconButton>
+                </a>
+                </Tooltip>
+                </>
+              ) : null }
+              {status=='Sponsored' ? (<>
+                <Tooltip title="See transaction on explorer.">
+                  <a href={explorerUrl + '/transactions/' + sponsorTransactionHash}>
+                    <IconButton aria-label="delete" style={{float: 'left'}}>
+                      <ExploreIcon />
+                    </IconButton>
+                  </a>
+                  </Tooltip>
+                  </>
+                ) : null }
+              {status=='Processed' ? (<>
+                <Tooltip title="See transaction on explorer.">
+                  <a href={explorerUrl + '/transactions/' + processTransactionHash}>
+                    <IconButton aria-label="delete" style={{float: 'left'}}>
+                      <ExploreIcon />
+                    </IconButton>
+                  </a>
+                  </Tooltip>
+                  </>
+                ) : null }
+              {status=='Cancelled' ? (<>
+                <Tooltip title="See transaction on explorer.">
+                  <a href={explorerUrl + '/transactions/' + cancelTransactionHash}>
+                    <IconButton aria-label="delete"style={{float: 'left'}}>
+                      <ExploreIcon />
+                    </IconButton>
+                  </a>
+                  </Tooltip>
+                  </>
+                ) : null }
+                <Typography variant="h6" align="center" color="textSecondary">{proposalType} Proposal</Typography>
              <CardHeader
                title={<Chip
                  avatar={<Avatar alt="Member" src="../../../images/default-profile.png" />}
@@ -635,7 +884,7 @@ export default function ProposalCard(props) {
               <Grid container alignItems="center" justify="space-evenly" style={{marginBottom:'5px'}}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-20px'}}>
                   <Typography variant="overline">Shares: {shares}</Typography><br></br>
-                  <Typography variant="overline">{`Tribute: ${tribute} Ⓝ`}</Typography>
+                  <Typography variant="overline">{`Tribute: ${formatNearAmount(tribute)} Ⓝ`}</Typography>
                 </Grid>
               </Grid>
             ) : null }
@@ -659,7 +908,7 @@ export default function ProposalCard(props) {
                   <Typography variant="h6" align="center" style={{marginBottom: '10px'}}>Funding Requested</Typography>
                 </Grid>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                  <Typography variant="h5" align="center">{`${funding} Ⓝ`}</Typography>
+                  <Typography variant="h5" align="center">{`${formatNearAmount(funding)} Ⓝ`}</Typography>
                 </Grid>
               </Grid>
             ) : null}
@@ -668,7 +917,7 @@ export default function ProposalCard(props) {
               <Grid container alignItems="center" justify="space-evenly" style={{marginBottom:'5px'}}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-20px'}}>
                   <Typography variant="overline">Shares: {shares}</Typography><br></br>
-                  <Typography variant="overline">{`Tribute: ${tribute} Ⓝ`}</Typography>
+                  <Typography variant="overline">{`Tribute: ${formatNearAmount(tribute)} Ⓝ`}</Typography>
                 </Grid>
               </Grid>
             ) : null }
@@ -682,7 +931,7 @@ export default function ProposalCard(props) {
                   <Typography variant="h6" align="center" style={{marginBottom: '10px'}}>Payout Requested</Typography>
                 </Grid>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                  <Typography variant="h5" align="center">{`${funding} Ⓝ`}</Typography>
+                  <Typography variant="h5" align="center">{`${formatNearAmount(funding)} Ⓝ`}</Typography>
                 </Grid>
               </Grid>
             ) : null}

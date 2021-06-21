@@ -48,7 +48,10 @@ export const memberSchema = {
         "updated": {
           "type": "number",
           "minimum": 0,
-        }
+        },
+        "active": {
+          "type": "boolean",
+        },
       }
     }
   }

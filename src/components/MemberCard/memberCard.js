@@ -55,7 +55,8 @@ export default function MemberCard(props) {
     const {
       accountName, 
       shares, 
-      memberCount, 
+      memberCount,
+      active,
       summoner
     } = props
 
@@ -69,6 +70,7 @@ export default function MemberCard(props) {
           if(accountName && state){
             const thisPersona = new Persona()
             let result = await thisPersona.getPersona(accountName)
+            console.log('result member', result)
             if(result){
               result.date ? setDate(result.date) : setDate('')
               result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
@@ -106,7 +108,9 @@ export default function MemberCard(props) {
           </div>
          
           <CardHeader
-          subheader={ <><center><Chip size="small" color="primary" label={accountName}/><br></br><Typography variant="overline" align="center">Joined: {formatDate(joined)}</Typography></center></>}
+          subheader={ <><center><Chip size="small" color="primary" label={accountName}/><br></br>
+          <Typography variant="overline" align="center">Joined: {formatDate(joined)}</Typography><br></br>
+          <Typography variant="overline" align="center">{active ? 'Active' : 'Inactive'}</Typography></center></>}
           className={classes.header}
           />
  

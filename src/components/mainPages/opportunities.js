@@ -111,7 +111,7 @@ export default function Opportunities(props) {
               onChange={(e) => searchData(e.target.value)}
           />
           </Grid>
-          <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+          
             {opportunities && opportunities.length > 0 ?
               opportunities.map((fr, i) => {
                 console.log('opportunity fr', fr)
@@ -134,7 +134,7 @@ export default function Opportunities(props) {
               }) : <Card className={classes.card}>
               <Typography variant="h5">No Opportunities Yet - Please Check Back Soon.</Typography>
             </Card> }
-          </Grid>
+          
         </Grid>
         </div>
         <Footer />

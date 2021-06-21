@@ -75,6 +75,18 @@ export const proposalSchema = {
         "voteFinalized": {
           "type": "number",
         },
+        "submitTransactionHash": {
+          "type": "string",
+        },
+        "processTransactionHash": {
+          "type": "string",
+        },
+        "cancelTransactionHash": {
+          "type": "string",
+        },
+        "sponsorTransactionHash": {
+          "type": "string",
+        },
       }
     }
   }

@@ -30,6 +30,9 @@ export const donationsSchema = {
         "donation": {
           "type": "number",
         },
+        "transactionHash": {
+          "type": "string",
+        }
       },
     }
   }

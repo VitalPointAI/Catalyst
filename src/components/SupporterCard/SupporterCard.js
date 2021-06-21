@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
+import { Link } from 'react-router-dom'
+import { explorerUrl } from '../../state/near'
 import { appStore, onAppMount } from '../../state/app'
 import * as nearAPI from 'near-api-js'
 import Persona from '@aluhning/get-personas-js'
@@ -12,6 +14,9 @@ import Chip from '@material-ui/core/Chip'
 import Grid from '@material-ui/core/Grid'
 import Avatar from '@material-ui/core/Avatar'
 import Typography from '@material-ui/core/Typography'
+import ExploreIcon from '@material-ui/icons/Explore'
+import Tooltip from '@material-ui/core/Tooltip'
+import IconButton from '@material-ui/core/IconButton'
 import { red } from '@material-ui/core/colors'
 
 const useStyles = makeStyles((theme) => ({
@@ -57,6 +62,7 @@ export default function SupporterCard(props) {
       accountId,
       donation,
       contributed,
+      transactionHash
     } = props
 
     const thisPersona = new Persona()
@@ -68,6 +74,7 @@ export default function SupporterCard(props) {
 
           if(accountId){
             let result = await thisPersona.getPersona(accountId)
+            console.log('donation result', result)
             if(result){
               result.date ? setDate(result.date) : setDate('')
               result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
@@ -95,18 +102,28 @@ export default function SupporterCard(props) {
     return(
         <>
         <Card raised={true} className={classes.card} >
-          <div style={{float:'left', padding:'3px', width:'18%'}}>
-          <Avatar variant="circular" src={avatar}  />
-          </div>
-          <div style={{float:'left', marginLeft:'10px', width:'70%'}}>
-          <CardHeader
-            title={name}
-          />
-          </div>
+          <Grid container justify="flex-start" alignItems="center" spacing={0}>
+            <Grid item xs={12} sm={12} md={1} lg={1} xl={1} align="center">
+              <Avatar variant="circular" src={avatar} style={{marginLeft: '3px'}} />
+            </Grid>
+            <Grid item xs={6} sm={6} md={9} lg={9} xl={9} align="center" >
+              <Typography variant="h6">{name ? name : accountId}</Typography>
+            </Grid>
+            <Grid item xs={6} sm={6} md={2} lg={2} xl={2} align="left" >
+              <Tooltip title="See transaction on explorer.">
+              <a href={explorerUrl + '/transactions/' + transactionHash}>
+                <IconButton aria-label="delete">
+                  <ExploreIcon />
+                </IconButton>
+              </a>
+              </Tooltip>
+            </Grid>
+          </Grid>
          
           <CardHeader
           subheader={ <><center><Chip size="small" color="primary" label={accountId}/><br></br>
-          <Typography variant="overline" align="center">Contributed: {formatDate(contributed)}</Typography></center></>}
+          <Typography variant="overline" align="center">Contributed: {formatDate(contributed)}</Typography>
+         </center></>}
           className={classes.header}
           />
  

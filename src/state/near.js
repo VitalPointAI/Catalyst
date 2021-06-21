@@ -8,12 +8,12 @@ import { config } from './config'
 
 export const {
     FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT, DAO_FIRST_INIT, CURRENT_DAO, REDIRECT,
-    NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, NEW_PROCESS, NEW_VOTE, IPFS_PROVIDER, NEW_DONATION,
-    networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix,
+    NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, NEW_PROCESS, NEW_VOTE, IPFS_PROVIDER, NEW_DONATION, NEW_EXIT,
+    networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix, explorerUrl,
     contractName, didRegistryContractName, factoryContractName
 } = config
 
-const {
+export const {
     KeyPair,
     InMemorySigner,
     transactions: {
@@ -513,32 +513,35 @@ export async function initDao(wallet, contractId, periodDuration, votingPeriodLe
 async function sendMessage(content, type, type2, data, curDaoIdx){
     let request = new XMLHttpRequest()
     let hookArray = await ceramic.downloadKeysSecret(curDaoIdx, 'apiKeys')
-    let hook = hookArray[0].api
-    console.log("hook", hook)
+    console.log('hookArray', hookArray)
+    if(hookArray && Object.keys(hookArray).length != 0){
+        let hook = hookArray[0].api
+        console.log("hook", hook)
 
-    if((type2 == 'proposal' && hookArray[0].discordActivation == true && hookArray[0].proposalActivation == true)
-    || (type2 == "sponsor" && hookArray[0].discordActivation == true && hookArray[0].sponsorActivation == true)
-    || (type2 == "process" && hookArray[0].discordActivation == true && hookArray[0].passedProposalActivation == true))
-    {
-        request.open("POST", `${hook}`)
+        if((type2 == 'proposal' && hookArray[0].discordActivation == true && hookArray[0].proposalActivation == true)
+        || (type2 == "sponsor" && hookArray[0].discordActivation == true && hookArray[0].sponsorActivation == true)
+        || (type2 == "process" && hookArray[0].discordActivation == true && hookArray[0].passedProposalActivation == true))
+        {
+            request.open("POST", `${hook}`)
 
-        request.setRequestHeader('Content-type', 'application/json')
+            request.setRequestHeader('Content-type', 'application/json')
 
-            let embeddedData = {
-            author: {
-                    name: data.applicant,
-                    url: data.url
+                let embeddedData = {
+                author: {
+                        name: data.applicant,
+                        url: data.url
+                    }
                 }
-            }
 
-            let params = {
-                username: `${type}` + ' Manager',
-                content: content,
-                embeds: [embeddedData]
-            }
+                let params = {
+                    username: `${type}` + ' Manager',
+                    content: content,
+                    embeds: [embeddedData]
+                }
 
-            request.send(JSON.stringify(params))
-            return true
+                request.send(JSON.stringify(params))
+                return true
+        }
     }
     return false
 }
@@ -571,12 +574,12 @@ export async function submitProposal(
                 a: applicant,
                 sR: sharesRequested,
                 lR: loot,
-                tO: tribute,
+                tO: parseNearAmount(tribute),
                 tT: depositToken,
-                pR: paymentRequested,
+                pR: parseNearAmount(paymentRequested),
                 pT: depositToken,
                 contractId: contractId
-                }, GAS, parseNearAmount((parseInt(tribute) + parseInt(proposalDeposit)).toString()))
+                }, GAS, parseNearAmount((parseInt(tribute) + parseInt(formatNearAmount(proposalDeposit))).toString()))
             } catch (err) {
                 console.log('submit member proposal failed', err)
                 return false
@@ -588,12 +591,12 @@ export async function submitProposal(
                 a: applicant,
                 sR: sharesRequested,
                 lR: loot,
-                tO: tribute,
+                tO: parseNearAmount(tribute),
                 tT: depositToken,
-                pR: paymentRequested,
+                pR: parseNearAmount(paymentRequested),
                 pT: depositToken,
                 contractId: contractId
-                }, GAS, parseNearAmount((parseInt(tribute) + parseInt(proposalDeposit)).toString()))
+                }, GAS, parseNearAmount((parseInt(tribute) + parseInt(formatNearAmount(proposalDeposit))).toString()))
             } catch (err) {
                 console.log('submit tribute proposal failed', err)
                 return false
@@ -604,10 +607,10 @@ export async function submitProposal(
                 await daoContract.submitCommitmentProposal({
                     applicant: applicant,
                     depositToken: depositToken,
-                    paymentRequested: paymentRequested,
+                    paymentRequested: parseNearAmount(paymentRequested),
                     paymentToken: depositToken,
                     contractId: contractId
-                    }, GAS, parseNearAmount(parseInt(proposalDeposit).toString()))
+                    }, GAS, proposalDeposit)
                 } catch (err) {
                     console.log('submit commitment proposal failed', err)
                     return false
@@ -619,7 +622,7 @@ export async function submitProposal(
                     creator: applicant,
                     depositToken: depositToken,
                     contractId: contractId
-                    }, GAS, parseNearAmount(parseInt(proposalDeposit).toString()))
+                    }, GAS, proposalDeposit)
                 } catch (err) {
                     console.log('submit opportunity proposal failed', err)
                     return false
@@ -631,12 +634,12 @@ export async function submitProposal(
                     a: applicant,
                     sR: sharesRequested,
                     lR: loot,
-                    tO: tribute,
+                    tO: parseNearAmount(tribute),
                     tT: depositToken,
-                    pR: paymentRequested,
+                    pR: parseNearAmount(paymentRequested),
                     pT: depositToken,
                     contractId: contractId
-                    }, GAS, parseNearAmount(parseInt(proposalDeposit).toString()))
+                    }, GAS, proposalDeposit)
                 } catch (err) {
                     console.log('submit payout proposal failed', err)
                     return false
@@ -659,10 +662,9 @@ export async function sponsorProposal(daoContract, contractId, proposalId, depos
 
         await daoContract.sponsorProposal({
             pI: proposalId,
-            proposalDeposit: proposalDeposit,
             depositToken: depositToken,
             contractId: contractId
-            }, GAS, parseNearAmount((parseInt(proposalDeposit)).toString()))
+            }, GAS, proposalDeposit)
 
 
     } catch (err) {
@@ -687,7 +689,8 @@ export async function makeDonation(wallet, contractId, donationToken, contributo
         await daoContract.makeDonation({
             args: {
                 contractId: contractId,
-                token: donationToken
+                token: donationToken,
+                amount: parseNearAmount(0)
             },
             gas: GAS,
             amount: parseNearAmount(donation),
@@ -741,6 +744,44 @@ export async function submitVote(daoContract, contractId, proposalId, vote) {
     return true
 }
 
+// Leave Community
+export async function leaveCommunity(daoContract, contractId, share, accountId, entitlement) {
+
+    try {
+        // set trigger for to log member exit
+        let newExit = get(NEW_EXIT, [])
+        newExit.push({contractId: contractId, account: accountId, new: true, share: share})
+        set(NEW_EXIT, newExit)
+
+        // format amount properly
+        let floatAmount = parseFloat(share)
+        console.log('float amount', floatAmount)
+        let nearAmount = parseNearAmount(floatAmount.toString())
+        console.log('near amount', nearAmount)
+
+        // set trigger for new donation if share is not the total share
+        if(share < entitlement){
+        const donationId = await daoContract.getDonationsLength()
+        
+        // set trigger for to log new proposal
+        let newDonation = get(NEW_DONATION, [])
+        newDonation.push({contractId: contractId, donationId: donationId, contributor: accountId, new: true})
+        set(NEW_DONATION, newDonation)
+        }
+
+        await daoContract.leave({
+            accountId: accountId,
+            share: nearAmount,
+            contractId: contractId
+            }, GAS)
+
+    } catch (err) {
+        console.log('leave community failed', err)
+        return false
+    }
+    return true
+}
+
 // Cancel a DAO Proposal
 export async function cancelProposal(daoContract, contractId, proposalId, proposalDeposit, tribute = 0) {
 
@@ -752,8 +793,8 @@ export async function cancelProposal(daoContract, contractId, proposalId, propos
 
         await daoContract.cancelProposal({
             pI: proposalId,
-            deposit: parseNearAmount(proposalDeposit),
-            tribute: parseNearAmount(tribute)
+            deposit: proposalDeposit,
+            tribute: tribute
             }, GAS)
 
     } catch (err) {
@@ -897,19 +938,20 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId)
         }
 
         if(!exists){
-            let totalMembers
-            try {
-                totalMembers = await daoContract.getTotalMembers()
-                console.log('total Members', totalMembers)
-            } catch (err) {
-                console.log('no members', err)
-                return false
-            }
+            // let totalMembers
+            // try {
+            //     totalMembers = await daoContract.getTotalMembers()
+            //     console.log('total Members', totalMembers)
+            // } catch (err) {
+            //     console.log('no members', err)
+            //     return false
+            // }
            
-            let memberId = parseInt(totalMembers)
+            // let memberId = parseInt(totalMembers)
+            let memberId = generateId()
 
             let indivMemberRecord = {
-                memberId: memberId.toString(),
+                memberId: memberId,
                 contractId: contractId,
                 delegateKey: member[0].delegateKey,
                 shares: member[0].shares,
@@ -918,7 +960,8 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId)
                 highestIndexYesVote: member[0].highestIndexYesVote,
                 jailed: member[0].jailed,
                 joined: parseInt(member[0].joined),
-                updated: parseInt(member[0].updated)
+                updated: parseInt(member[0].updated),
+                active: member[0].active
             }
         
             logMembers.events.push(indivMemberRecord)
@@ -978,7 +1021,7 @@ export async function addDaoToList (appIdx, contractId, summoner, created, categ
 }
 
 // Logs the initial member and summoning event when a DAO is created
-export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType, accountId, contribution) {
+export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType, accountId, contribution, transactionHash) {
 
     let summoner
     let periodDuration
@@ -1019,7 +1062,8 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
         return false
     }
    
-    let memberId = parseInt(totalMembers)
+    //let memberId = parseInt(totalMembers)
+    let memberId = generateId()
     
     let numberSummonTime = parseInt(summonTime)
 
@@ -1032,7 +1076,7 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
       }
 
       let indivMemberEventRecord = {
-        memberId: memberId.toString(),
+        memberId: memberId,
         contractId: contractId,
         delegateKey: accountId,
         shares: contribution,
@@ -1041,7 +1085,8 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
         highestIndexYesVote: 0,
         jailed: 0,
         joined: numberSummonTime,
-        updated: Date.now()
+        updated: Date.now(),
+        active: true
       }
 
       memberEventRecord.events.push(indivMemberEventRecord)
@@ -1076,7 +1121,8 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
     gracePeriodLength: parseInt(gracePeriodLength),
     proposalDeposit: proposalDeposit,
     dilutionBound: parseInt(dilutionBound),
-    updateTime: Date.now()
+    updateTime: Date.now(),
+    transactionHash: transactionHash
     }
 
     summonEventRecord.events.push(indivSummonEventRecord)
@@ -1097,8 +1143,76 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
     }
 }
 
+// Logs the initial member and summoning event when a DAO is created
+export async function logExitEvent (contractId, curDaoIdx, daoContract, accountId, transactionHash) {
+    let memberLogged = false
+    let member
+    try {
+        member = await daoContract.getMemberInfo({member: accountId})
+        console.log('member exit', member)
+    } catch (err) {
+        console.log('no member exists', err)
+        memberLogged = true
+        return true
+    }
+   
+    // Retrieve Members
+    let memberEventRecord
+    try {
+        memberEventRecord = await curDaoIdx.get('members', curDaoIdx.id)
+        console.log('membereventrecord', memberEventRecord)
+    } catch (err) {
+        console.log('no membereventrecords', err)
+        memberLogged = true
+        return true
+    }
+
+    if(member && member.length > 0 && memberEventRecord){
+       
+        // Update an existing member- set active to inactive indicating member has left
+        let exists = false
+        let i = 0
+        while (i < memberEventRecord.events.length){
+            if(memberEventRecord.events[i].delegateKey == member[0].delegateKey){
+                let updatedMemberRecord = {
+                    memberId: memberEventRecord.events[i].memberId,
+                    contractId: contractId,
+                    delegateKey: member[0].delegateKey,
+                    shares: member[0].shares,
+                    loot: member[0].loot,
+                    existing: member[0].existing,
+                    highestIndexYesVote: member[0].highestIndexYesVote,
+                    jailed: member[0].jailed,
+                    joined: parseInt(member[0].joined),
+                    updated: parseInt(member[0].updated),
+                    active: member[0].active
+                    }
+
+                memberEventRecord.events[i] = updatedMemberRecord
+
+                try {
+                    await curDaoIdx.set('members', memberEventRecord)
+                    memberLogged = true
+                    break
+                } catch (err) {
+                    console.log('error updating member', err)
+                }
+            }
+        i++
+        }
+    } else {
+        // member doesn't exist so set to true so flag is updated, doesn't keep trying to log
+        memberLogged = true    
+    }
+    if(memberLogged){
+        return true
+    } else {
+        return false
+    }
+}
+
 // Logs a new Proposal Event
-export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contractId) {
+export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contractId, transactionHash) {
 
     let logged = false
 
@@ -1147,7 +1261,8 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
             proposalSubmission: parseInt(proposal.pS),
             votingPeriod: proposal.vP,
             gracePeriod: proposal.gP,
-            voteFinalized: parseInt(proposal.voteFinalized)
+            voteFinalized: parseInt(proposal.voteFinalized),
+            submitTransactionHash: transactionHash
             }
 
             proposalEventRecord.events.push(indivProposalRecord)
@@ -1199,7 +1314,7 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
 }
 
 // Logs a Process Event
-export async function logProcessEvent(curDaoIdx, daoContract, contractId, proposalId, proposalType, accountId) {
+export async function logProcessEvent(curDaoIdx, daoContract, contractId, proposalId, proposalType, transactionHash) {
 
     let processLogged = false
     let memberLogged = false
@@ -1241,7 +1356,8 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                         proposalSubmission: parseInt(proposal.pS),
                         votingPeriod: proposal.vP,
                         gracePeriod: proposal.gP,
-                        voteFinalized: parseInt(proposal.voteFinalized)
+                        voteFinalized: parseInt(proposal.voteFinalized),
+                        processTransactionHash: transactionHash
                         }
                     proposalRecords.events[i] = updatedProposalRecord
                     try{
@@ -1264,16 +1380,17 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
         let member = await daoContract.getMemberInfo({member: proposal.a})
         console.log('member process', member)
 
-        let totalMembers
-        try {
-            totalMembers = await daoContract.getTotalMembers()
-            console.log('total Members', totalMembers)
-        } catch (err) {
-            console.log('no members', err)
-            return false
-        }
+        // let totalMembers
+        // try {
+        //     totalMembers = await daoContract.getTotalMembers()
+        //     console.log('total Members', totalMembers)
+        // } catch (err) {
+        //     console.log('no members', err)
+        //     return false
+        // }
 
-        let memberId = parseInt(totalMembers)
+        // let memberId = parseInt(totalMembers)
+        let memberId = generateId()
        
         // Log Member Event
         let memberEventRecord = await curDaoIdx.get('members', curDaoIdx.id)
@@ -1283,7 +1400,7 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
         
     
             let indivMemberEventRecord = {
-                memberId: memberId.toString(),
+                memberId: memberId,
                 contractId: contractId,
                 delegateKey: member[0].delegateKey,
                 shares: member[0].shares,
@@ -1292,7 +1409,8 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                 highestIndexYesVote: member[0].highestIndexYesVote,
                 jailed: member[0].jailed,
                 joined: parseInt(member[0].joined),
-                updated: parseInt(member[0].updated)
+                updated: parseInt(member[0].updated),
+                active: member[0].active
             }
     
             memberEventRecord.events.push(indivMemberEventRecord)
@@ -1314,7 +1432,7 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
             while (i < memberEventRecord.events.length){
                 if(memberEventRecord.events[i].delegateKey == member[0].delegateKey){
                     let updatedMemberRecord = {
-                        memberId: memberId.toString(),
+                        memberId: memberId,
                         contractId: contractId,
                         delegateKey: member[0].delegateKey,
                         shares: member[0].shares,
@@ -1323,7 +1441,8 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                         highestIndexYesVote: member[0].highestIndexYesVote,
                         jailed: member[0].jailed,
                         joined: parseInt(member[0].joined),
-                        updated: parseInt(member[0].updated)
+                        updated: parseInt(member[0].updated),
+                        active: member[0].active
                         }
 
                     memberEventRecord.events[i] = updatedMemberRecord
@@ -1427,16 +1546,17 @@ export async function logVoteEvent(curDaoIdx, contractId, daoContract, proposalI
 
         let memberEventRecord = await curDaoIdx.get('members', curDaoIdx.id)
 
-        let totalMembers
-        try {
-            totalMembers = await daoContract.getTotalMembers()
-            console.log('total Members', totalMembers)
-        } catch (err) {
-            console.log('no members', err)
-            return false
-        }
+        // let totalMembers
+        // try {
+        //     totalMembers = await daoContract.getTotalMembers()
+        //     console.log('total Members', totalMembers)
+        // } catch (err) {
+        //     console.log('no members', err)
+        //     return false
+        // }
        
-        let memberId = parseInt(totalMembers)
+        // let memberId = parseInt(totalMembers)
+        let memberId = generateId()
 
          // Update the existing voting member
          let memberExists
@@ -1445,7 +1565,7 @@ export async function logVoteEvent(curDaoIdx, contractId, daoContract, proposalI
              console.log('member', member)
              if(memberEventRecord.events[j].delegateKey == member[0].delegateKey){
                  let updatedMemberRecord = {
-                    memberId: memberId.toString(),
+                    memberId: memberId,
                     contractId: contractId,
                     delegateKey: member[0].delegateKey,
                     shares: member[0].shares,
@@ -1454,7 +1574,8 @@ export async function logVoteEvent(curDaoIdx, contractId, daoContract, proposalI
                     highestIndexYesVote: member[0].highestIndexYesVote,
                     jailed: member[0].jailed,
                     joined: parseInt(member[0].joined),
-                    updated: parseInt(member[0].updated)
+                    updated: parseInt(member[0].updated),
+                    active: member[0].active
                      }
                  memberEventRecord.events[j] = updatedMemberRecord
 
@@ -1480,7 +1601,7 @@ export async function logVoteEvent(curDaoIdx, contractId, daoContract, proposalI
 }
 
 // Logs a new Sponsor Event
-export async function logSponsorEvent (curDaoIdx, daoContract, proposalId) {
+export async function logSponsorEvent (curDaoIdx, daoContract, proposalId, transactionHash) {
 
     let logged = false
 
@@ -1514,7 +1635,8 @@ export async function logSponsorEvent (curDaoIdx, daoContract, proposalId) {
                 proposalSubmission: parseInt(proposal.pS),
                 votingPeriod: proposal.vP,
                 gracePeriod: proposal.gP,
-                voteFinalized: parseInt(proposal.voteFinalized)
+                voteFinalized: parseInt(proposal.voteFinalized),
+                sponsorTransactionHash: transactionHash
                 }
             proposalRecords.events[i] = updatedProposalRecord
 
@@ -1544,7 +1666,7 @@ export async function logSponsorEvent (curDaoIdx, daoContract, proposalId) {
 }
 
 // Logs a new Cancel Event
-export async function logCancelEvent (curDaoIdx, daoContract, proposalId) {
+export async function logCancelEvent (curDaoIdx, daoContract, proposalId, transactionHash) {
 
     let cancelled = false
 
@@ -1578,7 +1700,8 @@ export async function logCancelEvent (curDaoIdx, daoContract, proposalId) {
                 proposalSubmission: parseInt(proposal.pS),
                 votingPeriod: proposal.vP,
                 gracePeriod: proposal.gP,
-                voteFinalized: parseInt(proposal.voteFinalized)
+                voteFinalized: parseInt(proposal.voteFinalized),
+                cancelTransactionHash: transactionHash
                 }
          
             proposalRecords.events[i] = updatedProposalRecord
@@ -1603,7 +1726,7 @@ export async function logCancelEvent (curDaoIdx, daoContract, proposalId) {
 }
 
 // Logs a new Donation Event
-export async function logDonationEvent (curDaoIdx, daoContract, donationId, contractId) {
+export async function logDonationEvent (curDaoIdx, daoContract, donationId, contractId, transactionHash) {
 
     let logged = false
 
@@ -1627,7 +1750,8 @@ export async function logDonationEvent (curDaoIdx, daoContract, donationId, cont
             contractId: contractId,
             contributor: donation.contributor,
             contributed: parseInt(donation.contributed),
-            donation: parseInt(donation.donation)
+            donation: parseInt(donation.donation),
+            transactionHash: transactionHash
             }
 
             donationEventRecord.donations.push(indivDonationRecord)
@@ -1646,75 +1770,6 @@ export async function logDonationEvent (curDaoIdx, daoContract, donationId, cont
     } else {
         return false
     }
-}
-
-export async function deleteLogInitEvent (accountId, summoner, daoType) {
-
-    let daoAccount = new nearAPI.Account(near.connection, accountId);
-    let thisCurDaoIdx = await ceramic.getCurrentUserIdxNoDid(appIdx, didRegistryContract, daoAccount)    
-    console.log('thisCurDaoIdx', thisCurDaoIdx)
-
-    const daoContract = await dao.initDaoContract(wallet.account(), accountId)
-    let totalMembers = await daoContract.getTotalMembers()
-    console.log('total Members', totalMembers)
-    let memberId = parseInt(totalMembers)
-    
-    let numberSummonTime = parseInt(summonTime)
-
-    if(summonTime && memberId) {
-       
-      // Log Member Event
-      let memberEventRecord = await thisCurDaoIdx.get('member', thisCurDaoIdx.id)
-      if(!memberEventRecord){
-        memberEventRecord = { events: [] }
-      }
-
-      let indivMemberEventRecord = {
-        memberId: memberId.toString(),
-        contractId: daoContract.contractId,
-        delegateKey: accountId,
-        shares: '1',
-        loot: '0',
-        existing: true,
-        highestIndexYesVote: 0,
-        jailed: 0,
-        joined: numberSummonTime,
-        updated: numberSummonTime
-      }
-
-      memberEventRecord.events.push(indivMemberEventRecord)
-      console.log('memberEventRecord.events', memberEventRecord.events)
-
-      await thisCurDaoIdx.set('member', memberEventRecord)
-     
-    }
-
-     // Log Summon Event
-
-   let summonEventRecord = await thisCurDaoIdx.get('summonEvent', thisCurDaoIdx.id)
-    if(!summonEventRecord){
-      summonEventRecord = { events: [] }
-    }
-   
-    let indivSummonEventRecord = {
-      eventId: '1',
-      contractId: daoContract.contractId,
-      summoner: summoner,
-      tokens: ['Ⓝ'],
-      summoningTime: numberSummonTime,
-      periodDuration: parseInt(periodDuration),
-      votingPeriodLength: parseInt(votingPeriodLength),
-      gracePeriodLength: parseInt(gracePeriodLength),
-      proposalDeposit: proposalDeposit,
-      dilutionBound: parseInt(dilutionBound),
-      updateTime: numberSummonTime
-    }
-
-    summonEventRecord.events.push(indivSummonEventRecord)
-
-    await thisCurDaoIdx.set('summonEvent', summonEventRecord)
-
-    return true
 }
 
 export const hasKey = async (key, accountId, near) => {
@@ -1762,3 +1817,9 @@ export function getStatus(flags) {
     }
     return status
   }
+
+export function generateId() {
+    let buf = Math.random([0, 999999999])
+    let b64 = btoa(buf);
+    return b64.toString()
+}

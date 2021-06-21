@@ -51,6 +51,9 @@ export const summonSchema = {
         "updateTime": {
           "type": "number",
         },
+        "transactionHash": {
+          "type": "string",
+        },
       }
     }
   }

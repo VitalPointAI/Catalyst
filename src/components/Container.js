@@ -71,11 +71,10 @@ export const Container = ({ children, state, handleSnackBarOpen, handleSuccessMe
            
                 wallet && wallet.signedIn ? children : <SignIn wallet={wallet} state={state}/>
                
-             : state.accountData ? (
-                
-                        {children}
+             : state.accountData ?    
+                        children
                    
-            ) : <div style={{width: '100%', textAlign: 'center'}}><CircularProgress/></div>
+             : <div style={{width: '100%', textAlign: 'center'}}><CircularProgress/></div>
         }
             
    

@@ -91,7 +91,7 @@ export const PersonaPage = ({ state, update, dispatch }) => {
     }
 
     return (
-        <Router>
+ 
         <>
         <div className={classes.root}>
         <Grid container alignItems="flex-start" justify="center" spacing={1} >
@@ -150,6 +150,6 @@ export const PersonaPage = ({ state, update, dispatch }) => {
         </div>
         <Footer />
     </>
-    </Router>
+ 
     )
 }

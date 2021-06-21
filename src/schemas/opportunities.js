@@ -57,7 +57,7 @@ export const opportunitiesSchema = {
         "completedCount": {
           type: 'number',
           minimum: 0
-        }
+        },
       },
     }
   }

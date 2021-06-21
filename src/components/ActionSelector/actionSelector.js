@@ -7,11 +7,11 @@ import TributeProposal from '../TributeProposal/tributeProposal'
 import WhiteListProposal from '../WhiteListProposal/whitelistProposal'
 import GuildKickProposal from '../GuildKickProposal/guildKickProposal'
 import MemberProposal from '../MemberProposal/memberProposal'
-import VotingProposal from '../VotingRights/votingRightsProposal'
 import PayoutProposal from '../PayoutProposal/payoutProposal'
 import OpportunityProposal from '../OpportunityProposal/opportunityProposal'
 import Donation from '../Donation/donation'
 import Invite from '../Invite/invite'
+import Leave from '../Leave/leave'
 
 // Material UI Components
 import { makeStyles } from '@material-ui/core/styles'
@@ -31,6 +31,7 @@ import ThumbUpAltIcon from '@material-ui/icons/ThumbUpAlt'
 import RemoveCircleIcon from '@material-ui/icons/RemoveCircle'
 import HowToVoteIcon from '@material-ui/icons/HowToVote'
 import EnhancedEncryptionIcon from '@material-ui/icons/EnhancedEncryption'
+import ExitToAppIcon from '@material-ui/icons/ExitToApp'
 import AddAlertIcon from '@material-ui/icons/AddAlert'
 import MoneyIcon from '@material-ui/icons/Money'
 import Snackbar from '@material-ui/core/Snackbar'
@@ -88,9 +89,9 @@ export default function ActionSelector(props) {
   const [payoutProposalClicked, setPayoutProposalClicked] = useState(false)
   const [donationProposalClicked, setDonationProposalClicked] = useState(false)
   const [opportunityProposalClicked, setOpportunityProposalClicked] = useState(false)
+  const [leaveClicked, setLeaveClicked] = useState(false)
   const [whiteListClicked, setWhiteListClicked] = useState(false)
   const [guildKickClicked, setGuildKickClicked] = useState(false)
-  const [votingProposalClicked, setVotingProposalClicked] = useState(false)
   const [snackBarOpen, setSnackBarOpen] = useState(false)
   const [errorMessage, setErrorMessage] = useState()
   const [severity, setSeverity] = useState()
@@ -112,6 +113,7 @@ export default function ActionSelector(props) {
     contractIdx,
     idx,
     contract,
+    fairShare,
     memberStatus } = props
 
   const {
@@ -136,12 +138,6 @@ export default function ActionSelector(props) {
     setTributeProposalClicked(true)
   }
 
-  const handleVotingProposalClick = () => {
-    handleExpanded()
-    handleTabValueState('2')
-    setVotingProposalClicked(true)
-  };
-
   const handleWhiteListClick = () => {
     handleExpanded()
     handleTabValueState('2')
@@ -152,13 +148,19 @@ export default function ActionSelector(props) {
     handleExpanded()
     handleTabValueState('2')
     setGuildKickClicked(true)
-  };
+  }
+
+  const handleLeaveClick = () => {
+    handleExpanded()
+    handleTabValueState('2')
+    setLeaveClicked(true)
+  }
 
   const handleMemberProposalClick = () => {
     handleExpanded()
     handleTabValueState('2')
     handleMemberProposalClickState(true)
-  };
+  }
 
   const handlePayoutProposalClick = () => {
     handleExpanded()
@@ -180,16 +182,16 @@ export default function ActionSelector(props) {
     setDonationProposalClicked(property)
   }
 
+  function handleLeaveClickState(property) {
+    setLeaveClicked(property)
+  }
+
   function handleInviteClickState(property) {
     setInviteClicked(property)
   }
 
   function handleWhiteListClickState(property) {
     setWhiteListClicked(property)
-  }
-
-  function handleVotingProposalClickState(property) {
-    setVotingProposalClicked(property)
   }
 
   function handleGuildKickClickState(property) {
@@ -320,6 +322,12 @@ export default function ActionSelector(props) {
             </ListItemIcon>
             <ListItemText primary="Remove Member" />
           </StyledMenuItem>
+        <StyledMenuItem button onClick={handleLeaveClick}>
+          <ListItemIcon>
+            <ExitToAppIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="Leave Community" />
+        </StyledMenuItem>
       </StyledMenu>
       ) : (
         <StyledMenu
@@ -359,20 +367,6 @@ export default function ActionSelector(props) {
       idx={idx}
       handleTabValueState={handleTabValueState}/> : null }
 
-      {votingProposalClicked ? <VotingProposal
-      contract={contract} 
-      handleProposalEventChange={handleProposalEventChange}
-      handleGuildBalanceChanges={handleGuildBalanceChanges}
-      handleEscrowBalanceChanges={handleEscrowBalanceChanges}
-      handleVotingProposalClickState={handleVotingProposalClickState} 
-      handleTabValueState={handleTabValueState} 
-      accountId={accountId} 
-      depositToken={depositToken}
-      tokenName={tokenName}
-      didsContract={didsContract}
-      idx={idx}
-      proposalDeposit={proposalDeposit}/> : null  }
-
       {guildKickClicked ? <GuildKickProposal
       contract={contract}
       handleProposalEventChange={handleProposalEventChange}
@@ -392,6 +386,14 @@ export default function ActionSelector(props) {
       {inviteClicked ? <Invite 
       handleInviteClickState={handleInviteClickState}
       />: null}
+
+      {leaveClicked ? <Leave 
+        state={state}
+        fairShare={fairShare}
+        contractId={contractId}
+        daoContract={daoContract}
+        handleLeaveClickState={handleLeaveClickState}
+        />: null}
 
       {fundingProposalClicked ? <FundingProposal
       contractId={contractId}
