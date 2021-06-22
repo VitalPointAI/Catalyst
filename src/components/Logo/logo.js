@@ -21,8 +21,8 @@ const useStyles = makeStyles((theme) => ({
         paddingLeft: '10px'
     },
     chip: {
-        float: 'right',
-        marginBottom: '-70px'
+        marginTop: '25px',
+        marginLeft: '60px'
     }
   }));
 
@@ -154,6 +154,7 @@ export default function Logo(props) {
                 backgroundRepeat: 'no-repeat',
                 backgroundOrigin: 'content-box'
             }}>
+            {accountId == summoner ? <Chip label="Change" onClick={handleEditDaoClick} clickable variant="outlined" className={classes.chip}/> : null }
             </div>
             ) : (
                 <div style={{width: '150px', 
@@ -166,11 +167,10 @@ export default function Logo(props) {
                 backgroundRepeat: 'no-repeat',
                 backgroundOrigin: 'content-box'
             }}>
+            {accountId == summoner ? <Chip label="Change" onClick={handleEditDaoClick} clickable variant="outlined" className={classes.chip}/> : null }
             </div>
             )}
-            </Link>
-            {accountId == summoner ? <Chip label="Change" component="a" onClick={handleEditDaoClick} clickable variant="outlined" className={classes.chip}/> : null }
-           
+            </Link>           
             </>
         ) : (
             <Link to={`/dao/${contractId}`}>

@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
-import * as nearAPI from 'near-api-js'
-import { ceramic } from '../../utils/ceramic'
 import { dao } from '../../utils/dao'
 import { formatNearAmount, explorerUrl } from '../../state/near'
 import Persona from '@aluhning/get-personas-js'
@@ -13,7 +11,7 @@ import MemberProposalDetails from '../ProposalDetails/memberProposalDetails'
 import EditFundingProposalForm from '../EditProposal/editFundingProposal'
 import FundingProposalDetails from '../ProposalDetails/fundingProposalDetails'
 
-import TributeProposalForm from '../EditProposal/editTributeProposal'
+import EditTributeProposalForm from '../EditProposal/editTributeProposal'
 import TributeProposalDetails from '../ProposalDetails/tributeProposalDetails'
 
 import EditPayoutProposalForm from '../EditProposal/editPayoutProposal'
@@ -148,6 +146,8 @@ export default function ProposalCard(props) {
     const [editOpportunityProposalDetailsClicked, setEditOpportunityProposalDetailsClicked] = useState(false)
     const [opportunityProposalDetailsClicked, setOpportunityProposalDetailsClicked] = useState(false)
 
+    const [nextToFinalize, setNextToFinalize] = useState()
+
     const [anchorEl, setAnchorEl] = useState(null)
     
     const { state, dispatch, update } = useContext(appStore)
@@ -183,7 +183,8 @@ export default function ProposalCard(props) {
         memberStatus,
         contract,
         proposalDeposit,
-        summoner
+        summoner,
+        queueList
     } = props
 
     useEffect(
@@ -296,6 +297,8 @@ export default function ProposalCard(props) {
               let members = await daoContract.getTotalMembers()
               setTotalMembers(members)
             }
+
+            setNextToFinalize(queueList[0].requestId)
                     
             return true  
           }
@@ -305,7 +308,7 @@ export default function ProposalCard(props) {
 
             })
           
-    }, [isUpdated, curDaoIdx]
+    }, [isUpdated, queueList, curDaoIdx]
     )
 
     function handleUpdate(property){
@@ -1018,6 +1021,7 @@ export default function ProposalCard(props) {
                 
                 <Grid container alignItems="center" justify="space-evenly" spacing={1}>
                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
+                  {nextToFinalize == requestId ?
                     <Button
                       variant="contained"
                       className={classes.greenButton}
@@ -1027,6 +1031,7 @@ export default function ProposalCard(props) {
                     >
                     Finalize
                     </Button>
+                    : null }
                   </Grid>
                 </Grid>
                 </>
@@ -1060,7 +1065,7 @@ export default function ProposalCard(props) {
               <Grid container alignItems="center" justify="space-evenly" spacing={1}>
 
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                  {(accountId != proposer && accountId != applicant) && status=='Submitted' && memberStatus == true ? 
+                  {(accountId != proposer && accountId != applicant && accountId != summoner) && status=='Submitted' && memberStatus == true ? 
                   <><Button 
                       color="primary" 
                       onClick={(e) => handleSponsorConfirmationClick(requestId, proposalType, funding)}
@@ -1068,9 +1073,7 @@ export default function ProposalCard(props) {
                     Sponsor
                     </Button>
                   </> : null }
-                  {console.log('summoner', summoner)}
-                  {console.log('accountId', accountId)}
-                  {console.log('totalMembers', totalMembers)}
+               
                   {(accountId == summoner && totalMembers == 1) && status=='Submitted' && memberStatus == true ? 
                   <><Button 
                       color="primary" 

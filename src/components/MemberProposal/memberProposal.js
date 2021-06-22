@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
-import { submitProposal } from '../../state/near'
+import { submitProposal, formatNearAmount } from '../../state/near'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -189,7 +189,7 @@ export default function MemberProposal(props) {
                               <Typography variant="body2">Contribution of {tribute ? parseInt(tribute) : 0} Ⓝ goes into the community fund.</Typography>
                             </li>
                             <li>
-                              <Typography variant="body2">{parseInt(proposalDeposit)} Ⓝ proposal deposit is returned to you</Typography>
+                              <Typography variant="body2">{formatNearAmount(proposalDeposit)} Ⓝ proposal deposit is returned to you</Typography>
                             </li>
                           </ul>
                       </Grid>
@@ -203,7 +203,7 @@ export default function MemberProposal(props) {
                               <Typography variant="body2">Contribution of {tribute ? parseInt(tribute) : 0} Ⓝ is returned to you.</Typography>
                             </li>
                             <li>
-                              <Typography variant="body2">{parseInt(proposalDeposit)} Ⓝ proposal deposit is returned to you.</Typography>
+                              <Typography variant="body2">{formatNearAmount(proposalDeposit)} Ⓝ proposal deposit is returned to you.</Typography>
                             </li>
                           </ul>
                       </Grid>

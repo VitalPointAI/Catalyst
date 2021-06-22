@@ -352,6 +352,7 @@ export default function AppFramework(props) {
                     let synched = await synchProposalEvent(thisCurDaoIdx, contract)
                     if(synched){
                         proposals = await thisCurDaoIdx.get('proposals', thisCurDaoIdx.id)
+                        console.log('all proposal events', proposals)
                       setAllProposals(proposals.events)
                     }
                   } catch (err) {
@@ -658,6 +659,7 @@ export default function AppFramework(props) {
                 proposalDeposit={proposalDeposit}
                 handleUpdate={handleUpdate}
                 isUpdated={isUpdated}
+                totalShares={totalShares}
                
         
 

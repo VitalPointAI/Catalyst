@@ -22,6 +22,8 @@ import Typography from '@material-ui/core/Typography'
 import Divider from '@material-ui/core/Divider'
 import Switch from '@material-ui/core/Switch'
 import Card from '@material-ui/core/Card'
+import CardHeader from '@material-ui/core/CardHeader'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
 
 // ReactQuill Component
 import ReactQuill from 'react-quill';
@@ -221,29 +223,7 @@ export default function EditDaoForm(props) {
           }
         ]
 
-         console.log("hook array", hookArray)
-         let result2 = await ceramic.storeKeysSecret(curDaoIdx, hookArray, 'apiKeys', curDaoIdx.id)
-         console.log("hook result", result2)
-
-        // let m = 0
-        // let updateDaoList = state.currentDaosList
-        // while (m < updateDaoList.length){
-        //   if(updateDaoList[m].contractId == contractId){
-        //     let newRecord = {
-        //       contractId: contractId,
-        //       summoner: state.accountId,
-        //       date: now,
-        //       category: category,
-        //       name: name,
-        //       logo: logo,
-        //       purpose: purpose
-        //     }
-        //     updateDaoList[m] = newRecord
-        //   }
-        //   m++
-        // }
-
-        // let daoResult = await state.appIdx.set('daoList', updateDaoList)
+        let result2 = await ceramic.storeKeysSecret(curDaoIdx, hookArray, 'apiKeys', curDaoIdx.id)
      
       setIsUpdated(true)
       setFinished(true)
@@ -275,7 +255,7 @@ export default function EditDaoForm(props) {
        
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             { loaded ? (<>
-              <DialogTitle id="form-dialog-title">DAO Profile Details</DialogTitle>
+              <DialogTitle id="form-dialog-title">Community Profile Details</DialogTitle>
               <DialogContent>
                   <DialogContentText style={{marginBottom: 10}}>
                   Provide as much detail as you'd like.
@@ -287,7 +267,7 @@ export default function EditDaoForm(props) {
                         id="profile-name"
                         variant="outlined"
                         name="name"
-                        label="DAO Name"
+                        label="Community Name"
                         placeholder="Super Dao"
                         value={name}
                         onChange={handleNameChange}
@@ -295,7 +275,7 @@ export default function EditDaoForm(props) {
                             required: false                              
                         })}
                       />
-                    {errors.name && <p style={{color: 'red'}}>You must provide a DAO name.</p>}
+                    {errors.name && <p style={{color: 'red'}}>You must provide a community name.</p>}
 
                     <TextField
                       autoFocus
@@ -307,6 +287,7 @@ export default function EditDaoForm(props) {
                       placeholder="Social Cause"
                       value={category}
                       onChange={handleCategoryChange}
+                      style={{marginLeft: '5px'}}
                       inputRef={register({
                           required: false                              
                       })}
@@ -314,41 +295,45 @@ export default function EditDaoForm(props) {
                     {errors.name && <p style={{color: 'red'}}>You must categorize your DAO so others can find it.</p>} 
                
                
-                    <TextField
-                      autoFocus
-                      margin="dense"
-                      id="discord-webhook"
-                      variant="outlined"
-                      name="WebHook"
-                      label="WebHook"
-                      placeholder="Web Hook"
-                      value={webhook}
-                      onChange={handleWebhookChange}
-                      inputRef={register({
-                          required: false                              
-                      })}
-                    />
-                  <Card>
-                      <Grid container>
-                      <Grid item xs={6}>     
-                      <Typography>Discord Notifications</Typography>
-                       <Switch checked={discordActivated} onChange={handleDiscordActivation}>Discord</Switch>
+                   
+                  <Card style={{marginTop: '10px', marginBottom: '20px', padding: '5px'}}>
+                  <Typography variant="h6">Notifications</Typography>
+                      <Grid container justify="flex-start" alignItems="center" spacing={1}>
+                        <Grid item xs={9} sm={9} md={9} lg={9} xl={9}>
+                          <TextField
+                            autoFocus
+                            fullWidth
+                            margin="dense"
+                            id="discord-webhook"
+                            variant="outlined"
+                            name="WebHook"
+                            label="Discord Server Webhook"
+                            placeholder="Discord Server Webhook"
+                            value={webhook}
+                            onChange={handleWebhookChange}
+                            inputRef={register({
+                                required: false                              
+                            })}
+                          />
+                        </Grid>
+                        <Grid item xs={3} sm={3} md={3} lg={3} xl={3}>
+                          <FormControlLabel control={<Switch checked={discordActivated} onChange={handleDiscordActivation} color="primary"/>} label="Enabled" />
+                        </Grid>
+                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                          <Typography variant="h6">Notify on:</Typography>
+                        </Grid>
+                        <Grid item xs={6} sm={6} md={4} lg={4} xl={4}>
+                          <FormControlLabel control={<Switch checked={proposalsActivated} onChange={handleProposalActivation} color="primary"/>} label="New Proposal" />
+                        </Grid>
+                        <Grid item xs={6} sm={6} md={4} lg={4} xl={4}>
+                          <FormControlLabel control={<Switch checked={passedProposalsActivated} onChange={handlePassedProposalActivation} color="primary"/>} label="Processed Proposal" />
+                        </Grid>
+                        <Grid item xs={6} sm={6} md={4} lg={4} xl={4}>
+                          <FormControlLabel control={<Switch checked={sponsorActivated} onChange={handleSponsorActivation} color="primary"/>} label="Sponsored Proposal" />
+                        </Grid>
                       </Grid>
-                      <Grid item xs={6}>
-                      <Typography>Proposal Notifications</Typography>
-                        <Switch checked={proposalsActivated} onChange={handleProposalActivation}>New Proposals</Switch>
-                      </Grid>
-                      <Grid item xs={6}>
-                      <Typography>Processing Notifications</Typography>
-                       <Switch checked={passedProposalsActivated} onChange={handlePassedProposalActivation}>Passed Proposals</Switch>
-                      </Grid>
-                      <Grid item xs={6}>
-                        <Typography>Sponsor Notifications</Typography>
-                        <Switch checked={sponsorActivated} onChange={handleSponsorActivation}>Sponsorships</Switch>
-                      </Grid>
-                    </Grid>
                   </Card>
-
+                  <Typography variant="h6">Community Purpose</Typography>
                   <ReactQuill
                     theme="snow"
                     modules={modules}
@@ -364,11 +349,13 @@ export default function EditDaoForm(props) {
                   />
              
                   <Grid container spacing={1}>
+                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                      <Typography variant="h6">Upload Logo</Typography>
+                    </Grid>
                     <Grid item xs={4} sm={4} md={4} lg={4} xl={4}>
                         <Avatar src={logo} variant="square" className={classes.square} />
                     </Grid>
                     <Grid item xs={8} sm={8} md={8} lg={8} xl={8}>
-                      <Typography align="center" variant="h5">Upload a Logo</Typography>
                       <FileUpload handleFileHash={handleFileHash} align="center"/>
                     </Grid>
                   </Grid>

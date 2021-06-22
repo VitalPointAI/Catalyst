@@ -3,7 +3,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { utils } from 'near-api-js'
 import { GAS } from '../../state/near'
-import { sponsorProposal } from '../../state/near'
+import { sponsorProposal, formatNearAmount } from '../../state/near'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -140,7 +140,7 @@ export default function SponsorConfirmation(props) {
                    
                   </Grid>
                   <Grid item xs={10} sm={10} md={10} lg={10} xl={10} style={{margin:'auto'}}>
-                    <Typography variant="body2" gutterBottom>You understand this request requires you to transfer a deposit of <b>{parseInt(proposalDeposit)} Ⓝ</b>.  
+                    <Typography variant="body2" gutterBottom>You understand this request requires you to transfer a deposit of <b>{formatNearAmount(proposalDeposit)} Ⓝ</b>.  
                     It will be returned when the proposal is processed whether it passes or fails.</Typography>
                     {errors.confirmCheck && <p style={{color: 'red', marginTop: '10px'}}>You must confirm your understanding.</p>}
                   </Grid>

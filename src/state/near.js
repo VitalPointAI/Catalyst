@@ -1262,7 +1262,7 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
             votingPeriod: proposal.vP,
             gracePeriod: proposal.gP,
             voteFinalized: parseInt(proposal.voteFinalized),
-            submitTransactionHash: transactionHash
+            submitTransactionHash: transactionHash,
             }
 
             proposalEventRecord.events.push(indivProposalRecord)
@@ -1357,7 +1357,10 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                         votingPeriod: proposal.vP,
                         gracePeriod: proposal.gP,
                         voteFinalized: parseInt(proposal.voteFinalized),
-                        processTransactionHash: transactionHash
+                        processTransactionHash: transactionHash,
+                        submitTransactionHash: proposalRecords.events[i].submitTransactionHash,
+                        cancelTransactionHash: proposalRecords.events[i].cancelTransactionHash,
+                        sponsorTransactionHash: proposalRecords.events[i].sponsorTransactionHash
                         }
                     proposalRecords.events[i] = updatedProposalRecord
                     try{
@@ -1520,7 +1523,11 @@ export async function logVoteEvent(curDaoIdx, contractId, daoContract, proposalI
                     proposalSubmission: parseInt(proposal.pS),
                     votingPeriod: proposal.vP,
                     gracePeriod: proposal.gP,
-                    voteFinalized: parseInt(proposal.voteFinalized)
+                    voteFinalized: parseInt(proposal.voteFinalized),
+                    submitTransactionHash: proposalRecords.events[i].submitTransactionHash,
+                    cancelTransactionHash: proposalRecords.events[i].cancelTransactionHash,
+                    processTransactionHash: proposalRecords.events[i].processTransactionHash,
+                    sponsorTransactionHash: proposalRecords.events[i].sponsorTransactionHash
                     }
                 proposalRecords.events[i] = updatedProposalRecord
 
@@ -1636,6 +1643,9 @@ export async function logSponsorEvent (curDaoIdx, daoContract, proposalId, trans
                 votingPeriod: proposal.vP,
                 gracePeriod: proposal.gP,
                 voteFinalized: parseInt(proposal.voteFinalized),
+                submitTransactionHash: proposalRecords.events[i].submitTransactionHash,
+                cancelTransactionHash: proposalRecords.events[i].cancelTransactionHash,
+                processTransactionHash: proposalRecords.events[i].processTransactionHash,
                 sponsorTransactionHash: transactionHash
                 }
             proposalRecords.events[i] = updatedProposalRecord
@@ -1701,7 +1711,10 @@ export async function logCancelEvent (curDaoIdx, daoContract, proposalId, transa
                 votingPeriod: proposal.vP,
                 gracePeriod: proposal.gP,
                 voteFinalized: parseInt(proposal.voteFinalized),
-                cancelTransactionHash: transactionHash
+                cancelTransactionHash: transactionHash,
+                submitTransactionHash: proposalRecords.events[i].submitTransactionHash,
+                processTransactionHash: proposalRecords.events[i].processTransactionHash,
+                sponsorTransactionHash: transactionHash
                 }
          
             proposalRecords.events[i] = updatedProposalRecord

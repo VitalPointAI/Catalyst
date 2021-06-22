@@ -111,6 +111,7 @@ export default function ProposalList(props) {
     allMemberInfo,
     handleUpdate,
     isUpdated,
+    totalShares,
 
     tabValue,
     handleTabValueState,
@@ -532,6 +533,7 @@ console.log('prop list curdaoidx', curDaoIdx)
           handleUpdate={handleUpdate}
           isUpdated={isUpdated}
           active={fr.active}
+          totalShares={totalShares}
         />
       )
     })
@@ -627,7 +629,7 @@ console.log('prop list curdaoidx', curDaoIdx)
 
   let Queued
   console.log('queue list', queueList)
-  if (queueList && queueList.length > 0 && tabValue == '4') {
+  if (queueList && Object.keys(queueList).length > 0 && tabValue == '4') {
     Queued = queueList.map((fr) => {
       return (
         <ProposalCard 
@@ -649,16 +651,17 @@ console.log('prop list curdaoidx', curDaoIdx)
           startingPeriod={fr.startingPeriod}
           currentPeriod={currentPeriod}
           gracePeriod={fr.gracePeriod}
-          submitTransactionHash={fr[0].submitTransactionHash}
-          cancelTransactionHash={fr[0].cancelTransactionHash}
-          processTransactionHash={fr[0].processTransactionHash}
-          sponsorTransactionHash={fr[0].sponsorTransactionHash}
+          submitTransactionHash={fr.submitTransactionHash}
+          cancelTransactionHash={fr.cancelTransactionHash}
+          processTransactionHash={fr.processTransactionHash}
+          sponsorTransactionHash={fr.sponsorTransactionHash}
           handleProcessAction={handleProcessAction}
           // handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
           // handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
           summoner={summoner}
+          queueList={queueList}
         />
       )
     })
