@@ -17,6 +17,7 @@ let config = {
     NEW_DONATION: '__NEW_DONATION',
     KEY_REDIRECT: '__KEY_REDIRECT',
     NEW_EXIT: '__NEW_EXIT',
+    NEW_RAGE: '__NEW_RAGE',
     GAS: '200000000000000',
     FACTORY_DEPOSIT: '2',
     APP_OWNER_ACCOUNT: 'vitalpointai.testnet',

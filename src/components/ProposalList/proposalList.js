@@ -908,6 +908,9 @@ console.log('prop list curdaoidx', curDaoIdx)
       proposalDeposit={proposalDeposit}/> : null }
 
     {rageQuitClicked ? <RageQuit
+      state={state}
+      contractId={contractId}
+      depositToken={depositToken}
       contract={contract}
       handleProposalEventChange={handleProposalEventChange}
       handleRageQuitClickState={handleRageQuitClickState}

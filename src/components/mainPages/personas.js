@@ -148,7 +148,7 @@ export const PersonaPage = ({ state, update, dispatch }) => {
             } 
         </Grid>
         </div>
-        <Footer />
+       
     </>
  
     )

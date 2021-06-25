@@ -30,7 +30,6 @@ const useStyles = makeStyles((theme) => ({
     paddingBottom: '10px'
   },
   root: {
-    maxWidth: '50%',
     margin: 'auto'
   },
   progress: {

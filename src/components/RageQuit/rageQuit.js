@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useForm, Controller } from 'react-hook-form'
-import { makeStyles } from '@material-ui/core/styles'
-//import { memberEvent } from '../../../../utils/memberEvent'
-import Big from 'big.js'
+
 
 // Material UI components
+import { makeStyles } from '@material-ui/core/styles'
 import Button from '@material-ui/core/Button'
 import TextField from '@material-ui/core/TextField'
 import Dialog from '@material-ui/core/Dialog'
@@ -15,9 +14,6 @@ import DialogTitle from '@material-ui/core/DialogTitle'
 import LinearProgress from '@material-ui/core/LinearProgress'
 import Typography from '@material-ui/core/Typography'
 import InputAdornment from '@material-ui/core/InputAdornment'
-
-const BOATLOAD_OF_GAS = Big(3).times(10 ** 14).toFixed()
-
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -55,27 +51,28 @@ export default function RageQuit(props) {
 
   const classes = useStyles()
   const { register, handleSubmit, watch, errors } = useForm()
-  const { 
-    handleRageQuitClickState, 
-    handleProposalEventChange,
-    handleGuildBalanceChanges,
-    handleEscrowBalanceChanges,
-    tokenName, 
-    accountId,
+  const {
+    state,
+    contractId,
     depositToken,
+    handleRageQuitClickState, 
+    accountId,
     contract } = props
 
     useEffect(() => {
+
         async function fetchData() {
+
             let shares = await contract.getMemberShares({member: accountId})
             setMemberShares(shares)
+
             let loot = await contract.getMemberLoot({member: accountId})
             setMemberLoot(loot)
         }
        
         fetchData()
           .then((res) => {
-            console.log('res', res)
+           
           })
 
     },[])
@@ -92,48 +89,30 @@ export default function RageQuit(props) {
     setShares(event.target.value.toString());
   };
 
-  const handleLootChange = (event) => {
+  const handleLootToBurnChange = (event) => {
     setLoot(event.target.value.toString());
   };
 
   const onSubmit = async (values) => {
     event.preventDefault()
     setFinished(false)
-    let finished
-    try{
-      finished = await contract.ragequit({
-        sharesToBurn: parseInt(shares),
-        lootToBurn: parseInt(loot)
-        }, BOATLOAD_OF_GAS)
-          try{
-          let member = await contract.getMemberInfo({member: accountId})
-          let updated = await memberEvent.updateMemberEvent(
-            member[0].delegateKey, member[0].shares, member[0].loot, member[0].existing, member[0].highestIndexYesVote, member[0].jailed, member[0].joined, member[0].updated, member[0].active) 
-            if(updated){
-              handleSuccessMessage('Successful rage quit.', 'success')
-              handleSnackBarOpen(true)
-            } else {
-              handleErrorMessage('There was a problem with the rage quit.', 'error')
-              handleSnackBarOpen(true)
-            }
-          } catch (err) {
-            console.log('problem recording the rage quit event', err)
-            handleErrorMessage('There was a problem recording the rage quit event.', 'error')
-            handleSnackBarOpen(true)
-          }
+    
+    try {
+      await rageQuit(
+        state.wallet,
+        contractId,
+        depositToken,
+        sharesToBurn,
+        lootToBurn
+        )
       } catch (err) {
         console.log('problem with rage quit', err)
         handleErrorMessage('There was a problem with the rage quit.', 'error')
         handleSnackBarOpen(true)
       }
-      if(finished) {
-        setFinished(true)
-        await handleProposalEventChange()
-        await handleEscrowBalanceChanges()
-        await handleGuildBalanceChanges()
-        setOpen(false)
-        handleClose()
-      }
+      setFinished(true)
+      setOpen(false)
+      handleClose()
   }
 
   const isShares = shares.length > 0
@@ -180,12 +159,12 @@ export default function RageQuit(props) {
               label="Loot To Burn"
               placeholder="0"
               value={loot}
-              onChange={handleLootChange}
+              onChange={handleLootToBurnChange}
               inputRef={register({              
                 required: true,
               })}
               InputProps={{
-                endAdornment: <InputAdornment position="end">{tokenName}</InputAdornment>,
+                endAdornment: <InputAdornment position="end">Ⓝ</InputAdornment>,
                 }}
               />
               {errors.loot && <p style={{color: 'red'}}>You must provide a number.</p>}
@@ -197,7 +176,7 @@ export default function RageQuit(props) {
             onClick={handleSubmit(onSubmit)} 
             color="primary" 
             type="submit">
-                Submit Rage Quit
+                Rage Quit
         </Button>
         <Button onClick={handleClose} color="primary">
             Cancel
@@ -205,5 +184,5 @@ export default function RageQuit(props) {
         </DialogActions>
       </Dialog>
     </div>
-  );
+  )
 }

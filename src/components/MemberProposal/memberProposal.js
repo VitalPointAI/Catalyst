@@ -177,7 +177,7 @@ export default function MemberProposal(props) {
                     />
                   </Grid>
                   <Grid item xs={10} sm={10} md={10} lg={10} xl={10} style={{margin:'auto'}}>
-                    <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{(tribute ? parseInt(tribute) : 0) + parseInt(proposalDeposit)} Ⓝ</b>:</Typography>
+                    <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{(tribute ? parseInt(tribute) : 0) + (parseInt(formatNearAmount(proposalDeposit)))} Ⓝ</b>:</Typography>
                     <Grid container justify="center" spacing={0}>
                       <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                         <Typography variant="body2"><u>Proposal passes:</u></Typography>

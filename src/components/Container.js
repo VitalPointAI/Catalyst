@@ -22,8 +22,10 @@ import '../App.css'
 const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
-        padding: '0px',
-    },
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column'
+      },
     paper: {
         padding: theme.spacing(2),
         textAlign: 'center',
@@ -53,33 +55,33 @@ export const Container = ({ children, state, handleSnackBarOpen, handleSuccessMe
         () => {        
     }, []
     )
-
+    
     return (
         <>
         <div className={classes.root}>
         <Header state={state}
-        handleSnackBarOpen={handleSnackBarOpen}
-        handleSuccessMessage={handleSuccessMessage}
-        handleErrorMessage={handleErrorMessage}
-        snackBarOpen={snackBarOpen}
-        severity={severity}
-        errorMessage={errorMessage}
-        successMessage={successMessage}/>
-       
+            handleSnackBarOpen={handleSnackBarOpen}
+            handleSuccessMessage={handleSuccessMessage}
+            handleErrorMessage={handleErrorMessage}
+            snackBarOpen={snackBarOpen}
+            severity={severity}
+            errorMessage={errorMessage}
+            successMessage={successMessage}
+        />
         
         {finished ? 
            
-                wallet && wallet.signedIn ? children : <SignIn wallet={wallet} state={state}/>
-               
-             : state.accountData ?    
-                        children
-                   
-             : <div style={{width: '100%', textAlign: 'center'}}><CircularProgress/></div>
-        }
+            wallet && wallet.signedIn ? 
+             children 
             
-   
+            : (<SignIn wallet={wallet} state={state}/>)
+               
+            : state.accountData ? 
+                children 
+            
+            : <div style={{width: '100%', textAlign: 'center'}}><CircularProgress/></div>
+        }
       
-        
         { state.app.alert &&
             <div class="container-alert">
                 <div class={flexClass + ' mt-0'}>
@@ -92,8 +94,8 @@ export const Container = ({ children, state, handleSnackBarOpen, handleSuccessMe
             </div>
         }
        
-    </div>
-    
-    </>
+        </div>
+        <Footer />
+        </>
     )
 }

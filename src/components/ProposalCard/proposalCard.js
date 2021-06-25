@@ -298,7 +298,9 @@ export default function ProposalCard(props) {
               setTotalMembers(members)
             }
 
-            setNextToFinalize(queueList[0].requestId)
+            if(queueList && queueList.length > 0){
+              setNextToFinalize(queueList[0].requestId)
+            }
                     
             return true  
           }

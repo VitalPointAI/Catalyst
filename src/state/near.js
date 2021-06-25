@@ -8,7 +8,7 @@ import { config } from './config'
 
 export const {
     FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT, DAO_FIRST_INIT, CURRENT_DAO, REDIRECT,
-    NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, NEW_PROCESS, NEW_VOTE, IPFS_PROVIDER, NEW_DONATION, NEW_EXIT,
+    NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, NEW_PROCESS, NEW_VOTE, IPFS_PROVIDER, NEW_DONATION, NEW_EXIT, NEW_RAGE,
     networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix, explorerUrl,
     contractName, didRegistryContractName, factoryContractName
 } = config
@@ -739,6 +739,26 @@ export async function submitVote(daoContract, contractId, proposalId, vote) {
 
     } catch (err) {
         console.log('vote submission failed', err)
+        return false
+    }
+    return true
+}
+
+// Rage Quit
+export async function rageQuit(daoContract, contractId, accountId, sharesToBurn, lootToBurn) {
+
+    try {
+        // set trigger for to log new proposal
+        let newRage = get(NEW_RAGE, [])
+        newRage.push({contractId: contractId, member: accountId, new: true})
+        set(NEW_RAGE, newRage)
+
+        await daoContract.rageQuit({
+            sharesToBurn: sharesToBurn,
+            lootToBurn: lootToBurn,
+            }, GAS)
+    } catch (err) {
+        console.log('rage quit failed', err)
         return false
     }
     return true

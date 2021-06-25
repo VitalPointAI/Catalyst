@@ -29,7 +29,7 @@ const useStyles = makeStyles((theme) => ({
         color: theme.palette.text.secondary,
     },
     customCard: {
-        maxWidth: 600,
+        maxWidth: 450,
         minWidth: 275,
         margin: 'auto',
         padding: 20
@@ -235,8 +235,8 @@ const handleEditPersonaClick = () => {
                     ) 
                     : (
                     <>
-                        <Grid container justify="flex-start" alignItems="center" spacing={1} >    
-                            <Grid item xs={2} sm={2} md={6} lg={6} xl={6} style={{display: 'inline-flex'}}>
+                       
+                            <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" style={{display: 'inline'}}>
                                 <Link to={`/dao/${contractId}/about`} variant="body1">
                                     <Button style={{textAlign: 'center', marginRight: '30px'}}>About</Button>
                                 </Link>
@@ -244,10 +244,9 @@ const handleEditPersonaClick = () => {
                                     <Button style={{textAlign: 'center', marginRight: '30px'}}>Opportunities</Button>
                                 </Link>
                                 <Link to={`/supporters/${contractId}`} variant="body1">
-                                    <Button style={{textAlign: 'center', marginRight: '30px'}}>Supporters</Button>
+                                    <Button style={{textAlign: 'center'}}>Supporters</Button>
                                 </Link>
                             </Grid>
-                        </Grid>
                     </>
                     )
                 }

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { useForm } from 'react-hook-form'
-//import { summonEvent } from '../../utils/summonEvents'
 
 // Material UI components
 import TextField from '@material-ui/core/TextField'
@@ -13,7 +12,7 @@ import Grid from '@material-ui/core/Grid'
 
 import './daoSettings.css'
 
-import { GAS } from '../../state/near'
+import { GAS, formatNearAmount } from '../../state/near'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -68,7 +67,7 @@ export default function EditInitSettings(props) {
                 result[0][1] ? setPeriodDuration(result[0][1]) : setPeriodDuration('')
                 result[0][2] ? setVotingPeriodLength(result[0][2]) : setVotingPeriodLength('')
                 result[0][3] ? setGracePeriodLength(result[0][3]) : setGracePeriodLength('')
-                result[0][4] ? setProposalDeposit(result[0][4]) : setProposalDeposit('')
+                result[0][4] ? setProposalDeposit(formatNearAmount(result[0][4])) : setProposalDeposit('')
                 result[0][5] ? setDilutionBound(result[0][5]) : setDilutionBound('')
                 setInitSettings(result[0])
                 return true

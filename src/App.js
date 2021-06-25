@@ -122,14 +122,16 @@ const App = () => {
                     <Developers />
                 </Route>
                 <Route path="/personas">
-                    <Container state={state}
+                    <Container
+                        state={state}
                         handleSnackBarOpen={handleSnackBarOpen}
                         handleSuccessMessage={handleSuccessMessage}
                         handleErrorMessage={handleErrorMessage}
                         snackBarOpen={snackBarOpen}
                         severity={severity}
                         errorMessage={errorMessage}
-                        successMessage={successMessage}>{ children }
+                        successMessage={successMessage}>
+                        { children }
                     </Container>
                 </Route>
                 <Route path="/createDao">
