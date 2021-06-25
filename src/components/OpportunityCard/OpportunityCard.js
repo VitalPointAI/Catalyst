@@ -5,8 +5,10 @@ import * as nearAPI from 'near-api-js'
 import { ceramic } from '../../utils/ceramic'
 import { dao } from '../../utils/dao'
 import Persona from '@aluhning/get-personas-js'
+import FundingProposal from '../FundingProposal/fundingProposal'
 import EditFundingProposalForm from '../EditProposal/editFundingProposal'
 import OpportunityProposalDetails from '../ProposalDetails/opportunityProposalDetails'
+import MemberProposal from '../MemberProposal/memberProposal'
 import { getStatus } from '../../state/near'
 
 // Material UI Components
@@ -53,9 +55,15 @@ export default function OpportunityCard(props) {
     const [isUpdated, setIsUpdated] = useState()
     const [curDaoIdx, setCurDaoIdx] = useState()
     const [status, setStatus] = useState()
+    const [proposalDeposit, setProposalDeposit] = useState()
+    const [memberStatus, setMemberStatus] = useState()
 
     const [editFundingProposalDetailsClicked, setEditFundingProposalDetailsClicked] = useState(false)
     const [opportunityProposalDetailsClicked, setOpportunityProposalDetailsClicked] = useState(false)
+    const [memberProposalClicked, setMemberProposalClicked] = useState(false)
+    const [fundingProposalClicked, setFundingProposalClicked] = useState(false)
+
+
 
     const [anchorEl, setAnchorEl] = useState(null)
 
@@ -66,7 +74,8 @@ export default function OpportunityCard(props) {
       near, 
       appIdx,
       accountId,
-      wallet
+      wallet,
+      deposit
     } = state
 
     const classes = useStyles();
@@ -94,6 +103,8 @@ export default function OpportunityCard(props) {
 
     const data = new Persona()
 
+    console.log('state', state)
+
     useEffect(
         () => {
          
@@ -110,6 +121,31 @@ export default function OpportunityCard(props) {
               console.log('thiscurdaoidx', thisCurDaoIdx)
               setCurDaoIdx(thisCurDaoIdx)
             }
+          }
+
+          if(contractId && near){
+            let contract = await dao.initDaoContract(state.wallet.account(), contractId)
+            try {
+              let deposit = await contract.getProposalDeposit()
+              setProposalDeposit(deposit)
+            } catch (err) {
+              console.log('no proposal deposit yet')
+            }  
+            
+            try {
+              let thisMemberInfo = await contract.getMemberInfo({member: accountId})
+              console.log('opp member info', thisMemberInfo)
+              let thisMemberStatus = await contract.getMemberStatus({member: accountId})
+              console.log('opp member status', thisMemberStatus)
+              if(thisMemberStatus && thisMemberInfo[0].active){
+                setMemberStatus(true)
+              } else {
+                setMemberStatus(false)
+              }
+            } catch (err) {
+              console.log('no member info yet')
+            }
+
           }
 
           if(wallet && opportunityId){
@@ -138,7 +174,7 @@ export default function OpportunityCard(props) {
            
           })
 
-    }, [avatar, isUpdated]
+    }, [avatar, status, name, state, near, isUpdated]
     )
     
     function formatDate(timestamp) {
@@ -162,6 +198,16 @@ export default function OpportunityCard(props) {
       setEditFundingProposalDetailsClicked(property)
     }
 
+    
+    const handleMemberProposalClick = () => {
+      handleExpanded()
+      handleMemberProposalClickState(true)
+    }
+
+    function handleMemberProposalClickState(property) {
+      setMemberProposalClicked(property)
+    }
+
     const handleOpportunityProposalDetailsClick = () => {
       handleExpanded()
       handleOpportunityProposalDetailsClickState(true)
@@ -169,6 +215,15 @@ export default function OpportunityCard(props) {
   
     function handleOpportunityProposalDetailsClickState(property){
       setOpportunityProposalDetailsClicked(property)
+    }
+
+    const handleFundingProposalClick = () => {
+      handleExpanded()
+      setFundingProposalClicked(true)
+    }
+
+    function handleFundingProposalClickState(property) {
+      setFundingProposalClicked(property)
     }
     
     function handleExpanded() {
@@ -208,15 +263,26 @@ export default function OpportunityCard(props) {
             </Grid>
           </CardContent>
           <CardActions>
-          {status == 'Passed' ? (
+          {status == 'Passed' ? 
+            memberStatus ? (
             <>
            <Button 
               color="primary" 
-              onClick={handleEditFundingProposalDetailsClick}>
+              onClick={handleFundingProposalClick}>
                 Accept
             </Button>
             </>
-          ) : null }
+            ) : (
+              <>
+              <Button 
+                 color="primary" 
+                 onClick={handleMemberProposalClick}>
+                  Join Community
+               </Button>
+               </>
+            )
+            
+            : null }
             <Button 
               color="primary"
               align="right"
@@ -226,6 +292,26 @@ export default function OpportunityCard(props) {
           </CardActions>
         </Card>
        
+        {fundingProposalClicked ? <FundingProposal
+          contractId={contractId}
+          handleFundingProposalClickState={handleFundingProposalClickState}
+          state={state}
+          depositToken={'Ⓝ'}
+          proposalDeposit={proposalDeposit}
+          tokenName={'Ⓝ'}
+          accountId={accountId} 
+         
+          /> : null }
+
+        {memberProposalClicked ? <MemberProposal
+          contractId={contractId}
+          state={state}
+          depositToken={'Ⓝ'}
+          proposalDeposit={proposalDeposit}
+          handleMemberProposalClickState={handleMemberProposalClickState} 
+          accountId={accountId} 
+    
+          /> : null }
 
         {editFundingProposalDetailsClicked ? <EditFundingProposalForm
           state={state}

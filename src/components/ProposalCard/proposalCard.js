@@ -116,6 +116,7 @@ export default function ProposalCard(props) {
 
     const[title, setTitle] = useState('Funding Proposal Details')
     const [tributeTitle, setTributeTitle] = useState('Tribute Proposal Details')
+    const [opportunityTitle, setOpportunityTitle] = useState('Opportunity Proposal Details')
 
     const[payoutTitle, setPayoutTitle] = useState('Payout Details')
 
@@ -268,7 +269,7 @@ export default function ProposalCard(props) {
                 let i = 0
                 while (i < propResult.opportunities.length){
                   if(propResult.opportunities[i].opportunityId == requestId){
-                    propResult.opportunities[i].title ? setTitle(propResult.opportunities[i].title) : setTitle('')
+                    propResult.opportunities[i].title ? setOpportunityTitle(propResult.opportunities[i].title) : setOpportunityTitle('')
                     break
                   }
                   i++
@@ -718,7 +719,7 @@ export default function ProposalCard(props) {
                   style={{fontWeight: '800', fontSize: '110%', lineHeight: '1.1em'}}
                   onClick={handleOpportunityProposalDetailsClick}
                  >
-                  {title ? title.replace(/(<([^>]+)>)/gi, ""): 'No Details Yet.'}
+                  {opportunityTitle ? opportunityTitle.replace(/(<([^>]+)>)/gi, ""): 'No Details Yet.'}
                  </Button>
                  </>
                 }

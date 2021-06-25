@@ -404,6 +404,7 @@ export default function AppFramework(props) {
                     try {
                       thisMemberInfo = await contract.getMemberInfo({member: accountId})
                       thisMemberStatus = await contract.getMemberStatus({member: accountId})
+                      console.log('thismemberstatus', thisMemberStatus)
                       console.log('thismemberinfo', thisMemberInfo)
                       setMemberInfo(thisMemberInfo)
                       if(thisMemberStatus && thisMemberInfo[0].active){
@@ -440,6 +441,7 @@ export default function AppFramework(props) {
                     try {
                       let deposit = await contract.getProposalDeposit()
                       setProposalDeposit(deposit)
+                      update('', { proposalDeposit: deposit })
                     } catch (err) {
                       console.log('no proposal deposit yet')
                     }
@@ -496,7 +498,7 @@ export default function AppFramework(props) {
                     }
         
                     if(thisMemberStatus && thisMemberInfo !== undefined) {
-                      thisMemberInfo[0].actives ? setMemberIcon(<CheckCircleIcon />) : setMemberIcon(<NotInterestedIcon />)
+                      thisMemberInfo[0].active ? setMemberIcon(<CheckCircleIcon />) : setMemberIcon(<NotInterestedIcon />)
                       setSharesLabel('Shares: ' + thisMemberInfo[0].shares)
                       setLootLabel('Loot: ' + thisMemberInfo[0].loot)
                     }
