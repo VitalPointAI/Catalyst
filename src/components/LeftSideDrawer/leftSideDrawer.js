@@ -25,6 +25,7 @@ import InfoIcon from '@material-ui/icons/Info'
 import CodeIcon from '@material-ui/icons/Code'
 import SchoolIcon from '@material-ui/icons/School'
 import ContactSupportIcon from '@material-ui/icons/ContactSupport'
+import PieChartIcon from '@material-ui/icons/PieChart'
 
 const useStyles = makeStyles((theme) => ({
     list: {
@@ -110,15 +111,25 @@ const list = (anchor) => (
 >
 {!matches ? (
   <>
+    
+    <List>
+      <Link to='/'>
+        <ListItem button key={1}>
+          <ListItemIcon><PieChartIcon /></ListItemIcon>
+          <ListItemText primary='Dashboard'/>
+        </ListItem>
+      </Link>
+    </List>
+    <Divider />
     <Typography variant='h6'>Personas</Typography>
     <List>
       <Link to='/personas'>
-        <ListItem button key={1}>
+        <ListItem button key={2}>
           <ListItemIcon><Avatar src={imageName} className={classes.small}/></ListItemIcon>
           <ListItemText primary='My Personas'/>
         </ListItem>
       </Link>
-      <ListItem button key={2} onClick={(e) => addPersonaClick(e)}>
+      <ListItem button key={3} onClick={(e) => addPersonaClick(e)}>
         <ListItemIcon><AddBoxIcon /></ListItemIcon>
         <ListItemText primary='Create Persona'/>
       </ListItem>
@@ -127,92 +138,100 @@ const list = (anchor) => (
     <Typography variant='h6'>Communities</Typography>
     <List>
       <Link to='/daos'>
-        <ListItem button key={3}>
+        <ListItem button key={4}>
           <ListItemIcon><GroupIcon /></ListItemIcon>
           <ListItemText primary='My Communities'/>
         </ListItem>
       </Link>
       
     <Link to='/explore'>
-      <ListItem button key={4}>
+      <ListItem button key={5}>
         <ListItemIcon><ExploreIcon /></ListItemIcon>
         <ListItemText primary='Explore Communities'/>
       </ListItem>
     </Link>
-    <ListItem button key={5} onClick={(e) => addDaoClick(e)}>
+    <ListItem button key={6} onClick={(e) => addDaoClick(e)}>
         <ListItemIcon><AddBoxIcon /></ListItemIcon>
         <ListItemText primary='Create Community'/>
       </ListItem>
     </List>
+    <Divider />
   </>
-  ) : (
-    <>
+  ) :
+    state.wallet.signedIn ? (
+      <>
+      <List>
+      <Link to='/'>
+        <ListItem button key={1}>
+          <ListItemIcon><PieChartIcon /></ListItemIcon>
+          <ListItemText primary='Dashboard'/>
+        </ListItem>
+      </Link>
+    </List>
+    <Divider />
+    <Typography variant='h6'>Personas</Typography>
+    <List>
+      <Link to='/personas'>
+        <ListItem button key={2}>
+          <ListItemIcon><Avatar src={imageName} className={classes.small}/></ListItemIcon>
+          <ListItemText primary='My Personas'/>
+        </ListItem>
+      </Link>
+      <ListItem button key={3} onClick={(e) => addPersonaClick(e)}>
+        <ListItemIcon><AddBoxIcon /></ListItemIcon>
+        <ListItemText primary='Create Persona'/>
+      </ListItem>
+    </List>
+    <Divider />
+    <Typography variant='h6'>Communities</Typography>
+    <List>
+      <Link to='/daos'>
+        <ListItem button key={4}>
+          <ListItemIcon><GroupIcon /></ListItemIcon>
+          <ListItemText primary='My Communities'/>
+        </ListItem>
+      </Link>
+      
+    <Link to='/explore'>
+      <ListItem button key={5}>
+        <ListItemIcon><ExploreIcon /></ListItemIcon>
+        <ListItemText primary='Explore Communities'/>
+      </ListItem>
+    </Link>
+    <ListItem button key={6} onClick={(e) => addDaoClick(e)}>
+        <ListItemIcon><AddBoxIcon /></ListItemIcon>
+        <ListItemText primary='Create Community'/>
+      </ListItem>
+    </List>
+    <Divider />
+    </>
+    ) : null }
     <List>
     <Link to='/about'>
-      <ListItem button key={1}>
+      <ListItem button key={7}>
         <ListItemIcon><InfoIcon /></ListItemIcon>
         <ListItemText primary='About Catalyst'/>
       </ListItem>
     </Link>
     <Link to='/developer'>
-      <ListItem button key={2}>
+      <ListItem button key={8}>
         <ListItemIcon><CodeIcon /></ListItemIcon>
         <ListItemText primary='Developers'/>
       </ListItem>
     </Link>
     <Link to='/learn'>
-      <ListItem button key={3}>
+      <ListItem button key={9}>
         <ListItemIcon><SchoolIcon /></ListItemIcon>
         <ListItemText primary='Learn'/>
       </ListItem>
     </Link>
     <Link to='/contact'>
-      <ListItem button key={4}>
+      <ListItem button key={10}>
         <ListItemIcon><ContactSupportIcon /></ListItemIcon>
         <ListItemText primary='Contact'/>
       </ListItem>
     </Link>
-    {state.wallet.signedIn ? (
-      <>
-    <Typography variant='h6'>Personas</Typography>
-    <List>
-      <Link to='/personas'>
-        <ListItem button key={5}>
-          <ListItemIcon><Avatar src={imageName} className={classes.small}/></ListItemIcon>
-          <ListItemText primary='My Personas'/>
-        </ListItem>
-      </Link>
-      <ListItem button key={6} onClick={(e) => addPersonaClick(e)}>
-        <ListItemIcon><AddBoxIcon /></ListItemIcon>
-        <ListItemText primary='Create Persona'/>
-      </ListItem>
     </List>
-    <Divider />
-    <Typography variant='h6'>Communities</Typography>
-    <List>
-      <Link to='/daos'>
-        <ListItem button key={7}>
-          <ListItemIcon><GroupIcon /></ListItemIcon>
-          <ListItemText primary='My Communities'/>
-        </ListItem>
-      </Link>
-      
-    <Link to='/explore'>
-      <ListItem button key={8}>
-        <ListItemIcon><ExploreIcon /></ListItemIcon>
-        <ListItemText primary='Explore Communities'/>
-      </ListItem>
-    </Link>
-    <ListItem button key={9} onClick={(e) => addDaoClick(e)}>
-        <ListItemIcon><AddBoxIcon /></ListItemIcon>
-        <ListItemText primary='Create Community'/>
-      </ListItem>
-    </List>
-    </>
-    ) : null }
-    </List>
-  </>
-  )}
 </div>
 )
 

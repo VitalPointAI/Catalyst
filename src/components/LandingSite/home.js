@@ -14,10 +14,10 @@ import Divider from '@material-ui/core/Divider'
 const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
-        margin: 'auto',
-        paddingTop: 20, 
-       
-    },
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column'
+      },
     top: {
         backgroundImage: 'linear-gradient(180deg, #80d4ff, white)',
        // height: '45px',
@@ -120,7 +120,7 @@ const FrontPage = () => {
 
     }
     </div>
-    <Footer />
+    
     </>
     )
 }

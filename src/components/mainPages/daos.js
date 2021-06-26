@@ -62,7 +62,7 @@ export default function Daos(props) {
     useEffect(
         () => {
             if(currentDaosList){
-                let sortedDaos = _.sortBy(currentDaosList, 'created').reverse()
+                let sortedDaos = _.sortBy(currentDaosList, 'created')
                 setDaos(sortedDaos)
             }
     }, [currentDaosList, isUpdated]
@@ -96,14 +96,16 @@ export default function Daos(props) {
 
     const searchData = (pattern) => {
       if (!pattern) {
-          let sortedDaos = _.sortBy(currentDaosList, 'created').reverse()
+          let sortedDaos = _.sortBy(currentDaosList, 'created')
           setDaos(sortedDaos)
+        
           return
       }
       console.log('searchDaos', searchDaos)
       
       const fuse = new Fuse(searchDaos, {
-          keys: ['category']
+          keys: ['category'],
+          findAllMatches: true
       })
       console.log('fuse', fuse)
 
@@ -113,12 +115,14 @@ export default function Daos(props) {
       const matches = []
       if (!result.length) {
           setDaos([])
+         
       } else {
           result.forEach(({item}) => {
               matches.push(item)
       })
       console.log('matches', matches)
           setDaos(matches)
+         
       }
     }
 

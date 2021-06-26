@@ -82,7 +82,7 @@ export const Home = ({ children, state, handleSnackBarOpen, handleSuccessMessage
            
             wallet && wallet.signedIn ?  
                 key ? (<Import />) : <Dashboard />
-            : <SignIn wallet={wallet} state={state}/>
+            : <FrontPage wallet={wallet} state={state}/>
                
             : state.accountData ? (
                 {children}
