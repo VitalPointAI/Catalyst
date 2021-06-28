@@ -470,14 +470,6 @@ export const keyRotation = () => async ({ update, getState, dispatch }) => {
     set(SEED_PHRASE_LOCAL_COPY, seedPhrase)
 
     const result = await account.signAndSendTransaction(accountId, actions)
-
-    // fetch('https://hooks.zapier.com/hooks/catch/6370559/ocibjmr/', {
-    //     method: 'POST',
-    //     body: JSON.stringify({
-    //         account_id: accountId,
-    //         time_claimed: Date.now()
-    //     })
-    // })
     
     return result
 }
@@ -1052,6 +1044,7 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
     let summonTime
     let logged = false
     let summonLogged = false
+    let memberDataLogged = false
 
     try {
         let result = await daoContract.getInitSettings()
@@ -1094,6 +1087,12 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
       if(!memberEventRecord){
         memberEventRecord = { events: [] }
       }
+  
+    // Log Member Data
+    let memberDataRecord = await curDaoIdx.get('memberData', curDaoIdx.id)
+    if(!memberDataRecord){
+        memberDataRecord = { data: [] }
+    }
 
       let indivMemberEventRecord = {
         memberId: memberId,
@@ -1120,6 +1119,33 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
           console.log('error logging new member', err)
           logged = false
       }
+
+        // Associated Member Data to Log
+
+        let dataObject = {
+            memberId: memberId,
+            summonTime: numberSummonTime,
+            transactionHash: transactionHash,
+            shares: parseInt(contribution),
+            loot: 0,
+            summoner: accountId
+        }
+
+        let individualDataRecord = {
+            dataType: 'newSummoner',
+            contractId: contractId,
+            data: dataObject
+        }
+
+        memberDataRecord.data.push(individualDataRecord)
+        console.log('memberData.data', memberDataRecord.data)
+
+        try {
+            await curDaoIdx.set('memberData', memberDataRecord)
+            memberDataLogged = true
+        } catch (err) {
+            console.log('error logging new member data', err)
+        }
      
     }
     
@@ -1235,6 +1261,7 @@ export async function logExitEvent (contractId, curDaoIdx, daoContract, accountI
 export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contractId, transactionHash) {
 
     let logged = false
+    let dataLogged = false
 
     let proposal
     try{
@@ -1260,8 +1287,14 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
         if(!proposalEventRecord){
             proposalEventRecord = { events: [] }
         }
-        
 
+        // Log Proposal Data
+        let proposalDataRecord = await curDaoIdx.get('proposalData', curDaoIdx.id)
+        if(!proposalDataRecord){
+            proposalDataRecord = { data: [] }
+        }
+        
+        // Individual Proposal Event
         let indivProposalRecord = {
             proposalId: (proposal.pI).toString(),
             applicant: proposal.a,
@@ -1294,9 +1327,42 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
             } catch (err) {
                 console.log('error logging proposal', err)
             }
+
+            // Associated Proposal Data to Log
+
+            let dataObject = {
+                proposalId: proposalId,
+                transactionHash: transactionHash,
+                proposalAdded: parseInt(proposal.pS),
+                proposer: proposal.p,
+                applicant: proposal.a,
+                sharesRequested: proposal.sR,
+                lootRequested: proposal.lR,
+                tributeOffered: proposal.tO,
+                tributeToken: proposal.tT,
+                paymentRequested: proposal.pR,
+                paymentToken: proposal.pT,
+                proposalType: proposal.f, //will need to derive type from the flags array in any queries
+            }
+
+            let individualDataRecord = {
+                dataType: 'newProposal',
+                contractId: contractId,
+                data: dataObject
+            }
+
+            proposalDataRecord.data.push(individualDataRecord)
+            console.log('proposalData.data', proposalDataRecord.data)
+
+            try {
+                await curDaoIdx.set('proposalData', proposalDataRecord)
+                dataLogged = true
+            } catch (err) {
+                console.log('error logging proposal data', err)
+            }
         }
 
-    if(logged){
+    if(logged && dataLogged){
         // Discord Integration
         // 6 is member, 7 is funding, none is payout?
         if(proposal.f[6]){
@@ -1334,10 +1400,12 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
 }
 
 // Logs a Process Event
-export async function logProcessEvent(curDaoIdx, daoContract, contractId, proposalId, proposalType, transactionHash) {
-
+export async function logProcessEvent(curDaoIdx, daoContract, contractId, proposalId, proposalType, transactionHash, updated) {
+    console.log('start processing')
     let processLogged = false
     let memberLogged = false
+    let proposalDataLogged = false
+    let memberDataLogged = false
 
     let proposal = await daoContract.getProposal({proposalId: proposalId})   
 
@@ -1350,6 +1418,14 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
         } catch (err) {
             console.log('problem loading proposal records', err)
         }
+
+        // Log Proposal Data
+        let proposalDataRecord = await curDaoIdx.get('proposalData', curDaoIdx.id)
+        if(!proposalDataRecord){
+            proposalDataRecord = { data: [] }
+        }
+
+        console.log('proposaldatarecord', proposalDataRecord)
 
         // Update an existing proposal
         let exists = false
@@ -1377,7 +1453,7 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                         votingPeriod: proposal.vP,
                         gracePeriod: proposal.gP,
                         voteFinalized: parseInt(proposal.voteFinalized),
-                        processTransactionHash: transactionHash,
+                        processTransactionHash: transactionHash ? transactionHash : '',
                         submitTransactionHash: proposalRecords.events[i].submitTransactionHash,
                         cancelTransactionHash: proposalRecords.events[i].cancelTransactionHash,
                         sponsorTransactionHash: proposalRecords.events[i].sponsorTransactionHash
@@ -1392,6 +1468,44 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                     } catch (err) {
                         console.log('error logging process event', err)
                     }
+
+                    // Associated Proposal Data to Log
+
+                    let dataObject = {
+                        proposalId: (proposal.pI).toString(),
+                        processTime: Date.now(),
+                        transactionHash: transactionHash,
+                        proposalAdded: parseInt(proposal.pS),
+                        proposer: proposal.p,
+                        applicant: proposal.a,
+                        sharesRequested: proposal.sR,
+                        lootRequested: proposal.lR,
+                        tributeOffered: proposal.tO,
+                        tributeToken: proposal.tT,
+                        paymentRequested: proposal.pR,
+                        yesVote: proposal.yV,
+                        noVote: proposal.nV,
+                        paymentToken: proposal.pT,
+                        proposalType: proposal.f, //will need to derive type from the flags array in any queries
+                        updated: updated
+                    }
+
+                    let individualDataRecord = {
+                        dataType: 'processedProposal',
+                        contractId: contractId,
+                        data: dataObject
+                    }
+
+                    proposalDataRecord.data.push(individualDataRecord)
+                    console.log('proposalData.data', proposalDataRecord.data)
+
+                    try {
+                        await curDaoIdx.set('proposalData', proposalDataRecord)
+                        proposalDataLogged = true
+                        memberDataLogged = true
+                    } catch (err) {
+                        console.log('error logging process proposal data', err)
+                    }
                 }
             i++
             }
@@ -1403,25 +1517,38 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
         let member = await daoContract.getMemberInfo({member: proposal.a})
         console.log('member process', member)
 
-        // let totalMembers
-        // try {
-        //     totalMembers = await daoContract.getTotalMembers()
-        //     console.log('total Members', totalMembers)
-        // } catch (err) {
-        //     console.log('no members', err)
-        //     return false
-        // }
-
-        // let memberId = parseInt(totalMembers)
         let memberId = generateId()
        
         // Log Member Event
         let memberEventRecord = await curDaoIdx.get('members', curDaoIdx.id)
+        console.log('membereventrecord', memberEventRecord)
 
-        if(member.length > 0 && !memberEventRecord){
+        // Log Member Data
+        let memberDataRecord = await curDaoIdx.get('memberData', curDaoIdx.id)
+        if(!memberDataRecord){
+            memberDataRecord = { data: [] }
+        }
+        console.log('memberdatarecord', memberDataRecord)
+
+        if(!memberEventRecord){
             memberEventRecord = { events: [] }
-        
-    
+        }
+
+        let memberExists = false
+        if(memberEventRecord && memberEventRecord.events.length > 0){
+            let k = 0
+            while(k < memberEventRecord.events.length){
+                if(member[0].delegateKey == memberEventRecord.events[k].delegateKey){
+                    memberExists = true
+                    break
+                }
+                k++
+            }
+            
+        }
+
+        if(member.length > 0 && !memberExists){
+            
             let indivMemberEventRecord = {
                 memberId: memberId,
                 contractId: contractId,
@@ -1435,7 +1562,7 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                 updated: parseInt(member[0].updated),
                 active: member[0].active
             }
-    
+
             memberEventRecord.events.push(indivMemberEventRecord)
             console.log('memberEventRecord.events', memberEventRecord.events)
                 
@@ -1446,16 +1573,44 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
             } catch (err) {
                 console.log('error adding new member', err)
             }
+
+                // Associated Member Data to Log
+
+                let dataObject = {
+                memberId: memberId,
+                joined: parseInt(member[0].joined),
+                transactionHash: transactionHash,
+                shares: member[0].shares,
+                loot: member[0].loot,
+                proposer: proposal.p,
+                applicant: proposal.a
+            }
+
+            let individualDataRecord = {
+                dataType: 'newMember',
+                contractId: contractId,
+                data: dataObject
+            }
+
+            memberDataRecord.data.push(individualDataRecord)
+            console.log('memberData.data', memberDataRecord.data)
+
+            try {
+                await curDaoIdx.set('memberData', memberDataRecord)
+                memberDataLogged = true
+                proposalDataLogged = true
+            } catch (err) {
+                console.log('error logging new member data', err)
+            }
             
         } else {
-            if(member.length > 0){
+            if(member.length > 0 && memberExists){
             // Update an existing member
-            let exists = false
             let i = 0
             while (i < memberEventRecord.events.length){
                 if(memberEventRecord.events[i].delegateKey == member[0].delegateKey){
                     let updatedMemberRecord = {
-                        memberId: memberId,
+                        memberId: memberEventRecord.events[i].memberId,
                         contractId: contractId,
                         delegateKey: member[0].delegateKey,
                         shares: member[0].shares,
@@ -1472,12 +1627,43 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
 
                     try {
                         await curDaoIdx.set('members', memberEventRecord)
-                        exists = true
                         memberLogged = true
                         processLogged = true
-                        break
+                        console.log('is it here')
                     } catch (err) {
                         console.log('error updating member', err)
+                    }
+
+                     // Associated Member Data to Log (Member Changes)
+                    let dataObject = {
+                        memberId: memberEventRecord.events[i].memberId,
+                        joined: parseInt(member[0].joined),
+                        transactionHash: transactionHash,
+                        shares: member[0].shares,
+                        loot: member[0].loot,
+                        proposer: proposal.p,
+                        applicant: proposal.a,
+                        active: member[0].active,
+                        changeTime: parseInt(member[0].updated)
+                    }
+                    console.log('datarecord', dataObject)
+                   
+                    let individualDataRecord = {
+                        dataType: 'changeMember',
+                        contractId: contractId,
+                        data: dataObject
+                    }
+
+                    memberDataRecord.data.push(individualDataRecord)
+                    console.log('memberData.data', memberDataRecord.data)
+
+                    try {
+                        await curDaoIdx.set('memberData', memberDataRecord)
+                        memberDataLogged = true
+                        proposalDataLogged = true
+                        break
+                    } catch (err) {
+                        console.log('error logging change member data', err)
                     }
                 }
             i++
@@ -1485,12 +1671,16 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
             } else {
                 memberLogged=true
                 processLogged = true
+                memberDataLogged = true
+                proposalDataLogged = true
             }
         }
     }
-    console.log('processLogged', processLogged)
-    console.log('memberprocessLogged', memberLogged)
-    if(processLogged && memberLogged){
+    console.log('processlogged', processLogged)
+    console.log('memberLogged', memberLogged)
+    console.log('memberDataLogged', memberDataLogged)
+    console.log('proposalDataLogged', proposalDataLogged)
+    if(processLogged && memberLogged && memberDataLogged && proposalDataLogged){
         let data = {
             applicant: proposal.a,
             url: window.location.href
@@ -1628,9 +1818,10 @@ export async function logVoteEvent(curDaoIdx, contractId, daoContract, proposalI
 }
 
 // Logs a new Sponsor Event
-export async function logSponsorEvent (curDaoIdx, daoContract, proposalId, transactionHash) {
+export async function logSponsorEvent (curDaoIdx, daoContract, proposalId, transactionHash, updated) {
 
     let logged = false
+    let sponsorDataLogged = false
 
     let proposal = await daoContract.getProposal({proposalId: parseInt(proposalId)})
 
@@ -1677,6 +1868,43 @@ export async function logSponsorEvent (curDaoIdx, daoContract, proposalId, trans
                 break
             } catch (err) {
                 console.log('error logging sponsor event', err)
+            }
+
+             // Associated Proposal Data to Log
+
+             let dataObject = {
+                proposalId: (proposal.pI).toString(),
+                sponsorTime: Date.now(),
+                transactionHash: transactionHash,
+                proposalAdded: parseInt(proposal.pS),
+                proposer: proposal.p,
+                applicant: proposal.a,
+                sharesRequested: proposal.sR,
+                lootRequested: proposal.lR,
+                tributeOffered: proposal.tO,
+                tributeToken: proposal.tT,
+                paymentRequested: proposal.pR,
+                yesVote: proposal.yV,
+                noVote: proposal.nV,
+                paymentToken: proposal.pT,
+                proposalType: proposal.f, //will need to derive type from the flags array in any queries
+                updated: updated
+            }
+
+            let individualDataRecord = {
+                dataType: 'sponsoredProposal',
+                contractId: contractId,
+                data: dataObject
+            }
+
+            proposalDataRecord.data.push(individualDataRecord)
+            console.log('proposalData.data', proposalDataRecord.data)
+
+            try {
+                await curDaoIdx.set('proposalData', proposalDataRecord)
+                sponsorDataLogged = true
+            } catch (err) {
+                console.log('error logging process proposal data', err)
             }
         }
         i++

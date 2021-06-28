@@ -232,7 +232,7 @@ export default function AppFramework(props) {
                    
                     // check for new proposals to process
                     let newProcess = get(NEW_PROCESS, [])
-                 
+                    console.log('newprocess', newProcess)
                     let g = 0
                     while(g < newProcess.length){
                       if(newProcess[g].contractId==contractId && newProcess[g].new == true){
@@ -244,7 +244,7 @@ export default function AppFramework(props) {
                           newProcess[g].type,
                           transactionHash
                           )
-                          
+                        console.log('logged process', loggedProcess)
                         if (loggedProcess) {
                           newProcess[g].new = false
                           set(NEW_PROCESS, newProcess)

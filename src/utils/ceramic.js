@@ -29,6 +29,9 @@ import { commentsSchema } from '../schemas/comments'
 import { donationsSchema } from '../schemas/donations'
 import { apiKeysSchema } from '../schemas/apiKeys'
 import { opportunitiesSchema } from '../schemas/opportunities'
+import { memberDataSchema } from '../schemas/analytics/memberData'
+import { proposalDataSchema } from '../schemas/analytics/proposalData'
+import { votingDataSchema } from '../schemas/analytics/votingData'
 
 import { config } from '../state/config'
 
@@ -509,6 +512,9 @@ async makeSeed(account){
     const apiKeys = this.getAlias(APP_OWNER_ACCOUNT, 'apiKeys', appClient, apiKeysSchema, 'secure api keys', contract)
     const opportunities = this.getAlias(APP_OWNER_ACCOUNT, 'opportunities', appClient, opportunitiesSchema, 'opportunities to complete', contract)
     const tributeProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'tributeProposalDetails', appClient, tributeProposalDetailsSchema, 'tribute proposal details', contract)
+    const memberData = this.getAlias(APP_OWNER_ACCOUNT, 'memberData', appClient, memberDataSchema, 'member data', contract)
+    const proposalData = this.getAlias(APP_OWNER_ACCOUNT, 'proposalData', appClient, proposalDataSchema, 'proposal data', contract)
+    const votingData = this.getAlias(APP_OWNER_ACCOUNT, 'votingData', appClient, votingDataSchema, 'voting data', contract)
     const done = await Promise.all([
       appDid, 
       definitions, 
@@ -528,7 +534,10 @@ async makeSeed(account){
       payoutProposalDetails,
       apiKeys,
       opportunities,
-      tributeProposalDetails
+      tributeProposalDetails,
+      memberData,
+      proposalData,
+      votingData
     ])
     
     let rootAliases = {
@@ -549,7 +558,10 @@ async makeSeed(account){
       payoutProposalDetails: done[15],
       apiKeys: done[16],
       opportunities: done[17],
-      tributeProposalDetails: done[18]
+      tributeProposalDetails: done[18],
+      memberData: done[19],
+      proposalData: done[20],
+      votingData: done[21]
     }
 
     const appIdx = new IDX({ ceramic: appClient, aliases: rootAliases})

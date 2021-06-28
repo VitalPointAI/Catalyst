@@ -109,36 +109,7 @@ export default function DaoCard(props) {
            }
            makeSearchDaos(result)
          }
-    //      
-              // if(summoner == state.accountId){
-              //   setDisplay(true)
-              // }
-              setFinished(false)
-             
-              // Set Dao Idx
-            //   if(contractId && near){
-                    
-            //     let daoAccount = new nearAPI.Account(near.connection, contractId)
-              
-            //     let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
-            //     setCurDaoIdx(thisCurDaoIdx)
-
-            //     try{
-            //       let result = await appIdx.get('daoProfile', thisCurDaoIdx.id)
-                                      
-            //       if(result){
-            //         result.name ? setName(result.name) : setName('')
-            //         result.date ? setDate(result.date) : setDate('')
-            //         result.logo ? setLogo(result.logo) : setLogo(imageName)
-            //         result.purpose ? setPurpose(result.purpose) : setPurpose('')
-            //         result.category ? setCategory(result.category) : setCategory('')
-            //         return true
-            //       }
-            //     } catch (err) {
-            //       console.log('error retrieving DAO profile', err)
-            //     }
-            //     return true
-            // }
+        setFinished(false)
       }
 
       fetchData()
@@ -146,7 +117,7 @@ export default function DaoCard(props) {
             setFinished(true)
           })
 
-  }, [isUpdated]
+  }, [makeSearchDaos, isUpdated]
   )
 
   function handleUpdate(property){

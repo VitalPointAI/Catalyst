@@ -143,20 +143,21 @@ export default function Daos(props) {
                       />
                     </Grid>
                   </Grid>
-               
-                {daos.filter(dao => dao.summoner == accountId).reverse().map(({ contractId, created, summoner }, i) =>
-                <DaoCard
-                    key={i}
-                    contractId={contractId}
-                    summoner={summoner}
-                    created={created}
-                    link={''}
-                    state={state}
-                    handleEditDaoClick={handleEditDaoClick}
-                    handleUpdate={handleUpdate}
-                    makeSearchDaos={makeSearchDaos}
-                />            
-                )}
+                <Grid container alignItems="center" justify="center" spacing={3} style={{padding: '20px'}}>
+                    {daos.filter(dao => dao.summoner == accountId).reverse().map(({ contractId, created, summoner }, i) =>
+                    <DaoCard
+                        key={i}
+                        contractId={contractId}
+                        summoner={summoner}
+                        created={created}
+                        link={''}
+                        state={state}
+                        handleEditDaoClick={handleEditDaoClick}
+                        handleUpdate={handleUpdate}
+                        makeSearchDaos={makeSearchDaos}
+                    />            
+                    )}
+                </Grid>
             </>)
             : null
             } 
