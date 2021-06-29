@@ -92,7 +92,7 @@ export default function Dashboard(props) {
                 i++
                 }
             }
-            if(contractId == ''){
+            if(contractId == '' && communities.length > 0){
                 let mostRecentContractId = communities[communities.length-1].contractId
                 setContractId(mostRecentContractId)
             }
