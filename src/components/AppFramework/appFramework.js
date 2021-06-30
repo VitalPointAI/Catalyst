@@ -217,7 +217,8 @@ export default function AppFramework(props) {
                      if(newSponsor[f].contractId==contractId && newSponsor[f].new == true){
                        let loggedSponsor = await logSponsorEvent(
                          thisCurDaoIdx, 
-                         contract, 
+                         contract,
+                         contractId,
                          newSponsor[f].proposalId,
                          transactionHash)
                          
@@ -285,7 +286,8 @@ export default function AppFramework(props) {
                        if(newCancel[h].contractId==contractId && newCancel[h].new == true){
                          let loggedCancel = await logCancelEvent(
                            thisCurDaoIdx, 
-                           contract, 
+                           contract,
+                           contractId,
                            newCancel[h].proposalId,
                            transactionHash)
                            

@@ -76,7 +76,7 @@ export default function ExploreDaos(props) {
     useEffect(
         () => {
             async function fetchData() {
-                if(currentDaosList){
+                if(currentDaosList && near){
                     console.log('daolist', currentDaosList)
                     setDaoCount(currentDaosList.length)
                     let sortedDaos = _.sortBy(currentDaosList, 'created').reverse()

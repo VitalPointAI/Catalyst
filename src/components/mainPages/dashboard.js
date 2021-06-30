@@ -103,7 +103,8 @@ export default function Dashboard(props) {
                 let thisContractId
                 if(contractId == '') {
                     console.log('maybe')
-                    let mostRecentContractId = communities[communities.length-1].contractId
+                    let mostRecentContractId = communities.length > 0 ? communities[communities.length-1].contractId 
+                    : 'vitalpointai.testnet'
                     setContractId(mostRecentContractId)
                     thisContractId = mostRecentContractId
                     console.log('mostrecent', mostRecentContractId)
@@ -260,7 +261,7 @@ export default function Dashboard(props) {
          fetchData()
             .then(res => {
                 d3.selectAll("#d3-members > *").remove()
-                createGraph()
+                createMemberGraph()
             })
       
     }, [contractId, isUpdated]
@@ -283,7 +284,7 @@ export default function Dashboard(props) {
         return new Date(parseInt(stringDate.slice(0,13))).toLocaleString('en-US', options)  
     }
 
-    const createGraph = async () => {
+    const createMemberGraph = async () => {
       //  let data = newMemberDataFrame
         let fdata = d3.rollups(newMemberDataFrame, g => g.length, d => d.joined)
        
@@ -347,7 +348,73 @@ export default function Dashboard(props) {
         
         svg.append("g")
           .call(d3.axisLeft(y));
-      }
+    }
+
+    const createActivityGraph = async () => {
+        //  let data = newMemberDataFrame
+          let fdata = d3.rollups(newMemberDataFrame, g => g.length, d => d.joined)
+         
+          console.log('data', fdata)
+          let data = []
+          fdata.forEach((d) => {
+              console.log('d here', d)
+              data.push({joined: d[0], number: d[1] + (data.length > 0 ? data[data.length - 1].number : 0)})
+          })
+          console.log('newData', data)
+          // let ydomain = []
+          // data.forEach((d) => {
+          //    ydomain.push(d[1]) 
+          // })
+  
+          // console.log('ydomain', ydomain)
+          const margin = { top: 40, right: 20, bottom: 50, left: 70 },
+            width = 960 - margin.left - margin.right,
+            height = 600 - margin.top - margin.bottom;
+          const x = d3.scaleTime().range([0, width]);
+          const y = d3.scaleOrdinal().range([height, 0]);
+          
+        
+          const valueLine = d3.line()
+            .x((d) => { console.log('d value', d.joined); return x(d.joined); })
+            .y((d) => { console.log('y value', d.number); return y(d.number); });
+        
+            console.log('valueline', valueLine)
+          const svg = d3.select("#d3-members").append("svg")
+            .attr("preserveAspectRatio", "xMinYMin meet")
+            .attr("viewBox", "0 0 960 600")
+            .append("g")
+            .attr("transform", `translate(${margin.left}, ${margin.top})`);
+        
+          
+        
+          data.forEach((d) => {
+              console.log('d', d)
+            d.joined = parseTime(d.joined);
+            console.log('d time', d.joined)
+            d.number = +d.number;
+          });
+        
+          data = data.sort((a, b) => +a.joined - +b.joined)
+          console.log('data here', data)
+        
+          x.domain(d3.extent(data, (d) => { return d.joined; }));
+         // y.domain([0, d3.max(data, (d) => { return d.number; })]);
+         y.domain(data.map((d) => {return d.number}))
+        
+         
+         svg.append("path")
+            .data([data])
+            .attr("class", "line")
+            .attr("d", valueLine)
+  
+          svg.append("g")
+            .attr("transform", `translate(0, ${height})`)
+            .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%m-%d-%y"))).selectAll("text")
+              
+          
+          svg.append("g")
+            .call(d3.axisLeft(y));
+        }
 
     return (
         <>
@@ -437,7 +504,7 @@ export default function Dashboard(props) {
             <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
                 <Card className={classes.card}>
                     <CardHeader 
-                        title="Activity"
+                        title="Daily Activity"
                         subheader="An indication of how active the community is."
                     />
                     <div id="d3-members"></div>

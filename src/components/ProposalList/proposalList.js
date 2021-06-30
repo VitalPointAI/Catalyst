@@ -144,13 +144,13 @@ export default function ProposalList(props) {
     curUserIdx,
     appClient
   } = props
-console.log('prop list curdaoidx', curDaoIdx)
+
   useEffect(() => {
 
     if(allMemberInfo){
       setMemberCount(allMemberInfo.length)
     }
-   
+   console.log('proposalevents', proposalEvents)
     async function fetchData() {
       let i = 0
       let result
