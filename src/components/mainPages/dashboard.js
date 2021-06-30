@@ -198,13 +198,13 @@ export default function Dashboard(props) {
                                 inProgress++
                                 activityDataFrame.push({
                                     type: 'Proposal Sponsored',
-                                    timeStamp: formatDate(propData.data[k].data.processTime), 
+                                    timeStamp: formatDate(propData.data[k].data.sponsorTime), 
                                     number: 1
                                 })
                             }
                         k++
                         }
-                        
+                        console.log('activitydataframe', activityDataFrame)
                         let account
                         let balance = 0
                         if(contractId != ''){
@@ -262,6 +262,8 @@ export default function Dashboard(props) {
             .then(res => {
                 d3.selectAll("#d3-members > *").remove()
                 createMemberGraph()
+                d3.selectAll("#d3-activity > *").remove()
+                createActivityGraph()
             })
       
     }, [contractId, isUpdated]
@@ -332,8 +334,8 @@ export default function Dashboard(props) {
         console.log('data here', data)
       
         x.domain(d3.extent(data, (d) => { return d.joined; }));
-       // y.domain([0, d3.max(data, (d) => { return d.number; })]);
-       y.domain(data.map((d) => {return d.number}))
+        y.domain([0, d3.max(data, (d) => { return d.number; })]);
+       //y.domain(data.map((d) => {return d.number}))
       
        
        svg.append("path")
@@ -352,13 +354,13 @@ export default function Dashboard(props) {
 
     const createActivityGraph = async () => {
         //  let data = newMemberDataFrame
-          let fdata = d3.rollups(newMemberDataFrame, g => g.length, d => d.joined)
+          let fdata = d3.rollups(activityDataFrame, g => g.length, d => d.timeStamp)
          
           console.log('data', fdata)
           let data = []
           fdata.forEach((d) => {
               console.log('d here', d)
-              data.push({joined: d[0], number: d[1] + (data.length > 0 ? data[data.length - 1].number : 0)})
+              data.push({timeStamp: d[0], number: d[1] + (data.length > 0 ? data[data.length - 1].number : 0)})
           })
           console.log('newData', data)
           // let ydomain = []
@@ -375,11 +377,11 @@ export default function Dashboard(props) {
           
         
           const valueLine = d3.line()
-            .x((d) => { console.log('d value', d.joined); return x(d.joined); })
+            .x((d) => { console.log('d value', d.timeStamp); return x(d.timeStamp); })
             .y((d) => { console.log('y value', d.number); return y(d.number); });
         
             console.log('valueline', valueLine)
-          const svg = d3.select("#d3-members").append("svg")
+          const svg = d3.select("#d3-activity").append("svg")
             .attr("preserveAspectRatio", "xMinYMin meet")
             .attr("viewBox", "0 0 960 600")
             .append("g")
@@ -389,17 +391,24 @@ export default function Dashboard(props) {
         
           data.forEach((d) => {
               console.log('d', d)
-            d.joined = parseTime(d.joined);
-            console.log('d time', d.joined)
+            d.timeStamp = parseTime(d.timeStamp);
+            console.log('d time', d.timeStamp)
             d.number = +d.number;
           });
         
-          data = data.sort((a, b) => +a.joined - +b.joined)
+          data = data.sort((a, b) => +a.timeStamp - +b.timeStamp)
           console.log('data here', data)
         
-          x.domain(d3.extent(data, (d) => { return d.joined; }));
-         // y.domain([0, d3.max(data, (d) => { return d.number; })]);
-         y.domain(data.map((d) => {return d.number}))
+          x.domain([d3.timeDay.offset(d3.min(data, function(d) {
+            return d.timeStamp;
+        }), -1), d3.timeDay.offset(d3.max(data, function(d) {
+            return d.timeStamp;
+        }), +1)]);
+        
+        //  x.domain(d3.extent(data, (d) => { return d.timeStamp; }));
+        //  y.domain([d3.min(data, (d) => { return d.number}), d3.max(data, (d) => { return d.number; })]);
+          y.domain([0, d3.max(data, (d) => { return d.number; })]);
+         //   y.domain(data.map((d) => {return d.number}))
         
          
          svg.append("path")
@@ -468,14 +477,14 @@ export default function Dashboard(props) {
                     inProgressProposals}) => {
                   
                     return (
-                    <TableRow key={communityName}>
-                        <TableCell component="th" scope="row">{communityName}</TableCell>
-                        <TableCell align="right">{totalMembers}</TableCell>
-                        <TableCell align="right">{communityFund}</TableCell>
-                        <TableCell align="right">{communityValue}</TableCell>
-                        <TableCell align="right">{totalProposals}</TableCell>
-                        <TableCell align="right">{passedProposals}</TableCell>
-                        <TableCell align="right">{failedProposals}</TableCell>
+                    <TableRow key={communityName ? communityName : null}>
+                        <TableCell component="th" scope="row">{communityName ? communityName : null}</TableCell>
+                        <TableCell align="right">{totalMembers ? totalMembers : null}</TableCell>
+                        <TableCell align="right">{communityFund ? communityFund : null}</TableCell>
+                        <TableCell align="right">{communityValue ? communityValue : null}</TableCell>
+                        <TableCell align="right">{totalProposals ? totalProposals : null}</TableCell>
+                        <TableCell align="right">{passedProposals ? passedProposals : null}</TableCell>
+                        <TableCell align="right">{failedProposals ? failedProposals : null}</TableCell>
                         </TableRow>
                     )
                 
@@ -507,7 +516,7 @@ export default function Dashboard(props) {
                         title="Daily Activity"
                         subheader="An indication of how active the community is."
                     />
-                    <div id="d3-members"></div>
+                    <div id="d3-activity"></div>
                 </Card>
             </Grid>
         </Grid>
