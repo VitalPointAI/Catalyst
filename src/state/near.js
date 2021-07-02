@@ -307,11 +307,13 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         }
         
         const localLinks = get(ACCOUNT_LINKS, []).sort((a) => a.claimed ? 1 : -1)
+        let changed = false
         for (let i = 0; i < localLinks.length; i++) {
             const { key, accountId, keyStored = 0, claimed, owner } = localLinks[i]
             const exists = await isAccountTaken(accountId)
             if (!exists) {
                 localLinks.splice(i, 1)
+                changed = true
                 continue
             }
             console.log('claimed', !!claimed)
@@ -321,10 +323,13 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
             const keyExists = await hasKey(key, accountId, near)
             if (!keyExists) {
                 localLinks[i].claimed = true
+                changed = true
             }
         }
-        set(ACCOUNT_LINKS, localLinks)
-        await ceramic.storeKeysSecret(curUserIdx, localLinks, 'accountsKeys')
+        if(changed){
+            set(ACCOUNT_LINKS, localLinks)
+            await ceramic.storeKeysSecret(curUserIdx, localLinks, 'accountsKeys')
+        }
 
         const daoLinks = await ceramic.downloadKeysSecret(state.appIdx, 'daoKeys')
         console.log('daolinks', daoLinks)
