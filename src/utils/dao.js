@@ -85,7 +85,9 @@ class DAO {
                 'deleteDAO',
                 'cancelProposal',
                 'makeDonation',
-                'leave'
+                'leave',
+                'delegate',
+                'undelegate'
             ]
             });
 

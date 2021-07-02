@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react'
+import { Link } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 import * as d3 from 'd3'
 import "d3-time-format"
@@ -8,6 +9,7 @@ import { dao } from '../../utils/dao'
 
 // Material UI
 import { makeStyles } from '@material-ui/core/styles'
+import useMediaQuery from '@material-ui/core/useMediaQuery'
 import Grid from '@material-ui/core/Grid'
 import Card from '@material-ui/core/Card'
 import CardHeader from '@material-ui/core/CardHeader'
@@ -22,6 +24,10 @@ import TableContainer from '@material-ui/core/TableContainer'
 import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
 import Paper from '@material-ui/core/Paper'
+import Tooltip from '@material-ui/core/Tooltip'
+import Zoom from '@material-ui/core/Zoom'
+import InfoIcon from '@material-ui/icons/Info'
+import Avatar from '@material-ui/core/Avatar'
 
 import './dashboard.css'
 
@@ -38,6 +44,12 @@ const useStyles = makeStyles((theme) => ({
         margin: theme.spacing(1),
         minWidth: 120,
     },
+    small: {
+        width: theme.spacing(3),
+        height: theme.spacing(3),
+        float: 'left',
+        marginRight: '3px'
+    },
     selectEmpty: {
     marginTop: theme.spacing(2),
     },
@@ -48,6 +60,8 @@ const formatTime = d3.timeFormat("%B %d, %Y")
 
 const data = new Persona()
 
+const defaultLogo = require('../../img/default_logo.png')
+
 export default function Dashboard(props) {
     const [memberData, setMemberData] = useState()
     const [proposalData, setProposalData] = useState()
@@ -56,10 +70,12 @@ export default function Dashboard(props) {
     const [memberCommunities, setMemberCommunities] = useState()
     const [isUpdated, setIsUpdated] = useState(false)
     const [first, setFirst] = useState(true)
-
+    const [logo, setLogo] = useState(defaultLogo)
     const classes = useStyles()
 
     const { state, dispatch, update } = useContext(appStore)
+
+    const matches = useMediaQuery('(max-width:500px)')
 
     let communities = []
     let newMemberDataFrame = []
@@ -166,6 +182,9 @@ export default function Dashboard(props) {
                     }
                     console.log('newmemberdataframe', newMemberDataFrame)
 
+                    // For each byte in our array, retrieve the char code value of the binary value
+                    const binArrayToString = array => array.map(byte => String.fromCharCode(parseInt(byte, 2))).join('')
+
                     // construct proposals data frame
                     if(propData && propData.data.length > 0){
                         let k = 0
@@ -217,17 +236,38 @@ export default function Dashboard(props) {
                             } catch (err) {
                                 console.log('problem retrieving account', err)
                             }
+                            try {
+                                balance = await near.connection.provider.query({
+                                    request_type: "call_function",
+                                    finality: "final",
+                                    account_id: contractId,
+                                    method_name: "getGuildTokenBalances",
+                                    args_base64: "",
+                                })
+                                balance = balance.result.map(c => String.fromCharCode(c)).join('')
+                                let converted = balance.split(':')[2]
+                                balance = converted.replace(/[^a-zA-Z0-9 ]/g, "")
+                                
+                            } catch (err) {
+                                console.log('problem retrieving community balance', err)
+                            }
                         }
                         if(account){
                             console.log('account', account)
-                            let formatted = formatNearAmount(account.amount, 0)
-                            balance = balance + parseInt(formatted)
+                            let formatted = formatNearAmount(balance, 0)
+                            balance = parseInt(formatted)
                             console.log('balance', balance)
                         }
                             
                         let getNearPrice = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd')
                         console.log('near price', getNearPrice)
                         let value = (getNearPrice.data.near.usd * balance).toFixed(2)
+
+                        let result = await data.getDao(contractId)
+                        console.log('result', result)
+                        if(result){
+                            result.logo ? setLogo(result.logo) : setLogo(defaultLogo)
+                        }
 
                         const daoContract = await dao.initDaoContract(wallet.account(), contractId)
 
@@ -256,6 +296,7 @@ export default function Dashboard(props) {
 
                     }
                   
+                  
             }
             
          fetchData()
@@ -271,6 +312,7 @@ export default function Dashboard(props) {
 
     const handleContractIdChange = (event) => {
         const value = event.target.value
+        setLogo(defaultLogo)
         setFinalPropDataFrame([])
         setContractId(value)
         handleUpdate()
@@ -307,7 +349,7 @@ export default function Dashboard(props) {
           width = 960 - margin.left - margin.right,
           height = 600 - margin.top - margin.bottom;
         const x = d3.scaleTime().range([0, width]);
-        const y = d3.scaleOrdinal().range([height, 0]);
+        const y = d3.scaleLinear().range([height, 0]);
         
       
         const valueLine = d3.line()
@@ -343,13 +385,21 @@ export default function Dashboard(props) {
           .attr("class", "line")
           .attr("d", valueLine)
 
+            // Add the scatterplot
+        svg.selectAll("dot")
+        .data(data)
+        .enter().append("circle")
+        .attr("r", 5)
+        .attr("cx", function(d) { return x(d.joined); })
+        .attr("cy", function(d) { return y(d.number); });
+
         svg.append("g")
           .attr("transform", `translate(0, ${height})`)
-          .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%m-%d-%y"))).selectAll("text")
+          .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%m-%d-%y")).tickValues(data.map((d) => {return d.joined}))).selectAll("text")
             
         
         svg.append("g")
-          .call(d3.axisLeft(y));
+            .call(d3.axisLeft(y).tickFormat(d3.format('d')).tickValues(data.map((d) => {return d.number})))
     }
 
     const createActivityGraph = async () => {
@@ -372,8 +422,8 @@ export default function Dashboard(props) {
           const margin = { top: 40, right: 20, bottom: 50, left: 70 },
             width = 960 - margin.left - margin.right,
             height = 600 - margin.top - margin.bottom;
-          const x = d3.scaleTime().range([0, width]);
-          const y = d3.scaleOrdinal().range([height, 0]);
+          const x = d3.scaleTime()
+          const y = d3.scaleLinear().range([height, 0]);
           
         
           const valueLine = d3.line()
@@ -399,13 +449,13 @@ export default function Dashboard(props) {
           data = data.sort((a, b) => +a.timeStamp - +b.timeStamp)
           console.log('data here', data)
         
-          x.domain([d3.timeDay.offset(d3.min(data, function(d) {
-            return d.timeStamp;
-        }), -1), d3.timeDay.offset(d3.max(data, function(d) {
-            return d.timeStamp;
-        }), +1)]);
+        //   x.domain([d3.timeDay.offset(d3.min(data, function(d) {
+        //     return d.timeStamp;
+        // }), 0), d3.timeDay.offset(d3.max(data, function(d) {
+        //     return d.timeStamp;
+        // }), 1)]);
         
-        //  x.domain(d3.extent(data, (d) => { return d.timeStamp; }));
+          x.domain(d3.extent(data, (d) => { return d.timeStamp })).range([0, width])
         //  y.domain([d3.min(data, (d) => { return d.number}), d3.max(data, (d) => { return d.number; })]);
           y.domain([0, d3.max(data, (d) => { return d.number; })]);
          //   y.domain(data.map((d) => {return d.number}))
@@ -415,14 +465,22 @@ export default function Dashboard(props) {
             .data([data])
             .attr("class", "line")
             .attr("d", valueLine)
-  
+            
+        // Add the scatterplot
+        svg.selectAll("dot")
+            .data(data)
+            .enter().append("circle")
+            .attr("r", 5)
+            .attr("cx", function(d) { return x(d.timeStamp); })
+            .attr("cy", function(d) { return y(d.number); });
+
           svg.append("g")
             .attr("transform", `translate(0, ${height})`)
-            .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%m-%d-%y"))).selectAll("text")
+            .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%m-%d-%y")).tickValues(data.map((d) => {return d.timeStamp}))).selectAll("text")
               
           
           svg.append("g")
-            .call(d3.axisLeft(y));
+            .call(d3.axisLeft(y).tickFormat(d3.format('d')).tickValues(data.map((d) => {return d.number})))
         }
 
     return (
@@ -430,7 +488,7 @@ export default function Dashboard(props) {
         <div>
         <Grid container alignItems="center" justify="center" spacing={1} style={{padding: '20px'}}>
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom:'30px'}}>
-                <Typography variant='h3'>Your Communities Dashboard</Typography>
+               {!matches ? <Typography variant='h3'>Community Dashboard</Typography> : <Typography variant='h4'>Community Dashboard</Typography>}
                 <Typography variant='body1'>Community and participation metrics.</Typography>
             </Grid>
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom:'30px'}}>
@@ -478,13 +536,18 @@ export default function Dashboard(props) {
                   
                     return (
                     <TableRow key={communityName ? communityName : null}>
-                        <TableCell component="th" scope="row">{communityName ? communityName : null}</TableCell>
-                        <TableCell align="right">{totalMembers ? totalMembers : null}</TableCell>
-                        <TableCell align="right">{communityFund ? communityFund : null}</TableCell>
-                        <TableCell align="right">{communityValue ? communityValue : null}</TableCell>
-                        <TableCell align="right">{totalProposals ? totalProposals : null}</TableCell>
-                        <TableCell align="right">{passedProposals ? passedProposals : null}</TableCell>
-                        <TableCell align="right">{failedProposals ? failedProposals : null}</TableCell>
+                        <TableCell component="th" scope="row">
+                        <Link to={`dao/${contractId}`}>
+                            <Avatar src={logo} variant="square" className={classes.small}/>
+                            <Typography variant="overline">{communityName ? communityName : null}</Typography>
+                        </Link>
+                        </TableCell>
+                        <TableCell align="right">{totalMembers ? totalMembers : '0'}</TableCell>
+                        <TableCell align="right">{communityFund ? communityFund : '0'}</TableCell>
+                        <TableCell align="right">{communityValue ? communityValue : '0'}</TableCell>
+                        <TableCell align="right">{totalProposals ? totalProposals : '0'}</TableCell>
+                        <TableCell align="right">{passedProposals ? passedProposals : '0'}</TableCell>
+                        <TableCell align="right">{failedProposals ? failedProposals : '0'}</TableCell>
                         </TableRow>
                     )
                 
@@ -503,19 +566,26 @@ export default function Dashboard(props) {
           </Grid>
             <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
                 <Card className={classes.card}>
+                    <Tooltip TransitionComponent={Zoom} title="The number of unique personas that are members of the community.">
+                        <InfoIcon fontSize="small" style={{marginRight:'5px',marginTop:'3px',float:'right'}}/>
+                    </Tooltip>
                     <CardHeader 
                         title="Member Growth"
                         subheader="Number of personas joining the community over time."
-                    />
+                    />   
                     <div id="d3-members"></div>
                 </Card>
             </Grid>
             <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
                 <Card className={classes.card}>
+                    <Tooltip TransitionComponent={Zoom} title="Sum of all community actions that have taken place each day.  Includes: submit proposal (any kind), sponsor proposal, process proposal, donation.  Does not include voting actions or editing actions.">
+                        <InfoIcon fontSize="small" style={{marginRight:'5px',marginTop:'3px',float:'right'}}/>                    
+                    </Tooltip>
                     <CardHeader 
                         title="Daily Activity"
                         subheader="An indication of how active the community is."
                     />
+                                   
                     <div id="d3-activity"></div>
                 </Card>
             </Grid>

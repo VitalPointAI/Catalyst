@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react'
+import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 import * as nearAPI from 'near-api-js'
 import { ceramic } from '../../utils/ceramic'
 import Persona from '@aluhning/get-personas-js'
+import MemberProfileDisplay from '../MemberProfileDisplay/memberProfileDisplay'
+import Delegation from '../Delegation/delegation'
 
 // Material UI Components
 import { makeStyles } from '@material-ui/core/styles'
@@ -14,6 +17,15 @@ import Grid from '@material-ui/core/Grid'
 import Avatar from '@material-ui/core/Avatar'
 import Typography from '@material-ui/core/Typography'
 import { red } from '@material-ui/core/colors'
+import Table from '@material-ui/core/Table'
+import TableBody from '@material-ui/core/TableBody'
+import TableCell from '@material-ui/core/TableCell'
+import TableContainer from '@material-ui/core/TableContainer'
+import TableHead from '@material-ui/core/TableHead'
+import TableRow from '@material-ui/core/TableRow'
+import Paper from '@material-ui/core/Paper'
+import Button from '@material-ui/core/Button'
+import CardActions from '@material-ui/core/CardActions'
 
 const useStyles = makeStyles((theme) => ({
     pos: {
@@ -26,7 +38,8 @@ const useStyles = makeStyles((theme) => ({
       backgroundColor: red[500],
     },
     header: {
-      display: 'inherit'
+      display: 'inherit',
+      marginBottom: '-15px'
     }
   }));
 
@@ -41,26 +54,37 @@ export default function MemberCard(props) {
     const [did, setDid] = useState()
     const [curUserIdx, setCurUserIdx] = useState()
     const [joined, setJoined] = useState(props.joined)
+    const [allShares, setAllShares] = useState()
+    const [memberProfileDisplayClicked, setMemberProfileDisplayClicked] = useState(false)
+    const [delegationClicked, setDelegationClicked] = useState(false)
+    const [maxDelegation, setMaxDelegation] = useState()
+    const [anchorEl, setAnchorEl] = useState(null)
     
     const { state, dispatch, update } = useContext(appStore)
 
     const {
       didRegistryContract,
       near, 
-      appIdx
+      appIdx,
+      accountId
     } = state
 
     const classes = useStyles();
 
     const {
       accountName, 
-      shares, 
+      shares,
+      delegatedShares,
+      receivedDelegations,
       memberCount,
       totalShares,
       active,
       summoner
     } = props
 
+    const {
+      contractId
+    } = useParams()
     
 
     useEffect(
@@ -79,6 +103,16 @@ export default function MemberCard(props) {
               result.name ? setName(result.name) : setName('')
             }
           }
+          if(shares){
+            let combinedShares = parseInt(shares) + parseInt(receivedDelegations)
+            console.log('shares', parseInt(shares))
+            console.log('received delegs', parseInt(receivedDelegations))
+            console.log('combinedshares', combinedShares)
+            setAllShares(combinedShares)
+
+            let currentMaxDelegation = combinedShares - parseInt(delegatedShares)
+            setMaxDelegation(currentMaxDelegation)
+          }
         }
         
         fetchData()
@@ -94,22 +128,47 @@ export default function MemberCard(props) {
       let options = {year: 'numeric', month: 'long', day: 'numeric'}
       return new Date(parseInt(stringDate.slice(0,13))).toLocaleString('en-US', options)
     }
+
+    const handleMemberProfileDisplayClick = () => {
+      handleExpanded()
+      handleMemberProfileDisplayClickState(true)
+    }
+
+    function handleMemberProfileDisplayClickState(property){
+      setMemberProfileDisplayClicked(property)
+    }
+
+    const handleDelegationClick = () => {
+      handleExpanded()
+      handleDelegationClickState(true)
+    }
+
+    function handleDelegationClickState(property){
+      setDelegationClicked(property)
+    }
+
+
+    function handleExpanded() {
+      setAnchorEl(null)
+    }
       
 
     return(
         <>
         <Card raised={true} className={classes.card} >
-          <div style={{float:'left', padding:'3px', width:'18%'}}>
-          <Avatar variant="circular" src={avatar}  />
-          </div>
-          <div style={{float:'left', marginLeft:'10px', width:'70%'}}>
-          <CardHeader
-            title={name}
-          />
-          </div>
+        <Grid container justify="space-evenly" spacing={1} style={{marginTop:'20px'}}>
+          <Button
+          color="primary"
+          onClick={handleMemberProfileDisplayClick}
+          >
+            <Avatar src={avatar} className={classes.large}  />
+            <center><Chip label={name != '' ? name : accountName} style={{marginBottom: '3px'}}/><br></br>
+            <Chip variant="outlined" label={accountName} style={{fontSize: '60%'}}/></center>
+          </Button>
+        </Grid>
          
           <CardHeader
-          subheader={ <><center><Chip size="small" color="primary" label={accountName}/><br></br>
+          subheader={ <><center>
           <Typography variant="overline" align="center">Joined: {formatDate(joined)}</Typography><br></br>
           <Typography variant="overline" align="center">{active ? 'Active' : 'Inactive'}</Typography></center></>}
           className={classes.header}
@@ -117,17 +176,70 @@ export default function MemberCard(props) {
  
           <CardContent>
             <Grid container alignItems="center" style={{marginTop: '-20px', marginBottom:'20px', display:'inherit'}}>
-              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                <Typography variant="overline" align="center">{shares > 1 ? shares + ' shares' : shares + ' share' }</Typography>
-              </Grid>
-              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                <Typography variant="overline">{`Voting Power: ${shares && totalShares && Math.round((shares / totalShares)*100, 2) < 100 ? 
-                  Math.round((shares / totalShares)*100, 2) : '100'}%`}</Typography>
-              </Grid>
+             
+              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '20px', marginBottom:'30px'}}>
+              <TableContainer component={Paper}>
+              <Table className={classes.table} size="small" aria-label="a dense table">
+                
+               
+                <TableBody>
+                <TableRow>
+                  <TableCell component="th" scope="row" colSpan={2} align="center">
+                   <Typography variant="overline">Shares: <b>{shares}</b></Typography>
+                  </TableCell>
+                </TableRow>
+               
+                  <TableRow>
+                    <TableCell>All Votes</TableCell>
+                    <TableCell>Delegated Out</TableCell>
+                  </TableRow>
+                  <TableRow key='first'>
+                      <TableCell component="th" scope="row" align="center">
+                          <Typography variant="overline">{allShares ? parseInt(allShares) - parseInt(delegatedShares) : null}</Typography>
+                      </TableCell>
+                      <TableCell component="th" scope="row" align="center">
+                          <Typography variant="overline">{delegatedShares ? delegatedShares : '0'}</Typography>
+                      </TableCell>
+                  </TableRow>
+      
+                  <TableRow>
+                  <TableCell component="th" scope="row" colSpan={2} align="center">
+                   <Typography variant="overline">Voting Power: <b>{allShares && totalShares && Math.round(((allShares - parseInt(delegatedShares)) / totalShares)*100, 2) < 100 ? 
+                  Math.round(((allShares - parseInt(delegatedShares)) / totalShares)*100, 2) : '100'}%</b></Typography>
+                  </TableCell>
+                  </TableRow>
+                  
+                </TableBody>
+              </Table>
+            </TableContainer>
+            </Grid>
             </Grid>
           </CardContent>
-          {summoner == accountName ? <center><Chip size="small" color="secondary" label='summoner' style={{marginTop: '-30px'}}/></center> : null} 
+          {summoner == accountName ? <center><Chip size="small" color="secondary" label='summoner' style={{marginTop: '-30px'}}/></center> : null}
+          <CardActions>
+          {accountId != accountName ? (
+            <Button
+            color="primary"
+            onClick={handleDelegationClick}>
+              Delegate Votes
+            </Button>
+          ) : null }
+          </CardActions>
         </Card>
+
+        {memberProfileDisplayClicked ? <MemberProfileDisplay
+          handleMemberProfileDisplayClickState={handleMemberProfileDisplayClickState}
+          member={accountName}
+          /> : null }
+
+        {delegationClicked ? <Delegation
+          handleDelegationClickState={handleDelegationClickState}
+          contractId={contractId}
+          maxDelegation={maxDelegation}
+          state={state}
+          delegateTo={accountName}
+          /> : null }
+
         </>
     )
 }

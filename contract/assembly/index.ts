@@ -8,6 +8,14 @@ const aliases = new PersistentSet<string>('a')
 const allAliases = new PersistentMap<string, string>('l')
 
 //DID REGISTRY
+/**
+* Returns the app owner which we use in multiple places to confirm user can override/update definitions 
+* @param owner 
+*/
+function _isOwner(): boolean {
+  let owner = storage.getSome<string>("owner")
+  return owner == Context.predecessor
+}
 
 export function getDID(accountId: string) : string {
   assert(env.isValidAccountID(accountId), 'not a valid near account')
@@ -51,6 +59,14 @@ export function storeAlias(alias: string, definition: string): bool {
   assert(!allAliases.contains(alias), 'alias already exists')
   allAliases.set(alias, definition)
   logging.log('registered alias' + alias + ':' + definition)
+  return true
+}
+
+export function changeDefinition(alias: string, definition: string): bool {
+  storage.set<string>('owner', 'vitalpointai.testnet')
+  assert(_isOwner(), 'not the owner')
+  allAliases.set(alias, definition)
+  logging.log('updated alias' + alias + ':' + definition)
   return true
 }
 

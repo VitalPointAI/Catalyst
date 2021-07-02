@@ -8,7 +8,7 @@ import { config } from './config'
 
 export const {
     FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT, DAO_FIRST_INIT, CURRENT_DAO, REDIRECT,
-    NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, NEW_PROCESS, NEW_VOTE, IPFS_PROVIDER, NEW_DONATION, NEW_EXIT, NEW_RAGE,
+    NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, NEW_PROCESS, NEW_VOTE, IPFS_PROVIDER, NEW_DONATION, NEW_EXIT, NEW_RAGE, NEW_DELEGATION,
     networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix, explorerUrl,
     contractName, didRegistryContractName, factoryContractName
 } = config
@@ -673,7 +673,7 @@ export async function makeDonation(wallet, contractId, donationToken, contributo
     const daoContract = await dao.initDaoContract(wallet.account(), contractId)
     const donationId = await daoContract.getDonationsLength()
     try {
-        // set trigger for to log new proposal
+        // set trigger for to log new donation
         let newDonation = get(NEW_DONATION, [])
         newDonation.push({contractId: contractId, donationId: donationId, contributor: contributor, new: true})
         set(NEW_DONATION, newDonation)
@@ -690,6 +690,31 @@ export async function makeDonation(wallet, contractId, donationToken, contributo
         })
     } catch (err) {
         console.log('donation failed', err)
+        return false
+    }
+    return true
+}
+
+// Make a Donation
+export async function delegate(wallet, contractId, receiver, quantity) {
+    const daoContract = await dao.initDaoContract(wallet.account(), contractId)
+   
+    try {
+        // set trigger for to log new delegation
+        let newDelegation = get(NEW_DELEGATION, [])
+        newDelegation.push({contractId: contractId, receiver: receiver, quantity: quantity, new: true})
+        set(NEW_DELEGATION, newDelegation)
+
+        await daoContract.delegate({
+            args: {
+                delegateTo: receiver,
+                quantity: quantity
+            },
+            gas: GAS,
+            walletMeta: 'to delegate votes'
+        })
+    } catch (err) {
+        console.log('delegation failed', err)
         return false
     }
     return true
@@ -970,6 +995,7 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId)
     }
 
     let logMembers = await curDaoIdx.get('members', curDaoIdx.id)
+    console.log('logmembers', logMembers)
 
     if(!logMembers){
         logMembers = { events: [] }
@@ -1006,6 +1032,8 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId)
                 contractId: contractId,
                 delegateKey: member[0].delegateKey,
                 shares: member[0].shares,
+                delegatedShares: member[0].delegatedShares,
+                receivedDelegations: member[0].receivedDelegations,
                 loot: member[0].loot,
                 existing: member[0].existing,
                 highestIndexYesVote: member[0].highestIndexYesVote,
@@ -1138,6 +1166,8 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
         contractId: contractId,
         delegateKey: accountId,
         shares: contribution,
+        delegatedShares: '0',
+        receivedDelegations: '0',
         loot: '0',
         existing: true,
         highestIndexYesVote: 0,
@@ -1264,6 +1294,8 @@ export async function logExitEvent (contractId, curDaoIdx, daoContract, accountI
                     contractId: contractId,
                     delegateKey: member[0].delegateKey,
                     shares: member[0].shares,
+                    delegatedShares: member[0].delegatedShares,
+                    receivedDelegations: member[0].receivedDelegations,
                     loot: member[0].loot,
                     existing: member[0].existing,
                     highestIndexYesVote: member[0].highestIndexYesVote,
@@ -1606,6 +1638,8 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                 contractId: contractId,
                 delegateKey: member[0].delegateKey,
                 shares: member[0].shares,
+                delegatedShares: member[0].delegatedShares,
+                receivedDelegations: member[0].receivedDelegations,
                 loot: member[0].loot,
                 existing: member[0].existing,
                 highestIndexYesVote: member[0].highestIndexYesVote,
@@ -1633,6 +1667,8 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                 joined: parseInt(member[0].joined),
                 transactionHash: transactionHash,
                 shares: member[0].shares,
+                delegatedShares: member[0].delegatedShares,
+                receivedDelegations: member[0].receivedDelegations,
                 loot: member[0].loot,
                 proposer: proposal.p,
                 applicant: proposal.a
@@ -1666,6 +1702,8 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                         contractId: contractId,
                         delegateKey: member[0].delegateKey,
                         shares: member[0].shares,
+                        delegatedShares: member[0].delegatedShares,
+                        receivedDelegations: member[0].receivedDelegations,
                         loot: member[0].loot,
                         existing: member[0].existing,
                         highestIndexYesVote: member[0].highestIndexYesVote,
@@ -1692,6 +1730,8 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                         joined: parseInt(member[0].joined),
                         transactionHash: transactionHash,
                         shares: member[0].shares,
+                        delegatedShares: member[0].delegatedShares,
+                        receivedDelegations: member[0].receivedDelegations,
                         loot: member[0].loot,
                         proposer: proposal.p,
                         applicant: proposal.a,
@@ -1838,6 +1878,8 @@ export async function logVoteEvent(curDaoIdx, contractId, daoContract, proposalI
                     contractId: contractId,
                     delegateKey: member[0].delegateKey,
                     shares: member[0].shares,
+                    delegatedShares: member[0].delegatedShares,
+                    receivedDelegations: member[0].receivedDelegations,
                     loot: member[0].loot,
                     existing: member[0].existing,
                     highestIndexYesVote: member[0].highestIndexYesVote,

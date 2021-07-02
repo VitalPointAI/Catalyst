@@ -2,6 +2,7 @@ import CeramicClient from '@ceramicnetwork/http-client'
 import * as nearApiJs from 'near-api-js'
 import { get, set, del } from './storage'
 import { IDX } from '@ceramicstudio/idx'
+import { TileDocument } from '@ceramicnetwork/stream-tile'
 import { createDefinition, publishSchema } from '@ceramicstudio/idx-tools'
 import { Ed25519Provider } from 'key-did-provider-ed25519'
 import ThreeIdProvider from '3id-did-provider'
@@ -329,6 +330,38 @@ async makeSeed(account){
     return didRegistryContract
   }
 
+  async changeDefinition(accountId, aliasName, client, schema, description, contract) {
+     console.log('accountid', accountId)
+     console.log('alias', aliasName)
+     console.log('client', client)
+     console.log('schema', schema)
+     console.log('contract', contract)
+    let alias
+  
+      let aliasExists = await contract.hasAlias({alias: accountId+':'+aliasName})
+      console.log('aliasexists', aliasExists)
+      if(aliasExists){
+        try{
+          alias = await contract.retrieveAlias({alias: accountId+':'+aliasName})
+        
+        } catch (err) {
+          console.log('alias is misformed', err)
+          alias = false
+        }
+      }
+   
+      
+      let newSchemaURL = await publishSchema(client, {content: schema})
+      const doc = await TileDocument.load(client, alias)
+      console.log('doc', doc)
+      try {
+        await doc.update({name: aliasName, description: description, schema: newSchemaURL.commitId.toUrl()})
+        return true
+      } catch (err) {
+        console.log('error updating definition schema', err)
+        return false
+      }
+  }
 
   async getAlias(accountId, aliasName, client, schema, description, contract) {
     let alias
@@ -493,7 +526,13 @@ async makeSeed(account){
 
     const appClient = await this.getAppCeramic()
 
+    
     const appDid = this.associateAppDID(APP_OWNER_ACCOUNT, contract, appClient)
+
+    // uncomment below to change a definition
+    //let changed = await this.changeDefinition(APP_OWNER_ACCOUNT, 'members', appClient, memberSchema, 'dao member info', contract)
+    //console.log('changed schema', changed)
+
     const definitions = this.getAlias(APP_OWNER_ACCOUNT, 'Definitions', appClient, definitionsSchema, 'alias definitions', contract)
     const schemas = this.getAlias(APP_OWNER_ACCOUNT, 'Schemas', appClient, schemaSchema, 'user schemas', contract)
     const daoList = this.getAlias(APP_OWNER_ACCOUNT, 'daoList', appClient, daoListSchema, 'list of all daos', contract)
@@ -515,6 +554,8 @@ async makeSeed(account){
     const memberData = this.getAlias(APP_OWNER_ACCOUNT, 'memberData', appClient, memberDataSchema, 'member data', contract)
     const proposalData = this.getAlias(APP_OWNER_ACCOUNT, 'proposalData', appClient, proposalDataSchema, 'proposal data', contract)
     const votingData = this.getAlias(APP_OWNER_ACCOUNT, 'votingData', appClient, votingDataSchema, 'voting data', contract)
+
+   
     const done = await Promise.all([
       appDid, 
       definitions, 
@@ -574,7 +615,7 @@ async makeSeed(account){
     console.log('get contract', contract)
       set(KEY_REDIRECT, {action: false, link: ''})
       let seed = await this.getLocalAccountSeed(account.accountId)
-      console.log('seed', seed)
+  
       if(seed == false){
         set(KEY_REDIRECT, {action: true, link: '/newKey'})
         return false

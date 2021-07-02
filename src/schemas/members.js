@@ -27,6 +27,12 @@ export const memberSchema = {
         "shares": {
           "type": "string",
         },
+        "delegatedShares": {
+          "type": "string",
+        },
+        "receivedDelegations": {
+          "type": "string",
+        },        
         "loot": {
           "type": "string",
         },

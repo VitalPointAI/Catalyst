@@ -364,7 +364,9 @@ export default function ProposalList(props) {
             proposer: fr.proposer,
             sponsor: fr.sponsor,
             requestId: parseInt(fr.proposalId), 
-            shares: fr.sharesRequested, 
+            shares: fr.sharesRequested,
+            delegatedShares: fr.delegatedShares,
+            receivedDelegations: fr.receivedDelegations,
             loot: fr.lootRequested, 
             tribute: fr.tributeOffered, 
             flags: fr.flags,
@@ -397,6 +399,8 @@ export default function ProposalList(props) {
             sponsor: fr.sponsor,
             requestId: parseInt(fr.proposalId), 
             shares: fr.sharesRequested, 
+            delegatedShares: fr.delegatedShares,
+            receivedDelegations: fr.receivedDelegations,
             loot: fr.lootRequested, 
             tribute: fr.tributeOffered, 
             flags: fr.flags,
@@ -429,7 +433,9 @@ export default function ProposalList(props) {
             proposer: fr.proposer,
             sponsor: fr.sponsor,
             requestId: parseInt(fr.proposalId),
-            shares: fr.sharesRequested, 
+            shares: fr.sharesRequested,
+            delegatedShares: fr.delegatedShares,
+            receivedDelegations: fr.receivedDelegations,
             loot: fr.lootRequested, 
             tribute: fr.tributeOffered, 
             flags: fr.flags,
@@ -461,7 +467,9 @@ export default function ProposalList(props) {
             proposer: fr.proposer,
             sponsor: fr.sponsor,
             requestId: parseInt(fr.proposalId), 
-            shares: fr.sharesRequested, 
+            shares: fr.sharesRequested,
+            delegatedShares: fr.delegatedShares,
+            receivedDelegations: fr.receivedDelegations,
             loot: fr.lootRequested, 
             tribute: fr.tributeOffered,
             funding: fr.paymentRequested, 
@@ -520,6 +528,8 @@ export default function ProposalList(props) {
           accountId={accountId}
           accountName={fr.delegateKey}
           shares={fr.shares}
+          delegatedShares={fr.delegatedShares}
+          receivedDelegations={fr.receivedDelegations}
           memberCount={memberCount}
           summoner={summoner}
           curUserIdx={curUserIdx}

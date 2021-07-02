@@ -140,6 +140,9 @@ export default function AppFramework(props) {
     useEffect(
       () => {
 
+         
+          
+
           async function fetchData() {
             
             let urlVariables = window.location.search
@@ -150,6 +153,7 @@ export default function AppFramework(props) {
             console.log('transaction hash', transactionHash)
 
             if(didRegistryContract && near){
+
               if(contractId){
                 let thisCurDaoIdx
                 let daoAccount = new nearAPI.Account(near.connection, contractId)

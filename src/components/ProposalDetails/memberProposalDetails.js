@@ -94,23 +94,16 @@ export default function MemberProposalDetails(props) {
         contract
     } = props
 
+    const thisPersona = new Persona()
+
     useEffect(
         () => {
-         
-
+ 
           async function fetchData() {
          
             // Get Applicant Persona Information
            
-            if(applicant){                           
-                  // let result = await curPersonaIdx.get('profile', curPersonaIdx.id)
-                  // console.log('result proposal details persona card', result)
-                  
-                  // if(result){
-                  //   result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-                  //   result.name ? setName(result.name) : setName('')
-                  // }
-                  const thisPersona = new Persona()
+            if(applicant){                            
                   let result = await thisPersona.getPersona(applicant)
                       if(result){
                         result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
