@@ -8,7 +8,7 @@ import { config } from './config'
 
 export const {
     FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT, DAO_FIRST_INIT, CURRENT_DAO, REDIRECT,
-    NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, NEW_PROCESS, NEW_VOTE, IPFS_PROVIDER, NEW_DONATION, NEW_EXIT, NEW_RAGE, NEW_DELEGATION,
+    NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, NEW_PROCESS, NEW_VOTE, IPFS_PROVIDER, NEW_DONATION, NEW_EXIT, NEW_RAGE, NEW_DELEGATION, NEW_REVOCATION,
     networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix, explorerUrl,
     contractName, didRegistryContractName, factoryContractName
 } = config
@@ -94,29 +94,15 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
 
         let state = getState()
 
-       // const links = get(ACCOUNT_LINKS, [])
         let upLinks = await ceramic.downloadKeysSecret(state.curUserIdx, 'accountsKeys')
         console.log('uplinks fund account', upLinks)
-        // let c = 0
-        // let accountExists
-        // while(c < links.length) {
-        //     if(links[c].accountId == accountId){
-        //         accountExists = true
-        //         alert('This account already exists in local storage, it will be updated.')
-        //         links[c] = { key: keyPair.secretKey, accountId: accountId, owner: owner, keyStored: Date.now() }
-        //         break
-        //     } else {
-        //         accountExists = false
-        //     }
-        // c++
-        // }
-        //if(!accountExists){
+     
             upLinks.push({ key: keyPair.secretKey, accountId: accountId, owner: owner, keyStored: Date.now() })
             await ceramic.storeKeysSecret(state.curUserIdx, upLinks, 'accountsKeys')
             set(ACCOUNT_LINKS, upLinks)
         
             await contract.create_account({ new_account_id: accountId, new_public_key: keyPair.publicKey.toString() }, GAS, parseNearAmount(amount))
-        //}
+       
         update('', { near, wallet, links, claimed })
     }
 
@@ -700,7 +686,7 @@ export async function makeDonation(wallet, contractId, donationToken, contributo
     return true
 }
 
-// Make a Donation
+// Make a Vote Delegation
 export async function delegate(wallet, contractId, delegator, receiver, quantity) {
     const daoContract = await dao.initDaoContract(wallet.account(), contractId)
    
@@ -720,6 +706,31 @@ export async function delegate(wallet, contractId, delegator, receiver, quantity
         })
     } catch (err) {
         console.log('delegation failed', err)
+        return false
+    }
+    return true
+}
+
+// Revoke a Vote Delegation
+export async function revokeDelegatedVotes(wallet, contractId, delegator, receiver, quantity) {
+    const daoContract = await dao.initDaoContract(wallet.account(), contractId)
+   
+    try {
+        // set trigger for to log new delegation
+        let newRevocation = get(NEW_REVOCATION, [])
+        newRevocation.push({contractId: contractId, delegator: delegator, receiver: receiver, quantity: quantity, new: true})
+        set(NEW_REVOCATION, newRevocation)
+
+        await daoContract.undelegate({
+            args: {
+                delegateFrom: receiver,
+                quantity: quantity
+            },
+            gas: GAS,
+            walletMeta: 'to revoke vote delegation'
+        })
+    } catch (err) {
+        console.log('delegation revocation failed', err)
         return false
     }
     return true
@@ -1333,7 +1344,7 @@ export async function logExitEvent (contractId, curDaoIdx, daoContract, accountI
     }
 }
 
-// Logs the a vote delegation event
+// Logs a vote delegation event (delegate or revoke delegation)
 export async function logDelegationEvent (contractId, curDaoIdx, daoContract, delegator, receiver, transactionHash) {
     let delegatorLogged = false
     let receiverLogged = false

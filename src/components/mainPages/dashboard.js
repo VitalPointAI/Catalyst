@@ -376,6 +376,7 @@ export default function Dashboard(props) {
         console.log('data here', data)
       
         x.domain(d3.extent(data, (d) => { return d.joined; }));
+        
         y.domain([0, d3.max(data, (d) => { return d.number; })]);
        //y.domain(data.map((d) => {return d.number}))
       

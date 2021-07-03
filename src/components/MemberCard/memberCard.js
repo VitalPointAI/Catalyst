@@ -6,6 +6,7 @@ import { ceramic } from '../../utils/ceramic'
 import Persona from '@aluhning/get-personas-js'
 import MemberProfileDisplay from '../MemberProfileDisplay/memberProfileDisplay'
 import Delegation from '../Delegation/delegation'
+import ManageDelegations from '../ManageDelegations/manageDelegations'
 
 // Material UI Components
 import { makeStyles } from '@material-ui/core/styles'
@@ -26,6 +27,7 @@ import TableRow from '@material-ui/core/TableRow'
 import Paper from '@material-ui/core/Paper'
 import Button from '@material-ui/core/Button'
 import CardActions from '@material-ui/core/CardActions'
+import Badge from '@material-ui/core/Badge'
 
 const useStyles = makeStyles((theme) => ({
     pos: {
@@ -56,9 +58,11 @@ export default function MemberCard(props) {
     const [joined, setJoined] = useState(props.joined)
     const [allShares, setAllShares] = useState()
     const [memberProfileDisplayClicked, setMemberProfileDisplayClicked] = useState(false)
+    const [manageDelegationsClicked, setManageDelegationsClicked] = useState(false)
     const [delegationClicked, setDelegationClicked] = useState(false)
     const [maxDelegation, setMaxDelegation] = useState()
     const [anchorEl, setAnchorEl] = useState(null)
+    const [curUserDelegatedTo, setCurUserDelegatedTo] = useState('0')
     
     const { state, dispatch, update } = useContext(appStore)
 
@@ -78,10 +82,12 @@ export default function MemberCard(props) {
       delegatedShares,
       receivedDelegations,
       currentMemberInfo,
+      allMemberInfo,
       memberCount,
       totalShares,
       active,
-      summoner
+      summoner,
+      contract
     } = props
 
     const {
@@ -95,6 +101,14 @@ console.log('delegatedshares', delegatedShares)
          
         async function fetchData() {
           isUpdated
+          if(contract && parseInt(receivedDelegations) > 0){
+            try{
+              let delegationInfo = await contract.getDelegationInfo({member: state.accountId, delegatee: accountName})
+              setCurUserDelegatedTo(delegationInfo[0][1])
+            } catch (err) {
+              console.log('error retrieving delegation info', err)
+            }
+          }
           if(accountName && state){
             const thisPersona = new Persona()
             let result = await thisPersona.getPersona(accountName)
@@ -126,7 +140,7 @@ console.log('delegatedshares', delegatedShares)
            
           })
 
-    }, [avatar, isUpdated]
+    }, [avatar, currentMemberInfo, isUpdated]
     )
     
     function formatDate(timestamp) {
@@ -151,6 +165,15 @@ console.log('delegatedshares', delegatedShares)
 
     function handleDelegationClickState(property){
       setDelegationClicked(property)
+    }
+
+    const handleManageDelegationsClick = () => {
+      handleExpanded()
+      handleManageDelegationsClickState(true)
+    }
+
+    function handleManageDelegationsClickState(property){
+      setManageDelegationsClicked(property)
     }
 
 
@@ -224,17 +247,21 @@ console.log('delegatedshares', delegatedShares)
             </Grid>
           </CardContent>
           <CardActions style={{marginTop: '-40px'}}>
-          {accountId != accountName ? (
-            <Button
-            color="primary"
-            onClick={handleDelegationClick}>
-              Delegate To
-            </Button>
-          ) :  <Button
+          <>
+          {accountId != accountName && active ? (
+            <Badge color="secondary" badgeContent={curUserDelegatedTo}>
+              <Button
+              color="primary"
+              onClick={handleDelegationClick}>
+                Delegate Votes
+              </Button>
+            </Badge>
+          ) :  (<Button
           color="primary"
-          onClick={handleDelegationClick}>
-            Manage Delegations
-          </Button> }
+          onClick={handleManageDelegationsClick}>
+            Manage Vote Delegations
+          </Button>) }
+          </>
           </CardActions>
         </Card>
 
@@ -249,6 +276,18 @@ console.log('delegatedshares', delegatedShares)
           maxDelegation={maxDelegation}
           state={state}
           delegateTo={accountName}
+          /> : null }
+
+        {manageDelegationsClicked ? <ManageDelegations
+          handleManageDelegationsClickState={handleManageDelegationsClickState}
+          contractId={contractId}
+          maxDelegation={maxDelegation}
+          state={state}
+          delegateTo={accountName}
+          contract={contract}
+          allMemberInfo={allMemberInfo}
+          delegatedShares={delegatedShares}
+          shares={shares}
           /> : null }
 
         </>

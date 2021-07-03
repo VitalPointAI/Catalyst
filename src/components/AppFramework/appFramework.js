@@ -25,7 +25,7 @@ import Initialize from '../Initialize/initialize'
 import { dao } from '../../utils/dao'
 import { ceramic } from '../../utils/ceramic'
 
-import { NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE, NEW_DONATION, NEW_EXIT, NEW_DELEGATION } from '../../state/near'
+import { NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE, NEW_DONATION, NEW_EXIT, NEW_DELEGATION, NEW_REVOCATION } from '../../state/near'
 
 // Material UI imports
 import { makeStyles } from '@material-ui/core/styles'
@@ -372,6 +372,29 @@ export default function AppFramework(props) {
                      }
                      l++
                    }
+
+                    // check for successfully added revoke delegation and log it
+                    let newRevocation = get(NEW_REVOCATION, [])
+                
+                    let m = 0
+                    while(m < newRevocation.length){
+                      if(newRevocation[m].contractId==contractId && newRevocation[m].new == true){
+                        let loggedRevocation = await logDelegationEvent(
+                          contractId,
+                          thisCurDaoIdx, 
+                          contract,
+                          newRevocation[m].delegator,
+                          newRevocation[m].receiver,
+                          transactionHash)
+                          
+                        if (loggedRevocation) {
+                          newRevocation[m].new = false
+                          set(NEW_REVOCATION, newRevocation)
+                          setChange(!change)
+                        }
+                      }
+                      m++
+                    }
 
                   // For debugging
                   //  let proposalCheck= await contract.getProposal({proposalId: 0})

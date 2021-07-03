@@ -972,6 +972,8 @@ export default function ProposalList(props) {
                     active={fr.active}
                     totalShares={totalShares}
                     currentMemberInfo={currentMemberInfo}
+                    contract={contract}
+                    allMemberInfo={allMemberInfo}
                   />
                 ) 
               )}
