@@ -248,7 +248,7 @@ console.log('delegatedshares', delegatedShares)
           </CardContent>
           <CardActions style={{marginTop: '-40px'}}>
           <>
-          {accountId != accountName && active ? (
+          {accountId != accountName && currentMemberInfo && currentMemberInfo.length > 0 && currentMemberInfo[0].active ? (
             <Badge color="secondary" badgeContent={curUserDelegatedTo}>
               <Button
               color="primary"
@@ -256,11 +256,14 @@ console.log('delegatedshares', delegatedShares)
                 Delegate Votes
               </Button>
             </Badge>
-          ) :  (<Button
+          ) :  
+          accountId == accountName ? (
+          <Button
           color="primary"
           onClick={handleManageDelegationsClick}>
             Manage Vote Delegations
-          </Button>) }
+          </Button>)
+          : null }
           </>
           </CardActions>
         </Card>

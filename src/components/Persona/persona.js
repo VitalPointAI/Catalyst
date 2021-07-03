@@ -233,7 +233,8 @@ const handleEditPersonaClick = () => {
                         </Grid>
                     </>
                     ) 
-                    : (
+                    : 
+                    !matches ? (
                     <>
                        
                             <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" style={{display: 'inline'}}>
@@ -248,7 +249,23 @@ const handleEditPersonaClick = () => {
                                 </Link>
                             </Grid>
                     </>
+                    ) : (
+                        <>
+                       
+                        <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" style={{display: 'inline'}}>
+                            <Link to={`/dao/${contractId}/about`} variant="body1">
+                                <Button style={{textAlign: 'center', marginRight: '10px'}}>About</Button>
+                            </Link>
+                            <Link to={`/opportunities/${contractId}`} variant="body1">
+                                <Button style={{textAlign: 'center', marginRight: '10px'}}>Opportunities</Button>
+                            </Link>
+                            <Link to={`/supporters/${contractId}`} variant="body1">
+                                <Button style={{textAlign: 'center'}}>Supporters</Button>
+                            </Link>
+                        </Grid>
+                    </>
                     )
+                    
                 }
             </Grid>
 

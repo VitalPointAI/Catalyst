@@ -253,6 +253,18 @@ export default function ActionSelector(props) {
 
   return (
     <>
+    {!memberStatus ? (
+    <Button
+    style={{marginRight: 5}}
+    aria-controls="fade-menu"
+    aria-haspopup="true"
+    variant="contained"
+    color="primary"
+    onClick={handleMemberProposalClick}
+    >
+      Join
+    </Button>
+    ) : null }
     <Button
         aria-controls="fade-menu"
         aria-haspopup="true"

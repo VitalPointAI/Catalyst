@@ -641,23 +641,11 @@ export default function AppFramework(props) {
               <>
               {matches ? (<>
                 <Grid container justify="space-evenly" alignItems="center" style={{marginBottom:'15px'}} spacing={0}>
-                  <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" style={{marginBottom: '15px'}}>
-                    <div style={{float:'right',marginTop:'-8px',marginLeft:'5px'}}>
-                    <RightSideDrawer
-                      state={state}
-                      currentPeriod={currentPeriod}
-                      accountId={state.accountId} 
-                      contract={daoContract}
-                      handleErrorMessage={handleErrorMessage} 
-                      handleSuccessMessage={handleSuccessMessage}
-                      handleSnackBarOpen={handleSnackBarOpen} 
-                    />
-                    </div>
-                    
+                  <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" style={{marginBottom: '15px'}}>                    
                     <Chip variant="outlined" label="Member" icon={memberIcon} />
                     <Chip variant="outlined" label={sharesLabel}  />
                     <Chip variant="outlined" label={fairShareLabel}  />
-                </Grid>
+                  </Grid>
                   <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
                     <ActionSelector 
                       handleProposalEventChange={handleProposalEventChange}
@@ -705,32 +693,27 @@ export default function AppFramework(props) {
                 />
               </div>
               </Grid>
-              <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
-              <div style={{float:'right'}}>
-            
-                <div style={{float:'right',marginTop:'-8px',marginLeft:'5px'}}>
-                <RightSideDrawer
-                  state={state}
-                  currentPeriod={currentPeriod}
-                  accountId={state.accountId} 
-                  contract={daoContract}
-                  handleErrorMessage={handleErrorMessage} 
-                  handleSuccessMessage={handleSuccessMessage}
-                  handleSnackBarOpen={handleSnackBarOpen} 
-                />
-                </div>
-                
+              <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="right">                
                 <Chip variant="outlined" label="Member" icon={memberIcon} />
                 <Chip variant="outlined" label={sharesLabel}  />
                 <Chip variant="outlined" label={fairShareLabel}  />
-               
-               
-                </div>
               </Grid>
             </Grid></>
               )}
           <Card align="center" style={{width: '100%'}}>
-            <Grid container justify="center" alignItems="center" spacing={1} className={classes.top}> 
+          <div style={{float:'right', marginBottom: '-30px'}}>
+            <RightSideDrawer
+              state={state}
+              currentPeriod={currentPeriod}
+              accountId={state.accountId} 
+              contract={daoContract}
+              handleErrorMessage={handleErrorMessage} 
+              handleSuccessMessage={handleSuccessMessage}
+              handleSnackBarOpen={handleSnackBarOpen} 
+            />
+          </div>
+            <Grid container justify="center" alignItems="center" spacing={1} className={classes.top}>
+           
               <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
                 <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Fund: {guildBalanceChip} {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '($' + (parseInt(formatNearAmount(guildBalance[0].balance, 2)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : null } </Typography>
               </Grid>
@@ -740,7 +723,7 @@ export default function AppFramework(props) {
               <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
                 <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Total Shares: {totalShares}</Typography>
               </Grid>
-              <Grid item xs={12} sm={12} md={2} lg={2} xl={2}>
+              <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
                 <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Share Value: {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '$' + ((formatNearAmount(guildBalance[0].balance, 2)/totalShares)*nearPrice).toFixed(2) + ' USD' : '$0.00 USD' : null }</Typography>
               </Grid>
             </Grid>
