@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app';
 import { utils } from 'near-api-js'
 import { cancelProposal, processProposal, submitVote, GAS, synchMember, getStatus } from '../../state/near'
+import Fuse from 'fuse.js'
 
 import MemberCard from '../MemberCard/memberCard'
 import ProposalCard from '../ProposalCard/proposalCard'
@@ -12,6 +13,7 @@ import FundingProposalDetails from '../ProposalDetails/fundingProposalDetails'
 import SponsorConfirmation from '../Confirmation/sponsorConfirmation'
 import DonationConfirmation from '../Confirmation/donationConfirmation'
 import RageQuit from '../RageQuit/rageQuit'
+import SearchBar from '../../components/common/SearchBar/search'
 
 // Material UI Components
 import { makeStyles, useTheme, withStyles } from '@material-ui/core/styles'
@@ -29,6 +31,7 @@ import QueueIcon from '@material-ui/icons/Queue'
 import AssignmentTurnedInIcon from '@material-ui/icons/AssignmentTurnedIn'
 import Snackbar from '@material-ui/core/Snackbar'
 import MuiAlert from '@material-ui/lab/Alert'
+import Grid from '@material-ui/core/Grid'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -86,6 +89,7 @@ export default function ProposalList(props) {
   const [memberProposalType, setMemberProposalType] = useState()
   const [sponsorProposalType, setSponsorProposalType] = useState()
   const [paymentRequested, setPaymentRequested] = useState()
+  const [membersArray, setMembersArray] = useState([])
   
   const classes = useStyles()
   const theme = useTheme()
@@ -112,6 +116,7 @@ export default function ProposalList(props) {
     handleUpdate,
     isUpdated,
     totalShares,
+    currentMemberInfo,
 
     tabValue,
     handleTabValueState,
@@ -150,7 +155,12 @@ export default function ProposalList(props) {
     if(allMemberInfo){
       setMemberCount(allMemberInfo.length)
     }
+    if(allMemberInfo && allMemberInfo.length > 0){
+      let members = _.sortBy(allMemberInfo, 'joined')
+      setMembersArray(members)
+    }
    console.log('proposalevents', proposalEvents)
+   console.log('pl currentmemberinfo', currentMemberInfo)
     async function fetchData() {
       let i = 0
       let result
@@ -544,6 +554,7 @@ export default function ProposalList(props) {
           isUpdated={isUpdated}
           active={fr.active}
           totalShares={totalShares}
+          currentMemberInfo={currentMemberInfo}
         />
       )
     })
@@ -748,6 +759,57 @@ export default function ProposalList(props) {
       )
     })
   }
+
+  let dataArray = []
+  function makeArray(data){
+    let i = 0
+    let exists
+    if(data != false){
+        while(i < dataArray.length){
+            if(dataArray[i].contractId == data.contractId){
+                exists = true
+            }
+            i++
+        }
+        if(!exists){
+            dataArray.push(data)
+            setSearchArray(dataArray)
+        }
+        console.log('search array', searchArray)
+    }
+  }
+
+  const searchData = (pattern) => {
+    if (!pattern) {
+        let sortedData = _.sortBy(allMemberInfo, 'joined')
+        setMembersArray(sortedData)
+      
+        return
+    }
+    console.log('searchData', membersArray)
+    
+    const fuse = new Fuse(membersArray, {
+        keys: ['delegateKey'],
+        findAllMatches: true
+    })
+    console.log('fuse', fuse)
+
+    const result = fuse.search(pattern)
+    console.log('fuse result', result)
+
+    const matches = []
+    if (!result.length) {
+        setMembersArray([])
+       
+    } else {
+        result.forEach(({item}) => {
+            matches.push(item)
+    })
+    console.log('matches', matches)
+        setMembersArray(matches)
+       
+    }
+  }
     
   return (
     <>
@@ -873,8 +935,52 @@ export default function ProposalList(props) {
      
     </Paper>
     <TabContext value={tabValue}>
-      <TabPanel value="1" className={classes.root}>
-        {Members}
+      <TabPanel value="1" >
+      <Grid container alignItems="center" justify="space-between" spacing={3} style={{padding: '20px'}} >
+      { membersArray && membersArray.length > 0 ? 
+          (<>
+            {console.log('membersArray', membersArray)}
+            <Grid container alignItems="center" justify="space-between" spacing={0} >
+              <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                <SearchBar
+                    placeholder="Search"
+                    onChange={(e) => searchData(e.target.value)}
+                />
+              </Grid>
+            </Grid>
+          <Grid container alignItems="center" justify="space-evenly" spacing={3} style={{padding: '20px'}}>
+              {membersArray.map((fr, i) => (
+                  <MemberCard 
+                    key={fr.memberId}
+                    accountId={accountId}
+                    accountName={fr.delegateKey}
+                    shares={fr.shares}
+                    delegatedShares={fr.delegatedShares}
+                    receivedDelegations={fr.receivedDelegations}
+                    memberCount={memberCount}
+                    summoner={summoner}
+                    curUserIdx={curUserIdx}
+                    didsContract={didRegistryContract}
+                    appIdx={appIdx}
+                    appClient={appClient}
+                    contractId={contractId}
+                    contractIdx={contractIdx}
+                    joined={fr.joined}
+                    updated={fr.updated}
+                    handleUpdate={handleUpdate}
+                    isUpdated={isUpdated}
+                    active={fr.active}
+                    totalShares={totalShares}
+                    currentMemberInfo={currentMemberInfo}
+                  />
+                ) 
+              )}
+          </Grid>
+      </>)
+      : null
+      } 
+  </Grid>
+      
       </TabPanel>
       <TabPanel value="2" className={classes.root}>
         {Proposals}

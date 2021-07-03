@@ -16,6 +16,7 @@ import InboxIcon from '@material-ui/icons/MoveToInbox';
 import MailIcon from '@material-ui/icons/Mail';
 import MenuIcon from '@material-ui/icons/Menu';
 import IconButton from '@material-ui/core/IconButton';
+import SettingsIcon from '@material-ui/icons/Settings'
 
 const useStyles = makeStyles({
   list: {
@@ -38,6 +39,7 @@ export default function RightSideDrawer(props) {
   const {
     accountId,
     contract,
+    currentPeriod,
     handleSnackBarOpen,
     handleSuccessMessage,
     handleErrorMessage
@@ -71,6 +73,7 @@ export default function RightSideDrawer(props) {
           handleSuccessMessage={handleSuccessMessage}
           handleErrorMessage={handleErrorMessage}
           accountId={accountId}
+          currentPeriod={currentPeriod}
            />
       </List>
     </div>
@@ -89,7 +92,7 @@ export default function RightSideDrawer(props) {
             edge="start"
             className={clsx(classes.menuButton, open && classes.hide)}
           >
-            <MenuIcon />
+            <SettingsIcon />
           </IconButton>
           
           <Drawer anchor={anchor} open={state[anchor]} onClose={toggleDrawer(anchor, false)}>

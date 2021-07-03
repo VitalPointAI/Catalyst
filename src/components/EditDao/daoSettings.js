@@ -9,6 +9,8 @@ import Typography from '@material-ui/core/Typography'
 import Button from '@material-ui/core/Button'
 import LinearProgress from '@material-ui/core/LinearProgress'
 import Grid from '@material-ui/core/Grid'
+import Chip from '@material-ui/core/Chip'
+import AccessTimeIcon from '@material-ui/icons/AccessTime'
 
 import './daoSettings.css'
 
@@ -49,7 +51,8 @@ export default function EditInitSettings(props) {
     const { register, handleSubmit, watch, errors } = useForm()
 
     const { 
-      contract, 
+      contract,
+      currentPeriod,
       handleEditSettingsClick,
       handleErrorMessage,
       handleSuccessMessage,
@@ -188,7 +191,7 @@ export default function EditInitSettings(props) {
          
           
                <div className={classes.root}>
-                 
+                  <Chip variant="outlined" icon={<AccessTimeIcon />} label={'Period: ' + currentPeriod} />
                   <Typography variant="h5" component="h2" >DAO Settings</Typography>
                   {!finished ? <LinearProgress className={classes.progress} /> : (
                   <form className={classes.rootForm} noValidate autoComplete="off" onSubmit={handleSubmit(onSubmit)}>

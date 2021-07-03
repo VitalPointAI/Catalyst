@@ -66,7 +66,8 @@ export default function MemberCard(props) {
       didRegistryContract,
       near, 
       appIdx,
-      accountId
+      accountId,
+      isUpdated,
     } = state
 
     const classes = useStyles();
@@ -76,6 +77,7 @@ export default function MemberCard(props) {
       shares,
       delegatedShares,
       receivedDelegations,
+      currentMemberInfo,
       memberCount,
       totalShares,
       active,
@@ -86,12 +88,13 @@ export default function MemberCard(props) {
       contractId
     } = useParams()
     
-
+console.log('mc currentmemberinfo', currentMemberInfo)
+console.log('delegatedshares', delegatedShares)
     useEffect(
         () => {
          
         async function fetchData() {
-          state.isUpdated
+          isUpdated
           if(accountName && state){
             const thisPersona = new Persona()
             let result = await thisPersona.getPersona(accountName)
@@ -109,8 +112,11 @@ export default function MemberCard(props) {
             console.log('received delegs', parseInt(receivedDelegations))
             console.log('combinedshares', combinedShares)
             setAllShares(combinedShares)
-
-            let currentMaxDelegation = combinedShares - parseInt(delegatedShares)
+          }
+          if(currentMemberInfo && currentMemberInfo.length > 0){
+            console.log('currentmemberinfo', currentMemberInfo)
+            let currentMaxDelegation = parseInt(currentMemberInfo[0].shares) - parseInt(currentMemberInfo[0].delegatedShares)
+            console.log('currentmaxdelegation', currentMaxDelegation)
             setMaxDelegation(currentMaxDelegation)
           }
         }
@@ -120,7 +126,7 @@ export default function MemberCard(props) {
            
           })
 
-    }, [avatar, state.isUpdated]
+    }, [avatar, isUpdated]
     )
     
     function formatDate(timestamp) {
@@ -162,15 +168,16 @@ export default function MemberCard(props) {
           onClick={handleMemberProfileDisplayClick}
           >
             <Avatar src={avatar} className={classes.large}  />
-            <center><Chip label={name != '' ? name : accountName} style={{marginBottom: '3px'}}/><br></br>
-            <Chip variant="outlined" label={accountName} style={{fontSize: '60%'}}/></center>
+            <center><Chip label={name != '' ? name : accountName} style={{marginBottom: '3px'}}/></center>
           </Button>
         </Grid>
          
           <CardHeader
           subheader={ <><center>
           <Typography variant="overline" align="center">Joined: {formatDate(joined)}</Typography><br></br>
-          <Typography variant="overline" align="center">{active ? 'Active' : 'Inactive'}</Typography></center></>}
+          <Typography variant="overline" align="center">{active ? 'Active' : 'Inactive'}
+          {summoner == accountName ? <Chip size="small" color="secondary" label='summoner' style={{marginLeft: '10px'}}/> : null}
+          </Typography></center></>}
           className={classes.header}
           />
  
@@ -178,6 +185,7 @@ export default function MemberCard(props) {
             <Grid container alignItems="center" style={{marginTop: '-20px', marginBottom:'20px', display:'inherit'}}>
              
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '20px', marginBottom:'30px'}}>
+              <center><Chip label={accountName} variant="outlined" style={{marginBottom: '3px'}}/></center>
               <TableContainer component={Paper}>
               <Table className={classes.table} size="small" aria-label="a dense table">
                 
@@ -215,15 +223,18 @@ export default function MemberCard(props) {
             </Grid>
             </Grid>
           </CardContent>
-          {summoner == accountName ? <center><Chip size="small" color="secondary" label='summoner' style={{marginTop: '-30px'}}/></center> : null}
-          <CardActions>
+          <CardActions style={{marginTop: '-40px'}}>
           {accountId != accountName ? (
             <Button
             color="primary"
             onClick={handleDelegationClick}>
-              Delegate Votes
+              Delegate To
             </Button>
-          ) : null }
+          ) :  <Button
+          color="primary"
+          onClick={handleDelegationClick}>
+            Manage Delegations
+          </Button> }
           </CardActions>
         </Card>
 

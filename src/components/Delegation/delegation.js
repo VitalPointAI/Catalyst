@@ -100,6 +100,7 @@ export default function Delegation(props) {
       delegate(
         state.wallet,
         contractId,
+        state.accountId,
         receiver,
         quantity
         )

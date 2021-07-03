@@ -701,13 +701,13 @@ export async function makeDonation(wallet, contractId, donationToken, contributo
 }
 
 // Make a Donation
-export async function delegate(wallet, contractId, receiver, quantity) {
+export async function delegate(wallet, contractId, delegator, receiver, quantity) {
     const daoContract = await dao.initDaoContract(wallet.account(), contractId)
    
     try {
         // set trigger for to log new delegation
         let newDelegation = get(NEW_DELEGATION, [])
-        newDelegation.push({contractId: contractId, receiver: receiver, quantity: quantity, new: true})
+        newDelegation.push({contractId: contractId, delegator: delegator, receiver: receiver, quantity: quantity, new: true})
         set(NEW_DELEGATION, newDelegation)
 
         await daoContract.delegate({
@@ -1327,6 +1327,126 @@ export async function logExitEvent (contractId, curDaoIdx, daoContract, accountI
         memberLogged = true    
     }
     if(memberLogged){
+        return true
+    } else {
+        return false
+    }
+}
+
+// Logs the a vote delegation event
+export async function logDelegationEvent (contractId, curDaoIdx, daoContract, delegator, receiver, transactionHash) {
+    let delegatorLogged = false
+    let receiverLogged = false
+
+    let delegatorAccount
+    try {
+        delegatorAccount = await daoContract.getMemberInfo({member: delegator})
+        console.log('delegatorAccount', delegatorAccount)
+    } catch (err) {
+        console.log('no delegatorAccount exists', err)
+        return true
+    }
+
+    let receiverAccount
+    try {
+        receiverAccount = await daoContract.getMemberInfo({member: receiver})
+        console.log('receiverAccount', receiverAccount)
+    } catch (err) {
+        console.log('no receiver account exists', err)
+        return true
+    }
+   
+    // Retrieve Members
+    let memberEventRecord
+    try {
+        memberEventRecord = await curDaoIdx.get('members', curDaoIdx.id)
+        console.log('delegate membereventrecord', memberEventRecord)
+    } catch (err) {
+        console.log('no delegate membereventrecords', err)
+        return true
+    }
+
+    // update delegator
+    if(delegatorAccount && delegatorAccount.length > 0 && memberEventRecord){
+       
+        // Update an existing member- updating delegations
+        let i = 0
+        while (i < memberEventRecord.events.length){
+            if(memberEventRecord.events[i].delegateKey == delegatorAccount[0].delegateKey){
+                let updatedMemberRecord = {
+                    memberId: memberEventRecord.events[i].memberId,
+                    contractId: contractId,
+                    delegateKey: delegatorAccount[0].delegateKey,
+                    shares: delegatorAccount[0].shares,
+                    delegatedShares: delegatorAccount[0].delegatedShares,
+                    receivedDelegations: delegatorAccount[0].receivedDelegations,
+                    loot: delegatorAccount[0].loot,
+                    existing: delegatorAccount[0].existing,
+                    highestIndexYesVote: delegatorAccount[0].highestIndexYesVote,
+                    jailed: delegatorAccount[0].jailed,
+                    joined: parseInt(delegatorAccount[0].joined),
+                    updated: parseInt(delegatorAccount[0].updated),
+                    active: delegatorAccount[0].active
+                    }
+
+                memberEventRecord.events[i] = updatedMemberRecord
+
+                try {
+                    await curDaoIdx.set('members', memberEventRecord)
+                    delegatorLogged = true
+                    break
+                } catch (err) {
+                    console.log('error updating delegator', err)
+                }
+            }
+        i++
+        }
+    } else {
+        // member doesn't exist so set to true so flag is updated, doesn't keep trying to log
+        delegatorLogged = true    
+    }
+
+     // update receiver
+     if(receiverAccount && receiverAccount.length > 0 && memberEventRecord){
+       
+        // Update an existing member- updating delegations
+        let i = 0
+        while (i < memberEventRecord.events.length){
+            if(memberEventRecord.events[i].delegateKey == receiverAccount[0].delegateKey){
+                let updatedMemberRecord = {
+                    memberId: memberEventRecord.events[i].memberId,
+                    contractId: contractId,
+                    delegateKey: receiverAccount[0].delegateKey,
+                    shares: receiverAccount[0].shares,
+                    delegatedShares: receiverAccount[0].delegatedShares,
+                    receivedDelegations: receiverAccount[0].receivedDelegations,
+                    loot: receiverAccount[0].loot,
+                    existing: receiverAccount[0].existing,
+                    highestIndexYesVote: receiverAccount[0].highestIndexYesVote,
+                    jailed: receiverAccount[0].jailed,
+                    joined: parseInt(receiverAccount[0].joined),
+                    updated: parseInt(receiverAccount[0].updated),
+                    active: receiverAccount[0].active
+                    }
+
+                memberEventRecord.events[i] = updatedMemberRecord
+
+                try {
+                    await curDaoIdx.set('members', memberEventRecord)
+                    receiverLogged = true
+                    break
+                } catch (err) {
+                    console.log('error updating receiver', err)
+                }
+            }
+        i++
+        }
+    } else {
+        // member doesn't exist so set to true so flag is updated, doesn't keep trying to log
+        receiverLogged = true    
+    }
+
+    if(delegatorLogged && receiverLogged){
         return true
     } else {
         return false
@@ -2218,6 +2338,9 @@ export async function logDonationEvent (curDaoIdx, daoContract, donationId, cont
         return false
     }
 }
+
+
+
 
 export const hasKey = async (key, accountId, near) => {
     const keyPair = KeyPair.fromString(key)

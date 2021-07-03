@@ -10,6 +10,7 @@ import { logInitEvent,
   logProcessEvent, 
   logVoteEvent,
   logDonationEvent,
+  logDelegationEvent,
   logExitEvent,
   synchProposalEvent, 
   synchMember } from '../../state/near'
@@ -24,7 +25,7 @@ import Initialize from '../Initialize/initialize'
 import { dao } from '../../utils/dao'
 import { ceramic } from '../../utils/ceramic'
 
-import { NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE, NEW_DONATION, NEW_EXIT } from '../../state/near'
+import { NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE, NEW_DONATION, NEW_EXIT, NEW_DELEGATION } from '../../state/near'
 
 // Material UI imports
 import { makeStyles } from '@material-ui/core/styles'
@@ -32,11 +33,12 @@ import Typography from '@material-ui/core/Typography'
 import Grid from '@material-ui/core/Grid'
 import Divider from '@material-ui/core/Divider'
 import Chip from '@material-ui/core/Chip'
-import AccessTimeIcon from '@material-ui/icons/AccessTime'
 import CheckCircleIcon from '@material-ui/icons/CheckCircle'
 import NotInterestedIcon from '@material-ui/icons/NotInterested'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
+import Card from '@material-ui/core/Card'
+
 
 const axios = require('axios').default
 
@@ -348,6 +350,29 @@ export default function AppFramework(props) {
                      a++
                    }
 
+                   // check for successfully added delegation and log it
+                   let newDelegation = get(NEW_DELEGATION, [])
+                 
+                   let l = 0
+                   while(l < newDelegation.length){
+                     if(newDelegation[l].contractId==contractId && newDelegation[l].new == true){
+                       let loggedDelegation = await logDelegationEvent(
+                         contractId,
+                         thisCurDaoIdx, 
+                         contract,
+                         newDelegation[l].delegator,
+                         newDelegation[l].receiver,
+                         transactionHash)
+                         
+                       if (loggedDelegation) {
+                         newDelegation[l].new = false
+                         set(NEW_DELEGATION, newDelegation)
+                         setChange(!change)
+                       }
+                     }
+                     l++
+                   }
+
                   // For debugging
                   //  let proposalCheck= await contract.getProposal({proposalId: 0})
                   //  console.log('proposalCheck', proposalCheck)
@@ -591,6 +616,49 @@ export default function AppFramework(props) {
             {initLoad == false ? <CircularProgress /> :
             initialized == 'done' ? (
               <>
+              {matches ? (<>
+                <Grid container justify="space-evenly" alignItems="center" style={{marginBottom:'15px'}} spacing={0}>
+                  <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" style={{marginBottom: '15px'}}>
+                    <div style={{float:'right',marginTop:'-8px',marginLeft:'5px'}}>
+                    <RightSideDrawer
+                      state={state}
+                      currentPeriod={currentPeriod}
+                      accountId={state.accountId} 
+                      contract={daoContract}
+                      handleErrorMessage={handleErrorMessage} 
+                      handleSuccessMessage={handleSuccessMessage}
+                      handleSnackBarOpen={handleSnackBarOpen} 
+                    />
+                    </div>
+                    
+                    <Chip variant="outlined" label="Member" icon={memberIcon} />
+                    <Chip variant="outlined" label={sharesLabel}  />
+                    <Chip variant="outlined" label={fairShareLabel}  />
+                </Grid>
+                  <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
+                    <ActionSelector 
+                      handleProposalEventChange={handleProposalEventChange}
+                      handleEscrowBalanceChanges={handleEscrowBalanceChanges}
+                      handleGuildBalanceChanges={handleGuildBalanceChanges}
+                      handleUserBalanceChanges={handleUserBalanceChanges}
+                      handleTabValueState={handleTabValueState}
+                      accountId={state.accountId}
+                      tokenName={tokenName}
+                      depositToken={depositToken}
+                      minSharePrice={minSharePrice}
+                      daoContract={daoContract}
+                      proposalDeposit={proposalDeposit}
+                      didsContract={didsContract}
+                      contractIdx={contractIdx}
+                      curUserIdx={curUserIdx}
+                      memberStatus={memberStatus}
+                      fairShare={currentShare}
+                    />
+                  </Grid>
+              
+            </Grid></>
+              )
+              : (<>
             <Grid container justify="space-evenly" alignItems="center" style={{marginBottom:'15px'}} spacing={0}>
               <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
               <div style={{marginLeft: '10px'}}>
@@ -616,10 +684,11 @@ export default function AppFramework(props) {
               </Grid>
               <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
               <div style={{float:'right'}}>
-              {summoner == state.accountId ? (
-                <div style={{float:'right',marginTop:'-5px',marginLeft:'5px'}}>
+            
+                <div style={{float:'right',marginTop:'-8px',marginLeft:'5px'}}>
                 <RightSideDrawer
                   state={state}
+                  currentPeriod={currentPeriod}
                   accountId={state.accountId} 
                   contract={daoContract}
                   handleErrorMessage={handleErrorMessage} 
@@ -627,31 +696,32 @@ export default function AppFramework(props) {
                   handleSnackBarOpen={handleSnackBarOpen} 
                 />
                 </div>
-                ) : null }
+                
                 <Chip variant="outlined" label="Member" icon={memberIcon} />
                 <Chip variant="outlined" label={sharesLabel}  />
                 <Chip variant="outlined" label={fairShareLabel}  />
-                <Chip variant="outlined" icon={<AccessTimeIcon />} label={'Period: ' + currentPeriod} />
+               
                
                 </div>
               </Grid>
+            </Grid></>
+              )}
+          <Card align="center" style={{width: '100%'}}>
+            <Grid container justify="center" alignItems="center" spacing={1} className={classes.top}> 
+              <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
+                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Fund: {guildBalanceChip} {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '($' + (parseInt(formatNearAmount(guildBalance[0].balance, 2)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : null } </Typography>
+              </Grid>
+              <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
+                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Escrow: {escrowBalanceChip} {escrowBalance && escrowBalance.length > 0 ? escrowBalance[0].balance > 0 ? '($' + (parseInt(formatNearAmount(escrowBalance[0].balance, 2)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : null }</Typography>
+              </Grid>
+              <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
+                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Total Shares: {totalShares}</Typography>
+              </Grid>
+              <Grid item xs={12} sm={12} md={2} lg={2} xl={2}>
+                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Share Value: {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '$' + ((formatNearAmount(guildBalance[0].balance, 2)/totalShares)*nearPrice).toFixed(2) + ' USD' : '$0.00 USD' : null }</Typography>
+              </Grid>
             </Grid>
-        
-          <Grid container justify="center" alignItems="center" spacing={1} className={classes.top}> 
-            <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
-              <Typography variant="h6" color="textPrimary" align="center">Fund: {guildBalanceChip} {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '($' + (parseInt(formatNearAmount(guildBalance[0].balance, 2)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : null } </Typography>
-            </Grid>
-            <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
-              <Typography variant="h6" color="textPrimary" align="center">Escrow: {escrowBalanceChip} {escrowBalance && escrowBalance.length > 0 ? escrowBalance[0].balance > 0 ? '($' + (parseInt(formatNearAmount(escrowBalance[0].balance, 2)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : null }</Typography>
-            </Grid>
-            <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
-              <Typography variant="h6" color="textPrimary" align="center">Total Shares: {totalShares}</Typography>
-            </Grid>
-            <Grid item xs={12} sm={12} md={2} lg={2} xl={2}>
-              <Typography variant="h6" color="textPrimary" align="center">Share Value: {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '$' + ((formatNearAmount(guildBalance[0].balance, 2)/totalShares)*nearPrice).toFixed(2) + ' USD' : '$0.00 USD' : null }</Typography>
-            </Grid>
-          </Grid>
-          
+          </Card>
           <Divider variant="middle" align="center" style={{width:'75%', margin: 'auto'}}/>
 
           <Grid container justify="space-evenly" alignItems="center" spacing={1} >
@@ -668,6 +738,7 @@ export default function AppFramework(props) {
                 handleUpdate={handleUpdate}
                 isUpdated={isUpdated}
                 totalShares={totalShares}
+                currentMemberInfo={memberInfo}
                
         
 
