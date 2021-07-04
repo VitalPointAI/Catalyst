@@ -100,7 +100,7 @@ export default function MemberProposalForm(props) {
         handleProposalDetailsEmptyClickState,
         contract
     } = props
-    console.log('memberproposalid', memberProposalId)
+   
     const classes = useStyles()
 
     useEffect(() => {

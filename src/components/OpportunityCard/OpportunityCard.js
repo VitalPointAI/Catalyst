@@ -103,8 +103,6 @@ export default function OpportunityCard(props) {
 
     const data = new Persona()
 
-    console.log('state', state)
-
     useEffect(
         () => {
          
@@ -114,11 +112,9 @@ export default function OpportunityCard(props) {
             if(contractId){
               let thisCurDaoIdx
               let daoAccount = new nearAPI.Account(near.connection, contractId)
-                 console.log('daoAccount', daoAccount)
-                 console.log('appidx', appIdx)
-                 console.log('contract', didRegistryContract)
+               
               thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
-              console.log('thiscurdaoidx', thisCurDaoIdx)
+            
               setCurDaoIdx(thisCurDaoIdx)
             }
           }
@@ -134,9 +130,9 @@ export default function OpportunityCard(props) {
             
             try {
               let thisMemberInfo = await contract.getMemberInfo({member: accountId})
-              console.log('opp member info', thisMemberInfo)
+          
               let thisMemberStatus = await contract.getMemberStatus({member: accountId})
-              console.log('opp member status', thisMemberStatus)
+             
               if(thisMemberStatus && thisMemberInfo[0].active){
                 setMemberStatus(true)
               } else {
@@ -159,7 +155,7 @@ export default function OpportunityCard(props) {
 
             // Get Persona data
             let result = await data.getPersona(creator)
-            console.log('opp result', result)
+        
             if(result){
               result.date ? setDate(result.date) : setDate('')
               result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)

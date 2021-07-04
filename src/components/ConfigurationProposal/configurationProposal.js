@@ -5,6 +5,12 @@ import { makeStyles } from '@material-ui/core/styles'
 import { submitProposal, formatNearAmount, parseNearAmount } from '../../state/near'
 import { appStore, onAppMount } from '../../state/app'
 
+// ReactQuill Component
+import ReactQuill from 'react-quill';
+
+// CSS Styles
+import '../../../node_modules/react-quill/dist/quill.snow.css'
+
 // Material UI components
 import Button from '@material-ui/core/Button'
 import TextField from '@material-ui/core/TextField'
@@ -70,7 +76,6 @@ export default function ConfigurationProposal(props) {
 
   const [open, setOpen] = useState(true)
   const [finished, setFinished] = useState(true)
-  const [applicant, setApplicant] = useState(props.accountId)
   const [funding, setFunding] = useState('')
   const [confirm, setConfirm] = useState(false)
 
@@ -177,7 +182,7 @@ export default function ConfigurationProposal(props) {
         depositToken,
         parseNearAmount(proposalDeposit),
         'Configuration',
-        applicant,
+        accountId,
         '0',
         '0',
         '0',

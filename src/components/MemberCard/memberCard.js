@@ -94,8 +94,7 @@ export default function MemberCard(props) {
       contractId
     } = useParams()
     
-console.log('mc currentmemberinfo', currentMemberInfo)
-console.log('delegatedshares', delegatedShares)
+
     useEffect(
         () => {
          
@@ -112,7 +111,7 @@ console.log('delegatedshares', delegatedShares)
           if(accountName && state){
             const thisPersona = new Persona()
             let result = await thisPersona.getPersona(accountName)
-            console.log('result member', result)
+        
             if(result){
               result.date ? setDate(result.date) : setDate('')
               result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
@@ -122,15 +121,13 @@ console.log('delegatedshares', delegatedShares)
           }
           if(shares){
             let combinedShares = parseInt(shares) + parseInt(receivedDelegations)
-            console.log('shares', parseInt(shares))
-            console.log('received delegs', parseInt(receivedDelegations))
-            console.log('combinedshares', combinedShares)
+           
             setAllShares(combinedShares)
           }
           if(currentMemberInfo && currentMemberInfo.length > 0){
-            console.log('currentmemberinfo', currentMemberInfo)
+           
             let currentMaxDelegation = parseInt(currentMemberInfo[0].shares) - parseInt(currentMemberInfo[0].delegatedShares)
-            console.log('currentmaxdelegation', currentMaxDelegation)
+         
             setMaxDelegation(currentMaxDelegation)
           }
         }

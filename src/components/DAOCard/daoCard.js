@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 import { get, set, del } from '../../utils/storage'
 import { ceramic } from '../../utils/ceramic'
+import { dao } from '../../utils/dao'
 import { IDX } from '@ceramicstudio/idx'
 import EditDaoForm from '../EditDao/editDao'
 import AppFramework from '../AppFramework/appFramework'
@@ -20,6 +21,9 @@ import Typography from '@material-ui/core/Typography'
 import { red } from '@material-ui/core/colors'
 import Button from '@material-ui/core/Button'
 import { CardHeader, LinearProgress } from '@material-ui/core'
+import CheckCircleIcon from '@material-ui/icons/CheckCircle'
+import NotInterestedIcon from '@material-ui/icons/NotInterested'
+import Chip from '@material-ui/core/Chip'
 
 import { config } from '../../state/config'
 
@@ -71,6 +75,8 @@ export default function DaoCard(props) {
     const [did, setDid] = useState()
     const [finished, setFinished] = useState(false)
     const [created, setCreated] = useState()
+    const [amemberStatus, setaMemberStatus] = useState() 
+    const [memberIcon, setMemberIcon] = useState(<NotInterestedIcon />)
 
     const classes = useStyles();
 
@@ -78,13 +84,15 @@ export default function DaoCard(props) {
       summoner,
       contractId,
       link,
+      contract,
       makeSearchDaos
    } = props
  
    const {
      near,
      didRegistryContract,
-     appIdx
+     appIdx, 
+     accountId
    } = state
 
    const Dao = new Persona()
@@ -98,6 +106,16 @@ export default function DaoCard(props) {
            console.log('contractid', contractId)
            let result = await Dao.getDao(contractId)
            console.log('result dao', result)
+           let memberStatus
+           try{
+            let contract = await dao.initDaoContract(state.wallet.account(), contractId)
+            memberStatus = await contract.getMemberStatus({member: accountId})
+            console.log('daocard memberstatus', memberStatus)
+            setaMemberStatus(memberStatus)
+            memberStatus ? setMemberIcon(<CheckCircleIcon />) : setMemberIcon(<NotInterestedIcon />)
+           } catch (err) {
+             console.log('error retrieving member status', err)
+           }
            if(result){
                   result.name != '' ? setsName(result.name) : setsName('')
                   result.date ? setsDate(result.date) : setsDate('')
@@ -105,8 +123,10 @@ export default function DaoCard(props) {
                   result.purpose != '' ? setsPurpose(result.purpose) : setsPurpose('')
                   result.category != '' ? setsCategory(result.category) : setsCategory('')
                   result.owner != '' ? setOwner(result.owner) : setOwner('')
+                  result.status = memberStatus
                  
            }
+           
            makeSearchDaos(result)
          }
         setFinished(false)
@@ -173,6 +193,7 @@ export default function DaoCard(props) {
                   {finished ? (<span style={{fontSize: '80%'}}>Updated: {sdate}</span>) : <LinearProgress />}<br></br>
                   {scategory ? (<span style={{fontSize: '80%'}}>Category: {scategory}</span>): (<span style={{fontSize: '80%'}}>Category: Undefined</span>)}
                 </Typography>
+                <Chip variant="outlined" label="Member" icon={memberIcon} style={{marginTop: '10px'}}/>
               </CardContent>
               <CardActions>
                 <Link to={`/dao/${contractId}`}>
@@ -185,6 +206,7 @@ export default function DaoCard(props) {
                   Edit Details
                 </Button>
                 ) : null }
+               
               </CardActions>
             </Card>
           ) 

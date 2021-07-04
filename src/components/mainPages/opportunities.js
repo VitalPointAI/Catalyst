@@ -58,7 +58,7 @@ export default function Opportunities(props) {
             if(contractId){
               let Persona = new Personas()
               let opportunities = await Persona.getOpportunities(contractId)
-              console.log('opportunities', opportunities)
+            
               setOpportunities(opportunities.opportunities)
             }
 
@@ -73,7 +73,7 @@ export default function Opportunities(props) {
         let Persona = new Personas()
         let opportunities = await Persona.getOpportunities(contractId)
         let sortedOpportunities = _.sortBy(opportunities.opportunities, 'submitDate').reverse()
-        console.log('sorted opps', sortedOpportunities)
+       
         setOpportunities(sortedOpportunities)
         return
       }     
@@ -114,7 +114,7 @@ export default function Opportunities(props) {
           
             {opportunities && opportunities.length > 0 ?
               opportunities.map((fr, i) => {
-                console.log('opportunity fr', fr)
+              
                 return(
                   <OpportunityCard 
                     key={i}

@@ -104,13 +104,7 @@ export default function FundingProposalDetails(props) {
             // Get Applicant Persona Information
            
             if(applicant){                           
-                  // let result = await curPersonaIdx.get('profile', curPersonaIdx.id)
-                  // console.log('result proposal details persona card', result)
-                  
-                  // if(result){
-                  //   result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-                  //   result.name ? setName(result.name) : setName('')
-                  // }
+               
                   const thisPersona = new Persona()
                   let result = await thisPersona.getPersona(applicant)
                       if(result){
@@ -123,7 +117,7 @@ export default function FundingProposalDetails(props) {
             // Set Existing Proposal Data       
             if(curDaoIdx){
               let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
-              console.log('propResult', propResult)
+         
               if(propResult) {
                 let i = 0
                 while (i < propResult.proposals.length){
@@ -143,7 +137,7 @@ export default function FundingProposalDetails(props) {
               if(!commentResult){
                 commentResult = { comments: [] }
               }
-              console.log('commentResult', commentResult)
+          
               if(commentResult && Object.keys(commentResult).length != 0) {
                 let j = 0
                 let comments = []
@@ -153,7 +147,7 @@ export default function FundingProposalDetails(props) {
                   }
                   j++
                 }
-                console.log('comments', comments)
+             
                 setProposalComments(comments)
               }
             }
@@ -182,7 +176,7 @@ export default function FundingProposalDetails(props) {
     console.log('proposalComments', proposalComments)
     if (proposalComments && proposalComments.length > 0) {
         Comments = proposalComments.map(comment => {
-            console.log('comments map', comment)
+      
             return (
                     <CommentDetails
                         key={comment.commentId}

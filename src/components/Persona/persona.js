@@ -91,10 +91,10 @@ export default function PersonaInfo(props) {
             setFinished(false)
             if(state) {
                 state.isUpdated
-                console.log('currentdaoslist', currentDaosList)
+            
                 if (curUserIdx){
                     let result = await curUserIdx.get('profile', curUserIdx.id)
-                    console.log('result', result)
+              
                     if(result){
                         result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                     }

@@ -103,48 +103,36 @@ export default function PersonaCard(props) {
              
               // Set Card Persona Idx
               if(accountId && near && didRegistryContract){
-                console.log('did contract', didRegistryContract)
+             
                   let existingDid = await didRegistryContract.hasDID({accountId: accountId})
-                  console.log('existing did', existingDid)
+               
                   if(existingDid){
                      
                       let personaAccount = new nearAPI.Account(near.connection, accountId)
 
-                      // let ownerAccounts = get(ACCOUNT_LINKS, [])
-                      // let b = 0
-                      // let owner
-                      // while(b < ownerAccounts.length) {
-                      //     if(ownerAccounts[b].accountId == accountId){
-                      //     owner = ownerAccounts[b].owner
-                      //     break
-                      //     }
-                      // b++
-                      // }
-                      // const ownerAccount = new nearAPI.Account(near.connection, owner)
-                      // const ownerIdx = await ceramic.getCurrentUserIdx(ownerAccount, appIdx, didRegistryContract, owner)
+                    
                       let thisCurPersonaIdx
                       try{
                         thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, didRegistryContract)
-                        console.log('thiscurpersonaidx', thisCurPersonaIdx)
+                       
                         setCurUserIdx(thisCurPersonaIdx)
                       } catch (err) {
                         console.log('error retrieving idx', err)
                       }
 
                       let i = 0
-                      console.log('state claimed', state.claimed)
+                   
                       while (i < state.claimed.length) {
                         if(state.claimed[i].accountId == accountId){
                           setClaimed(true)
-                          console.log('claimed', claimed)
-                          console.log('account', accountId)
+                         
                           break
                         }
                         i++
                       }
                   
                       let result = await thisCurPersonaIdx.get('profile', thisCurPersonaIdx.id)
-                      console.log('persona result', result)
+                    
                       if(result){
                         result.date ? setDate(result.date) : setDate('')
                         result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
