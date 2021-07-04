@@ -28,11 +28,26 @@ import Opportunities from './components/mainPages/opportunities'
 
 // Material-UI Components
 import { CircularProgress } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
+import Typography from '@material-ui/core/Typography'
 
 // helpers
 export const btnClass = 'btn btn-sm btn-outline-primary mb-3 '
 export const flexClass = 'd-flex justify-content-evenly align-items-center '
 export const qs = (s) => document.querySelector(s)
+
+const useStyles = makeStyles((theme) => ({
+    centered: {
+      width: '200px',
+      height: '100px',
+      textAlign: 'center',
+      position: 'fixed',
+      top: '50%',
+      left: '50%',
+      marginTop: '-200px',
+      marginLeft: '-100px'
+    },
+    }));
 
 const App = () => {
     const { state, dispatch, update } = useContext(appStore)
@@ -42,6 +57,7 @@ const App = () => {
     const [successMessage, setSuccessMessage] = useState()
     const [snackBarOpen, setSnackBarOpen] = useState(false)
    
+    const classes = useStyles()
 
     const onMount = () => {
         dispatch(onAppMount());
@@ -77,7 +93,7 @@ const App = () => {
     let children = null
 
     if (!accountData || !wallet) {
-        children = <CircularProgress />
+        children = <div className={classes.centered}><CircularProgress/><br></br><Typography variant="h6">Setting Things Up...</Typography></div>
     }
 
     if (accountData) {

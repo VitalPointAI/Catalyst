@@ -25,7 +25,7 @@ import Initialize from '../Initialize/initialize'
 import { dao } from '../../utils/dao'
 import { ceramic } from '../../utils/ceramic'
 
-import { NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE, NEW_DONATION, NEW_EXIT, NEW_DELEGATION, NEW_REVOCATION } from '../../state/near'
+import { NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE, NEW_DONATION, NEW_EXIT, NEW_DELEGATION, NEW_REVOCATION, hasKey } from '../../state/near'
 
 // Material UI imports
 import { makeStyles } from '@material-ui/core/styles'
@@ -57,6 +57,16 @@ const useStyles = makeStyles((theme) => ({
     position: 'relative',
     display: 'flex',
     flexDirection: 'column'
+  },
+  centered: {
+    width: '200px',
+    height: '100px',
+    textAlign: 'center',
+    position: 'fixed',
+    top: '50%',
+    left: '50%',
+    marginTop: '-200px',
+    marginLeft: '-100px'
   },
     top: {
       marginBottom: '10px',
@@ -158,7 +168,13 @@ export default function AppFramework(props) {
 
               if(contractId){
                 let thisCurDaoIdx
-                let daoAccount = new nearAPI.Account(near.connection, contractId)
+                let daoAccount
+                try{
+                  daoAccount = new nearAPI.Account(near.connection, contractId)
+                } catch (err) {
+                  console.log('no account', err)
+                }
+               
                 thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
                
                 setCurDaoIdx(thisCurDaoIdx)
@@ -406,7 +422,7 @@ export default function AppFramework(props) {
                     let synched = await synchProposalEvent(thisCurDaoIdx, contract)
                     if(synched){
                         proposals = await thisCurDaoIdx.get('proposals', thisCurDaoIdx.id)
-                      
+                     
                       setAllProposals(proposals.events)
                     }
                   } catch (err) {
@@ -580,10 +596,13 @@ export default function AppFramework(props) {
                   
                 }
                 
-              }    
+              } 
+               
+              
             }  
           }
 
+        
           fetchData()
           .then((res) => {
           })
@@ -628,7 +647,7 @@ export default function AppFramework(props) {
             <div className={classes.root}>
             <Header state={state} />
             <Grid container style={{padding:'20px'}}>
-            {initLoad == false ? <CircularProgress /> :
+            {initLoad == false ? <div className={classes.centered}><CircularProgress/><br></br><Typography variant="h6">Setting Things Up...</Typography></div> :
             initialized == 'done' ? (
               <>
               {matches ? (<>

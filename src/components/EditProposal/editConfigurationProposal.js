@@ -273,6 +273,14 @@ export default function EditConfigurationProposalForm(props) {
                           {configuration.length > 0 ? configuration[4] : <CircularProgress />}
                         </TableCell>
                       </TableRow>
+                      <TableRow>
+                      <TableCell component="th" scope="row">
+                        Vote Threshold
+                      </TableCell>
+                      <TableCell>
+                        {configuration.length > 0 ? configuration[5] : <CircularProgress />}%
+                      </TableCell>
+                    </TableRow>
                               
                     </TableBody>
                   </Table>

@@ -66,8 +66,13 @@ export default function Logo(props) {
             }
             let thisCurDaoIdx
             if(near && contractId){
-                let daoAccount = new nearAPI.Account(near.connection, contractId)
-                console.log('daoAccount', daoAccount)
+                let daoAccount
+                try{
+                    daoAccount = new nearAPI.Account(near.connection, contractId)
+                } catch (err) {
+                    console.log('dao account does not exist', err)
+                  
+                }
                     
                 thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
                 console.log('thiscurdaoIdx logo', thisCurDaoIdx)

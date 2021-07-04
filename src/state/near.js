@@ -435,7 +435,7 @@ export const keyRotation = () => async ({ update, getState, dispatch }) => {
 }
 
 // Initializes a DAO by setting its key components
-export async function initDao(wallet, contractId, periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound, summonerContribution) {
+export async function initDao(wallet, contractId, periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound, voteThreshold, summonerContribution) {
 
     try {
         const daoContract = await dao.initDaoContract(wallet.account(), contractId)
@@ -451,6 +451,7 @@ export async function initDao(wallet, contractId, periodDuration, votingPeriodLe
             _gracePeriodLength: parseInt(gracePeriodLength),
             _proposalDeposit: proposalDeposit,
             _dilutionBound: parseInt(dilutionBound),
+            _voteThreshold: parseInt(voteThreshold),
             _shares: summonerContribution,
             _contractId: contractId
         }, GAS, parseNearAmount(summonerContribution))
@@ -463,7 +464,7 @@ export async function initDao(wallet, contractId, periodDuration, votingPeriodLe
 }
 
 // Submits new DAO settings from summoner if only member
-export async function changeDao(wallet, contractId, periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound) {
+export async function changeDao(wallet, contractId, periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound, voteThreshold) {
 
     try {
         const daoContract = await dao.initDaoContract(wallet.account(), contractId)
@@ -474,6 +475,7 @@ export async function changeDao(wallet, contractId, periodDuration, votingPeriod
             _gracePeriodLength: parseInt(gracePeriodLength),
             _proposalDeposit: proposalDeposit,
             _dilutionBound: parseInt(dilutionBound),
+            _voteThreshold: parseInt(voteThreshold)
         }, GAS)
 
     } catch (err) {
@@ -907,7 +909,7 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
             let i = 0
             while (i < contractProposals){
                 let proposal = await daoContract.getProposal({proposalId: i})
-               
+               console.log('xproposal', proposal)
                 if(proposal) {
                     let k = 0
                     while (k < proposalEventRecord.events.length){
@@ -997,6 +999,8 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
                 console.log('error logging proposal', err)
             }
         }
+    } else {
+
     }
     return true
 }
@@ -1657,7 +1661,6 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
 
 
         // Update an existing proposal
-        let exists = false
         let i = 0
         if(proposalRecords && proposalRecords.events.length > 0){
             while (i < proposalRecords.events.length){
@@ -1688,13 +1691,12 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                         cancelTransactionHash: proposalRecords.events[i].cancelTransactionHash,
                         sponsorTransactionHash: proposalRecords.events[i].sponsorTransactionHash
                         }
+
                     proposalRecords.events[i] = updatedProposalRecord
                     try{
                         await curDaoIdx.set('proposals', proposalRecords)
-                        exists = true
                         processLogged = true
                         memberLogged = true
-                        break
                     } catch (err) {
                         console.log('error logging process event', err)
                     }
@@ -1746,22 +1748,18 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
 
         let member = await daoContract.getMemberInfo({member: proposal.a})
     
-
         let memberId = generateId()
        
         // Log Member Event
         let memberEventRecord = await curDaoIdx.get('members', curDaoIdx.id)
-   
+        if(!memberEventRecord){
+            memberEventRecord = { events: [] }
+        }
 
         // Log Member Data
         let memberDataRecord = await curDaoIdx.get('memberData', curDaoIdx.id)
         if(!memberDataRecord){
             memberDataRecord = { data: [] }
-        }
-    
-
-        if(!memberEventRecord){
-            memberEventRecord = { events: [] }
         }
 
         let memberExists = false
@@ -1907,11 +1905,6 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
             }
             } 
         } 
-    } else {
-        memberLogged=true
-            processLogged = true
-            memberDataLogged = true
-            proposalDataLogged = true
     }
   
     if(processLogged && memberLogged && memberDataLogged && proposalDataLogged){

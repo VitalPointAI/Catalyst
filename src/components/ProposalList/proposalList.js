@@ -323,7 +323,7 @@ export default function ProposalList(props) {
   }
 
   async function getUserVote(proposalIdentifier) {
-    console.log('contract here', contract)
+    
     let result = await contract.getMemberProposalVote({memberAddress: accountId, pI: parseInt(proposalIdentifier)})
     return result
   }
@@ -359,7 +359,7 @@ export default function ProposalList(props) {
     
     if (requests.length > 0) {
       requests.map((fr) => {
-     
+     console.log('requests fr', fr)
         status = getStatus(fr.flags)
         proposalType = getProposalType(fr.flags)
         let isVotingPeriod = getVotingPeriod(fr.startingPeriod, fr.votingPeriod)

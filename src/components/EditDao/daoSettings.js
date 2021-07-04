@@ -55,6 +55,7 @@ export default function EditInitSettings(props) {
     const [gracePeriodLength, setGracePeriodLength] = useState('')
     const [proposalDeposit, setProposalDeposit] = useState('')
     const [dilutionBound, setDilutionBound] = useState('')
+    const [voteThreshold, setVoteThreshold] = useState('')
     const [finished, setFinished] = useState(true)
     const [open, setOpen] = useState()
     const [appDBList, setAppDBList] = useState([])
@@ -99,6 +100,7 @@ export default function EditInitSettings(props) {
                 result[0][3] ? setGracePeriodLength(result[0][3]) : setGracePeriodLength('')
                 result[0][4] ? setProposalDeposit(formatNearAmount(result[0][4])) : setProposalDeposit('')
                 result[0][5] ? setDilutionBound(result[0][5]) : setDilutionBound('')
+                result[0][6] ? setVoteThreshold(result[0][6]) : setVoteThreshold('')
     
 
                 initArray.push({
@@ -108,7 +110,8 @@ export default function EditInitSettings(props) {
                   gracePeriodLength: result[0][3],
                   proposalDeposit: result[0][4],
                   dilutionBound: result[0][5],
-                  summonTime: result[0][6]
+                  voteThreshold: result[0][6],
+                  summonTime: result[0][7]
                 })
               
                 setInitSettings(initArray)
@@ -134,6 +137,7 @@ export default function EditInitSettings(props) {
         initSettings[3] ? setGracePeriodLength(initSettings[3]) : setGracePeriodLength('')
         initSettings[4] ? setProposalDeposit(initSettings[4]) : setProposalDeposit('')
         initSettings[5] ? setDilutionBound(initSettings[5]) : setDilutionBound('')
+        initSettings[6] ? setVoteThreshold(initSettings[6]) : setVoteThreshold('')
     }
 
     const handlePeriodDurationChange = (event) => {
@@ -160,6 +164,11 @@ export default function EditInitSettings(props) {
         let value = event.target.value;
         setDilutionBound(value)
     }
+
+    const handleVoteThresholdChange = (event) => {
+      let value = event.target.value;
+      setVoteThreshold(value)
+  }
   
     const onSubmit = async (values) => {
        console.log('enter submit')
@@ -172,7 +181,8 @@ export default function EditInitSettings(props) {
             votingPeriodLength,
             gracePeriodLength,
             proposalDeposit,
-            dilutionBound
+            dilutionBound,
+            voteThreshold
           )
         } catch (err) {
           console.log('error', err)
@@ -329,6 +339,21 @@ export default function EditInitSettings(props) {
                       }}
                     />
 
+                    <TextField
+                    id="vote-threshold"
+                    variant="outlined"
+                    name="voteThreshold"
+                    label="Vote Threshold"
+                    value={voteThreshold}
+                    onChange={handleVoteThresholdChange}  
+                    inputRef={register({
+                        required: true, 
+                    })}
+                    InputProps={{
+                      endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                      }}
+                    />
+
                   <Button variant="contained" color="primary" type="submit" onClick={handleSubmit(onSubmit)}>
                         Submit
                   </Button>
@@ -401,6 +426,14 @@ export default function EditInitSettings(props) {
                           </TableCell>
                           <TableCell>
                             {initSettings.length > 0 ? initSettings[0].dilutionBound : <CircularProgress />}
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell component="th" scope="row">
+                            Vote Threshold
+                          </TableCell>
+                          <TableCell>
+                            {initSettings.length > 0 ? initSettings[0].voteThreshold : <CircularProgress />}
                           </TableCell>
                         </TableRow>
                                 

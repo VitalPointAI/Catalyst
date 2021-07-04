@@ -30,6 +30,16 @@ const useStyles = makeStyles((theme) => ({
         display: 'flex',
         flexDirection: 'column'
       },
+      centered: {
+        width: '200px',
+        height: '100px',
+        textAlign: 'center',
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        marginTop: '-200px',
+        marginLeft: '-100px'
+      },
     paper: {
         padding: theme.spacing(2),
         textAlign: 'center',
@@ -87,7 +97,7 @@ export const Home = ({ children, state, handleSnackBarOpen, handleSuccessMessage
             : state.accountData ? (
                 {children}
             ) 
-            : <div style={{width: '100%', textAlign: 'center'}}><CircularProgress/></div>
+            : <div className={classes.centered}><CircularProgress/><br></br><Typography variant="h6">Setting Things Up...</Typography></div>
         }       
         
         { state.app.alert &&

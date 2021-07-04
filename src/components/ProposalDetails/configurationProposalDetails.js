@@ -88,6 +88,7 @@ export default function ConfigurationProposalDetails(props) {
     const [currentGracePeriodLength, setCurrentGracePeriodLength] = useState()
     const [currentProposalDeposit, setCurrentProposalDeposit] = useState()
     const [currentDilutionBound, setCurrentDilutionBound] = useState()
+    const [currentVoteThreshold, setCurrentVoteThreshold] = useState()
 
     const classes = useStyles()
 
@@ -136,6 +137,7 @@ export default function ConfigurationProposalDetails(props) {
                 result[0][3] ? setCurrentGracePeriodLength(result[0][3]) : setCurrentGracePeriodLength('')
                 result[0][4] ? setCurrentProposalDeposit(formatNearAmount(result[0][4])) : setCurrentProposalDeposit('')
                 result[0][5] ? setCurrentDilutionBound(result[0][5]) : setCurrentDilutionBound('')
+                result[0][6] ? setCurrentVoteThreshold(result[0][6]) : setCurrentVoteThreshold('')
               } catch (err) {
                 console.log('error retrieving current init settings', err)
               }
@@ -315,6 +317,19 @@ export default function ConfigurationProposalDetails(props) {
                                 backgroundColor: currentDilutionBound != configuration[4] ? 'yellow' : ''
                               }}>
                                 {configuration.length > 0 ? configuration[4] : <CircularProgress />}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell component="th" scope="row">
+                                Vote Threshold
+                              </TableCell>
+                              <TableCell>
+                                {currentVoteThreshold ? currentVoteThreshold : <CircularProgress />}
+                              </TableCell>
+                              <TableCell style={{ 
+                                backgroundColor: currentVoteThreshold != configuration[5] ? 'yellow' : ''
+                              }}>
+                                {configuration.length > 0 ? configuration[5] : <CircularProgress />}
                               </TableCell>
                             </TableRow>
                                     
