@@ -70,6 +70,7 @@ class DAO {
                 'submitCommitmentProposal',
                 'submitOpportunityProposal',
                 'submitTributeProposal',
+                'submitConfigurationProposal',
                 'sponsorProposal',
                 'submitVote',
                 'processProposal',

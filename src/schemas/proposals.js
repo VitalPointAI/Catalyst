@@ -87,6 +87,12 @@ export const proposalSchema = {
         "sponsorTransactionHash": {
           "type": "string",
         },
+        "configuration": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
       }
     }
   }

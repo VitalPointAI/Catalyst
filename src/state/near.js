@@ -493,6 +493,27 @@ export async function initDao(wallet, contractId, periodDuration, votingPeriodLe
     return true
 }
 
+// Submits new DAO settings from summoner if only member
+export async function changeDao(wallet, contractId, periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound) {
+
+    try {
+        const daoContract = await dao.initDaoContract(wallet.account(), contractId)
+        
+        await daoContract.setInit({
+            _periodDuration: parseInt(periodDuration),
+            _votingPeriodLength: parseInt(votingPeriodLength),
+            _gracePeriodLength: parseInt(gracePeriodLength),
+            _proposalDeposit: proposalDeposit,
+            _dilutionBound: parseInt(dilutionBound),
+        }, GAS)
+
+    } catch (err) {
+        console.log('change init failed', err)
+        return false
+    }
+    return true
+}
+
 async function sendMessage(content, type, type2, data, curDaoIdx){
     let request = new XMLHttpRequest()
     let hookArray = await ceramic.downloadKeysSecret(curDaoIdx, 'apiKeys')
@@ -540,7 +561,8 @@ export async function submitProposal(
     loot, 
     tribute,
     sharesRequested,
-    paymentRequested) {
+    paymentRequested,
+    configuration) {
    
     const daoContract = await dao.initDaoContract(wallet.account(), contractId)
     const proposalId = await daoContract.getProposalsLength()
@@ -596,6 +618,20 @@ export async function submitProposal(
                     }, GAS, proposalDeposit)
                 } catch (err) {
                     console.log('submit commitment proposal failed', err)
+                    return false
+                }
+                break
+        case 'Configuration':
+            try{
+                await daoContract.submitConfigurationProposal({
+                    applicant: applicant,
+                    depositToken: depositToken,
+                    paymentToken: depositToken,
+                    configuration: configuration,
+                    contractId: contractId
+                    }, GAS, proposalDeposit)
+                } catch (err) {
+                    console.log('submit configuration proposal failed', err)
                     return false
                 }
                 break
@@ -933,7 +969,8 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
                             proposalSubmission: parseInt(proposal.pS),
                             votingPeriod: proposal.vP,
                             gracePeriod: proposal.gP,
-                            voteFinalized: parseInt(proposal.voteFinalized)
+                            voteFinalized: parseInt(proposal.voteFinalized),
+                            configuration: proposal.configuration
                             }
 
                             proposalEventRecord.events.push(indivProposalRecord)
@@ -976,7 +1013,8 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
                         proposalSubmission: parseInt(proposal.pS),
                         votingPeriod: proposal.vP,
                         gracePeriod: proposal.gP,
-                        voteFinalized: parseInt(proposal.voteFinalized)
+                        voteFinalized: parseInt(proposal.voteFinalized),
+                        configuration: proposal.configuration
                         }
 
                         proposalEventRecord.events.push(indivProposalRecord)
@@ -1523,6 +1561,7 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
             gracePeriod: proposal.gP,
             voteFinalized: parseInt(proposal.voteFinalized),
             submitTransactionHash: transactionHash,
+            configuration: proposal.configuration
             }
 
             proposalEventRecord.events.push(indivProposalRecord)
@@ -1595,6 +1634,18 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
                 console.log("sending message")
                 sendMessage(proposal.a + " has requested a funding commitment of " + proposal.pR + " NEAR", 'Funding',
                 'proposal', data, curDaoIdx)
+            } catch (err) {
+                console.log('error sending notification', err)
+            }
+        }
+        else if(proposal.f[10]){
+            let data = {
+                applicant: proposal.a,
+                url: window.location.href
+            }
+            try{
+                console.log("sending message")
+                sendMessage(proposal.a + " has requested a configuration change to " + proposal.configuration, data, curDaoIdx)
             } catch (err) {
                 console.log('error sending notification', err)
             }
@@ -1673,6 +1724,7 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                         votingPeriod: proposal.vP,
                         gracePeriod: proposal.gP,
                         voteFinalized: parseInt(proposal.voteFinalized),
+                        configuration: proposal.configuration,
                         processTransactionHash: transactionHash ? transactionHash : '',
                         submitTransactionHash: proposalRecords.events[i].submitTransactionHash,
                         cancelTransactionHash: proposalRecords.events[i].cancelTransactionHash,
@@ -1972,6 +2024,7 @@ export async function logVoteEvent(curDaoIdx, contractId, daoContract, proposalI
                     votingPeriod: proposal.vP,
                     gracePeriod: proposal.gP,
                     voteFinalized: parseInt(proposal.voteFinalized),
+                    configuration: proposal.configuration,
                     submitTransactionHash: proposalRecords.events[i].submitTransactionHash,
                     cancelTransactionHash: proposalRecords.events[i].cancelTransactionHash,
                     processTransactionHash: proposalRecords.events[i].processTransactionHash,
@@ -2090,6 +2143,7 @@ export async function logSponsorEvent (curDaoIdx, daoContract, contractId, propo
                 votingPeriod: proposal.vP,
                 gracePeriod: proposal.gP,
                 voteFinalized: parseInt(proposal.voteFinalized),
+                configuration: proposal.configuration,
                 submitTransactionHash: proposalRecords.events[i].submitTransactionHash,
                 cancelTransactionHash: proposalRecords.events[i].cancelTransactionHash,
                 processTransactionHash: proposalRecords.events[i].processTransactionHash,
@@ -2206,6 +2260,7 @@ export async function logCancelEvent (curDaoIdx, daoContract, contractId, propos
                     votingPeriod: proposal.vP,
                     gracePeriod: proposal.gP,
                     voteFinalized: parseInt(proposal.voteFinalized),
+                    configuration: proposal.configuration,
                     cancelTransactionHash: transactionHash,
                     submitTransactionHash: proposalRecords.events[i].submitTransactionHash,
                     processTransactionHash: proposalRecords.events[i].processTransactionHash,

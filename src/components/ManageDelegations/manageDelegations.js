@@ -93,6 +93,7 @@ console.log('manage contract', contract)
             try{
               if(parseInt(allMemberInfo[i].receivedDelegations) > 0){
                 let delegationInfo = await contract.getDelegationInfo({member: state.accountId, delegatee: allMemberInfo[i].delegateKey})
+                console.log('delegationInfo', delegationInfo)
                 if(delegationInfo.length > 0){
                   let delegations = {
                     delegatedTo: delegationInfo[0][0],
@@ -110,10 +111,7 @@ console.log('manage contract', contract)
           console.log('delegationArray', delegationArray)
         }
       }
-      if(delegateTo){
-        setReceiver(delegateTo)
-      }
-
+      
       fetchData()
    }, [delegateTo]
    )

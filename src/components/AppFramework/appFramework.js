@@ -710,6 +710,11 @@ export default function AppFramework(props) {
               handleErrorMessage={handleErrorMessage} 
               handleSuccessMessage={handleSuccessMessage}
               handleSnackBarOpen={handleSnackBarOpen} 
+              summoner={summoner}
+              totalMembers={allMemberInfo.length}
+              proposalDeposit={proposalDeposit}
+              tokenName={tokenName}
+              depositToken={depositToken}
             />
           </div>
             <Grid container justify="center" alignItems="center" spacing={1} className={classes.top}>

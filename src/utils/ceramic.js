@@ -530,8 +530,8 @@ async makeSeed(account){
     const appDid = this.associateAppDID(APP_OWNER_ACCOUNT, contract, appClient)
 
     // uncomment below to change a definition
-    //let changed = await this.changeDefinition(APP_OWNER_ACCOUNT, 'members', appClient, memberSchema, 'dao member info', contract)
-    //console.log('changed schema', changed)
+   // let changed = await this.changeDefinition(APP_OWNER_ACCOUNT, 'proposals', appClient, proposalSchema, 'proposal events', contract)
+   // console.log('changed schema', changed)
 
     const definitions = this.getAlias(APP_OWNER_ACCOUNT, 'Definitions', appClient, definitionsSchema, 'alias definitions', contract)
     const schemas = this.getAlias(APP_OWNER_ACCOUNT, 'Schemas', appClient, schemaSchema, 'user schemas', contract)

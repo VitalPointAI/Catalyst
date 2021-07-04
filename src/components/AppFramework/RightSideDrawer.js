@@ -40,9 +40,14 @@ export default function RightSideDrawer(props) {
     accountId,
     contract,
     currentPeriod,
+    summoner,
+    totalMembers,
     handleSnackBarOpen,
     handleSuccessMessage,
-    handleErrorMessage
+    handleErrorMessage,
+    proposalDeposit,
+    tokenName,
+    depositToken
   } = props
 
   const handleEditSettingsClick = () => {
@@ -74,6 +79,11 @@ export default function RightSideDrawer(props) {
           handleErrorMessage={handleErrorMessage}
           accountId={accountId}
           currentPeriod={currentPeriod}
+          summoner={summoner}
+          proposalDeposit={proposalDeposit}
+          tokenName={tokenName}
+          depositToken={depositToken}
+          totalMembers={totalMembers}
            />
       </List>
     </div>

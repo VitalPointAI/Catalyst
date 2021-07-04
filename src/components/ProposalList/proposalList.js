@@ -285,7 +285,7 @@ export default function ProposalList(props) {
  
 
   function getProposalType(flags) {
-    // flags [sponsored, processed, didPass, cancelled, whitelist, guildkick, member, commitment, opportunity]
+    // flags [sponsored, processed, didPass, cancelled, whitelist, guildkick, member, commitment, opportunity, tribute, configuration]
     let type = ''
     if(flags[4]) {
     type = 'Whitelist'
@@ -393,6 +393,7 @@ export default function ProposalList(props) {
             disabled: isDisabled,
             voted: fr.voted,
             vote: fr.vote,
+            configuration: fr.configuration,
             submitTransactionHash: fr.submitTransactionHash,
             cancelTransactionHash: fr.cancelTransactionHash,
             processTransactionHash: fr.processTransactionHash,
@@ -427,6 +428,7 @@ export default function ProposalList(props) {
             disabled: isDisabled,
             voted: fr.voted,
             vote: fr.vote,
+            configuration: fr.configuration,
             submitTransactionHash: fr.submitTransactionHash,
             cancelTransactionHash: fr.cancelTransactionHash,
             processTransactionHash: fr.processTransactionHash,
@@ -462,6 +464,7 @@ export default function ProposalList(props) {
             disabled: isDisabled,
             voted: fr.voted,
             vote: fr.vote,
+            configuration: fr.configuration,
             submitTransactionHash: fr.submitTransactionHash,
             cancelTransactionHash: fr.cancelTransactionHash,
             processTransactionHash: fr.processTransactionHash,
@@ -496,6 +499,7 @@ export default function ProposalList(props) {
             disabled: isDisabled,
             voted: fr.voted,
             vote: fr.vote,
+            configuration: fr.configuration,
             submitTransactionHash: fr.submitTransactionHash,
             cancelTransactionHash: fr.cancelTransactionHash,
             processTransactionHash: fr.processTransactionHash,
