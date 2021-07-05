@@ -9,6 +9,7 @@ import EditDaoForm from '../EditDao/editDao'
 import AppFramework from '../AppFramework/appFramework'
 import * as nearAPI from 'near-api-js'
 import Persona from '@aluhning/get-personas-js'
+import Purpose from '../Purpose/purpose'
 
 
 // Material UI Components
@@ -67,6 +68,7 @@ export default function DaoCard(props) {
     const [owner, setOwner] = useState('')
 
     const [editDaoClicked, setEditDaoClicked] = useState(false)
+    const [purposeClicked, setPurposeClicked] = useState(false)
     const [claimed, setClaimed] = useState(false)
     const [curDaoIdx, setCurDaoIdx] = useState()
     const [display, setDisplay] = useState(true)
@@ -153,6 +155,15 @@ export default function DaoCard(props) {
     setEditDaoClicked(property)
   }
 
+  const handlePurposeClick = () => {
+    handleExpanded()
+    handlePurposeClickState(true)
+  }
+
+  function handlePurposeClickState(property){
+    setPurposeClicked(property)
+  }
+
   function handleExpanded() {
     setAnchorEl(null)
   }
@@ -191,9 +202,12 @@ export default function DaoCard(props) {
                 <Typography  variant="overline" display="inline" noWrap={true} style={{lineHeight: 0}}>
                   {sname != '' ? sname : contractId.split('.')[0]}<br></br>
                   {finished ? (<span style={{fontSize: '80%'}}>Updated: {sdate}</span>) : <LinearProgress />}<br></br>
-                  {scategory ? (<span style={{fontSize: '80%'}}>Category: {scategory}</span>): (<span style={{fontSize: '80%'}}>Category: Undefined</span>)}
+                  {scategory ? (<span style={{fontSize: '80%'}}>Category: {scategory}</span>): (<span style={{fontSize: '80%'}}>Category: Undefined</span>)}<br></br>
+                  {spurpose ? (<Button variant="outlined" style={{textAlign: 'center', fontSize: '80%', marginTop:'5px'}} onClick={handlePurposeClick}>Purpose</Button>) : null }
                 </Typography>
+               
                 <Chip variant="outlined" label="Member" icon={memberIcon} style={{marginTop: '10px'}}/>
+           
               </CardContent>
               <CardActions>
                 <Link to={`/dao/${contractId}`}>
@@ -221,6 +235,11 @@ export default function DaoCard(props) {
             contractId={contractId}
             /> : null }
 
+          {purposeClicked ? <Purpose
+            handlePurposeClickState={handlePurposeClickState}
+            contractId={contractId}
+        
+            /> : null }
         </>
        
     )
