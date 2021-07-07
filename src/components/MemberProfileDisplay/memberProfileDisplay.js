@@ -151,7 +151,9 @@ export default function MemberProfileDisplay(props) {
                             <Avatar src={avatar} className={classes.large} />
                             <Typography variant="h3">{name}</Typography>
                             <Typography variant="h5">{email ? <> E-mail: {email} </>: <></> }</Typography>
-
+                            <Typography variant="h5">{discord ? <> Discord: {discord} </>: <></> }</Typography>
+                            <Typography variant="h5">{twitter ? <> Twitter: {twitter} </>: <></> }</Typography>
+                            <Typography variant="h5">{reddit ? <> Reddit: {reddit} </>: <></> }</Typography>
                             <Typography variant="h5">{birthdate ? <> Birth Date: {birthdate} </>: <></> }</Typography>                            
                             <Typography variant="h5">{country ? <> Country: {country} </>: <></> }</Typography>
                             {
