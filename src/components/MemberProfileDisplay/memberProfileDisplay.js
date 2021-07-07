@@ -22,7 +22,7 @@ import Typography from '@material-ui/core/Typography';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Chip from '@material-ui/core/Chip'
 import Divider from '@material-ui/core/Divider'
-
+import Rating from '@material-ui/lab/Rating'
 // CSS Styles
 
 const useStyles = makeStyles((theme) => ({
@@ -67,9 +67,17 @@ export default function MemberProfileDisplay(props) {
     const [open, setOpen] = useState(true)
     const [avatar, setAvatar] = useState()
     const [name, setName] = useState('')
-  
+    const [email, setEmail] = useState('')
     const [isUpdated, setIsUpdated] = useState(false)
     const [finished, setFinished] = useState(false)
+    const [twitter, setTwitter] = useState('')
+    const [reddit, setReddit] = useState('')
+    const [discord, setDiscord] = useState('')
+    const [birthdate, setBirthdate] = useState('')
+    const [country, setCountry] = useState('')
+    const [language, setLanguage] = useState([])
+    const [skill, setSkill] = useState([])
+    const [familiarity, setFamiliarity] = useState('') 
 
     const classes = useStyles()
 
@@ -99,6 +107,15 @@ export default function MemberProfileDisplay(props) {
                       if(result){
                         result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                         result.name ? setName(result.name) : setName('')
+                        result.email ? setEmail(result.email) : setEmail('')
+                        result.discord? setDiscord(result.discord) : setDiscord('')
+                        result.reddit ? setReddit(result.reddit) : setReddit('')
+                        result.twitter ? setTwitter(result.twitter) : setTwitter('')
+                        result.country ? setCountry(result.country) : setCountry('')
+                        result.birthdate ? setBirthdate(result.birthdate) : setBirthdate('')
+                        result.language ? setLanguage(result.language) : setLanguage([])
+                        result.skill ? setSkill(result.skill) : setSkill([])
+                        result.familiarity ? setFamiliarity(result.familiarity): setFamiliarity('')
                       }
             }         
                     
@@ -132,7 +149,40 @@ export default function MemberProfileDisplay(props) {
                         <Grid item xs={12} sm={12} md={12} lg={12} xl={12} className={classes.centered}>
                             <Typography variant="h6">Meet</Typography>
                             <Avatar src={avatar} className={classes.large} />
-                            <Typography variant="h3">{member}</Typography>
+                            <Typography variant="h3">{name}</Typography>
+                            <Typography variant="h5">{email ? <> E-mail: {email} </>: <></> }</Typography>
+
+                            <Typography variant="h5">{birthdate ? <> Birth Date: {birthdate} </>: <></> }</Typography>                            
+                            <Typography variant="h5">{country ? <> Country: {country} </>: <></> }</Typography>
+                            {
+                            language == [] ? 
+                             ( <></> )
+                            :
+                              <Typography variant="h5">Languages: {language.map(item => { return <>
+                              {
+                              language[language.length-1] == item ? 
+                              <>{item}</>
+                              :
+                              <>{item}, </>
+                              }
+                              </>})} </Typography>
+                            }
+                            {
+                            skill != [] ? 
+                              (
+                              <Typography variant="h5">Skills: {skill.map(item => { return <>
+                              {
+                              skill[skill.length-1] == item ? 
+                              <>{item}</>
+                              :
+                              <>{item}, </>
+                              }
+                               </>})}</Typography> )
+                            : <></>
+                            }
+                            <Typography variant="h5">Account: {member}</Typography>
+                            <Typography variant="h5">Crypto/Blockchain Familiarity: </Typography>
+                            <Rating readOnly value={parseInt(familiarity)} />
                         </Grid>
                     </Grid>
                 </DialogContent>

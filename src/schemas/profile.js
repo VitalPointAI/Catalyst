@@ -20,5 +20,29 @@ export const profileSchema = {
         title: 'text',
         maxLength: 4000,
       },
+      birthdate: {
+        type: 'string'
+      },
+      email: {
+        type: 'string'
+      },
+      reddit: {
+        type: 'string'
+      },
+      twitter: {
+        type: 'string'
+      },
+      discord: {
+        type: 'string'
+      },
+      country: {
+        type: 'string'
+      },
+      language: {
+        type: 'array'
+      },
+      familiarity: {
+        type: 'string'
+      }
     },
   }
