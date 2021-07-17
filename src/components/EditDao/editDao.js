@@ -24,6 +24,9 @@ import Switch from '@material-ui/core/Switch'
 import Card from '@material-ui/core/Card'
 import CardHeader from '@material-ui/core/CardHeader'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
+import Accordion from '@material-ui/core/Accordion'
+import { AccordionDetails } from '@material-ui/core'
+import { AccordionSummary } from '@material-ui/core'
 
 // ReactQuill Component
 import ReactQuill from 'react-quill';
@@ -78,7 +81,12 @@ export default function EditDaoForm(props) {
     const [passedProposalsActivated, setPassedProposalsActivated] = useState(false)
     const [votingActivated, setVotingActivated] = useState(false) 
     const [sponsorActivated, setSponsorActivated] = useState(false) 
-
+    const [email, setEmail] = useState('')
+    const [twitter,setTwitter] = useState('')
+    const [discord, setDiscord] = useState('')
+    const [website, setWebsite] = useState('')
+    const [telegram, setTelegram] = useState('')
+    const [reddit, setReddit] = useState('')
     const { register, handleSubmit, watch, errors } = useForm()
 
     const { state, dispatch, update } = useContext(appStore)
@@ -130,6 +138,12 @@ export default function EditDaoForm(props) {
                 result.proposalActivation ? setProposalsActivated(true) : setProposalsActivated(false)
                 result.passedProposalActivation ? setPassedProposalsActivated(true) : setPassedProposalsActivated(false)
                 result.sponsorActivation ? setSponsorActivated(true) : setSponsorActivated(false)
+                result.reddit? setReddit(result.reddit) : setReddit('')
+                result.discord? setDiscord(result.discord): setDiscord('')
+                result.twitter? setTwitter(result.twitter): setTwitter('')
+                result.email? setEmail(result.email): setEmail('')
+                result.telegram? setTelegram(result.telegram): setTelegram('')
+                result.website? setWebsite(result.website): setWebsite('')
               }
            }
         }
@@ -183,7 +197,30 @@ export default function EditDaoForm(props) {
     const handleSponsorActivation = () => {
       setSponsorActivated(!sponsorActivated)
     }
-
+    const handleTwitterChange = (event) =>{
+      let value = event.target.value;
+      setTwitter(value); 
+    }
+    const handleEmailChange = (event) =>{
+      let value = event.target.value;
+      setEmail(value); 
+    }
+    const handleTelegramChange = (event) =>{
+      let value = event.target.value;
+      setTelegram(value); 
+    }
+    const handleWebsiteChange = (event) =>{
+      let value = event.target.value;
+      setWebsite(value); 
+    }
+    const handleDiscordChange = (event) =>{
+      let value = event.target.value;
+      setDiscord(value); 
+    }
+    const handleRedditChange = (event) =>{
+      let value = event.target.value;
+      setReddit(value); 
+    }
     const onSubmit = async (values) => {
         event.preventDefault();
         setFinished(false)
@@ -202,7 +239,13 @@ export default function EditDaoForm(props) {
             discordActivation: discordActivated,
             proposalActivation: proposalsActivated,
             passedProposalActivation: passedProposalsActivated,
-            sponsorActivation: sponsorActivated
+            sponsorActivation: sponsorActivated,
+            discord: discord,
+            twitter: twitter,
+            telegram: telegram, 
+            email: email,
+            website: website, 
+            reddit: reddit
         }
      
         let result = await curDaoIdx.set('daoProfile', record)
@@ -332,7 +375,111 @@ export default function EditDaoForm(props) {
                           <FormControlLabel control={<Switch checked={sponsorActivated} onChange={handleSponsorActivation} color="primary"/>} label="Sponsored Proposal" />
                         </Grid>
                       </Grid>
+                    
                   </Card>
+                  <Accordion>
+                        <AccordionSummary>Community Tools</AccordionSummary>
+                          <AccordionDetails>
+                            <Grid container>
+                              <Grid item xs={12}>
+                                <TextField
+                                    autoFocus
+                                    margin="dense"
+                                    id="profile-email"
+                                    variant="outlined"
+                                    name="email"
+                                    label="Contact Email"
+                                    placeholder="someone@someplace"
+                                    value={email}
+                                    onChange={handleEmailChange}
+                                    inputRef={register({
+                                        required: false                              
+                                    })}
+                                />
+                              </Grid>
+                              <Grid item xs={12}>
+                                <TextField
+                                    autoFocus
+                                    margin="dense"
+                                    id="profile-telegram"
+                                    variant="outlined"
+                                    name="telegram"
+                                    label="Telegram"
+                                    placeholder="telegram"
+                                    value={telegram}
+                                    onChange={handleTelegramChange}
+                                    inputRef={register({
+                                        required: false                              
+                                    })}
+                                />
+                              </Grid>
+                              <Grid item xs={12}>
+                                <TextField
+                                    autoFocus
+                                    margin="dense"
+                                    id="profile-website"
+                                    variant="outlined"
+                                    name="website"
+                                    label="Website"
+                                    placeholder="website"
+                                    value={website}
+                                    onChange={handleWebsiteChange}
+                                    inputRef={register({
+                                        required: false                              
+                                    })}
+                                />
+                              </Grid>
+                              <Grid item xs={12}>
+                                <TextField
+                                    autoFocus
+                                    margin="dense"
+                                    id="profile-discord"
+                                    variant="outlined"
+                                    name="discord"
+                                    label="Discord"
+                                    placeholder="some server"
+                                    value={discord}
+                                    onChange={handleDiscordChange}
+                                    inputRef={register({
+                                        required: false                              
+                                    })}
+                                />
+                              </Grid>
+                              <Grid item xs={12}>
+                                <TextField
+                                    autoFocus
+                                    margin="dense"
+                                    id="profile-twitter"
+                                    variant="outlined"
+                                    name="twitter"
+                                    label="Twitter"
+                                    placeholder="some user"
+                                    value={twitter}
+                                    onChange={handleTwitterChange}
+                                    inputRef={register({
+                                        required: false                              
+                                    })}
+                                />
+                              </Grid>
+                              <Grid item xs={12}>
+                                <TextField
+                                    autoFocus
+                                    margin="dense"
+                                    id="profile-reddit"
+                                    variant="outlined"
+                                    name="reddit"
+                                    label="Subreddit"
+                                    placeholder="some subreddit"
+                                    value={reddit}
+                                    onChange={handleRedditChange}
+                                    inputRef={register({
+                                        required: false                              
+                                    })}
+                                />
+                              </Grid>
+                            </Grid>
+                        </AccordionDetails>
+                      </Accordion>
                   <Typography variant="h6">Community Purpose</Typography>
                   <ReactQuill
                     theme="snow"

@@ -26,5 +26,23 @@ export const daoProfileSchema = {
         "title": "text",
         "maxLength": 4000,
       },
-    },
+      "email":{
+        type: 'string'
+      },
+      "discord":{
+        type: 'string'
+      },
+      "telegram":{
+        type: 'string'
+      },
+      "reddit": {
+        type: 'string'
+      },
+      "website": {
+        type: 'string'
+      },
+      "twitter": {
+        type: "string"
+      }
+   },
   }
