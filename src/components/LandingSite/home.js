@@ -1,4 +1,5 @@
-import React from 'react' 
+import React from 'react'
+import { Redirect, Link } from 'react-router-dom'
 import MainBanner from './mainBanner'
 import Stories from './stories'
 import Footer from '../../components/common/Footer/footer'
@@ -83,6 +84,7 @@ const FrontPage = () => {
 
     return(
     <>
+    
    <div className={classes.top}>
    {!matches ?
         <Grid container justify="center" alignItems="center" spacing={3} >

@@ -34,10 +34,9 @@ const useStyles = makeStyles((theme) => ({
     },
     card: {
       minWidth: '200px',
-      //maxWidth: '200px',
-  //    cursor: 'pointer',
       verticalAlign: 'middle',
-      margin: 'auto'
+      margin: 'auto',
+      marginBottom: '10px'
     },
     avatar: {
       backgroundColor: red[500],

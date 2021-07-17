@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Redirect } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
 import { login } from '../../state/near'
 import AddRootPersonaForm from '../AddRootPersona/addRootPersona'
@@ -42,6 +43,7 @@ export default function SignIn(props) {
 const classes = useStyles()
 
     return (
-        <FrontPage />
+      <Redirect to="https://vitalpoint.ai/catalyst" />
+        
     )
 }

@@ -23,6 +23,15 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Chip from '@material-ui/core/Chip'
 import Divider from '@material-ui/core/Divider'
 import Rating from '@material-ui/lab/Rating'
+
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import Paper from '@material-ui/core/Paper';
+
 // CSS Styles
 
 const useStyles = makeStyles((theme) => ({
@@ -49,10 +58,11 @@ const useStyles = makeStyles((theme) => ({
       padding: theme.spacing(3),
     },
     large: {
-        width: theme.spacing(7),
-        height: theme.spacing(7),
+        width: theme.spacing(15),
+        height: theme.spacing(15),
         textAlign: 'center',
-        margin: 'auto'
+        marginRight: '15px',
+        float: 'left'
     },
     centered: {
         textAlign: 'center'
@@ -77,7 +87,9 @@ export default function MemberProfileDisplay(props) {
     const [country, setCountry] = useState('')
     const [language, setLanguage] = useState([])
     const [skill, setSkill] = useState([])
-    const [familiarity, setFamiliarity] = useState('') 
+    const [familiarity, setFamiliarity] = useState('')
+    const [skillSet, setSkillSet] = useState([])
+    const [developerSkillSet, setDeveloperSkillSet] = useState([])
 
     const classes = useStyles()
 
@@ -94,14 +106,15 @@ export default function MemberProfileDisplay(props) {
     } = props
 
     const thisPersona = new Persona()
-
+    let skillArray = []
+    let developerSkillSetArray = []
     useEffect(
         () => {
  
           async function fetchData() {
          
             // Get Applicant Persona Information
-           
+           console.log('member', member)
             if(member){                            
                   let result = await thisPersona.getPersona(member)
                       if(result){
@@ -116,6 +129,14 @@ export default function MemberProfileDisplay(props) {
                         result.language ? setLanguage(result.language) : setLanguage([])
                         result.skill ? setSkill(result.skill) : setSkill([])
                         result.familiarity ? setFamiliarity(result.familiarity): setFamiliarity('')
+                        if(result.skillSet){
+                          skillArray.push(result.skillSet)
+                          setSkillSet(skillArray)
+                        }
+                        if(result.developerSkillSet){
+                          developerSkillSetArray.push(result.developerSkillSet)
+                          setDeveloperSkillSet(developerSkillSetArray)
+                        }
                       }
             }         
                     
@@ -135,58 +156,115 @@ export default function MemberProfileDisplay(props) {
         setOpen(false)
     }
 
+  
+
         return (
             <div>
      
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-              <DialogTitle id="form-dialog-title">Member Persona</DialogTitle>
               {finished ? (<>
                 <DialogContent>
-                    <Grid container spacing={1}>
-                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                            
-                        </Grid>
-                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12} className={classes.centered}>
-                            <Typography variant="h6">Meet</Typography>
-                            <Avatar src={avatar} className={classes.large} />
-                            <Typography variant="h3">{name}</Typography>
-                            <Typography variant="h5">{email ? <> E-mail: {email} </>: <></> }</Typography>
-                            <Typography variant="h5">{discord ? <> Discord: {discord} </>: <></> }</Typography>
-                            <Typography variant="h5">{twitter ? <> Twitter: {twitter} </>: <></> }</Typography>
-                            <Typography variant="h5">{reddit ? <> Reddit: {reddit} </>: <></> }</Typography>
-                            <Typography variant="h5">{birthdate ? <> Birth Date: {birthdate} </>: <></> }</Typography>                            
-                            <Typography variant="h5">{country ? <> Country: {country} </>: <></> }</Typography>
-                            {
-                            language == [] ? 
-                             ( <></> )
-                            :
-                              <Typography variant="h5">Languages: {language.map(item => { return <>
-                              {
-                              language[language.length-1] == item ? 
-                              <>{item}</>
-                              :
-                              <>{item}, </>
-                              }
-                              </>})} </Typography>
-                            }
-                            {
-                            skill != [] ? 
-                              (
-                              <Typography variant="h5">Skills: {skill.map(item => { return <>
-                              {
-                              skill[skill.length-1] == item ? 
-                              <>{item}</>
-                              :
-                              <>{item}, </>
-                              }
-                               </>})}</Typography> )
-                            : <></>
-                            }
-                            <Typography variant="h5">Account: {member}</Typography>
-                            <Typography variant="h5">Crypto/Blockchain Familiarity: </Typography>
-                            <Rating readOnly value={parseInt(familiarity)} />
-                        </Grid>
-                    </Grid>
+                  <Grid container justify="space-evenly" spacing={1} style={{marginTop:'20px'}}>
+                    
+                    <center><Typography variant="h5"><Avatar src={avatar} className={classes.large}  />{name ? name : member}</Typography></center>
+                  </Grid>
+                  <Typography variant="h6">General Information</Typography>
+                  <TableContainer component={Paper}>
+                    <Table className={classes.table} size="small" aria-label="a dense table">
+                      <TableHead>
+                      
+                      </TableHead>
+                      <TableBody>
+                      {member ? <TableRow key={member}><TableCell>NEAR Account</TableCell><TableCell component="th" scope="row">{member}</TableCell></TableRow> : null }
+                      {birthdate ? <TableRow key={birthdate}><TableCell>Birthday</TableCell><TableCell component="th" scope="row">{birthdate}</TableCell></TableRow> : null }
+                      {country ? <TableRow key={country}><TableCell>Country</TableCell><TableCell component="th" scope="row">{country}</TableCell></TableRow> : null }
+                      {language && language.length > 0 ? <TableRow key={language}><TableCell>Language</TableCell><TableCell>{language.map(item => { return (<>{item}, </>) })}</TableCell></TableRow>: null }                
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                  <Grid container justify="space-evenly" spacing={1} style={{marginTop:'20px', marginBottom: '20px'}}>
+                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                    <Typography variant="h6">Crypto/Blockchain Familiarity: <Rating readOnly value={parseInt(familiarity)} /> </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={12} md={6} lg={6} xl={6} className={classes.centered}>
+                  <Typography variant="h6">Skills</Typography>
+                  <TableContainer component={Paper}>
+                    <Table className={classes.table} size="small" aria-label="a dense table">
+                      <TableHead>
+                      
+                      </TableHead>
+                      <TableBody>
+                      {skillSet && skillSet.length > 0 ? 
+                          skillSet.map(item => { 
+                            console.log('item', item)
+                            console.log('skillset', skillSet)
+                            return (
+                              <>
+                              {item.memeCreation ? <TableRow><TableCell>Meme Creation</TableCell></TableRow>: null}
+                              {item.videoCreation ? <TableRow><TableCell>Video Creation</TableCell></TableRow>: null}
+                              {item.writing ? <TableRow><TableCell>Writing</TableCell></TableRow>: null}
+                              {item.design ? <TableRow><TableCell>Design</TableCell></TableRow>: null}
+                              {item.eventOrganization ? <TableRow><TableCell>Event Organization</TableCell></TableRow>: null} 
+                              {item.socialMedia ? <TableRow><TableCell>Social Media</TableCell></TableRow>: null}
+                              {item.marketing ? <TableRow><TableCell>Marketing</TableCell></TableRow>: null}
+                              {item.translation ? <TableRow><TableCell>Translation</TableCell></TableRow>: null}
+
+                              </>
+                            )
+                          })
+                        : null
+                        }
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                  </Grid>
+                  <Grid item xs={12} sm={12} md={6} lg={6} xl={6} className={classes.centered}>
+                  <Typography variant="h6">Developer Skills</Typography>
+                  <TableContainer component={Paper}>
+                    <Table className={classes.table} size="small" aria-label="a dense table">
+                      <TableHead>
+                      
+                      </TableHead>
+                      <TableBody>
+                      {developerSkillSet && developerSkillSet.length > 0 ? 
+                          developerSkillSet.map(item => { 
+                            console.log('item', item)
+                            console.log('skillset', developerSkillSet)
+                            return (
+                              <>
+                              {item.rust ? <TableRow><TableCell>RUST</TableCell></TableRow>: null}
+                              {item.assemblyScript ? <TableRow><TableCell>AssemblyScript</TableCell></TableRow>: null}
+                              {item.javascript ? <TableRow><TableCell>JavaScript</TableCell></TableRow>: null}
+                              {item.typescript ? <TableRow><TableCell>TypeScript</TableCell></TableRow>: null}
+                              {item.solidity ? <TableRow><TableCell>Solidity</TableCell></TableRow>: null}
+                              {item.webDevelopment ? <TableRow><TableCell>Web Development</TableCell></TableRow>: null}
+                              </>
+                            )
+                          })
+                        : null
+                        }
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                  </Grid>
+                  </Grid>
+
+                  <Typography variant="h6">Contacts and Connections</Typography>
+                  <TableContainer component={Paper}>
+                    <Table className={classes.table} size="small" aria-label="a dense table">
+                      <TableHead>
+                      
+                      </TableHead>
+                      <TableBody>
+                      {email ? <TableRow key={email}><TableCell>Email</TableCell><TableCell component="a" href={`mailto:${email}`} scope="row">{email}</TableCell></TableRow> : null }
+                      {discord ? <TableRow key={discord}><TableCell>Discord</TableCell><TableCell component="th" scope="row">{discord}</TableCell></TableRow> : null }
+                      {twitter ? <TableRow key={twitter}><TableCell>Twitter</TableCell><TableCell component="a" href={`https://twitter.com/${twitter}`} scope="row">{twitter}</TableCell></TableRow> : null }
+                      {reddit ? <TableRow key={reddit}><TableCell>Reddit</TableCell><TableCell component="a" href={`https://reddit.com/user/${reddit}`} scope="row">{reddit}</TableCell></TableRow> : null }
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+
+                 
                 </DialogContent>
               <DialogActions>
                 <Button onClick={handleClose} color="primary">

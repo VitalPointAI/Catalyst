@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react'
+import { Redirect } from 'react-router-dom'
 import clsx from 'clsx';
 import { flexClass } from '../App'
 import SignIn from '../components/SignIn/signIn'
@@ -84,7 +85,7 @@ export const Container = ({ children, state, handleSnackBarOpen, handleSuccessMe
             wallet && wallet.signedIn ? 
              children 
             
-            : (<SignIn wallet={wallet} state={state}/>)
+            : <Redirect to="https://vitalpoint.ai/catalyst" />
                
             : state.accountData ? 
                 children 
