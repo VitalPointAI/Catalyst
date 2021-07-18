@@ -9,6 +9,7 @@ import FundingProposal from '../FundingProposal/fundingProposal'
 import EditFundingProposalForm from '../EditProposal/editFundingProposal'
 import OpportunityProposalDetails from '../ProposalDetails/opportunityProposalDetails'
 import MemberProposal from '../MemberProposal/memberProposal'
+import MemberProfileDisplay from '../MemberProfileDisplay/memberProfileDisplay'
 import { getStatus } from '../../state/near'
 
 // Material UI Components
@@ -57,7 +58,7 @@ export default function OpportunityCard(props) {
     const [status, setStatus] = useState()
     const [proposalDeposit, setProposalDeposit] = useState()
     const [memberStatus, setMemberStatus] = useState()
-
+    const [memberProfileDisplayClicked, setMemberProfileDisplayClicked] = useState(false)
     const [editFundingProposalDetailsClicked, setEditFundingProposalDetailsClicked] = useState(false)
     const [opportunityProposalDetailsClicked, setOpportunityProposalDetailsClicked] = useState(false)
     const [memberProposalClicked, setMemberProposalClicked] = useState(false)
@@ -194,6 +195,14 @@ export default function OpportunityCard(props) {
       setEditFundingProposalDetailsClicked(property)
     }
 
+    const handleMemberProfileDisplayClick = () => {
+      handleExpanded()
+      handleMemberProfileDisplayClickState(true)
+    }
+
+    function handleMemberProfileDisplayClickState(property){
+      setMemberProfileDisplayClicked(property)
+    }
     
     const handleMemberProposalClick = () => {
       handleExpanded()
@@ -239,7 +248,7 @@ export default function OpportunityCard(props) {
           </Grid>
           <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '10px'}}>
           <Typography variant="overline">Proposer:</Typography>
-            <Chip avatar={<Avatar src={avatar} className={classes.small}  />} label={name != '' ? name : creator}/>
+            <Chip avatar={<Avatar src={avatar} className={classes.small} onClick={handleMemberProfileDisplayClick}/>} label={name != '' ? name : creator}/>
           </Grid>
           <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
             <Chip label={status == 'Passed' && opportunityStatus ? 'Active' : 'Inactive'} style={{marginRight: '10px'}}/>
@@ -287,7 +296,12 @@ export default function OpportunityCard(props) {
             </Button>
           </CardActions>
         </Card>
-       
+
+        {memberProfileDisplayClicked ? <MemberProfileDisplay
+          handleMemberProfileDisplayClickState={handleMemberProfileDisplayClickState}
+          member={accountId}
+          /> : null }
+
         {fundingProposalClicked ? <FundingProposal
           contractId={contractId}
           handleFundingProposalClickState={handleFundingProposalClickState}

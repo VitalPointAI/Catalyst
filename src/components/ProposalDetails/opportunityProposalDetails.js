@@ -7,6 +7,7 @@ import CommentDetails from '../common/Comment/commentDetails'
 import Persona from '@aluhning/get-personas-js'
 import { dao } from '../../utils/dao'
 import { getStatus } from '../../state/near'
+import DOMPurify from "dompurify"
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -26,6 +27,15 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Chip from '@material-ui/core/Chip'
 import Divider from '@material-ui/core/Divider'
 import Card from '@material-ui/core/Card'
+import Rating from '@material-ui/lab/Rating'
+
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import Paper from '@material-ui/core/Paper';
 
 // CSS Styles
 
@@ -81,7 +91,11 @@ export default function OpportunityProposalDetails(props) {
     const [opportunityStatus, setOpportunityStatus] = useState('')
     const [permission, setPermission] = useState('')
     const [created, setCreated] = useState('')
+    const [familiarity, setFamiliarity] = useState('0')
     const [proposalStatus, setProposalStatus] = useState()
+    const [desiredSkillSet, setDesiredSkillSet] = useState([])
+    const [desiredDeveloperSkillSet, setDesiredDeveloperSkillSet] = useState([])
+
 
     const [isUpdated, setIsUpdated] = useState(false)
     const [proposalComments, setProposalComments] = useState([])
@@ -110,6 +124,9 @@ export default function OpportunityProposalDetails(props) {
     const {
       contractId
     } = useParams()
+
+   
+  
 
     useEffect(
         () => {
@@ -143,13 +160,25 @@ export default function OpportunityProposalDetails(props) {
                 while (i < propResult.opportunities.length){
                   if(propResult.opportunities[i].opportunityId == opportunityId){
                     propResult.opportunities[i].title ? setTitle(propResult.opportunities[i].title) : setTitle('')
-                    propResult.opportunities[i].details ? setDetails(propResult.opportunities[i].details) : setDetails('')
+                    propResult.opportunities[i].details ? setDetails(DOMPurify.sanitize(propResult.opportunities[i].details)) : setDetails('')
                     propResult.opportunities[i].reward ? setReward(propResult.opportunities[i].reward) : setReward('')
                     propResult.opportunities[i].category ? setCategory(propResult.opportunities[i].category) : setCategory('')
                     propResult.opportunities[i].projectName ? setProjectName(propResult.opportunities[i].projectName) : setProjectName('')
                     propResult.opportunities[i].status ? setOpportunityStatus(propResult.opportunities[i].status) : setOpportunityStatus('')
                     propResult.opportunities[i].permission ? setPermission(propResult.opportunities[i].permission) : setPermission('')
                     propResult.opportunities[i].submitDate ? setCreated(propResult.opportunities[i].submitDate) : setCreated('')
+                    propResult.opportunities[i].familiarity ? setFamiliarity(propResult.opportunities[i].familiarity) : setFamiliarity('0')
+                    if(propResult.opportunities[i].desiredSkillSet ){
+                      let skillArray = []
+                      skillArray.push(propResult.opportunities[i].desiredSkillSet )
+                      console.log('skillarray', skillArray)
+                      setDesiredSkillSet(skillArray)
+                    }
+                    if(propResult.opportunities[i].desiredDeveloperSkillS){
+                      let developerSkillSetArray = []
+                      developerSkillSetArray.push(propResult.opportunities[i].desiredDeveloperSkillS)
+                      setDesiredDeveloperSkillSet(developerSkillSetArray)
+                    }
                     break
                   }
                   i++
@@ -267,12 +296,70 @@ export default function OpportunityProposalDetails(props) {
                         ) : null }
                         <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                           <Card className={classes.card}>
-                            <div dangerouslySetInnerHTML={{ __html: details}}></div>
+                          <div dangerouslySetInnerHTML={{ __html: details }} />
                           </Card>
                           
                         </Grid>
                       </Grid>
-                     
+                      <Grid container justify="space-evenly" spacing={1} style={{marginTop:'20px', marginBottom: '20px'}}>
+                      <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                        <Typography variant="h6">Crypto/Blockchain Familiarity: <Rating readOnly value={parseInt(familiarity)} /> </Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={12} md={6} lg={6} xl={6} className={classes.centered}>
+                      <Typography variant="h6">Skills Required</Typography>
+                      <TableContainer component={Paper}>
+                        <Table className={classes.table} size="small" aria-label="a dense table">
+                          <TableHead>
+                          
+                          </TableHead>
+                          <TableBody>
+                          {desiredSkillSet && desiredSkillSet.length > 0 ? (
+                              
+                                  <>
+                                  {desiredSkillSet[0].memeCreation ? <TableRow key={1}><TableCell>Meme Creation</TableCell></TableRow>: null}
+                                  {desiredSkillSet[0].videoCreation ? <TableRow key={2}><TableCell>Video Creation</TableCell></TableRow>: null}
+                                  {desiredSkillSet[0].writing ? <TableRow key={3}><TableCell>Writing</TableCell></TableRow>: null}
+                                  {desiredSkillSet[0].design ? <TableRow key={4}><TableCell>Design</TableCell></TableRow>: null}
+                                  {desiredSkillSet[0].eventOrganization ? <TableRow key={5}><TableCell>Event Organization</TableCell></TableRow>: null} 
+                                  {desiredSkillSet[0].socialMedia ? <TableRow key={6}><TableCell>Social Media</TableCell></TableRow>: null}
+                                  {desiredSkillSet[0].marketing ? <TableRow key={7}><TableCell>Marketing</TableCell></TableRow>: null}
+                                  {desiredSkillSet[0].translation ? <TableRow key={8}><TableCell>Translation</TableCell></TableRow>: null}
+    
+                                  </>
+                            )
+                            : <TableRow key={0}><TableCell>None</TableCell></TableRow>
+                            }
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                      </Grid>
+                      <Grid item xs={12} sm={12} md={6} lg={6} xl={6} className={classes.centered}>
+                      <Typography variant="h6">Developer Skills Required</Typography>
+                      <TableContainer component={Paper}>
+                        <Table className={classes.table} size="small" aria-label="a dense table">
+                          <TableHead>
+                          
+                          </TableHead>
+                          <TableBody>
+                          {desiredDeveloperSkillSet && desiredDeveloperSkillSet.length > 0 ? (
+                             
+                                  <>
+                                  {desiredDeveloperSkillSet[0].rust ? <TableRow key={1}><TableCell>RUST</TableCell></TableRow>: null}
+                                  {desiredDeveloperSkillSet[0].assemblyScript ? <TableRow key={2}><TableCell>AssemblyScript</TableCell></TableRow>: null}
+                                  {desiredDeveloperSkillSet[0].javascript ? <TableRow key={3}><TableCell>JavaScript</TableCell></TableRow>: null}
+                                  {desiredDeveloperSkillSet[0].typescript ? <TableRow key={4}><TableCell>TypeScript</TableCell></TableRow>: null}
+                                  {desiredDeveloperSkillSet[0].solidity ? <TableRow key={5}><TableCell>Solidity</TableCell></TableRow>: null}
+                                  {desiredDeveloperSkillSet[0].webDevelopment ? <TableRow key={6}><TableCell>Web Development</TableCell></TableRow>: null}
+                                  </>
+                                )
+                              
+                            : <TableRow key={0}><TableCell>None</TableCell></TableRow>
+                            }
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                      </Grid>
+                      </Grid>
                     
                       
                     

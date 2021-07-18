@@ -204,23 +204,17 @@ export default function EditPersonaForm(props) {
       let value = event.target.value
       setLanguage(value)
     }
-    const handleSkillChange = (event) => {
-      let value = event.target.value
-      setSkill(value)
-    }
+   
     const handleRatingChange = (event, newValue) => {
       if(newValue != null){
         setFamiliarity(newValue.toString())
       }
     }
+    
     function formatDate(timestamp) {
       let intDate = parseInt(timestamp)
       let options = {year: 'numeric', month: 'long', day: 'numeric'}
       return new Date(intDate).toLocaleString('en-US', options)
-    }
-
-    const handleShortBioChange = (content, delta, source, editor) => {
-        setShortBio(content)
     }
 
     const handleSkillSetChange = (event) => {

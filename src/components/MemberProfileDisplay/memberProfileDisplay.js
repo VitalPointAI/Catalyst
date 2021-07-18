@@ -106,8 +106,7 @@ export default function MemberProfileDisplay(props) {
     } = props
 
     const thisPersona = new Persona()
-    let skillArray = []
-    let developerSkillSetArray = []
+   
     useEffect(
         () => {
  
@@ -115,7 +114,9 @@ export default function MemberProfileDisplay(props) {
          
             // Get Applicant Persona Information
            console.log('member', member)
-            if(member){                            
+            if(member){     
+             
+                              
                   let result = await thisPersona.getPersona(member)
                       if(result){
                         result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
@@ -130,10 +131,13 @@ export default function MemberProfileDisplay(props) {
                         result.skill ? setSkill(result.skill) : setSkill([])
                         result.familiarity ? setFamiliarity(result.familiarity): setFamiliarity('')
                         if(result.skillSet){
+                          let skillArray = []
                           skillArray.push(result.skillSet)
+                          console.log('skillarray', skillArray)
                           setSkillSet(skillArray)
                         }
                         if(result.developerSkillSet){
+                          let developerSkillSetArray = []      
                           developerSkillSetArray.push(result.developerSkillSet)
                           setDeveloperSkillSet(developerSkillSetArray)
                         }
@@ -156,7 +160,7 @@ export default function MemberProfileDisplay(props) {
         setOpen(false)
     }
 
-  
+    console.log('skillset', skillSet)
 
         return (
             <div>
@@ -178,7 +182,7 @@ export default function MemberProfileDisplay(props) {
                       {member ? <TableRow key={member}><TableCell>NEAR Account</TableCell><TableCell component="th" scope="row">{member}</TableCell></TableRow> : null }
                       {birthdate ? <TableRow key={birthdate}><TableCell>Birthday</TableCell><TableCell component="th" scope="row">{birthdate}</TableCell></TableRow> : null }
                       {country ? <TableRow key={country}><TableCell>Country</TableCell><TableCell component="th" scope="row">{country}</TableCell></TableRow> : null }
-                      {language && language.length > 0 ? <TableRow key={language}><TableCell>Language</TableCell><TableCell>{language.map(item => { return (<>{item}, </>) })}</TableCell></TableRow>: null }                
+                      {language && language.length > 0 ? <TableRow key='language'><TableCell>Language</TableCell><TableCell component="th" scope="row">{language.map((item, i) => { return (<><Typography key={i} variant="overline">{item},</Typography> </>) })}</TableCell></TableRow>: null }                
                       </TableBody>
                     </Table>
                   </TableContainer>
@@ -194,26 +198,22 @@ export default function MemberProfileDisplay(props) {
                       
                       </TableHead>
                       <TableBody>
-                      {skillSet && skillSet.length > 0 ? 
-                          skillSet.map(item => { 
-                            console.log('item', item)
-                            console.log('skillset', skillSet)
-                            return (
+                      {skillSet && skillSet.length > 0 ?(
+                        
                               <>
-                              {item.memeCreation ? <TableRow><TableCell>Meme Creation</TableCell></TableRow>: null}
-                              {item.videoCreation ? <TableRow><TableCell>Video Creation</TableCell></TableRow>: null}
-                              {item.writing ? <TableRow><TableCell>Writing</TableCell></TableRow>: null}
-                              {item.design ? <TableRow><TableCell>Design</TableCell></TableRow>: null}
-                              {item.eventOrganization ? <TableRow><TableCell>Event Organization</TableCell></TableRow>: null} 
-                              {item.socialMedia ? <TableRow><TableCell>Social Media</TableCell></TableRow>: null}
-                              {item.marketing ? <TableRow><TableCell>Marketing</TableCell></TableRow>: null}
-                              {item.translation ? <TableRow><TableCell>Translation</TableCell></TableRow>: null}
-
+                              {skillSet[0].memeCreation ? <TableRow key={1}><TableCell>Meme Creation</TableCell></TableRow>: null}
+                              {skillSet[0].videoCreation ? <TableRow key={2}><TableCell>Video Creation</TableCell></TableRow>: null}
+                              {skillSet[0].writing ? <TableRow key={3}><TableCell>Writing</TableCell></TableRow>: null}
+                              {skillSet[0].design ? <TableRow key={4}><TableCell>Design</TableCell></TableRow>: null}
+                              {skillSet[0].eventOrganization ? <TableRow key={5}><TableCell>Event Organization</TableCell></TableRow>: null} 
+                              {skillSet[0].socialMedia ? <TableRow key={6}><TableCell>Social Media</TableCell></TableRow>: null}
+                              {skillSet[0].marketing ? <TableRow key={7}><TableCell>Marketing</TableCell></TableRow>: null}
+                              {skillSet[0].translation ? <TableRow key={8}><TableCell>Translation</TableCell></TableRow>: null}
                               </>
-                            )
-                          })
-                        : null
-                        }
+                              )
+                      : <TableRow key={0}><TableCell>None</TableCell></TableRow>
+                      }
+                         
                       </TableBody>
                     </Table>
                   </TableContainer>
@@ -226,22 +226,19 @@ export default function MemberProfileDisplay(props) {
                       
                       </TableHead>
                       <TableBody>
-                      {developerSkillSet && developerSkillSet.length > 0 ? 
-                          developerSkillSet.map(item => { 
-                            console.log('item', item)
-                            console.log('skillset', developerSkillSet)
-                            return (
+                      {developerSkillSet && developerSkillSet.length > 0 ? (
+                         
                               <>
-                              {item.rust ? <TableRow><TableCell>RUST</TableCell></TableRow>: null}
-                              {item.assemblyScript ? <TableRow><TableCell>AssemblyScript</TableCell></TableRow>: null}
-                              {item.javascript ? <TableRow><TableCell>JavaScript</TableCell></TableRow>: null}
-                              {item.typescript ? <TableRow><TableCell>TypeScript</TableCell></TableRow>: null}
-                              {item.solidity ? <TableRow><TableCell>Solidity</TableCell></TableRow>: null}
-                              {item.webDevelopment ? <TableRow><TableCell>Web Development</TableCell></TableRow>: null}
+                              {developerSkillSet[0].rust ? <TableRow key={1}><TableCell>RUST</TableCell></TableRow>: null}
+                              {developerSkillSet[0].assemblyScript ? <TableRow key={2}><TableCell>AssemblyScript</TableCell></TableRow>: null}
+                              {developerSkillSet[0].javascript ? <TableRow key={3}><TableCell>JavaScript</TableCell></TableRow>: null}
+                              {developerSkillSet[0].typescript ? <TableRow key={4}><TableCell>TypeScript</TableCell></TableRow>: null}
+                              {developerSkillSet[0].solidity ? <TableRow key={5}><TableCell>Solidity</TableCell></TableRow>: null}
+                              {developerSkillSet[0].webDevelopment ? <TableRow key={6}><TableCell>Web Development</TableCell></TableRow>: null}
                               </>
                             )
-                          })
-                        : null
+                       
+                        : <TableRow key={0}><TableCell>None</TableCell></TableRow>
                         }
                       </TableBody>
                     </Table>
