@@ -212,7 +212,7 @@ export default function DaoProfileDisplay(props) {
                               {twitter ? <TableRow key={twitter}><TableCell>Twitter</TableCell><TableCell component="a" href={`https://twitter.com/${twitter}`} scope="row">{twitter}</TableCell></TableRow> : null }
                               {reddit ? <TableRow key={reddit}><TableCell>Subreddit</TableCell><TableCell component="a" href={`https://reddit.com/r/${reddit}`} scope="row">{reddit}</TableCell></TableRow> : null }
                               {website ? <TableRow key={website}><TableCell>Website</TableCell><TableCell component="a" href={website} scope="row">{website}</TableCell></TableRow> : null }
-                              {telegram ? <TableRow key={telegram}><TableCell>Telegram</TableCell><TableCell component="a" scope="row">{telegram}</TableCell></TableRow> : null }
+                              {telegram ? <TableRow key={telegram}><TableCell>Telegram</TableCell><TableCell component="th" scope="row">{telegram}</TableCell></TableRow> : null }
                           </TableBody>
                         </Table>
                       </TableContainer>
