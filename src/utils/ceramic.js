@@ -33,6 +33,7 @@ import { opportunitiesSchema } from '../schemas/opportunities'
 import { memberDataSchema } from '../schemas/analytics/memberData'
 import { proposalDataSchema } from '../schemas/analytics/proposalData'
 import { votingDataSchema } from '../schemas/analytics/votingData'
+import { configurationProposalDetailsSchema} from '../schemas/configurationProposals'
 
 import { config } from '../state/config'
 
@@ -121,7 +122,7 @@ class Ceramic {
 
   async downloadKeysSecret(idx, key) {
     let records = await idx.get(key)
-    console.log('records', records)
+   
     if(records && Object.keys(records).length != 0){
       return await idx._ceramic.did.decryptDagJWE(records.seeds[0])
     }
@@ -331,15 +332,11 @@ async makeSeed(account){
   }
 
   async changeDefinition(accountId, aliasName, client, schema, description, contract) {
-     console.log('accountid', accountId)
-     console.log('alias', aliasName)
-     console.log('client', client)
-     console.log('schema', schema)
-     console.log('contract', contract)
+  
     let alias
   
       let aliasExists = await contract.hasAlias({alias: accountId+':'+aliasName})
-      console.log('aliasexists', aliasExists)
+    
       if(aliasExists){
         try{
           alias = await contract.retrieveAlias({alias: accountId+':'+aliasName})
@@ -353,7 +350,7 @@ async makeSeed(account){
       
       let newSchemaURL = await publishSchema(client, {content: schema})
       const doc = await TileDocument.load(client, alias)
-      console.log('doc', doc)
+    
       try {
         await doc.update({name: aliasName, description: description, schema: newSchemaURL.commitId.toUrl()})
         return true
@@ -530,7 +527,7 @@ async makeSeed(account){
     const appDid = this.associateAppDID(APP_OWNER_ACCOUNT, contract, appClient)
 
     // uncomment below to change a definition
-   // let changed = await this.changeDefinition(APP_OWNER_ACCOUNT, 'proposals', appClient, proposalSchema, 'proposal events', contract)
+   //let changed = await this.changeDefinition(APP_OWNER_ACCOUNT, 'opportunities', appClient, opportunitiesSchema, 'opportunities to complete', contract)
    // console.log('changed schema', changed)
 
     const definitions = this.getAlias(APP_OWNER_ACCOUNT, 'Definitions', appClient, definitionsSchema, 'alias definitions', contract)
@@ -554,6 +551,7 @@ async makeSeed(account){
     const memberData = this.getAlias(APP_OWNER_ACCOUNT, 'memberData', appClient, memberDataSchema, 'member data', contract)
     const proposalData = this.getAlias(APP_OWNER_ACCOUNT, 'proposalData', appClient, proposalDataSchema, 'proposal data', contract)
     const votingData = this.getAlias(APP_OWNER_ACCOUNT, 'votingData', appClient, votingDataSchema, 'voting data', contract)
+    const configurationProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'configurationProposalDetails', appClient, configurationProposalDetailsSchema, 'configuration proposal details', contract)
 
    
     const done = await Promise.all([
@@ -578,7 +576,8 @@ async makeSeed(account){
       tributeProposalDetails,
       memberData,
       proposalData,
-      votingData
+      votingData,
+      configurationProposalDetails
     ])
     
     let rootAliases = {
@@ -602,7 +601,8 @@ async makeSeed(account){
       tributeProposalDetails: done[18],
       memberData: done[19],
       proposalData: done[20],
-      votingData: done[21]
+      votingData: done[21],
+      configurationProposalDetails: done[22]
     }
 
     const appIdx = new IDX({ ceramic: appClient, aliases: rootAliases})
@@ -612,7 +612,7 @@ async makeSeed(account){
 
   // current user IDX (account currently logged in)
   async getCurrentUserIdx(account, appIdx, contract){
-    console.log('get contract', contract)
+   
       set(KEY_REDIRECT, {action: false, link: ''})
       let seed = await this.getLocalAccountSeed(account.accountId)
   
@@ -621,46 +621,19 @@ async makeSeed(account){
         return false
       }
       let currentUserCeramicClient = await this.getCeramic(account, seed)
-      console.log('currentuserceramicclient', currentUserCeramicClient)
+     
       this.associateDID(account.accountId, contract, currentUserCeramicClient)
       let curUserIdx = new IDX({ ceramic: currentUserCeramicClient, aliases: appIdx._aliases})
-      console.log('curuseridx here', curUserIdx)
+     
       return curUserIdx
   }
 
-//    // current user IDX (account currently logged in)
-//    async getCurrentUserIdx(account, appIdx, ownerIdx, contract){
-//     set(KEY_REDIRECT, {action: false, link: ''})
-//     let seed
-//     let accountKeys = await this.downloadKeysSecret(account, ownerIdx)
-//     console.log('accountKeys', accountKeys)
-//     if(accountKeys && accountKeys.length > 0){
-//       let i = 0
-//       while(i < accountKeys.length){
-//         if(accountKeys[i].accountId == account.accountId){
-//           seed = Buffer.from((accountKeys[i].key).slic(0,32))
-//         }
-//       }
-//       i++
-//     }
-//     if(seed == false){
-//       set(KEY_REDIRECT, {action: true, link: '/newKey'})
-//       return false
-//     }
-//     let currentUserCeramicClient = await this.getCeramic(account, seed)
-//     this.associateDID(account.accountId, contract, currentUserCeramicClient)
-//     let curUserIdx = new IDX({ ceramic: currentUserCeramicClient, aliases: appIdx._aliases})
-//     return curUserIdx
-// }
-
   // current dao IDX
   async getCurrentDaoIdx(contractAccount, appIdx, contract){
-    console.log('get appidx', appIdx)
-    console.log('contractaccount', contractAccount)
-    console.log('contract', contract)
+  
     let seed
     let daoKeys =  await this.downloadKeysSecret(appIdx, 'daoKeys')
-    console.log('daoKeys', daoKeys)
+   
     if(daoKeys && daoKeys.length > 0){
       let i = 0
       while(i < daoKeys.length){
@@ -730,49 +703,12 @@ async makeSeed(account){
     // Initiate new User Ceramic Client
     let newUserCeramicClient = await this.getCeramic(account, seed)
     
-    // if(owner != undefined) {
-    //   console.log('owner', owner)
-    // let ownerSeed = await this.getLocalAccountSeed(owner)
-    // console.log('owner seed', ownerSeed)
-    //   if(!ownerSeed){
-    //     ownerIdx = appIdx
-    //   } else {
-    //     let ownerClient = await this.getCeramic(owner, ownerSeed)
-    //     console.log('owner client', ownerClient)
-    //     const definitions = await this.getAlias(owner, owner+':Definitions', ownerClient, definitionsSchema, 'alias definitions', contract)
-    //     const schemas = await this.getAlias(owner, owner+':Schemas', ownerClient, schemaSchema, 'user schemas', contract)
-       
-    //     let ownerAliases = {
-    //       definitions: definitions,
-    //       schemas: schemas
-    //     }
-    //     ownerIdx = new IDX({ ceramic: ownerClient, aliases: ownerAliases})
-    //   }
-    // } else {
-    //   ownerIdx = appIdx
-    // }
-   
-    
-    // Associate current user NEAR account with DID and store in contract
     let associate = this.associateDID(account.accountId, contract, newUserCeramicClient)
-    // let profileAlias = await this.aliasSetup(ownerIdx, account.accountId, 'profile', 'user profile data', profileSchema, newUserCeramicClient)
-    // let daoProfileAlias = await this.aliasSetup(ownerIdx, account.accountId, 'daoProfile', 'dao profile data', daoProfileSchema, newUserCeramicClient)
-    // let accountsKeysAlias = await this.aliasSetup(ownerIdx, account.accountId, 'accountsKeys', 'user account info', accountKeysSchema, newUserCeramicClient)
-    // let daoKeysAlias = await this.aliasSetup(ownerIdx, account.accountId, 'daoKeys', 'user dao info', daoKeysSchema, newUserCeramicClient)
-    // let membersAlias = await this.aliasSetup(ownerIdx, account.accountId, 'members', 'dao member info', memberSchema, newUserCeramicClient)
-    // let summonAlias = await this.aliasSetup(ownerIdx, account.accountId, 'summonEvent', 'dao summon events', summonSchema, newUserCeramicClient)
-    // const done = await Promise.all([associate])
-  
-    // let currentAliases = await this.getAliases(ownerIdx, account.accountId)
-    //const curUserIdx = new IDX({ ceramic: newUserCeramicClient, aliases: currentAliases})
+    
     const curUserIdx = new IDX({ ceramic: newUserCeramicClient, aliases: appIdx._aliases})
     // Store it's new seed/list of accounts for later retrieval
     const updatedLinks = get(ACCOUNT_LINKS, [])
     await this.storeKeysSecret(curUserIdx, updatedLinks, 'accountsKeys')
-
-    // // Store it's new seed/list of daos for later retrieval
-    // const updatedDaos = get(DAO_LINKS, [])
-    // await this.storeKeysSecret(curUserIdx, updatedDaos, 'daoKeys')
 
     return curUserIdx
   }

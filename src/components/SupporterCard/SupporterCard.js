@@ -74,7 +74,7 @@ export default function SupporterCard(props) {
 
           if(accountId){
             let result = await thisPersona.getPersona(accountId)
-            console.log('donation result', result)
+          
             if(result){
               result.date ? setDate(result.date) : setDate('')
               result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)

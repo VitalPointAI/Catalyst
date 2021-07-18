@@ -81,7 +81,7 @@ export default function ManageDelegations(props) {
     handleErrorMessage,
     handleSuccessMessage,
    } = props
-console.log('manage contract', contract)
+
    useEffect(
     () => {
 
@@ -93,7 +93,7 @@ console.log('manage contract', contract)
             try{
               if(parseInt(allMemberInfo[i].receivedDelegations) > 0){
                 let delegationInfo = await contract.getDelegationInfo({member: state.accountId, delegatee: allMemberInfo[i].delegateKey})
-                console.log('delegationInfo', delegationInfo)
+               
                 if(delegationInfo.length > 0){
                   let delegations = {
                     delegatedTo: delegationInfo[0][0],
@@ -108,7 +108,7 @@ console.log('manage contract', contract)
             i++
           }
           setDelegationInfo(delegationArray)
-          console.log('delegationArray', delegationArray)
+        
         }
       }
       
@@ -166,7 +166,7 @@ console.log('manage contract', contract)
                   {row.shares}
                 </TableCell>
                 <TableCell>
-                  <Button onClick={(e) => revokeVotes(row.delegatedTo, row.shares, e)}>Revoke</Button>
+                  {parseInt(row.shares) > 0 ? <Button onClick={(e) => revokeVotes(row.delegatedTo, row.shares, e)}>Revoke</Button> : null }
                 </TableCell>
               </TableRow>
             ))

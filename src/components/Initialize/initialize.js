@@ -66,6 +66,7 @@ export default function Initialize(props) {
     const [gracePeriodLength, setGracePeriodLength] = useState('')
     const [proposalDeposit, setProposalDeposit] = useState('')
     const [dilutionBound, setDilutionBound] = useState('')
+    const [voteThreshold, setVoteThreshold] = useState('')
     const [summonerContribution, setSummonerContribution] = useState('')
 
     const [confirm, setConfirm] = useState(false)
@@ -112,23 +113,27 @@ export default function Initialize(props) {
       }, [])
 
       const handlePeriodDurationChange = (event) => {
-        setPeriodDuration(event.target.value);
+        setPeriodDuration(event.target.value)
       }
   
       const handleVotingPeriodLengthChange = (event) => {
-          setVotingPeriodLength(event.target.value);
+          setVotingPeriodLength(event.target.value)
       }
   
       const handleGracePeriodLengthChange = (event) => {
-          setGracePeriodLength(event.target.value);
+          setGracePeriodLength(event.target.value)
       }
   
       const handleDilutionBoundChange = (event) => {
-          setDilutionBound(event.target.value);
+          setDilutionBound(event.target.value)
       }
   
       const handleProposalDepositChange = (event) => {
-          setProposalDeposit(event.target.value);
+          setProposalDeposit(event.target.value)
+      }
+
+      const handleVoteThresholdChange = (event) => {
+        setVoteThreshold(event.target.value)
       }
 
       const handleSummonerContributionChange = (event) => {
@@ -150,6 +155,7 @@ export default function Initialize(props) {
             gracePeriodLength, 
             proposalDeposit, 
             dilutionBound,
+            voteThreshold,
             summonerContribution
             )
           
@@ -290,6 +296,28 @@ export default function Initialize(props) {
                   </Tooltip>
                   </>
                 }}
+              />
+
+              <TextField
+              fullWidth
+              id="vote-threshold"
+              variant="outlined"
+              required={true}
+              name="voteThreshold"
+              label="Vote Threshold"
+              placeholder="51%"
+              value={voteThreshold}
+              onChange={handleVoteThresholdChange}
+              inputRef={register({
+                  required: true, 
+              })}
+              InputProps={{
+                endAdornment: <><InputAdornment position="end">%</InputAdornment>
+                <Tooltip TransitionComponent={Zoom} title="minimum % of total votes that must be cast in order for a proposal to pass.">
+                    <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                </Tooltip>
+                </>
+              }}
               />
                  
               <TextField

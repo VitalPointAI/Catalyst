@@ -43,6 +43,12 @@ export const profileSchema = {
       },
       familiarity: {
         type: 'string'
-      }
+      },
+      skillSet: {
+        type: 'object'
+      },
+      developerSkillSet: {
+        type: 'object'
+      },
     },
   }

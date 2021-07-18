@@ -58,6 +58,15 @@ export const opportunitiesSchema = {
           type: 'number',
           minimum: 0
         },
+        "familiarity": {
+          type: 'string',
+        },
+        "desiredSkillSet": {
+          type: 'object'
+        },
+        "desiredDeveloperSkillSet": {
+          type: 'object'
+        },
       },
     }
   }

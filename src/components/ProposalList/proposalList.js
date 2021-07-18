@@ -159,8 +159,7 @@ export default function ProposalList(props) {
       let members = _.sortBy(allMemberInfo, 'joined')
       setMembersArray(members)
     }
-   console.log('proposalevents', proposalEvents)
-   console.log('pl currentmemberinfo', currentMemberInfo)
+  
     async function fetchData() {
       let i = 0
       let result
@@ -188,13 +187,12 @@ export default function ProposalList(props) {
       setQueueCount(newLists.queueProposals.length)
 
       if(newLists.processedProposals.length > 0){
-        console.log('newlist processed', newLists.processedProposals)
+      
         let i = 0
         while (i < newLists.processedProposals.length){
-          console.log('prop type here newlist processed', newLists.processedProposals)
-          console.log('prop type here', newLists.processedProposals[i][0].proposalType)
+        
           if(newLists.processedProposals[i][0].proposalType == 'Member'){
-            console.log('here I am')
+            
             await synchMember(curDaoIdx, contract, contractId, newLists.processedProposals[i][0].applicant)
           }
           i++
@@ -305,7 +303,10 @@ export default function ProposalList(props) {
     if(flags[9]) {
       type = 'Tribute'
     }
-    if(!flags[4] && !flags[5] && !flags[6] &&!flags[7] &&!flags[8] &&!flags[9]) {
+    if(flags[10]) {
+      type = 'Configuration'
+    }
+    if(!flags[4] && !flags[5] && !flags[6] &&!flags[7] &&!flags[8] &&!flags[9] &&!flags[10]) {
     type = 'Payout'
     }
     return type
@@ -322,7 +323,7 @@ export default function ProposalList(props) {
   }
 
   async function getUserVote(proposalIdentifier) {
-    console.log('contract here', contract)
+    
     let result = await contract.getMemberProposalVote({memberAddress: accountId, pI: parseInt(proposalIdentifier)})
     return result
   }
@@ -358,7 +359,7 @@ export default function ProposalList(props) {
     
     if (requests.length > 0) {
       requests.map((fr) => {
-        console.log('request fr', fr)
+     console.log('requests fr', fr)
         status = getStatus(fr.flags)
         proposalType = getProposalType(fr.flags)
         let isVotingPeriod = getVotingPeriod(fr.startingPeriod, fr.votingPeriod)
@@ -532,10 +533,10 @@ export default function ProposalList(props) {
   }
 
   let Members
-  console.log('allmemberinfo', allMemberInfo)
+
   if (allMemberInfo && allMemberInfo.length > 0 && tabValue == '1') {
     Members = allMemberInfo.map((fr, i) => {
-      console.log('fr', fr)
+     
       return (
         <MemberCard 
           key={fr.memberId}
@@ -566,7 +567,7 @@ export default function ProposalList(props) {
 
   let Proposals
   if (proposalList && proposalList.length > 0 && tabValue == '2') {
-    console.log('proposallist', proposalList)
+  
     Proposals = proposalList.map((fr) => {
       return (
         <ProposalCard
@@ -593,6 +594,7 @@ export default function ProposalList(props) {
           cancelTransactionHash={fr[0].cancelTransactionHash}
           processTransactionHash={fr[0].processTransactionHash}
           sponsorTransactionHash={fr[0].sponsorTransactionHash}
+          configuration={fr[0].configuration}
           accountId={accountId}
           cancelFinish={cancelFinish}
           tributeToken={tributeToken}
@@ -602,6 +604,7 @@ export default function ProposalList(props) {
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
           summoner={summoner}
+          contract={contract}
         />
       )
     })
@@ -640,20 +643,22 @@ export default function ProposalList(props) {
           processTransactionHash={fr[0].processTransactionHash}
           sponsorTransactionHash={fr[0].sponsorTransactionHash}
           done={done}
+          configuration={fr[0].configuration}
           // handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
           // handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
           handleVotingAction={handleVotingAction}
           handleRageQuitClick={handleRageQuitClick}
-          summoner={summoner}
+          summoner={summoner} 
+          contract={contract}
         />
       )
     })
   }
 
   let Queued
-  console.log('queue list', queueList)
+ 
   if (queueList && Object.keys(queueList).length > 0 && tabValue == '4') {
     Queued = queueList.map((fr) => {
       return (
@@ -681,12 +686,14 @@ export default function ProposalList(props) {
           processTransactionHash={fr.processTransactionHash}
           sponsorTransactionHash={fr.sponsorTransactionHash}
           handleProcessAction={handleProcessAction}
+          configuration={fr.configuration}
           // handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
           // handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
           summoner={summoner}
           queueList={queueList}
+          contract={contract}
         />
       )
     })
@@ -713,6 +720,7 @@ export default function ProposalList(props) {
           loot={fr[0].loot}
           status={fr[0].status}
           startingPeriod={fr[0].startingPeriod}
+          configuration={fr[0].configuration}
           submitTransactionHash={fr[0].submitTransactionHash}
           cancelTransactionHash={fr[0].cancelTransactionHash}
           processTransactionHash={fr[0].processTransactionHash}
@@ -723,6 +731,7 @@ export default function ProposalList(props) {
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
           summoner={summoner}
+          contract={contract}
         />
       )
     })
@@ -749,6 +758,7 @@ export default function ProposalList(props) {
           tribute={fr[0].tribute}
           loot={fr[0].loot}
           status={fr[0].status}
+          configuration={fr[0].configuration}
           submitTransactionHash={fr[0].submitTransactionHash}
           cancelTransactionHash={fr[0].cancelTransactionHash}
           processTransactionHash={fr[0].processTransactionHash}
@@ -759,6 +769,7 @@ export default function ProposalList(props) {
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
           summoner={summoner}
+          contract={contract}
         />
       )
     })
@@ -943,7 +954,7 @@ export default function ProposalList(props) {
       <Grid container alignItems="center" justify="space-between" spacing={3} style={{padding: '20px'}} >
       { membersArray && membersArray.length > 0 ? 
           (<>
-            {console.log('membersArray', membersArray)}
+    
             <Grid container alignItems="center" justify="space-between" spacing={0} >
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                 <SearchBar

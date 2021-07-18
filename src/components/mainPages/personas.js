@@ -99,7 +99,7 @@ export const PersonaPage = ({ state, update, dispatch }) => {
                 (<> <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
                     <Paper className={classes.paper}>
                         <Typography variant="h5" style={{marginBottom: '20px'}}>Reserved Personas</Typography>
-                    <Grid container alignItems="flex-start" justify="center" spacing={2} style={{padding: '20px'}}>
+                    <Grid container alignItems="flex-start" justify="center" spacing={0} style={{padding: '20px'}}>
                         {links.filter(person => person.owner == accountId).map(({ key, accountId, owner }) =>
                             <PersonaCard
                                 key={key}
@@ -129,7 +129,7 @@ export const PersonaPage = ({ state, update, dispatch }) => {
                     <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" >
                     <Paper className={classes.paper}>
                         <Typography variant="h5" style={{marginBottom: '20px'}}>Claimed Personas</Typography>
-                        <Grid container alignItems="flex-start" justify="center" spacing={2} style={{padding: '20px'}}>
+                        <Grid container alignItems="center" justify="center" spacing={0} style={{padding: '20px'}}>
                             {claimed.filter(person => person.owner == accountId).map(({ key, accountId, owner }) =>
                                 <PersonaCard
                                     key={key}

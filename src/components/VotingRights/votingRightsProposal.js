@@ -115,7 +115,6 @@ export default function VotingRightsProposal(props) {
                     pR: '0',
                     pT: depositToken
                     }, BOATLOAD_OF_GAS, utils.format.parseNearAmount((parseInt(shares)+parseInt(proposalDeposit)).toString()))
-    console.log('amount ', utils.format.parseNearAmount((parseInt(shares)+parseInt(proposalDeposit)).toString()))  
                   
     let changed = await handleProposalEventChange()
     await handleGuildBalanceChanges()

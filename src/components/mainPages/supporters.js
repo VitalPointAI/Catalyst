@@ -43,7 +43,7 @@ export default function Supporters(props) {
       contractId
     } = useParams()
 
-    console.log('cotractid', contractId)
+   
     useEffect(
         () => {
           async function fetchData() {
@@ -51,7 +51,7 @@ export default function Supporters(props) {
           let Persona = new Personas()
           let donations = await Persona.getDonations(contractId)
           
-          console.log('donations', donations)
+       
           setDonations(donations)
           }
 
@@ -71,7 +71,7 @@ export default function Supporters(props) {
          
             {donations && donations.donations.length > 0 ?
               donations.donations.map((fr, i) => {
-                console.log('donation fr', fr)
+              
                 return(
                   <SupporterCard 
                     key={i}

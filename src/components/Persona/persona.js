@@ -7,6 +7,7 @@ import EditPersonaForm from '../../components/EditPersona/editPersona'
 import { makeStyles } from '@material-ui/core/styles'
 import { ceramic } from '../../utils/ceramic'
 import Persona from '@aluhning/get-personas-js'
+import Purpose from '../Purpose/purpose'
 
 // Material UI Components
 import Avatar from '@material-ui/core/Avatar'
@@ -52,6 +53,7 @@ const imageName = require('../../img/default-profile.png') // default no-image a
 export default function PersonaInfo(props) {
     const [profileExists, setProfileExists] = useState(false)
     const [editPersonaClicked, setEditPersonaClicked] = useState(false)
+    const [purposeClicked, setPurposeClicked] = useState(false)
     const [anchorEl, setAnchorEl] = useState(null)
     const [finished, setFinished] = useState(false)
     const [avatar, setAvatar] = useState(props.avatar)
@@ -91,10 +93,10 @@ export default function PersonaInfo(props) {
             setFinished(false)
             if(state) {
                 state.isUpdated
-                console.log('currentdaoslist', currentDaosList)
+            
                 if (curUserIdx){
                     let result = await curUserIdx.get('profile', curUserIdx.id)
-                    console.log('result', result)
+              
                     if(result){
                         result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                     }
@@ -144,7 +146,7 @@ const classes = useStyles()
 
 
 
-const handleEditPersonaClick = () => {
+  const handleEditPersonaClick = () => {
     handleExpanded()
     handleEditPersonaClickState(true)
   }
@@ -152,6 +154,17 @@ const handleEditPersonaClick = () => {
   function handleEditPersonaClickState(property){
     setEditPersonaClicked(property)
   }
+
+  
+  const handlePurposeClick = () => {
+    handleExpanded()
+    handlePurposeClickState(true)
+  }
+
+  function handlePurposeClickState(property){
+    setPurposeClicked(property)
+  }
+
 
   function handleExpanded() {
     setAnchorEl(null)
@@ -238,9 +251,7 @@ const handleEditPersonaClick = () => {
                     <>
                        
                             <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" style={{display: 'inline'}}>
-                                <Link to={`/dao/${contractId}/about`} variant="body1">
-                                    <Button style={{textAlign: 'center', marginRight: '30px'}}>About</Button>
-                                </Link>
+                                    <Button style={{textAlign: 'center', marginRight: '30px'}} onClick={handlePurposeClick}>Purpose</Button>
                                 <Link to={`/opportunities/${contractId}`} variant="body1">
                                     <Button style={{textAlign: 'center', marginRight: '30px'}}>Opportunities</Button>
                                 </Link>
@@ -253,9 +264,7 @@ const handleEditPersonaClick = () => {
                         <>
                        
                         <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" style={{display: 'inline'}}>
-                            <Link to={`/dao/${contractId}/about`} variant="body1">
-                                <Button style={{textAlign: 'center', marginRight: '10px'}}>About</Button>
-                            </Link>
+                                <Button style={{textAlign: 'center', marginRight: '10px'}} onClick={handlePurposeClick}>Purpose</Button>
                             <Link to={`/opportunities/${contractId}`} variant="body1">
                                 <Button style={{textAlign: 'center', marginRight: '10px'}}>Opportunities</Button>
                             </Link>
@@ -313,6 +322,12 @@ const handleEditPersonaClick = () => {
                 curPersonaIdx={state.curUserIdx}
                 handleUpdate={handleUpdate}
                 accountId={accountId}
+                /> : null }
+
+            {purposeClicked ? <Purpose
+                handlePurposeClickState={handlePurposeClickState}
+                contractId={contractId}
+            
                 /> : null }
        
         </Grid>

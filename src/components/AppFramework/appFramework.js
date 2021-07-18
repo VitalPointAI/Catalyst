@@ -25,7 +25,7 @@ import Initialize from '../Initialize/initialize'
 import { dao } from '../../utils/dao'
 import { ceramic } from '../../utils/ceramic'
 
-import { NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE, NEW_DONATION, NEW_EXIT, NEW_DELEGATION, NEW_REVOCATION } from '../../state/near'
+import { NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE, NEW_DONATION, NEW_EXIT, NEW_DELEGATION, NEW_REVOCATION, hasKey } from '../../state/near'
 
 // Material UI imports
 import { makeStyles } from '@material-ui/core/styles'
@@ -57,6 +57,16 @@ const useStyles = makeStyles((theme) => ({
     position: 'relative',
     display: 'flex',
     flexDirection: 'column'
+  },
+  centered: {
+    width: '200px',
+    height: '100px',
+    textAlign: 'center',
+    position: 'fixed',
+    top: '50%',
+    left: '50%',
+    marginTop: '-200px',
+    marginLeft: '-100px'
   },
     top: {
       marginBottom: '10px',
@@ -148,19 +158,25 @@ export default function AppFramework(props) {
           async function fetchData() {
             
             let urlVariables = window.location.search
-            console.log('url variables', urlVariables)
+         
 
             const urlParameters = new URLSearchParams(urlVariables)
             let transactionHash = urlParameters.get('transactionHashes')
-            console.log('transaction hash', transactionHash)
+           
 
             if(didRegistryContract && near){
 
               if(contractId){
                 let thisCurDaoIdx
-                let daoAccount = new nearAPI.Account(near.connection, contractId)
+                let daoAccount
+                try{
+                  daoAccount = new nearAPI.Account(near.connection, contractId)
+                } catch (err) {
+                  console.log('no account', err)
+                }
+               
                 thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
-                console.log('thiscurdaoidx', thisCurDaoIdx)
+               
                 setCurDaoIdx(thisCurDaoIdx)
            
                 let contract = await dao.initDaoContract(state.wallet.account(), contractId)
@@ -239,7 +255,7 @@ export default function AppFramework(props) {
                    
                     // check for new proposals to process
                     let newProcess = get(NEW_PROCESS, [])
-                    console.log('newprocess', newProcess)
+                
                     let g = 0
                     while(g < newProcess.length){
                       if(newProcess[g].contractId==contractId && newProcess[g].new == true){
@@ -251,7 +267,7 @@ export default function AppFramework(props) {
                           newProcess[g].type,
                           transactionHash
                           )
-                        console.log('logged process', loggedProcess)
+                     
                         if (loggedProcess) {
                           newProcess[g].new = false
                           set(NEW_PROCESS, newProcess)
@@ -406,7 +422,7 @@ export default function AppFramework(props) {
                     let synched = await synchProposalEvent(thisCurDaoIdx, contract)
                     if(synched){
                         proposals = await thisCurDaoIdx.get('proposals', thisCurDaoIdx.id)
-                        console.log('all proposal events', proposals)
+                     
                       setAllProposals(proposals.events)
                     }
                   } catch (err) {
@@ -415,7 +431,7 @@ export default function AppFramework(props) {
 
                   try {
                     let synched = await synchMember(thisCurDaoIdx, contract, contractId, accountId)
-                    console.log('synched', synched)
+                   
                     if(synched){
                       let members = await thisCurDaoIdx.get('members', thisCurDaoIdx.id)
                       setAllMemberInfo(members.events)
@@ -439,13 +455,6 @@ export default function AppFramework(props) {
                   console.log('problem retrieving DAO profile')
                 }
 
-                // try {
-                // let memberInfo = await thisCurDaoIdx.get('members', thisCurDaoIdx.id)
-                // console.log('memberInfo', memberInfo)
-                // setAllMemberInfo(memberInfo.events)
-                // } catch (err) {
-                //   console.log('no memberinfo yet', err)
-                // }
                     
                 let init = await contract.getInit()
                 setInitialized(init)
@@ -458,8 +467,7 @@ export default function AppFramework(props) {
                     try {
                       thisMemberInfo = await contract.getMemberInfo({member: accountId})
                       thisMemberStatus = await contract.getMemberStatus({member: accountId})
-                      console.log('thismemberstatus', thisMemberStatus)
-                      console.log('thismemberinfo', thisMemberInfo)
+                     
                       setMemberInfo(thisMemberInfo)
                       if(thisMemberStatus && thisMemberInfo[0].active){
                         setMemberStatus(true)
@@ -588,10 +596,13 @@ export default function AppFramework(props) {
                   
                 }
                 
-              }    
+              } 
+               
+              
             }  
           }
 
+        
           fetchData()
           .then((res) => {
           })
@@ -636,7 +647,7 @@ export default function AppFramework(props) {
             <div className={classes.root}>
             <Header state={state} />
             <Grid container style={{padding:'20px'}}>
-            {initLoad == false ? <CircularProgress /> :
+            {initLoad == false ? <div className={classes.centered}><CircularProgress/><br></br><Typography variant="h6">Setting Things Up...</Typography></div> :
             initialized == 'done' ? (
               <>
               {matches ? (<>

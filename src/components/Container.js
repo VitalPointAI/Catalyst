@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react'
+import { Redirect } from 'react-router-dom'
 import clsx from 'clsx';
 import { flexClass } from '../App'
 import SignIn from '../components/SignIn/signIn'
@@ -25,6 +26,16 @@ const useStyles = makeStyles((theme) => ({
         position: 'relative',
         display: 'flex',
         flexDirection: 'column'
+      },
+      centered: {
+        width: '200px',
+        height: '100px',
+        textAlign: 'center',
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        marginTop: '-200px',
+        marginLeft: '-100px'
       },
     paper: {
         padding: theme.spacing(2),
@@ -74,12 +85,12 @@ export const Container = ({ children, state, handleSnackBarOpen, handleSuccessMe
             wallet && wallet.signedIn ? 
              children 
             
-            : (<SignIn wallet={wallet} state={state}/>)
+            : <Redirect to="https://vitalpoint.ai/catalyst" />
                
             : state.accountData ? 
                 children 
             
-            : <div style={{width: '100%', textAlign: 'center'}}><CircularProgress/></div>
+            : <div className={classes.centered}><CircularProgress/><br></br><Typography variant="h6">Setting Things Up...</Typography></div>
         }
       
         { state.app.alert &&

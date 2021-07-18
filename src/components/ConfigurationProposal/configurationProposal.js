@@ -5,6 +5,12 @@ import { makeStyles } from '@material-ui/core/styles'
 import { submitProposal, formatNearAmount, parseNearAmount } from '../../state/near'
 import { appStore, onAppMount } from '../../state/app'
 
+// ReactQuill Component
+import ReactQuill from 'react-quill';
+
+// CSS Styles
+import '../../../node_modules/react-quill/dist/quill.snow.css'
+
 // Material UI components
 import Button from '@material-ui/core/Button'
 import TextField from '@material-ui/core/TextField'
@@ -70,7 +76,6 @@ export default function ConfigurationProposal(props) {
 
   const [open, setOpen] = useState(true)
   const [finished, setFinished] = useState(true)
-  const [applicant, setApplicant] = useState(props.accountId)
   const [funding, setFunding] = useState('')
   const [confirm, setConfirm] = useState(false)
 
@@ -79,6 +84,7 @@ export default function ConfigurationProposal(props) {
   const [gracePeriodLength, setGracePeriodLength] = useState('')
   const [proposalDeposit, setProposalDeposit] = useState('')
   const [dilutionBound, setDilutionBound] = useState('')
+  const [voteThreshold, setVoteThreshold] = useState('')
 
   const [loaded, setLoaded] = useState()
 
@@ -117,6 +123,7 @@ export default function ConfigurationProposal(props) {
                 result[0][3] ? setGracePeriodLength(result[0][3]) : setGracePeriodLength('')
                 result[0][4] ? setProposalDeposit(formatNearAmount(result[0][4])) : setProposalDeposit('')
                 result[0][5] ? setDilutionBound(result[0][5]) : setDilutionBound('')
+                result[0][6] ? setVoteThreshold(result[0][6]) : setVoteThreshold('')
                 return true
             } catch (err) {
                 console.log('failure fetching init settings')
@@ -160,6 +167,11 @@ export default function ConfigurationProposal(props) {
       setDilutionBound(value)
   }
 
+  const handleVoteThresholdChange = (event) => {
+    let value = event.target.value
+    setVoteThreshold(value)
+  }
+
   const handleConfirmChange = (event) => {
     setConfirm(event.target.checked)
   }
@@ -168,7 +180,7 @@ export default function ConfigurationProposal(props) {
     event.preventDefault()
     setFinished(false)
 
-    let configuration = [periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound]
+    let configuration = [periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound, voteThreshold]
     
     try{
       await submitProposal(
@@ -177,7 +189,7 @@ export default function ConfigurationProposal(props) {
         depositToken,
         parseNearAmount(proposalDeposit),
         'Configuration',
-        applicant,
+        accountId,
         '0',
         '0',
         '0',
@@ -272,6 +284,20 @@ export default function ConfigurationProposal(props) {
           }}
         />
 
+        <TextField
+        id="vote-threshold"
+        variant="outlined"
+        name="voteThreshold"
+        label="Vote Threshold"
+        value={voteThreshold}
+        onChange={handleVoteThresholdChange}  
+        inputRef={register({
+            required: true, 
+        })}
+        InputProps={{
+          endAdornment: <InputAdornment position="end">%</InputAdornment>,
+          }}
+        />
      
         <Card>
         <CardContent>

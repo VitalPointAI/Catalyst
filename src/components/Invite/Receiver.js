@@ -25,6 +25,7 @@ const Receiver = ({state}) => {
     const linkArray = (window.location.pathname.split("/")).slice(2);
     const link = window.location.origin + "/dao/" + `${linkArray[0]}` + "." + `${config.factoryContractName}`
     const dao = new Persona(); 
+    const classes = useStyles()
 
     useEffect(() => {
         async function fetchData(){

@@ -17,6 +17,9 @@ import TributeProposalDetails from '../ProposalDetails/tributeProposalDetails'
 import EditPayoutProposalForm from '../EditProposal/editPayoutProposal'
 import PayoutProposalDetails from '../ProposalDetails/payoutProposalDetails'
 
+import EditConfigurationProposalForm from '../EditProposal/editConfigurationProposal'
+import ConfigurationProposalDetails from '../ProposalDetails/configurationProposalDetails'
+
 import EditOpportunityProposalForm from '../EditProposal/editOpportunityProposal'
 import OpportunityProposalDetails from '../ProposalDetails/opportunityProposalDetails'
 
@@ -147,6 +150,9 @@ export default function ProposalCard(props) {
     const [editOpportunityProposalDetailsClicked, setEditOpportunityProposalDetailsClicked] = useState(false)
     const [opportunityProposalDetailsClicked, setOpportunityProposalDetailsClicked] = useState(false)
 
+    const [editConfigurationProposalDetailsClicked, setEditConfigurationProposalDetailsClicked] = useState(false)
+    const [configurationProposalDetailsClicked, setConfigurationProposalDetailsClicked] = useState(false)
+
     const [nextToFinalize, setNextToFinalize] = useState()
 
     const [anchorEl, setAnchorEl] = useState(null)
@@ -168,7 +174,7 @@ export default function ProposalCard(props) {
     const classes = useStyles();
 
     const { applicant, created, noVotes, yesVotes, proposalType, proposer, requestId, tribute, vote, loot, shares, status, funding,
-        isVotingPeriod, isGracePeriod, voted, gracePeriod, votingPeriod, currentPeriod, periodDuration, cancelFinish, sponsor, done,
+        isVotingPeriod, isGracePeriod, voted, gracePeriod, votingPeriod, currentPeriod, periodDuration, cancelFinish, sponsor, done, configuration,
         cancelTransactionHash,
         submitTransactionHash,
         processTransactionHash,
@@ -216,7 +222,7 @@ export default function ProposalCard(props) {
             // Set Existing Member Proposal Data       
             if(curDaoIdx){
               let propResult = await curDaoIdx.get('memberProposalDetails', curDaoIdx.id)
-              console.log('propResult', propResult)
+              
               if(propResult) {
                 let i = 0
                 while (i < propResult.proposals.length){
@@ -232,7 +238,7 @@ export default function ProposalCard(props) {
             // Set Existing Funding Proposal Data       
             if(curDaoIdx){
               let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
-              console.log('propResult', propResult)
+         
               if(propResult) {
                 let i = 0
                 while (i < propResult.proposals.length){
@@ -248,7 +254,7 @@ export default function ProposalCard(props) {
             // Set Existing Tribute Proposal Data       
             if(curDaoIdx){
               let propResult = await curDaoIdx.get('tributeProposalDetails', curDaoIdx.id)
-              console.log('propResult', propResult)
+          
               if(propResult) {
                 let i = 0
                 while (i < propResult.proposals.length){
@@ -264,7 +270,7 @@ export default function ProposalCard(props) {
             // Set Existing Opportunity Proposal Data       
             if(curDaoIdx){
               let propResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
-              console.log('propResult', propResult)
+          
               if(propResult) {
                 let i = 0
                 while (i < propResult.opportunities.length){
@@ -280,7 +286,7 @@ export default function ProposalCard(props) {
             // Set Existing Payout Proposal Data       
              if(curDaoIdx){
               let propResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
-              console.log('payout propresult', propResult)
+           
               if(propResult) {
                 let i = 0
                 while (i < propResult.proposals.length){
@@ -376,6 +382,26 @@ export default function ProposalCard(props) {
   
     function handleTributeProposalDetailsClickState(property){
       setTributeProposalDetailsClicked(property)
+    }
+
+    // Configuration Proposal Functions
+
+    const handleEditConfigurationProposalDetailsClick = () => {
+      handleExpanded()
+      handleEditConfigurationProposalDetailsClickState(true)
+    }
+
+    function handleEditConfigurationProposalDetailsClickState(property){
+      setEditConfigurationProposalDetailsClicked(property)
+    }
+
+    const handleConfigurationProposalDetailsClick = () => {
+      handleExpanded()
+      handleConfigurationProposalDetailsClickState(true)
+    }
+
+    function handleConfigurationProposalDetailsClickState(property){
+      setConfigurationProposalDetailsClicked(property)
     }
 
      // Opportunity Proposal Functions
@@ -663,6 +689,85 @@ export default function ProposalCard(props) {
              /></>
            ) : null }
 
+           {proposalType === 'Configuration' ? (
+            <> 
+            
+            {status=='Submitted' ? (<>
+              <Tooltip title="See transaction on explorer.">
+                <a href={explorerUrl + '/transactions/' + submitTransactionHash}>
+                  <IconButton aria-label="delete" style={{float: 'left'}}>
+                    <ExploreIcon />
+                  </IconButton>
+                </a>
+                </Tooltip>
+                </>
+              ) : null }
+              {status=='Sponsored' ? (<>
+                <Tooltip title="See transaction on explorer.">
+                  <a href={explorerUrl + '/transactions/' + sponsorTransactionHash}>
+                    <IconButton aria-label="delete" style={{float: 'left'}}>
+                      <ExploreIcon />
+                    </IconButton>
+                  </a>
+                  </Tooltip>
+                  </>
+                ) : null }
+              {status=='Processed' ? (<>
+                <Tooltip title="See transaction on explorer.">
+                  <a href={explorerUrl + '/transactions/' + processTransactionHash}>
+                    <IconButton aria-label="delete" style={{float: 'left'}}>
+                      <ExploreIcon />
+                    </IconButton>
+                  </a>
+                  </Tooltip>
+                  </>
+                ) : null }
+              {status=='Cancelled' ? (<>
+                <Tooltip title="See transaction on explorer.">
+                  <a href={explorerUrl + '/transactions/' + cancelTransactionHash}>
+                    <IconButton aria-label="delete" style={{float: 'left'}}>
+                      <ExploreIcon />
+                    </IconButton>
+                  </a>
+                  </Tooltip>
+                  </>
+                ) : null }
+            <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px', marginTop: '12px'}} color="textSecondary">{proposalType} Proposal</Typography>
+            <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
+            <div style={{clear: 'both'}}></div>
+            <CardHeader
+               style={{display: 'block'}}
+               align="center"
+               title={
+                 <>
+                 <Button 
+                  color="primary"
+                  style={{fontWeight: '800', fontSize: '110%', lineHeight: '1.1em'}}
+                  onClick={handleConfigurationProposalDetailsClick}
+                 >
+                  Configuration Changes Proposed
+                 </Button>
+                 </>
+                }
+               subheader={
+                 <Grid container alignItems="center" justify="space-evenly">
+                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
+                      <Typography variant="overline">Proposed: {created}</Typography>
+                   </Grid>
+                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                   <Typography variant="overline">By:</Typography>
+                   <Chip avatar={<Avatar src={proposerAvatar} className={classes.small}  />} label={proposerName != '' ? proposerName : proposer}/>
+                   </Grid>
+                   {status == 'Sponsored' ? (
+                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                     <Typography variant="overline" color="textSecondary">Sponsor: {sponsor}</Typography>
+                   </Grid>
+                   ) : null }
+                 </Grid>
+                 }
+             /></>
+           ) : null }
+
            {proposalType === 'Opportunity' ? (
             <> 
            
@@ -885,7 +990,7 @@ export default function ProposalCard(props) {
            ) : null }
 
             <CardContent>
-                {console.log('proposalType', proposalType)}
+               
             {proposalType == 'Member' ? (
               <Grid container alignItems="center" justify="space-evenly" style={{marginBottom:'5px'}}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-20px'}}>
@@ -1068,16 +1173,17 @@ export default function ProposalCard(props) {
               <Grid container alignItems="center" justify="space-evenly" spacing={1}>
 
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                  {(accountId != proposer && accountId != applicant && accountId != summoner) && status=='Submitted' && memberStatus == true ? 
+                  {totalMembers != 1 ?
+                    (accountId != proposer && accountId != applicant) && status=='Submitted' && memberStatus == true ? 
                   <><Button 
                       color="primary" 
                       onClick={(e) => handleSponsorConfirmationClick(requestId, proposalType, funding)}
                     >
                     Sponsor
                     </Button>
-                  </> : null }
-               
-                  {(accountId == summoner && totalMembers == 1) && status=='Submitted' && memberStatus == true ? 
+                  </> : null
+                  :
+                  accountId == summoner && status=='Submitted' && memberStatus == true ? 
                   <><Button 
                       color="primary" 
                       onClick={(e) => handleSponsorConfirmationClick(requestId, proposalType, funding)}
@@ -1122,6 +1228,13 @@ export default function ProposalCard(props) {
                     <><Button 
                         color="primary" 
                         onClick={handleEditPayoutProposalDetailsClick}>
+                          Edit
+                      </Button>
+                    </>) : null }
+                  {proposalType === 'Configuration' ? (
+                    <><Button 
+                        color="primary" 
+                        onClick={handleEditConfigurationProposalDetailsClick}>
                           Edit
                       </Button>
                     </>) : null }
@@ -1171,6 +1284,19 @@ export default function ProposalCard(props) {
           handleUpdate={handleUpdate}
           accountId={accountId}
           proposalId={requestId}
+          /> : null }
+
+        {editConfigurationProposalDetailsClicked ? <EditConfigurationProposalForm
+          state={state}
+          handleEditConfigurationProposalDetailsClickState={handleEditConfigurationProposalDetailsClickState}
+          curDaoIdx={curDaoIdx}
+          curPersonaIdx={curPersonaIdx}
+          applicant={applicant}
+          proposer={proposer}
+          handleUpdate={handleUpdate}
+          accountId={accountId}
+          proposalId={requestId}
+          configuration={configuration}
           /> : null }
         
         {editPayoutProposalDetailsClicked ? <EditPayoutProposalForm
@@ -1226,6 +1352,18 @@ export default function ProposalCard(props) {
           applicant={applicant}
           handleUpdate={handleUpdate}
           proposalId={requestId}
+          /> : null }
+
+        {configurationProposalDetailsClicked ? <ConfigurationProposalDetails
+          proposer={proposer}
+          handleConfigurationProposalDetailsClickState={handleConfigurationProposalDetailsClickState}
+          curDaoIdx={curDaoIdx}
+          curPersonaIdx={curPersonaIdx}
+          applicant={applicant}
+          handleUpdate={handleUpdate}
+          proposalId={requestId}
+          configuration={configuration}
+          contract={contract}
           /> : null }
 
         {payoutProposalDetailsClicked ? <PayoutProposalDetails

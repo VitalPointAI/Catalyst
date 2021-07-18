@@ -115,7 +115,7 @@ export default function TributeProposalDetails(props) {
             // Set Existing Proposal Data       
             if(curDaoIdx){
               let propResult = await curDaoIdx.get('tributeProposalDetails', curDaoIdx.id)
-              console.log('propResult', propResult)
+         
               if(propResult) {
                 let i = 0
                 while (i < propResult.proposals.length){
@@ -135,7 +135,7 @@ export default function TributeProposalDetails(props) {
               if(!commentResult){
                 commentResult = { comments: [] }
               }
-              console.log('commentResult', commentResult)
+         
               if(commentResult && Object.keys(commentResult).length != 0) {
                 let j = 0
                 let comments = []
@@ -145,7 +145,7 @@ export default function TributeProposalDetails(props) {
                   }
                   j++
                 }
-                console.log('comments', comments)
+             
                 setProposalComments(comments)
               }
             }
@@ -171,10 +171,10 @@ export default function TributeProposalDetails(props) {
     }
 
     let Comments
-    console.log('proposalComments', proposalComments)
+
     if (proposalComments && proposalComments.length > 0) {
         Comments = proposalComments.map(comment => {
-            console.log('comments map', comment)
+      
             return (
                     <CommentDetails
                         key={comment.commentId}

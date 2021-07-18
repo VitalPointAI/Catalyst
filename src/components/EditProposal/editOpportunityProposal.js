@@ -4,6 +4,11 @@ import { makeStyles } from '@material-ui/core/styles'
 import FileUpload from '../IPFSupload/ipfsUpload'
 import { flexClass } from '../../App'
 import { IPFS_PROVIDER } from '../../utils/ceramic'
+import { EditorState, convertFromRaw, convertToRaw, ContentState } from 'draft-js'
+import { Editor } from "react-draft-wysiwyg"
+import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
+import draftToHtml from 'draftjs-to-html'
+import htmlToDraft from 'html-to-draftjs'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -18,12 +23,22 @@ import Avatar from '@material-ui/core/Avatar'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import Divider from '@material-ui/core/Divider'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Switch from '@material-ui/core/Switch'
 import InputAdornment from '@material-ui/core/InputAdornment'
 import Tooltip from '@material-ui/core/Tooltip'
 import Zoom from '@material-ui/core/Zoom'
 import InfoIcon from '@material-ui/icons/Info'
+import Accordion from '@material-ui/core/Accordion'
+import AccordionSummary from '@material-ui/core/AccordionSummary'
+import AccordionDetails from '@material-ui/core/AccordionDetails'
+import FormControl from '@material-ui/core/FormControl'
+import FormLabel from '@material-ui/core/FormLabel'
+import FormGroup from '@material-ui/core/FormGroup'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import FormHelperText from '@material-ui/core/FormHelperText'
+import Checkbox from '@material-ui/core/Checkbox'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import Rating from '@material-ui/lab/Rating'
 
 
 // ReactQuill Component
@@ -68,12 +83,32 @@ export default function EditOpportunityProposalForm(props) {
 
     // Opportunity Proposal Fields
     const [title, setTitle] = useState('')
-    const [details, setDetails] = useState('')
+    const [details, setDetails] = useState(EditorState.createEmpty())
+   // const [editorState, setEditorState] = useState(EditorState.createEmpty())
     const [reward, setReward] = useState('')
     const [category, setCategory] = useState('')
     const [projectName, setProjectName] = useState('')
-    const [status, setStatus] = useState('')
+    const [status, setStatus] = useState(false)
     const [permission, setPermission] = useState('')
+    const [familiarity, setFamiliarity] = useState('0')
+    const [desiredSkillSet, setDesiredSkillSet] = useState({
+      memeCreation: false,
+      videoCreation: false,
+      writing: false,
+      design: false,
+      eventOrganization: false,
+      socialMedia: false,
+      marketing: false,
+      translation: false
+    })
+    const [desiredDeveloperSkillSet, setDesiredDeveloperSkillSet] = useState({
+      rust: false,
+      assemblyScript: false,
+      javascript: false,
+      typescript: false,
+      solidity: false,
+      webDevelopment: false
+    })
 
     const { register, handleSubmit, watch, errors } = useForm()
 
@@ -114,12 +149,24 @@ export default function EditOpportunityProposalForm(props) {
                 while (i < propResult.opportunities.length){
                   if(propResult.opportunities[i].opportunityId == opportunityId){
                     propResult.opportunities[i].title ? setTitle(propResult.opportunities[i].title) : setTitle('')
-                    propResult.opportunities[i].details ? setDetails(propResult.opportunities[i].details) : setDetails('')
+                    if (propResult.opportunities[i].details){
+                    let contentBlock = htmlToDraft(propResult.opportunities[i].details)
+                    if (contentBlock){
+                      const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks)
+                      const editorState = EditorState.createWithContent(contentState)
+                      setDetails(editorState)
+                    }
+                    } else {
+                      setDetails(EditorState.createEmpty())
+                    }
                     propResult.opportunities[i].reward ? setReward(propResult.opportunities[i].reward) : setReward('')
                     propResult.opportunities[i].category ? setCategory(propResult.opportunities[i].category) : setCategory('')
                     propResult.opportunities[i].projectName ? setProjectName(propResult.opportunities[i].projectName) : setProjectName('')
                     propResult.opportunities[i].status ? setStatus(propResult.opportunities[i].status) : setStatus('')
                     propResult.opportunities[i].permission ? setPermission(propResult.opportunities[i].permission) : setPermission('')
+                    propResult.opportunities[i].familiarity ? setFamiliarity(propResult.opportunities[i].familiarity) : setFamiliarity('0')
+                    propResult.opportunities[i].desiredSkillSet ? setDesiredSkillSet(propResult.opportunities[i].desiredSkillSet): setDesiredSkillSet({})
+                    propResult.opportunities[i].desiredDeveloperSkillSet ? setDesiredDeveloperSkillSet(propResult.opportunities[i].desiredDeveloperSkillSet): setDesiredDeveloperSkillSet({})
                     break
                   }
                   i++
@@ -172,7 +219,26 @@ export default function EditOpportunityProposalForm(props) {
         setDetails(content)
     }
 
+    const handleDesiredSkillSetChange = (event) => {
+      setDesiredSkillSet({ ...desiredSkillSet, [event.target.name]: event.target.checked })
+    }
+
+    const handleDesiredDeveloperSkillSetChange = (event) => {
+      setDesiredDeveloperSkillSet({ ...desiredDeveloperSkillSet, [event.target.name]: event.target.checked })
+    }
+
+    const handleRatingChange = (event, newValue) => {
+      if(newValue != null){
+        setFamiliarity(newValue.toString())
+      }
+    }
+
+    const handleEditorStateChange = (editorState) => {
+      setDetails(editorState)
+    }
+
     const onSubmit = async (values) => {
+      console.log('editor', draftToHtml(convertToRaw(details.getCurrentContent())))
       event.preventDefault()
       setFinished(false)
 
@@ -189,14 +255,17 @@ export default function EditOpportunityProposalForm(props) {
       let proposalRecord = {
           opportunityId: opportunityId.toString(),
           title: title,
-          details: details,
+          details: draftToHtml(convertToRaw(details.getCurrentContent())),
           proposer: proposer,
           submitDate: now,
           reward: reward,
           category: category,
           projectName: projectName,
           status: status,
-          permission: permission
+          permission: permission,
+          familiarity: familiarity,
+          desiredSkillSet: desiredSkillSet,
+          desiredDeveloperSkillSet: desiredDeveloperSkillSet
       }
 
       // Update existing records
@@ -225,22 +294,6 @@ export default function EditOpportunityProposalForm(props) {
       handleClose()
     }
 
-    const modules = {
-        toolbar: [
-          [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-          ['bold', 'italic', 'underline','strike', 'blockquote', 'code', 'code-block'],
-          [{'list': 'ordered'}, {'list': 'bullet'}, {'indent': '-1'}, {'indent': '+1'}, {'align': []}],
-          ['link', 'image', 'video'],
-          ['clean']
-        ],
-    };
-    
-    const formats = [
-        'header',
-        'bold', 'italic', 'underline', 'strike', 'blockquote', 'code', 'code-block',
-        'list', 'bullet', 'indent','align',
-        'link', 'image', 'video'
-    ];
     
         return (
            
@@ -254,27 +307,34 @@ export default function EditOpportunityProposalForm(props) {
                   Please describe the opportunity requirements:
                   
                   </DialogContentText>
-                  
-                  <TextField
-                      autoFocus
-                      margin="dense"
-                      id="funding-proposal-title"
-                      variant="outlined"
-                      name="fundingProposalTitle"
-                      label="Proposal Title"
-                      placeholder="My Awesome Proposal"
-                      value={title}
-                      onChange={handleTitleChange}
-                      inputRef={register({
-                          required: true                              
-                      })}
-                  />
-                  {errors.fundingProposalTitle && <p style={{color: 'red'}}>You must give your proposal a title.</p>}
-
                   <Grid container justify="center" alignItems="center" spacing={1}>
-                  <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
+                  <Grid item xs={12} sm={12} md={7} lg={7} xl={7}>
                     <TextField
-                      fullWidth
+                        autoFocus
+                        fullWidth
+                        margin="dense"
+                        id="opportunity-proposal-title"
+                        variant="outlined"
+                        name="opportunityProposalTitle"
+                        label="Opportunity Title"
+                        placeholder="My Awesome Opportunity"
+                        value={title}
+                        onChange={handleTitleChange}
+                        inputRef={register({
+                            required: true                              
+                        })}
+                    />
+                    {errors.opportunityProposalTitle && <p style={{color: 'red'}}>You must give your proposal a title.</p>}
+                  </Grid>
+                  <Grid item xs={12} sm={12} md={5} lg={5} xl={5}>
+                    <FormControlLabel
+                      control={<Switch checked={status} onChange={handleStatusChange} name="status" color="primary"/>}
+                      label="Activate Opportunity"
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={12} md={4} lg={4} xl={4} style={{marginBottom: '10px'}}>
+                    <TextField
+                      margin="dense"
                       id="base-reward"
                       variant="outlined"
                       required={true}
@@ -293,17 +353,16 @@ export default function EditOpportunityProposalForm(props) {
                         </Tooltip>
                         </>
                       }}
-                      style={{marginBottom: '10px'}}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
+                  <Grid item xs={12} sm={12} md={8} lg={8} xl={8} style={{marginBottom: '10px'}}>
                     <TextField
                       autoFocus
                       margin="dense"
                       id="opportunity-category"
                       variant="outlined"
                       name="opportunityCategory"
-                      label="Category"
+                      label="Categories"
                       placeholder="Content,Data,NFT"
                       value={category}
                       onChange={handleCategoryChange}
@@ -320,28 +379,109 @@ export default function EditOpportunityProposalForm(props) {
                     />
                   {errors.opportunityCategory && <p style={{color: 'red'}}>You must categorize the opportunity.</p>}
                   </Grid>
-                  <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
-                    <FormControlLabel
-                    control={<Switch checked={status} onChange={handleStatusChange} name="status" color="primary"/>}
-                    label="Active"
-                  />
-                  </Grid>
                   </Grid>
 
-                  <ReactQuill
-                    theme="snow"
-                    modules={modules}
-                    formats={formats}
-                    name="details"
-                    value={details}
-                    onChange={handleDetailsChange}
-                    style={{height:'200px', marginBottom:'100px'}}
-                    inputRef={register({
-                        required: false
-                    })}
+                  <Accordion style={{marginBottom: '20px'}}>
+                  <AccordionSummary
+                    expandIcon={<ExpandMoreIcon />}
+                    aria-controls="panel1bh-content"
+                    id="panel1bh-header"
+                  >
+                  Required Skills and Competencies
+                  </AccordionSummary>
+                    <AccordionDetails>
+                      <Grid container spacing={2}>
+                      <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                      <FormControl component="fieldset" className={classes.formControl}>
+                        <FormLabel component="legend">Skills Required</FormLabel>
+                        <FormGroup>
+                          <FormControlLabel
+                            control={<Checkbox checked={desiredSkillSet.memeCreation} onChange={handleDesiredSkillSetChange} name="memeCreation" />}
+                            label="Meme Creation"
+                          />
+                          <FormControlLabel
+                            control={<Checkbox checked={desiredSkillSet.videoCreation} onChange={handleDesiredSkillSetChange} name="videoCreation" />}
+                            label="Video Creation"
+                          />
+                          <FormControlLabel
+                            control={<Checkbox checked={desiredSkillSet.writing} onChange={handleDesiredSkillSetChange} name="writing" />}
+                            label="Writing"
+                          />
+                          <FormControlLabel
+                            control={<Checkbox checked={desiredSkillSet.design} onChange={handleDesiredSkillSetChange} name="design" />}
+                            label="Design"
+                          />
+                          <FormControlLabel
+                            control={<Checkbox checked={desiredSkillSet.eventOrganization} onChange={handleDesiredSkillSetChange} name="eventOrganization" />}
+                            label="Event Organization"
+                          />
+                          <FormControlLabel
+                            control={<Checkbox checked={desiredSkillSet.socialMedia} onChange={handleDesiredSkillSetChange} name="socialMedia" />}
+                            label="Social Media"
+                          />
+                          <FormControlLabel
+                            control={<Checkbox checked={desiredSkillSet.marketing} onChange={handleDesiredSkillSetChange} name="marketing" />}
+                            label="Marketing"
+                          />
+                          <FormControlLabel
+                            control={<Checkbox checked={desiredSkillSet.translation} onChange={handleDesiredSkillSetChange} name="translation" />}
+                            label="Translation"
+                          />
+                        </FormGroup>
+                        
+                        <FormHelperText>Check off the skills someone should have.</FormHelperText>
+                      </FormControl>
+                      </Grid>
+                      <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                        <FormControl component="fieldset" className={classes.formControl}>
+                          <FormLabel component="legend">Required Developer Skills</FormLabel>
+                          <FormGroup>
+                          <FormControlLabel
+                              control={<Checkbox checked={desiredDeveloperSkillSet.rust} onChange={handleDesiredDeveloperSkillSetChange} name="rust" />}
+                              label="RUST"
+                            />
+                            <FormControlLabel
+                              control={<Checkbox checked={desiredDeveloperSkillSet.assemblyScript} onChange={handleDesiredDeveloperSkillSetChange} name="assemblyScript" />}
+                              label="AssemblyScript"
+                            />
+                            <FormControlLabel
+                              control={<Checkbox checked={desiredDeveloperSkillSet.javascript} onChange={handleDesiredDeveloperSkillSetChange} name="javascript" />}
+                              label="JavaScript"
+                            />
+                            <FormControlLabel
+                              control={<Checkbox checked={desiredDeveloperSkillSet.typescript} onChange={handleDesiredDeveloperSkillSetChange} name="typescript" />}
+                              label="TypeScript"
+                            />
+                            <FormControlLabel
+                              control={<Checkbox checked={desiredDeveloperSkillSet.solidity} onChange={handleDesiredDeveloperSkillSetChange} name="solidity" />}
+                              label="Solidity"
+                            />
+                            <FormControlLabel
+                              control={<Checkbox checked={desiredDeveloperSkillSet.webDevelopment} onChange={handleDesiredDeveloperSkillSetChange} name="webDevelopment" />}
+                              label="Web Development"
+                            />
+                          
+                          </FormGroup>
+                          <FormHelperText>Check off the developer skills someone should have.</FormHelperText>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={12}>
+                            <Typography>Desired Familiarity with Crypto/Blockchain</Typography>
+                            <Rating name="Familiarity" onChange={handleRatingChange} value={parseInt(familiarity)} />
+                      </Grid>
+                    </Grid>
+                  </AccordionDetails>
+              </Accordion>
+                  <Typography variant="h6">Opportunity Details</Typography>
+                  <Editor
+                    editorState={details}
+                    toolbarClassName="toolbarClassName"
+                    wrapperClassName="wrapperClassName"
+                    editorClassName="editorClassName"
+                    onEditorStateChange={handleEditorStateChange}
                   />
 
-                   {console.log('status', status)}
+              
                 </DialogContent>
                
               {!finished ? <LinearProgress className={classes.progress} style={{marginBottom: '25px' }}/> : (

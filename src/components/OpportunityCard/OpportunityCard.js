@@ -9,6 +9,7 @@ import FundingProposal from '../FundingProposal/fundingProposal'
 import EditFundingProposalForm from '../EditProposal/editFundingProposal'
 import OpportunityProposalDetails from '../ProposalDetails/opportunityProposalDetails'
 import MemberProposal from '../MemberProposal/memberProposal'
+import MemberProfileDisplay from '../MemberProfileDisplay/memberProfileDisplay'
 import { getStatus } from '../../state/near'
 
 // Material UI Components
@@ -57,7 +58,7 @@ export default function OpportunityCard(props) {
     const [status, setStatus] = useState()
     const [proposalDeposit, setProposalDeposit] = useState()
     const [memberStatus, setMemberStatus] = useState()
-
+    const [memberProfileDisplayClicked, setMemberProfileDisplayClicked] = useState(false)
     const [editFundingProposalDetailsClicked, setEditFundingProposalDetailsClicked] = useState(false)
     const [opportunityProposalDetailsClicked, setOpportunityProposalDetailsClicked] = useState(false)
     const [memberProposalClicked, setMemberProposalClicked] = useState(false)
@@ -103,8 +104,6 @@ export default function OpportunityCard(props) {
 
     const data = new Persona()
 
-    console.log('state', state)
-
     useEffect(
         () => {
          
@@ -114,11 +113,9 @@ export default function OpportunityCard(props) {
             if(contractId){
               let thisCurDaoIdx
               let daoAccount = new nearAPI.Account(near.connection, contractId)
-                 console.log('daoAccount', daoAccount)
-                 console.log('appidx', appIdx)
-                 console.log('contract', didRegistryContract)
+               
               thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
-              console.log('thiscurdaoidx', thisCurDaoIdx)
+            
               setCurDaoIdx(thisCurDaoIdx)
             }
           }
@@ -134,9 +131,9 @@ export default function OpportunityCard(props) {
             
             try {
               let thisMemberInfo = await contract.getMemberInfo({member: accountId})
-              console.log('opp member info', thisMemberInfo)
+          
               let thisMemberStatus = await contract.getMemberStatus({member: accountId})
-              console.log('opp member status', thisMemberStatus)
+             
               if(thisMemberStatus && thisMemberInfo[0].active){
                 setMemberStatus(true)
               } else {
@@ -159,7 +156,7 @@ export default function OpportunityCard(props) {
 
             // Get Persona data
             let result = await data.getPersona(creator)
-            console.log('opp result', result)
+        
             if(result){
               result.date ? setDate(result.date) : setDate('')
               result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
@@ -198,6 +195,14 @@ export default function OpportunityCard(props) {
       setEditFundingProposalDetailsClicked(property)
     }
 
+    const handleMemberProfileDisplayClick = () => {
+      handleExpanded()
+      handleMemberProfileDisplayClickState(true)
+    }
+
+    function handleMemberProfileDisplayClickState(property){
+      setMemberProfileDisplayClicked(property)
+    }
     
     const handleMemberProposalClick = () => {
       handleExpanded()
@@ -243,7 +248,7 @@ export default function OpportunityCard(props) {
           </Grid>
           <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '10px'}}>
           <Typography variant="overline">Proposer:</Typography>
-            <Chip avatar={<Avatar src={avatar} className={classes.small}  />} label={name != '' ? name : creator}/>
+            <Chip avatar={<Avatar src={avatar} className={classes.small} onClick={handleMemberProfileDisplayClick}/>} label={name != '' ? name : creator}/>
           </Grid>
           <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
             <Chip label={status == 'Passed' && opportunityStatus ? 'Active' : 'Inactive'} style={{marginRight: '10px'}}/>
@@ -291,7 +296,12 @@ export default function OpportunityCard(props) {
             </Button>
           </CardActions>
         </Card>
-       
+
+        {memberProfileDisplayClicked ? <MemberProfileDisplay
+          handleMemberProfileDisplayClickState={handleMemberProfileDisplayClickState}
+          member={accountId}
+          /> : null }
+
         {fundingProposalClicked ? <FundingProposal
           contractId={contractId}
           handleFundingProposalClickState={handleFundingProposalClickState}

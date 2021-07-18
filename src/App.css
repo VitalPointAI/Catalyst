@@ -4,6 +4,10 @@ body {
     font-family: 'Inter', sans-serif !important;
     height: 100%;
     position: relative;
+ /*   background-image: url('./img/texture-bg.png');
+    background-size: contain;
+    background-position: right 60px;
+    */
 }
 
 #root {
