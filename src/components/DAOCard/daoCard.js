@@ -6,6 +6,7 @@ import { ceramic } from '../../utils/ceramic'
 import { dao } from '../../utils/dao'
 import { IDX } from '@ceramicstudio/idx'
 import EditDaoForm from '../EditDao/editDao'
+import DaoProfileDisplay from '../DAOProfileDisplay/daoProfileDisplay'
 import AppFramework from '../AppFramework/appFramework'
 import * as nearAPI from 'near-api-js'
 import Persona from '@aluhning/get-personas-js'
@@ -66,7 +67,6 @@ export default function DaoCard(props) {
     const [spurpose, setsPurpose] = useState('')
     const [scategory, setsCategory] = useState('')
     const [owner, setOwner] = useState('')
-
     const [editDaoClicked, setEditDaoClicked] = useState(false)
     const [purposeClicked, setPurposeClicked] = useState(false)
     const [claimed, setClaimed] = useState(false)
@@ -74,9 +74,11 @@ export default function DaoCard(props) {
     const [display, setDisplay] = useState(true)
     const [isUpdated, setIsUpdated] = useState()
     const [anchorEl, setAnchorEl] = useState(null)
+    const [anchorE2, setAcnhorE2] = useState(null)
     const [did, setDid] = useState()
     const [finished, setFinished] = useState(false)
     const [created, setCreated] = useState()
+    const [detailsClicked, setDetailsClicked] = useState(false) 
     const [amemberStatus, setaMemberStatus] = useState() 
     const [memberIcon, setMemberIcon] = useState(<NotInterestedIcon />)
 
@@ -150,6 +152,14 @@ export default function DaoCard(props) {
     handleExpanded()
     handleEditDaoClickState(true)
   }
+  const handleDetailsClick= () => {
+    handleExpandedDetails()
+    handleDetailsClickedState(true)
+  }
+
+  function handleDetailsClickedState(property){
+    setDetailsClicked(property)
+  }
 
   function handleEditDaoClickState(property){
     setEditDaoClicked(property)
@@ -166,6 +176,10 @@ export default function DaoCard(props) {
 
   function handleExpanded() {
     setAnchorEl(null)
+  }
+
+  function handleExpandedDetails(){
+    setAcnhorE2(null)
   }
 
   // function formatDate(timestamp) {
@@ -219,8 +233,12 @@ export default function DaoCard(props) {
                 <Button color="primary" onClick={handleEditDaoClick} style={{float: 'right'}}>
                   Edit Details
                 </Button>
-                ) : null }
-               
+                ) : 
+                <Button color="primary" onClick={handleDetailsClick} style={{marginLeft:45, float: 'right'}}>
+                  Details
+                </Button>
+                }
+
               </CardActions>
             </Card>
           ) 
@@ -234,11 +252,18 @@ export default function DaoCard(props) {
             handleUpdate={handleUpdate}
             contractId={contractId}
             /> : null }
+          
+           {detailsClicked ? <DaoProfileDisplay
+            state={state}
+            handleDetailsClickedState={handleDetailsClickedState}
+            curDaoIdx={curDaoIdx}
+            handleUpdate={handleUpdate}
+            contractId={contractId}
+            /> : null }
 
           {purposeClicked ? <Purpose
             handlePurposeClickState={handlePurposeClickState}
             contractId={contractId}
-        
             /> : null }
         </>
        
