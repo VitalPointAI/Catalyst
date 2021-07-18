@@ -188,29 +188,30 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     const daoFactory = await factory.initFactoryContract(account)
 
     let currentDaosLength = await daoFactory.getDaoListLength()
-
+    console.log('currentdaolength', currentDaosLength)
    
     let t = 0
     let start = 0
-    let end
+    let end = 0
     let interval = 20
     let currentDaosList = []
-
-    while(t < currentDaosLength){
-        if(currentDaosLength < interval){
-            end = currentDaosLength
+    if(currentDaosLength){
+        while(t < currentDaosLength){
+            if(currentDaosLength < interval){
+                end = currentDaosLength
+            }
+            let newDaoList = await daoFactory.getDaoList({start: start, end: end})
+            for(let i = 0; i < newDaoList.length; i++){
+                currentDaosList.push(newDaoList[i])
+            }
+            start = end
+            if(end + interval > currentDaosLength){
+                end = currentDaosLength
+            } else {
+            end = end + interval
+            }
+            t++        
         }
-        let newDaoList = await daoFactory.getDaoList({start: start, end: end})
-        for(let i = 0; i < newDaoList.length; i++){
-            currentDaosList.push(newDaoList[i])
-        }
-        start = end
-        if(end + interval > currentDaosLength){
-            end = currentDaosLength
-        } else {
-        end = end + interval
-        }
-        t++        
     }
 
     // Set Current User Ceramic Client
