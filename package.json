@@ -27,6 +27,7 @@
         "d3-time-format": "^4.0.0",
         "dids": "^2.2.0",
         "dompurify": "^2.3.0",
+        "draft-js": "^0.11.7",
         "draftjs-to-html": "^0.9.1",
         "env-cmd": "^10.1.0",
         "express": "^4.17.1",
@@ -64,10 +65,11 @@
         "prebuild": "npm run clean",
         "build": "node --max-old-space-size=8192 ./node_modules/.bin/parcel build src/index.html --no-scope-hoist",
         "clean": "rimraf ./dist && rimraf .parcel-cache",
+        "cleandist": "rimraf ./dist",
         "fix": "eslint src/ --fix",
         "startup": "npm run clean && env-cmd -f ./.env parcel src/index.html --public-url ./ --no-source-maps",
         "startup1": "parcel src/index.html --no-source-maps --no-hmr",
-        "startup2": "npm run clean && node --max-old-space-size=8192 ./node_modules/.bin/parcel src/index.html --no-source-maps",
+        "startup2": "npm run cleandist && node --max-old-space-size=8192 ./node_modules/.bin/parcel src/index.html --no-source-maps",
         "startup3": "node --max-old-space-size=8192 ./node_modules/.bin/parcel src/index.html --no-source-maps",
         "start": "node server.js"
     }

@@ -86,6 +86,7 @@ export default function Dashboard(props) {
     const [value, setValue] = useState('1')
     const [recommendations, setRecommendations] = useState([])
     const [suitabilityScore, setSuitabilityScore] = useState()
+    const [recommendationsLoaded, setRecommendationsLoaded] = useState(false)
     const classes = useStyles()
 
     const { state, dispatch, update } = useContext(appStore)
@@ -385,6 +386,9 @@ export default function Dashboard(props) {
                         j++
                     }
                     setRecommendations(currentRecommendations)
+                    if(currentRecommendations.opportunity.length > 0){
+                        setRecommendationsLoaded(true)
+                    }
                     console.log('recommendations', currentRecommendations)
             }
             
@@ -589,8 +593,14 @@ export default function Dashboard(props) {
             </TabList>
             </AppBar>
             <TabPanel value="1">
-            Recommended Opportunities
-            {recommendations && recommendations.length > 0 ?
+            <Card>
+            <CardHeader
+            title="Opportunities for You"
+            subtitle="The higher the suitability score, the more closely the opportunity matches your skillset"
+            />
+            </Card>
+            {recommendationsLoaded ?
+            recommendations && recommendations.length > 0 ?
                 recommendations.map((fr, i) => {
                 
                   return(
@@ -616,7 +626,8 @@ export default function Dashboard(props) {
                   )
                 }) : <Card className={classes.card}>
                 <Typography variant="h5">No Recommended Opportunities Yet - Please Check Back Soon.</Typography>
-              </Card> }
+              </Card> 
+                : <CircularProgress />}
             </TabPanel>
             <TabPanel value="2">
                 <div>
