@@ -2,11 +2,14 @@ import React, { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 import { Header } from '../Header/header'
+import * as nearAPI from 'near-api-js'
 import Personas from '@aluhning/get-personas-js'
 import OpportunityCard from '../OpportunityCard/OpportunityCard'
 import Footer from '../../components/common/Footer/footer'
 import Fuse from 'fuse.js'
 import SearchBar from '../../components/common/SearchBar/search'
+import { dao } from '../../utils/dao'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
 import { makeStyles } from '@material-ui/core/styles'
@@ -41,12 +44,21 @@ const useStyles = makeStyles((theme) => ({
 export default function Opportunities(props) {
 
     const [result, setResult] = useState()
-    const [opportunities, setOpportunities] = useState()
+    const [aopportunities, setaOpportunities] = useState()
     const [searchOpportunities, setSearchOpportunities] = useState([])
+    const [recommendations, setRecommendations] = useState([])
+    const [suitabilityScore, setSuitabilityScore] = useState()
 
     const classes = useStyles()
 
     const { state, dispatch, update } = useContext(appStore)
+
+    const {
+      accountId,
+      didRegistryContract, 
+      near,
+      appIdx
+    } = state
 
     const {
       contractId
@@ -55,11 +67,81 @@ export default function Opportunities(props) {
     useEffect(
         () => {
           async function fetchData() {
-            if(contractId){
+            console.log('contractid', contractId)
+            console.log('accountId', accountId)
+            if(didRegistryContract && near && contractId){
               let Persona = new Personas()
-              let opportunities = await Persona.getOpportunities(contractId)
+              let thisCurDaoIdx
+              let daoAccount
+              try{
+                daoAccount = new nearAPI.Account(near.connection, contractId)
+              } catch (err) {
+                console.log('no account', err)
+              }
+              thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+          
+              let opportunities = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
             
-              setOpportunities(opportunities.opportunities)
+              if(opportunities && Object.keys(opportunities).length > 0){
+                setaOpportunities(opportunities.opportunities)
+              }
+
+              // Suitability Score
+
+                    // 1. Build complete list of all opportuntities for all DAOs
+                    let allOpportunities = []
+                    let i = 0
+                    while (i < Object.keys(opportunities).length){
+                      allOpportunities.push(opportunities.opportunities[0])
+                      i++
+                    }
+                    console.log('all opportunities', allOpportunities)
+
+                    // 2. Retrieve current persona data
+                    let currentPersona = await Persona.getPersona(accountId)
+                    console.log('all opp persona', currentPersona)
+
+                    // 3. Initialize recommendations array
+                    let currentRecommendations = []
+                  
+                    // 3. For each opportunity, compare opportunity skillset requirements to persona skillsets and add to recommendations array if the same
+                    // calculate a suitability percentage from skills required (true) (total skills possessed / total skills)
+                    let j = 0
+                    let developerPercentage = 0
+                    let developerSkillCount = 0
+                    let developerSkillMatch = 0
+                    let skillPercentage = 0
+                    let skillCount = 0
+                    let skillMatch = 0
+                  
+                    while (j < allOpportunities.length){
+                        for (const [key, value] of Object.entries(allOpportunities[j].desiredDeveloperSkillSet)){
+                            if(value){
+                                developerSkillCount++
+                                for (const [pkey, pvalue] of Object.entries(currentPersona.developerSkillSet)){
+                                    if(pkey == key && pvalue == value){
+                                        developerSkillMatch ++
+                                    }
+                                }
+                            }
+                        }
+                        for (const [key, value] of Object.entries(allOpportunities[j].desiredSkillSet)){
+                            if(value){
+                                skillCount++
+                                for (const [pkey, pvalue] of Object.entries(currentPersona.skillSet)){
+                                    if(pkey == key && pvalue == value){
+                                        skillMatch++
+                                    }
+                                }
+                            }
+                        }
+                        let asuitabilityScore = ((skillMatch + developerSkillMatch)/(skillCount + developerSkillCount)*100).toFixed(0)
+                        setSuitabilityScore(asuitabilityScore)
+                        currentRecommendations.push({opportunity: allOpportunities[j], skillMatch: skillMatch, developerSkillMatch: developerSkillMatch, skillCount: skillCount, developerSkillCount: developerSkillCount, suitabilityScore: asuitabilityScore})
+                        j++
+                    }
+                    setRecommendations(currentRecommendations)
+                    console.log('recommendations', currentRecommendations)
             }
 
           }
@@ -74,12 +156,12 @@ export default function Opportunities(props) {
         let opportunities = await Persona.getOpportunities(contractId)
         let sortedOpportunities = _.sortBy(opportunities.opportunities, 'submitDate').reverse()
        
-        setOpportunities(sortedOpportunities)
+        setaOpportunities(sortedOpportunities)
         return
       }     
     
       
-      const fuse = new Fuse(opportunities, {
+      const fuse = new Fuse(aopportunities, {
           keys: ['category', 'title', 'details']
       })
       
@@ -87,12 +169,12 @@ export default function Opportunities(props) {
      
       const matches = []
       if (!result.length) {
-          setOpportunities([])
+          setaOpportunities([])
       } else {
           result.forEach(({item}) => {
               matches.push(item)
       })
-          setOpportunities(matches)
+          setaOpportunities(matches)
       }
   }
     
@@ -112,23 +194,28 @@ export default function Opportunities(props) {
           />
           </Grid>
           
-            {opportunities && opportunities.length > 0 ?
-              opportunities.map((fr, i) => {
-              
+            {recommendations && recommendations.length > 0 ?
+              recommendations.map((fr, i) => {
+                console.log('fr', fr)
                 return(
                   <OpportunityCard 
                     key={i}
-                    creator={fr.proposer}
-                    created={fr.submitDate}
-                    updated={fr.updatedDate}
-                    reward={fr.reward}
-                    category={fr.category}
-                    projectName={fr.projectName}
-                    details={fr.details}
-                    title={fr.title}
-                    opportunityId={fr.opportunityId}
-                    opportunityStatus={fr.status}
-                    permission={fr.permission}
+                    creator={fr.opportunity.proposer}
+                    created={fr.opportunity.submitDate}
+                    updated={fr.opportunity.updatedDate}
+                    reward={fr.opportunity.reward}
+                    category={fr.opportunity.category}
+                    projectName={fr.opportunity.projectName}
+                    details={fr.opportunity.details}
+                    title={fr.opportunity.title}
+                    opportunityId={fr.opportunity.opportunityId}
+                    opportunityStatus={fr.opportunity.status}
+                    permission={fr.opportunity.permission}
+                    skillCount={fr.skillCount}
+                    skillMatch={fr.skillMatch}
+                    developerSkillCount={fr.developerSkillCount}
+                    developerSkillMatch={fr.developerSkillMatch}
+                    suitabilityScore={fr.suitabilityScore}
                   />
                 )
               }) : <Card className={classes.card}>

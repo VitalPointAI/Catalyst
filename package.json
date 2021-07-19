@@ -7,7 +7,7 @@
     "license": "ISC",
     "dependencies": {
         "@3id/connect": "^0.1.4",
-        "@aluhning/get-personas-js": "^1.27.0",
+        "@aluhning/get-personas-js": "^1.28.0",
         "@ceramicnetwork/3id-did-resolver": "^1.2.7",
         "@ceramicnetwork/http-client": "^1.0.7",
         "@ceramicnetwork/stream-tile": "^1.0.7",

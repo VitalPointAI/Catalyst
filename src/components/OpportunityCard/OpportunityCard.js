@@ -24,6 +24,7 @@ import Grid from '@material-ui/core/Grid'
 import Avatar from '@material-ui/core/Avatar'
 import Typography from '@material-ui/core/Typography'
 import { green, red } from '@material-ui/core/colors'
+import DoneIcon from '@material-ui/icons/Done'
 
 const useStyles = makeStyles((theme) => ({
     pos: {
@@ -92,7 +93,12 @@ export default function OpportunityCard(props) {
       category,
       opportunityStatus,
       permission,
-      opportunityId
+      opportunityId,
+      skillCount,
+      skillMatch,
+      developerSkillCount,
+      developerSkillMatch,
+      suitabilityScore
     } = props
 
     const {
@@ -239,9 +245,13 @@ export default function OpportunityCard(props) {
     return(
         <>
    
-        <Card raised={true} className={classes.card} >         
+        <Card raised={true} className={classes.card} >   
           <CardHeader
-          title={<Typography variant="h5" align="center">{title}</Typography>}
+          title={<><Chip
+            label={`Suitability Score: ${suitabilityScore}%`}
+            deleteIcon={<DoneIcon />}
+            variant="outlined"
+          /><br></br><Typography variant="h5" align="center">{title}</Typography></>}
           subheader={ <> <Grid container alignItems="flex-start" justify="space-between">
           <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
              <Typography variant="overline">Added: {created ? formatDate(created) : null}</Typography>

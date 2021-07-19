@@ -5,7 +5,10 @@ import * as d3 from 'd3'
 import "d3-time-format"
 import Persona from '@aluhning/get-personas-js'
 import { formatNearAmount } from 'near-api-js/lib/utils/format'
+import OpportunityCard from '../OpportunityCard/OpportunityCard'
 import { dao } from '../../utils/dao'
+import * as nearAPI from 'near-api-js'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI
 import { makeStyles } from '@material-ui/core/styles'
@@ -28,6 +31,11 @@ import Tooltip from '@material-ui/core/Tooltip'
 import Zoom from '@material-ui/core/Zoom'
 import InfoIcon from '@material-ui/icons/Info'
 import Avatar from '@material-ui/core/Avatar'
+import AppBar from '@material-ui/core/AppBar'
+import Tab from '@material-ui/core/Tab'
+import TabContext from '@material-ui/lab/TabContext'
+import TabList from '@material-ui/lab/TabList'
+import TabPanel from '@material-ui/lab/TabPanel'
 
 import './dashboard.css'
 
@@ -50,6 +58,10 @@ const useStyles = makeStyles((theme) => ({
         float: 'left',
         marginRight: '3px'
     },
+    root: {
+        flexGrow: 1,
+        backgroundColor: theme.palette.background.paper,
+    },
     selectEmpty: {
     marginTop: theme.spacing(2),
     },
@@ -71,6 +83,9 @@ export default function Dashboard(props) {
     const [isUpdated, setIsUpdated] = useState(false)
     const [first, setFirst] = useState(true)
     const [logo, setLogo] = useState(defaultLogo)
+    const [value, setValue] = useState('1')
+    const [recommendations, setRecommendations] = useState([])
+    const [suitabilityScore, setSuitabilityScore] = useState()
     const classes = useStyles()
 
     const { state, dispatch, update } = useContext(appStore)
@@ -86,7 +101,9 @@ export default function Dashboard(props) {
       accountId,
       currentDaosList,
       near,
-      wallet
+      wallet,
+      appIdx,
+      didRegistryContract,
     } = state
 
     console.log('curDaosList', currentDaosList)
@@ -115,8 +132,9 @@ export default function Dashboard(props) {
 
             async function fetchData() {
                 let memData
-                let propData
+                let propData = []
                 let thisContractId
+               
                 if(contractId == '') {
                     console.log('maybe')
                     let mostRecentContractId = communities.length > 0 ? communities[communities.length-1].contractId 
@@ -129,14 +147,14 @@ export default function Dashboard(props) {
                     memData ? setMemberData(memData) : false
                     propData = await data.getProposalStats(mostRecentContractId)
                     console.log('propdata', propData)
-                    propData ? setProposalData(propData) : false
+                    propData && Object.keys(propData).length > 0 ? setProposalData(propData) : false
                 } else {
                     memData = await data.getMemberStats(contractId)
                     console.log('memdata', memData)
                     memData ? setMemberData(memData) : false
                     propData = await data.getProposalStats(contractId)
                     console.log('propdata', propData)
-                    propData ? setProposalData(propData) : false
+                    propData && Object.keys(propData).length > 0 ? setProposalData(propData) : false
                 }
 
                     // construct new member data frame
@@ -295,8 +313,79 @@ export default function Dashboard(props) {
                         console.log('proposaldataframe', proposalDataFrame)
 
                     }
+
+                    // Persona Opportunity Recommendations
+
+                    // 1. Build complete list of all opportuntities for all DAOs
+                    let allOpportunities = []
+                    if(currentDaosList && currentDaosList.length > 0){
+                        let i = 0
+                        while (i < currentDaosList.length){
+                            let thisCurDaoIdx
+                            let daoAccount
+                            try{
+                              daoAccount = new nearAPI.Account(near.connection, currentDaosList[i].contractId)
+                            } catch (err) {
+                              console.log('no account', err)
+                            }
+                            thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+                        
+                            let singleDaoOpportunity = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
+                        //let singleDaoOpportunity = await data.getOpportunities(currentDaosList[i].contractId)
+                        console.log('singleDaoopportunity', singleDaoOpportunity)
+                        if(singleDaoOpportunity && Object.keys(singleDaoOpportunity).length > 0){
+                            allOpportunities.push(singleDaoOpportunity.opportunities[0])
+                        }
+                        i++
+                        }
+                    }
+                    console.log('all opportunities', allOpportunities)
+
+                    // 2. Retrieve current persona data
+                    let currentPersona = await data.getPersona(accountId)
+                    console.log('all opp persona', currentPersona)
+
+                    // 3. Initialize recommendations array
+                    let currentRecommendations = []
                   
+                    // 3. For each opportunity, compare opportunity skillset requirements to persona skillsets and add to recommendations array if the same
+                    // calculate a suitability percentage from skills required (true) (total skills possessed / total skills)
+                    let j = 0
+                    let developerPercentage = 0
+                    let developerSkillCount = 0
+                    let developerSkillMatch = 0
+                    let skillPercentage = 0
+                    let skillCount = 0
+                    let skillMatch = 0
                   
+                    while (j < allOpportunities.length){
+                        for (const [key, value] of Object.entries(allOpportunities[j].desiredDeveloperSkillSet)){
+                            if(value){
+                                developerSkillCount++
+                                for (const [pkey, pvalue] of Object.entries(currentPersona.developerSkillSet)){
+                                    if(pkey == key && pvalue == value){
+                                        developerSkillMatch ++
+                                    }
+                                }
+                            }
+                        }
+                        for (const [key, value] of Object.entries(allOpportunities[j].desiredSkillSet)){
+                            if(value){
+                                skillCount++
+                                for (const [pkey, pvalue] of Object.entries(currentPersona.skillSet)){
+                                    if(pkey == key && pvalue == value){
+                                        skillMatch++
+                                    }
+                                }
+                            }
+                        }
+                        let asuitabilityScore = ((skillMatch + developerSkillMatch)/(skillCount + developerSkillCount)*100).toFixed(0)
+                        setSuitabilityScore(asuitabilityScore)
+                        currentRecommendations.push({opportunity: allOpportunities[j], skillMatch: skillMatch, developerSkillMatch: developerSkillMatch, skillCount: skillCount, developerSkillCount: developerSkillCount, suitabilityScore: asuitabilityScore})
+                        j++
+                    }
+                    setRecommendations(currentRecommendations)
+                    console.log('recommendations', currentRecommendations)
             }
             
          fetchData()
@@ -316,6 +405,10 @@ export default function Dashboard(props) {
         setFinalPropDataFrame([])
         setContractId(value)
         handleUpdate()
+    }
+
+    const handleTabChange = (event, newValue) => {
+        setValue(newValue)
     }
 
     function handleUpdate() {
@@ -486,112 +579,157 @@ export default function Dashboard(props) {
 
     return (
         <>
-        <div>
-        <Grid container alignItems="center" justify="center" spacing={1} style={{padding: '20px'}}>
-            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom:'30px'}}>
-               {!matches ? <Typography variant='h3'>Community Dashboard</Typography> : <Typography variant='h4'>Community Dashboard</Typography>}
-                <Typography variant='body1'>Community and participation metrics.</Typography>
-            </Grid>
-            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom:'30px'}}>
-                <FormControl className={classes.formControl}>
-                <InputLabel id="community-select">Community</InputLabel>
-                <Select
-                native
-                value={contractId}
-                onChange={handleContractIdChange}
-                > 
-                {memberCommunities && memberCommunities.length > 0 ?
-                    memberCommunities.reverse().map((community, i) => (
-                        <option key={community.communityName} value={community.contractId}>{community.communityName}</option>
-                    ))
-                    : null }
-
-                </Select>
-            </FormControl>
-            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '20px', marginBottom:'30px'}}>
-            <TableContainer component={Paper}>
-            <Table className={classes.table} size="small" aria-label="a dense table">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Community</TableCell>
-                  <TableCell align="right">Members</TableCell>
-                  <TableCell align="right">Fund Ⓝ</TableCell>
-                  <TableCell align="right">Value (USD)</TableCell>
-                  <TableCell align="right">Proposals</TableCell>
-                  <TableCell align="right">Passed</TableCell>
-                  <TableCell align="right">Not Passed</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-              {finalPropDataFrame && finalPropDataFrame.length > 0 ?
-               
-                finalPropDataFrame.map(({
-                    communityName, 
-                    totalMembers, 
-                    communityFund, 
-                    communityValue, 
-                    totalProposals, 
-                    passedProposals, 
-                    failedProposals, 
-                    inProgressProposals}) => {
-                  
-                    return (
-                    <TableRow key={communityName ? communityName : null}>
-                        <TableCell component="th" scope="row">
-                        <Link to={`dao/${contractId}`}>
-                            <Avatar src={logo} variant="square" className={classes.small}/>
-                            <Typography variant="overline">{communityName ? communityName : null}</Typography>
-                        </Link>
-                        </TableCell>
-                        <TableCell align="right">{totalMembers ? totalMembers : '0'}</TableCell>
-                        <TableCell align="right">{communityFund ? communityFund : '0'}</TableCell>
-                        <TableCell align="right">{communityValue ? communityValue : '0'}</TableCell>
-                        <TableCell align="right">{totalProposals ? totalProposals : '0'}</TableCell>
-                        <TableCell align="right">{passedProposals ? passedProposals : '0'}</TableCell>
-                        <TableCell align="right">{failedProposals ? failedProposals : '0'}</TableCell>
-                        </TableRow>
-                    )
+        <div className={classes.root}>
+       
+        <TabContext value={value}>
+            <AppBar position="static">
+            <TabList onChange={handleTabChange} aria-label="dashboard tabs" centered>
+                <Tab label="Persona Dashboard" value="1" />
+                <Tab label="Community Dashboard" value="2" />
+            </TabList>
+            </AppBar>
+            <TabPanel value="1">
+            Recommended Opportunities
+            {recommendations && recommendations.length > 0 ?
+                recommendations.map((fr, i) => {
                 
-                    })
-                : (
-                <TableRow>
-                <TableCell component="th" scope="row">
-                 <Typography variant="overline">No Results</Typography>
-                </TableCell>
-                </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          </Grid>
-          </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
-                <Card className={classes.card}>
-                    <Tooltip TransitionComponent={Zoom} title="The number of unique personas that are members of the community.">
-                        <InfoIcon fontSize="small" style={{marginRight:'5px',marginTop:'3px',float:'right'}}/>
-                    </Tooltip>
-                    <CardHeader 
-                        title="Member Growth"
-                        subheader="Number of personas joining the community over time."
-                    />   
-                    <div id="d3-members"></div>
-                </Card>
-            </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
-                <Card className={classes.card}>
-                    <Tooltip TransitionComponent={Zoom} title="Sum of all community actions that have taken place each day.  Includes: submit proposal (any kind), sponsor proposal, process proposal, donation.  Does not include voting actions or editing actions.">
-                        <InfoIcon fontSize="small" style={{marginRight:'5px',marginTop:'3px',float:'right'}}/>                    
-                    </Tooltip>
-                    <CardHeader 
-                        title="Daily Activity"
-                        subheader="An indication of how active the community is."
+                  return(
+                    <OpportunityCard 
+                      key={i}
+                      creator={fr.opportunity.proposer}
+                      created={fr.opportunity.submitDate}
+                      updated={fr.opportunity.updatedDate}
+                      reward={fr.opportunity.reward}
+                      category={fr.opportunity.category}
+                      projectName={fr.opportunity.projectName}
+                      details={fr.opportunity.details}
+                      title={fr.opportunity.title}
+                      opportunityId={fr.opportunity.opportunityId}
+                      opportunityStatus={fr.opportunity.status}
+                      permission={fr.opportunity.permission}
+                      skillCount={fr.skillCount}
+                      skillMatch={fr.skillMatch}
+                      developerSkillCount={fr.developerSkillCount}
+                      developerSkillMatch={fr.developerSkillMatch}
+                      suitabilityScore={fr.suitabilityScore}
                     />
-                                   
-                    <div id="d3-activity"></div>
-                </Card>
-            </Grid>
-        </Grid>
+                  )
+                }) : <Card className={classes.card}>
+                <Typography variant="h5">No Recommended Opportunities Yet - Please Check Back Soon.</Typography>
+              </Card> }
+            </TabPanel>
+            <TabPanel value="2">
+                <div>
+                <Grid container alignItems="center" justify="center" spacing={1} style={{padding: '20px'}}>
+                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom:'30px'}}>
+                    {!matches ? <Typography variant='h3'>Community Dashboard</Typography> : <Typography variant='h4'>Community Dashboard</Typography>}
+                        <Typography variant='body1'>Community and participation metrics.</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom:'30px'}}>
+                        <FormControl className={classes.formControl}>
+                        <InputLabel id="community-select">Community</InputLabel>
+                        <Select
+                        native
+                        value={contractId}
+                        onChange={handleContractIdChange}
+                        > 
+                        {memberCommunities && memberCommunities.length > 0 ?
+                            memberCommunities.reverse().map((community, i) => (
+                                <option key={community.communityName} value={community.contractId}>{community.communityName}</option>
+                            ))
+                            : null }
+        
+                        </Select>
+                    </FormControl>
+                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '20px', marginBottom:'30px'}}>
+                    <TableContainer component={Paper}>
+                    <Table className={classes.table} size="small" aria-label="a dense table">
+                    <TableHead>
+                        <TableRow>
+                        <TableCell>Community</TableCell>
+                        <TableCell align="right">Members</TableCell>
+                        <TableCell align="right">Fund Ⓝ</TableCell>
+                        <TableCell align="right">Value (USD)</TableCell>
+                        <TableCell align="right">Proposals</TableCell>
+                        <TableCell align="right">Passed</TableCell>
+                        <TableCell align="right">Not Passed</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                    {finalPropDataFrame && finalPropDataFrame.length > 0 ?
+                    
+                        finalPropDataFrame.map(({
+                            communityName, 
+                            totalMembers, 
+                            communityFund, 
+                            communityValue, 
+                            totalProposals, 
+                            passedProposals, 
+                            failedProposals, 
+                            inProgressProposals}) => {
+                        
+                            return (
+                            <TableRow key={communityName ? communityName : null}>
+                                <TableCell component="th" scope="row">
+                                <Link to={`dao/${contractId}`}>
+                                    <Avatar src={logo} variant="square" className={classes.small}/>
+                                    <Typography variant="overline">{communityName ? communityName : null}</Typography>
+                                </Link>
+                                </TableCell>
+                                <TableCell align="right">{totalMembers ? totalMembers : '0'}</TableCell>
+                                <TableCell align="right">{communityFund ? communityFund : '0'}</TableCell>
+                                <TableCell align="right">{communityValue ? communityValue : '0'}</TableCell>
+                                <TableCell align="right">{totalProposals ? totalProposals : '0'}</TableCell>
+                                <TableCell align="right">{passedProposals ? passedProposals : '0'}</TableCell>
+                                <TableCell align="right">{failedProposals ? failedProposals : '0'}</TableCell>
+                                </TableRow>
+                            )
+                        
+                            })
+                        : (
+                        <TableRow>
+                        <TableCell component="th" scope="row">
+                        <Typography variant="overline">No Results</Typography>
+                        </TableCell>
+                        </TableRow>
+                        )}
+                    </TableBody>
+                    </Table>
+                </TableContainer>
+                </Grid>
+                </Grid>
+                    <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
+                        <Card className={classes.card}>
+                            <Tooltip TransitionComponent={Zoom} title="The number of unique personas that are members of the community.">
+                                <InfoIcon fontSize="small" style={{marginRight:'5px',marginTop:'3px',float:'right'}}/>
+                            </Tooltip>
+                            <CardHeader 
+                                title="Member Growth"
+                                subheader="Number of personas joining the community over time."
+                            />   
+                            <div id="d3-members"></div>
+                        </Card>
+                    </Grid>
+                    <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
+                        <Card className={classes.card}>
+                            <Tooltip TransitionComponent={Zoom} title="Sum of all community actions that have taken place each day.  Includes: submit proposal (any kind), sponsor proposal, process proposal, donation.  Does not include voting actions or editing actions.">
+                                <InfoIcon fontSize="small" style={{marginRight:'5px',marginTop:'3px',float:'right'}}/>                    
+                            </Tooltip>
+                            <CardHeader 
+                                title="Daily Activity"
+                                subheader="An indication of how active the community is."
+                            />
+                                        
+                            <div id="d3-activity"></div>
+                        </Card>
+                    </Grid>
+                </Grid>
+                </div>
+            </TabPanel>
+        </TabContext>
+       
         </div>
+       
         </>
     )
 }
