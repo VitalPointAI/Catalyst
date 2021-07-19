@@ -7,6 +7,8 @@ import FileUpload from '../IPFSupload/ipfsUpload'
 import { flexClass } from '../../App'
 import { ceramic, IPFS_PROVIDER } from '../../utils/ceramic'
 import * as nearAPI from 'near-api-js'
+import DOMPurify from "dompurify"
+
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -137,7 +139,7 @@ export default function DaoProfileDisplay(props) {
                 result.name ? setName(result.name) : setName('')
                 result.date ? setDate(result.date) : setDate('')
                 result.logo ? setLogo(result.logo) : setLogo(imageName)
-                result.purpose ? setPurpose(result.purpose) : setPurpose('')
+                result.purpose ? setPurpose(DOMPurify.sanitize(result.purpose)) : setPurpose('')
                 result.category ? setCategory(result.category) : setCategory('')
                 result.discordActivation ? setDiscordActivated(true) : setDiscordActivated(false)
                 result.proposalActivation ? setProposalsActivated(true) : setProposalsActivated(false)
@@ -183,7 +185,7 @@ export default function DaoProfileDisplay(props) {
                           {purpose!="" ?
                             <>
                             <Typography variant="h6" style={{marginTop: 10}}> Purpose: </Typography>
-                            <Typography>{removeTags(purpose)}</Typography></>:<></>}
+                            <div dangerouslySetInnerHTML={{ __html: purpose}} /></>:<></>}
                       </Grid>
                       <Grid item xs={12}>
                       <Typography variant="h6" style={{marginTop: 10}}>General Information</Typography>
