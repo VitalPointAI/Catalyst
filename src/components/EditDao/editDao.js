@@ -6,6 +6,10 @@ import FileUpload from '../IPFSupload/ipfsUpload'
 import { flexClass } from '../../App'
 import { ceramic, IPFS_PROVIDER } from '../../utils/ceramic'
 import * as nearAPI from 'near-api-js'
+import draftToHtml from 'draftjs-to-html'
+import htmlToDraft from 'html-to-draftjs'
+import { EditorState, convertFromRaw, convertToRaw, ContentState } from 'draft-js'
+import { Editor } from "react-draft-wysiwyg"
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -71,7 +75,7 @@ export default function EditDaoForm(props) {
     const [name, setName] = useState('')
     const [isUpdated, setIsUpdated] = useState(false)
     const [logo, setLogo] = useState(imageName)
-    const [purpose, setPurpose] = useState('')
+    const [purpose, setPurpose] = useState(EditorState.createEmpty())
     const [category, setCategory] = useState('')
     const [webhook, setWebhook] = useState('')
     const [curDaoIdx, setCurDaoIdx] = useState()
@@ -129,10 +133,20 @@ export default function EditDaoForm(props) {
                  setWebhook('')
               }
               if(result) {
+                if(result.purpose){
+                  let contentBlock = htmlToDraft(result.purpose)
+                  if(contentBlock){
+                    const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks)
+                    const editorState = EditorState.createWithContent(contentState)
+                    setPurpose(editorState)
+                  }
+                 }
+                  else{
+                    setPurpose(EditorState.createEmpty())
+                  }
                 result.name ? setName(result.name) : setName('')
                 result.date ? setDate(result.date) : setDate('')
                 result.logo ? setLogo(result.logo) : setLogo(imageName)
-                result.purpose ? setPurpose(result.purpose) : setPurpose('')
                 result.category ? setCategory(result.category) : setCategory('')
                 result.discordActivation ? setDiscordActivated(true) : setDiscordActivated(false)
                 result.proposalActivation ? setProposalsActivated(true) : setProposalsActivated(false)
@@ -175,6 +189,9 @@ export default function EditDaoForm(props) {
     const handleWebhookChange = (event) => {
       let value = event.target.value;
       setWebhook(value)
+    }
+    const handleEditorStateChange = (editorState) => {
+      setPurpose(editorState)
     }
     function formatDate(timestamp) {
       let intDate = parseInt(timestamp)
@@ -235,7 +252,7 @@ export default function EditDaoForm(props) {
             category: category,
             name: name,
             logo: logo,
-            purpose: purpose,
+            purpose: draftToHtml(convertToRaw(purpose.getCurrentContent())),
             discordActivation: discordActivated,
             proposalActivation: proposalsActivated,
             passedProposalActivation: passedProposalsActivated,
@@ -481,20 +498,15 @@ export default function EditDaoForm(props) {
                         </AccordionDetails>
                       </Accordion>
                   <Typography variant="h6">Community Purpose</Typography>
-                  <ReactQuill
-                    theme="snow"
-                    modules={modules}
-                    formats={formats}
-                    name="purpose"
-                    label="DAO Purpose"
-                    value={purpose}
-                    onChange={handlePurposeChange}
-                    style={{height:'200px', marginBottom:'100px'}}
-                    inputRef={register({
-                        required: false
-                    })}
+                  <Editor
+                    editorState={purpose}
+                    toolbarClassName="toolbarClassName"
+                    wrapperClassName="wrapperClassName"
+                    editorClassName="editorClassName"
+                    onEditorStateChange={handleEditorStateChange}
                   />
-             
+
+                  
                   <Grid container spacing={1}>
                     <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                       <Typography variant="h6">Upload Logo</Typography>
