@@ -185,17 +185,24 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     let appIndex = await appIdx.getIndex()
 
     //** INITIALIZE FACTORY CONTRACT */
-    const daoFactory = await factory.initFactoryContract(account)
+    let daoFactory
+    try {
+        daoFactory = await factory.initFactoryContract(account)
+    } catch (err) {
+        console.log('error initializing daoFactory', err)
+    }
 
-    let currentDaosLength = await daoFactory.getDaoListLength()
-    console.log('currentdaolength', currentDaosLength)
-   
     let t = 0
     let start = 0
     let end = 0
     let interval = 20
     let currentDaosList = []
-    if(currentDaosLength){
+
+    try {
+    let currentDaosLength = await daoFactory.getDaoListLength()
+    console.log('currentdaolength', currentDaosLength)
+   
+    //if(currentDaosLength){
         while(t < currentDaosLength){
             if(currentDaosLength < interval){
                 end = currentDaosLength
@@ -212,6 +219,9 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
             }
             t++        
         }
+  //  }
+    } catch (err) {
+        console.log('error creating currentDaosList', err)
     }
 
     // Set Current User Ceramic Client
