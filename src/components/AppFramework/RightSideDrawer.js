@@ -42,9 +42,7 @@ export default function RightSideDrawer(props) {
     currentPeriod,
     summoner,
     totalMembers,
-    handleSnackBarOpen,
-    handleSuccessMessage,
-    handleErrorMessage,
+    
     proposalDeposit,
     tokenName,
     depositToken
@@ -74,9 +72,7 @@ export default function RightSideDrawer(props) {
         <EditInitSettings 
           contract={contract} 
           handleEditSettingsClick={handleEditSettingsClick}
-          handleSnackBarOpen={handleSnackBarOpen}
-          handleSuccessMessage={handleSuccessMessage}
-          handleErrorMessage={handleErrorMessage}
+         
           accountId={accountId}
           currentPeriod={currentPeriod}
           summoner={summoner}

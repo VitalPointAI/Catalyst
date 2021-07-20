@@ -15,8 +15,7 @@ import { Header } from '../Header/header'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Grid from '@material-ui/core/Grid'
-import Snackbar from '@material-ui/core/Snackbar'
-import MuiAlert from '@material-ui/lab/Alert'
+
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -60,13 +59,6 @@ export default function CreateDao(props) {
 
     const {
         state,
-        handleSnackBarOpen,
-        handleSuccessMessage,
-        handleErrorMessage,
-        snackBarOpen,
-        severity,
-        errorMessage,
-        successMessage,
     } = props
 
     const {
@@ -96,16 +88,7 @@ export default function CreateDao(props) {
     setCreateDAOClicked(property)
     }
        
-    const snackBarHandleClose = (event, reason) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-        handleSnackBarOpen(false);
-        };
-    
-    function Alert(props) {
-        return <MuiAlert elevation={6} variant="filled" {...props} />
-    }
+  
 
     const handleChange = (event, value) => {
         setPage(value)
@@ -124,15 +107,9 @@ export default function CreateDao(props) {
                 finished = await daoFactory.createDAO({
                         name: name
                     }, GAS, utils.format.parseNearAmount(FACTORY_DEPOSIT))
-                  
-              
-                handleSuccessMessage('Successfully created DAO.', 'success')
-                handleSnackBarOpen(true)
                 setFinished(true)
             } catch (err) {
                 console.log('error creating dao', err)
-                handleErrorMessage('There was a problem creating the DAO' + err.message, 'error')
-                handleSnackBarOpen(true)
                 setFinished(true)
             }
         
@@ -154,19 +131,14 @@ export default function CreateDao(props) {
             }, GAS)
             console.log('finished', finished)
             if(finished) {
-                handleSuccessMessage('Successfully deleted DAO.', 'success')
-                handleSnackBarOpen(true)
+               
             } else {
                 console.log('error deleting Dao')
-                handleErrorMessage('There was a problem deleting the DAO' + err.message, 'error')
-                handleSnackBarOpen(true)
                 setFinished(true)
             }
         
         } catch (err) {
         console.log('error deleting dao', err)
-        handleErrorMessage('There was a problem deleting the DAO' + err.message, 'error')
-        handleSnackBarOpen(true)
         setFinished(true)
         }
         if(finished) {
@@ -193,9 +165,7 @@ export default function CreateDao(props) {
                         state={state}
                         daoFactory={daoFactory}
                         handleCreateDAOClickState={handleCreateDAOClickState}
-                        handleSnackBarOpen={handleSnackBarOpen}
-                        handleErrorMessage={handleErrorMessage}
-                        handleSuccessMessage={handleSuccessMessage}
+                       
                     />
                 </Grid>
 
@@ -219,19 +189,13 @@ export default function CreateDao(props) {
            
         </div>
         
-        <Snackbar open={snackBarOpen} autoHideDuration={4000} onClose={snackBarHandleClose}>
-        <Alert onClose={snackBarHandleClose} severity={severity}>
-        {severity=='success' ? successMessage : errorMessage}
-        </Alert>
-        </Snackbar>
+      
         
         {createDAOClicked ? <CreateDemDAO
             state={state}
             daoFactory={daoFactory}
             handleCreateDAOClickState={handleCreateDAOClickState}
-            handleSnackBarOpen={handleSnackBarOpen}
-            handleErrorMessage={handleErrorMessage}
-            handleSuccessMessage={handleSuccessMessage}
+          
           /> : null }
         
         </>

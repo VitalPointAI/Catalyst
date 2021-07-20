@@ -77,9 +77,6 @@ export default function ManageDelegations(props) {
     depositToken,
     proposalDeposit,
     handleManageDelegationsClickState,
-    handleSnackBarOpen,
-    handleErrorMessage,
-    handleSuccessMessage,
    } = props
 
    useEffect(
@@ -131,8 +128,6 @@ export default function ManageDelegations(props) {
         shares
         ) 
     } catch (err) {
-      handleErrorMessage('There was a problem making the delegation' + err.message, 'error')
-      handleSnackBarOpen(true)
       setFinished(true)
       setOpen(false)
       handleClose()

@@ -63,9 +63,6 @@ export default function Donation(props) {
     depositToken,
     proposalDeposit,
     handleDonationProposalClickState,
-    handleSnackBarOpen,
-    handleErrorMessage,
-    handleSuccessMessage,
    } = props
 
   const handleClose = () => {
@@ -96,8 +93,6 @@ export default function Donation(props) {
         )
             
     } catch (err) {
-      handleErrorMessage('There was a problem submitting the donation' + err.message, 'error')
-      handleSnackBarOpen(true)
       setFinished(true)
       setOpen(false)
       handleClose()

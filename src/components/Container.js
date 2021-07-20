@@ -54,7 +54,7 @@ const useStyles = makeStyles((theme) => ({
     }
   }));
 
-export const Container = ({ children, state, handleSnackBarOpen, handleSuccessMessage, handleErrorMessage, snackBarOpen, severity, errorMessage, successMessage }) => {
+export const Container = ({ children, state }) => {
 
     const classes = useStyles();
    
@@ -71,13 +71,6 @@ export const Container = ({ children, state, handleSnackBarOpen, handleSuccessMe
         <>
         <div className={classes.root}>
         <Header state={state}
-            handleSnackBarOpen={handleSnackBarOpen}
-            handleSuccessMessage={handleSuccessMessage}
-            handleErrorMessage={handleErrorMessage}
-            snackBarOpen={snackBarOpen}
-            severity={severity}
-            errorMessage={errorMessage}
-            successMessage={successMessage}
         />
         
         {finished ? 

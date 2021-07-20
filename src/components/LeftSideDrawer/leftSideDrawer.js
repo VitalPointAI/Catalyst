@@ -67,7 +67,7 @@ const [drawerState, setDrawerState] = useState({
 
 const {
     state,
-    handleSnackBarOpen, handleSuccessMessage, handleErrorMessage, snackBarOpen, severity, errorMessage, successMessage
+   
 } = props
 
 const handleClick = (event) => {
@@ -253,13 +253,7 @@ return (
         {addDaoClicked ? <AddDaoForm
             state={state}
             handleAddDaoClick={handleAddDaoClick}
-            handleSnackBarOpen={handleSnackBarOpen}
-            handleSuccessMessage={handleSuccessMessage}
-            handleErrorMessage={handleErrorMessage}
-            snackBarOpen={snackBarOpen}
-            severity={severity}
-            errorMessage={errorMessage}
-            successMessage={successMessage}
+           
             
         /> : null }
 

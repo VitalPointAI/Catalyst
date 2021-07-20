@@ -14,8 +14,7 @@ import Chip from '@material-ui/core/Chip'
 import Grid from '@material-ui/core/Grid'
 import Avatar from '@material-ui/core/Avatar'
 import Typography from '@material-ui/core/Typography'
-import Snackbar from '@material-ui/core/Snackbar'
-import MuiAlert from '@material-ui/lab/Alert'
+
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
@@ -46,13 +45,6 @@ export default function DemDaoCard(props) {
 
     const {
         state,
-        handleSuccessMessage,
-        handleErrorMessage,
-        handleSnackBarOpen,
-        snackBarOpen,
-        severity,
-        errorMessage,
-        successMessage,
         daoFactory } = props
 
 
@@ -70,17 +62,7 @@ export default function DemDaoCard(props) {
     setCreateDAOClicked(property)
     }
 
-    const snackBarHandleClose = (event, reason) => {
-    if (reason === 'clickaway') {
-        return;
-    }
-
-    handleSnackBarOpen(false);
-    };
-
-    function Alert(props) {
-        return <MuiAlert elevation={6} variant="filled" {...props} />
-    }
+    
 
     
 
@@ -134,20 +116,13 @@ export default function DemDaoCard(props) {
         </CardActions>
       </Card>
 
-      <Snackbar open={snackBarOpen} autoHideDuration={4000} onClose={snackBarHandleClose}>
-      <Alert onClose={snackBarHandleClose} severity={severity}>
-      {severity=='success' ? successMessage : errorMessage}
-      </Alert>
-      </Snackbar>
+     
 
       {createDAOClicked ? <CreateDemDAO
         state={state}
         accountId={state.accountId}
         daoFactory={daoFactory}
         handleCreateDAOClickState={handleCreateDAOClickState}
-        handleSnackBarOpen={handleSnackBarOpen}
-        handleErrorMessage={handleErrorMessage}
-        handleSuccessMessage={handleSuccessMessage}
         /> : null }
         </>
     )

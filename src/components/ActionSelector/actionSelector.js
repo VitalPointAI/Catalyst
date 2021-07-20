@@ -34,8 +34,7 @@ import EnhancedEncryptionIcon from '@material-ui/icons/EnhancedEncryption'
 import ExitToAppIcon from '@material-ui/icons/ExitToApp'
 import AddAlertIcon from '@material-ui/icons/AddAlert'
 import MoneyIcon from '@material-ui/icons/Money'
-import Snackbar from '@material-ui/core/Snackbar'
-import MuiAlert from '@material-ui/lab/Alert'
+
 
 
 const StyledMenu = withStyles({
@@ -92,10 +91,7 @@ export default function ActionSelector(props) {
   const [leaveClicked, setLeaveClicked] = useState(false)
   const [whiteListClicked, setWhiteListClicked] = useState(false)
   const [guildKickClicked, setGuildKickClicked] = useState(false)
-  const [snackBarOpen, setSnackBarOpen] = useState(false)
-  const [errorMessage, setErrorMessage] = useState()
-  const [severity, setSeverity] = useState()
-  const [successMessage, setSuccessMessage] = useState()
+  
 
   const { state, dispatch, update } = useContext(appStore);
   
@@ -218,37 +214,12 @@ export default function ActionSelector(props) {
     setOpportunityProposalClicked(property)
   }
 
-  function handleErrorMessage(message, severity) {
-    setErrorMessage(message)
-    setSeverity(severity)
-  }
-
-  function handleSuccessMessage(message, severity) {
-    setSuccessMessage(message)
-    setSeverity(severity)
-  }
-
-  function handleSnackBarOpen(property) {
-    setSnackBarOpen(property)
-  }
-
   function handleExpanded() {
     setAnchorEl(null)
   }
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
-  };
-  
-  const snackBarHandleClose = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setSnackBarOpen(false);
-  };
-
-  function Alert(props) {
-    return <MuiAlert elevation={6} variant="filled" {...props} />
   }
 
   return (
@@ -364,11 +335,7 @@ export default function ActionSelector(props) {
         </StyledMenu>
       )}
     
-      <Snackbar open={snackBarOpen} autoHideDuration={4000} onClose={snackBarHandleClose}>
-      <Alert onClose={snackBarHandleClose} severity={severity}>
-        {severity=='success' ? successMessage : errorMessage}
-      </Alert>
-      </Snackbar>
+    
   
 
       {whiteListClicked ? <WhiteListProposal
@@ -388,9 +355,6 @@ export default function ActionSelector(props) {
       depositToken={depositToken}
       proposalDeposit={proposalDeposit}
       daoContract={daoContract}
-      handleSnackBarOpen={handleSnackBarOpen}
-      handleErrorMessage={handleErrorMessage}
-      handleSuccessMessage={handleSuccessMessage}
       didsContract={didsContract}
       idx={idx}
       handleTabValueState={handleTabValueState}/> : null }
@@ -415,10 +379,6 @@ export default function ActionSelector(props) {
       proposalDeposit={proposalDeposit}
       tokenName={tokenName}
       accountId={accountId} 
-     
-      handleSnackBarOpen={handleSnackBarOpen}
-      handleErrorMessage={handleErrorMessage}
-      handleSuccessMessage={handleSuccessMessage}
       /> : null }
 
       {tributeProposalClicked ? <TributeProposal
@@ -429,10 +389,7 @@ export default function ActionSelector(props) {
         proposalDeposit={proposalDeposit}
         tokenName={tokenName}
         accountId={accountId} 
-       
-        handleSnackBarOpen={handleSnackBarOpen}
-        handleErrorMessage={handleErrorMessage}
-        handleSuccessMessage={handleSuccessMessage}
+      
         /> : null }
   
 
@@ -444,10 +401,7 @@ export default function ActionSelector(props) {
       proposalDeposit={proposalDeposit}
       tokenName={tokenName}
       accountId={accountId} 
-      
-      handleSnackBarOpen={handleSnackBarOpen}
-      handleErrorMessage={handleErrorMessage}
-      handleSuccessMessage={handleSuccessMessage}
+    
       /> : null }
 
       {memberProposalClicked ? <MemberProposal
@@ -457,9 +411,7 @@ export default function ActionSelector(props) {
       depositToken={depositToken}
       handleMemberProposalClickState={handleMemberProposalClickState} 
       accountId={accountId} 
-      handleSnackBarOpen={handleSnackBarOpen}
-      handleErrorMessage={handleErrorMessage}
-      handleSuccessMessage={handleSuccessMessage}
+     
 
       /> : null }
 
@@ -470,9 +422,7 @@ export default function ActionSelector(props) {
         depositToken={depositToken}
         handleDonationProposalClickState={handleDonationProposalClickState} 
         accountId={accountId} 
-        handleSnackBarOpen={handleSnackBarOpen}
-        handleErrorMessage={handleErrorMessage}
-        handleSuccessMessage={handleSuccessMessage}
+       
       /> : null }
   
       {payoutProposalClicked ? <PayoutProposal
@@ -483,9 +433,6 @@ export default function ActionSelector(props) {
         tokenName={tokenName}
         handlePayoutProposalClickState={handlePayoutProposalClickState} 
         accountId={accountId} 
-        handleSnackBarOpen={handleSnackBarOpen}
-        handleErrorMessage={handleErrorMessage}
-        handleSuccessMessage={handleSuccessMessage}
   
         /> : null }
     </>

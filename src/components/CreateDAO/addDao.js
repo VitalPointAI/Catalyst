@@ -51,7 +51,7 @@ export default function AddDaoForm(props) {
 
     const {
        handleAddDaoClick,
-       handleSnackBarOpen, handleSuccessMessage, handleErrorMessage, snackBarOpen, severity, errorMessage, successMessage
+     
     } = props
     
     const classes = useStyles()

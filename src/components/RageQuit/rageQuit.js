@@ -107,8 +107,6 @@ export default function RageQuit(props) {
         )
       } catch (err) {
         console.log('problem with rage quit', err)
-        handleErrorMessage('There was a problem with the rage quit.', 'error')
-        handleSnackBarOpen(true)
       }
       setFinished(true)
       setOpen(false)

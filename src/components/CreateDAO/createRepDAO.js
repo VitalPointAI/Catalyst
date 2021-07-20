@@ -83,9 +83,7 @@ export default function CreateRepDAO(props) {
     handleGuildBalanceChanges,
     handleCreateDAOClickState,
     proposalDeposit,
-    handleSnackBarOpen,
-    handleErrorMessage,
-    handleSuccessMessage,
+   
     tokenName,
     depositToken,
     accountId,
@@ -123,13 +121,11 @@ export default function CreateRepDAO(props) {
             }, GAS, utils.format.parseNearAmount(FACTORY_DEPOSIT))
             console.log('finished', finished)
       
-        handleSuccessMessage('Successfully created Fleet DAO.', 'success')
-        handleSnackBarOpen(true)
+      
         setFinished(true)
     } catch (err) {
         console.log('error creating fleet dao', err)
-        handleErrorMessage('There was a problem creating the Fleet DAO' + err.message, 'error')
-        handleSnackBarOpen(true)
+       
         setFinished(true)
     }
 
@@ -151,22 +147,14 @@ export default function CreateRepDAO(props) {
           let updated = await proposalEvent.recordEvent(
             proposal.pI, proposal.a, proposal.p, proposal.s, proposal.sR, proposal.lR, proposal.tO, proposal.tT, proposal.pR, proposal.pT, 
             proposal.sP, proposal.yV, proposal.nV, proposal.f, proposal.mT, proposal.pS, proposal.vP, proposal.gP, proposal.voteFinalized)
-            if(updated){
-              handleSuccessMessage('Successfully submitted funding proposal.', 'success')
-              handleSnackBarOpen(true)
-            } else {
-              handleErrorMessage('There was a problem submitting the funding proposal.', 'error')
-              handleSnackBarOpen(true)
-            }
+           
           } catch (err) {
             console.log('problem recording the funding proposal event', err)
-            handleErrorMessage('There was a problem submitting the funding proposal.', 'error')
-            handleSnackBarOpen(true)
+           
           }
       } catch (err) {
         console.log('problem submitting funding proposal', err)
-        handleErrorMessage('There was a problem submitting the funding proposal.', 'error')
-        handleSnackBarOpen(true)
+       
       }
       if(finished) {
         setFinished(true)

@@ -56,10 +56,7 @@ export default function GuildKickProposal(props) {
     handleGuildKickClickState, 
     handleProposalEventChange,
     handleGuildBalanceChanges,
-    handleEscrowBalanceChanges,
-    handleSnackBarOpen,
-    handleErrorMessage,
-    handleSuccessMessage,
+    handleEscrowBalanceChanges,  
     accountId,
     proposalDeposit,
     depositToken,
@@ -79,14 +76,9 @@ export default function GuildKickProposal(props) {
         pI: proposalIdentifier
         }, GAS, utils.format.parseNearAmount((parseInt(proposalDeposit)).toString()))
     try{
-      // let recorded = await proposalEvent.recordEvent(
-      //   finished.pI, finished.a, finished.p, finished.s, finished.sR, finished.lR, finished.tO, finished.tT, finished.pR, finished.pT, 
-      //   finished.sP, finished.yV, finished.nV, finished.f, finished.mT, finished.pS, finished.vP, finished.gP, finished.voteFinalized)
-        handleSuccessMessage('Successfully cancelled guild kick proposal.', 'success')
-        handleSnackBarOpen(true)
+      
       } catch (err) {
-        handleErrorMessage('There was a problem cancelling the guild kick proposal.', 'error')
-        handleSnackBarOpen(true)
+        console.log('error processig guild kick proposal', err)
       }
   }
 
@@ -107,20 +99,14 @@ export default function GuildKickProposal(props) {
           finished.pI, finished.a, finished.p, finished.s, finished.sR, finished.lR, finished.tO, finished.tT, finished.pR, finished.pT, 
           finished.sP, finished.yV, finished.nV, finished.f, finished.mT, finished.pS, finished.vP, finished.gP, finished.voteFinalized)
           console.log('recorded', recorded)
-          if(recorded) {
-            handleSuccessMessage('Successfully submitted guild kick proposal.', 'success')
-            handleSnackBarOpen(true)
-          } else {
-            console.log('error recording guild kick')
-            await handleCancelAction(finished.pI)
-          }
+          
         } catch (err) {
           console.log('error storing guild kick log', err)
           await handleCancelAction(finished.pI)
         }
     } catch (err) {
-      handleErrorMessage('There was a problem adding the guild kick proposal.', 'error')
-      handleSnackBarOpen(true)
+      console.log('There was a problem adding the guild kick proposal.', err)
+      
     }
 
     if(finished) {

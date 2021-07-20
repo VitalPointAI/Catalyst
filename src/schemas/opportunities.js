@@ -18,6 +18,9 @@ export const opportunitiesSchema = {
         "opportunityId": {
           type: 'string',
         },
+        "contractId": {
+          type: 'string',
+        },
         "title": {
           type: 'string',
         },

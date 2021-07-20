@@ -147,7 +147,7 @@ export default function Opportunities(props) {
           }
 
           fetchData()
-    }, []
+    }, [state, contractId]
     )
 
     const searchData = async (pattern) => {

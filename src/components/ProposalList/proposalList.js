@@ -29,8 +29,6 @@ import ListAltIcon from '@material-ui/icons/ListAlt'
 import HowToVoteIcon from '@material-ui/icons/HowToVote'
 import QueueIcon from '@material-ui/icons/Queue'
 import AssignmentTurnedInIcon from '@material-ui/icons/AssignmentTurnedIn'
-import Snackbar from '@material-ui/core/Snackbar'
-import MuiAlert from '@material-ui/lab/Alert'
 import Grid from '@material-ui/core/Grid'
 
 const useStyles = makeStyles((theme) => ({
@@ -123,14 +121,6 @@ export default function ProposalList(props) {
     handleProposalEventChange,
     handleGuildBalanceChanges,
     handleEscrowBalanceChanges,
-    handleSnackBarOpen,
-    handleSuccessMessage,
-    handleErrorMessage,
-    snackBarOpen,
-    snackBarHandleClose,
-    severity,
-    successMessage,
-    errorMessage,
   
     
     depositToken,
@@ -254,8 +244,6 @@ export default function ProposalList(props) {
       await cancelProposal(contract, contractId, proposalId, proposalDeposit, tribute)
     } catch (err) {
       console.log('problem cancelling proposal', err)
-      handleErrorMessage('There was a problem cancelling the proposal.', 'error')
-      handleSnackBarOpen(true)
     }
   }
 
@@ -265,8 +253,6 @@ export default function ProposalList(props) {
       await processProposal(contract, contractId, proposalId, proposalType) 
     } catch (err) {
         console.log('problem processing proposal', err)
-        handleErrorMessage('There was a problem processing the proposal.', 'error')
-        handleSnackBarOpen(true)
     }
   }
 
@@ -276,8 +262,6 @@ export default function ProposalList(props) {
         await submitVote(contract, contractId, proposalId, vote)
       } catch (err) {
         console.log('problem with vote', err)
-        handleErrorMessage('There was a problem with voting.', 'error')
-        handleSnackBarOpen(true)
       }
   }
  
@@ -1014,11 +998,7 @@ export default function ProposalList(props) {
     </TabContext>
 
        
-    <Snackbar open={snackBarOpen} autoHideDuration={4000} onClose={snackBarHandleClose}>
-    <Alert onClose={snackBarHandleClose} severity={severity}>
-      {severity=='success' ? successMessage : errorMessage}
-    </Alert>
-    </Snackbar>
+   
 
     {sponsorConfirmationClicked ? <SponsorConfirmation
       contract={contract}
@@ -1035,9 +1015,6 @@ export default function ProposalList(props) {
       proposalIdentifier={proposalIdentifier}
       paymentRequested={paymentRequested}
       sponsorProposalType={sponsorProposalType}
-      handleSnackBarOpen={handleSnackBarOpen}
-      handleErrorMessage={handleErrorMessage}
-      handleSuccessMessage={handleSuccessMessage}
       proposalDeposit={proposalDeposit}/> : null }
 
     {rageQuitClicked ? <RageQuit

@@ -95,9 +95,7 @@ export default function CreateDemDAO(props) {
   const {
     state,
     handleCreateDAOClickState,
-    handleSnackBarOpen,
-    handleErrorMessage,
-    handleSuccessMessage,
+   
     daoFactory,
     accountId } = props
  console.log('state', state)
@@ -287,8 +285,7 @@ export default function CreateDemDAO(props) {
 
         await thisDaoIdx.set('summonEvent', summonEventRecord)
       
-        handleSuccessMessage('Successfully created Democracy DAO.', 'success')
-        handleSnackBarOpen(true)
+       
         setFinished(true)
         setOpen(false)
         handleClose()
@@ -299,8 +296,7 @@ export default function CreateDemDAO(props) {
              accountId: accountId
          }, GAS, utils.format.parseNearAmount(FACTORY_DEPOSIT))
         }
-        handleErrorMessage('There was a problem creating the Democracy DAO' + err.message, 'error')
-        handleSnackBarOpen(true)
+      
         setFinished(true)
         setOpen(false)
         handleClose()

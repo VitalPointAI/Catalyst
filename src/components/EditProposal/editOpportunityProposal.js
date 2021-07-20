@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react'
+import { appStore, onAppMount } from '../../state/app'
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import FileUpload from '../IPFSupload/ipfsUpload'
@@ -40,10 +41,6 @@ import Checkbox from '@material-ui/core/Checkbox'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import Rating from '@material-ui/lab/Rating'
 
-
-// ReactQuill Component
-import ReactQuill from 'react-quill';
-
 // CSS Styles
 import '../../../node_modules/react-quill/dist/quill.snow.css'
 import { CircularProgress } from '@material-ui/core';
@@ -74,6 +71,7 @@ export default function EditOpportunityProposalForm(props) {
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
     const [loaded, setLoaded] = useState(false)
+    const [isUpdated, setIsUpdated] = useState(false)
 
     // Persona Fields
     const [date, setDate] = useState('')
@@ -84,7 +82,6 @@ export default function EditOpportunityProposalForm(props) {
     // Opportunity Proposal Fields
     const [title, setTitle] = useState('')
     const [details, setDetails] = useState(EditorState.createEmpty())
-   // const [editorState, setEditorState] = useState(EditorState.createEmpty())
     const [reward, setReward] = useState('')
     const [category, setCategory] = useState('')
     const [projectName, setProjectName] = useState('')
@@ -109,7 +106,7 @@ export default function EditOpportunityProposalForm(props) {
       solidity: false,
       webDevelopment: false
     })
-
+    const { state, dispatch, update } = useContext(appStore)
     const { register, handleSubmit, watch, errors } = useForm()
 
     const {
@@ -120,6 +117,7 @@ export default function EditOpportunityProposalForm(props) {
         curDaoIdx,
         curPersonaIdx,
         opportunityId,
+        contractId,
     } = props
     
     const classes = useStyles()
@@ -162,7 +160,7 @@ export default function EditOpportunityProposalForm(props) {
                     propResult.opportunities[i].reward ? setReward(propResult.opportunities[i].reward) : setReward('')
                     propResult.opportunities[i].category ? setCategory(propResult.opportunities[i].category) : setCategory('')
                     propResult.opportunities[i].projectName ? setProjectName(propResult.opportunities[i].projectName) : setProjectName('')
-                    propResult.opportunities[i].status ? setStatus(propResult.opportunities[i].status) : setStatus('')
+                    propResult.opportunities[i].status ? setStatus(propResult.opportunities[i].status) : setStatus(false)
                     propResult.opportunities[i].permission ? setPermission(propResult.opportunities[i].permission) : setPermission('')
                     propResult.opportunities[i].familiarity ? setFamiliarity(propResult.opportunities[i].familiarity) : setFamiliarity('0')
                     propResult.opportunities[i].desiredSkillSet ? setDesiredSkillSet(propResult.opportunities[i].desiredSkillSet): setDesiredSkillSet({})
@@ -255,6 +253,7 @@ export default function EditOpportunityProposalForm(props) {
       let proposalRecord = {
           opportunityId: opportunityId.toString(),
           title: title,
+          contractId: contractId,
           details: draftToHtml(convertToRaw(details.getCurrentContent())),
           proposer: proposer,
           submitDate: now,
@@ -289,6 +288,7 @@ export default function EditOpportunityProposalForm(props) {
       }
      
       setFinished(true)
+      update('', { isUpdated })
       handleUpdate(true)
       setOpen(false)
       handleClose()

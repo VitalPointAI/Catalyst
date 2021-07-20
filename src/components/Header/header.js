@@ -16,7 +16,7 @@ import Button from '@material-ui/core/Button'
 import '../../App.css'
 import { LinearProgress } from '@material-ui/core';
 
-export const Header = ({ state, handleSnackBarOpen, handleSuccessMessage, handleErrorMessage, snackBarOpen, severity, errorMessage, successMessage, handleUpdate, isUpdated }) => {
+export const Header = ({ state, handleUpdate, isUpdated }) => {
    
     const {
         wallet
@@ -31,22 +31,14 @@ export const Header = ({ state, handleSnackBarOpen, handleSuccessMessage, handle
     
     return (
         <>
-        <Grid container justify="space-between" alignItems="center" spacing={0} style={{paddingRight: '5px', paddingLeft: '5px', backgroundColor: 'white'}}>
+        <Grid container justify="space-between" alignItems="center" spacing={0} style={{paddingRight: '5px', paddingLeft: '5px', paddingTop: '5px', backgroundColor: 'white'}}>
             
             {wallet && wallet.signedIn ? 
                 !matches ? (
                     <>
                     <Grid item xs={1} sm={1} md={2} lg={2} xl={2}>
                         <LeftSideDrawer
-                        state={state}
-                        handleSnackBarOpen={handleSnackBarOpen}
-                        handleSuccessMessage={handleSuccessMessage}
-                        handleErrorMessage={handleErrorMessage}
-                        snackBarOpen={snackBarOpen}
-                        severity={severity}
-                        errorMessage={errorMessage}
-                        successMessage={successMessage}
-                        
+                        state={state}                        
                         /> 
                         <Logo />
                     </Grid>
@@ -62,13 +54,6 @@ export const Header = ({ state, handleSnackBarOpen, handleSuccessMessage, handle
                         <Grid item xs={1} sm={1} md={1} lg={1} xl={1} style={{paddingLeft: '5px'}}>
                             <LeftSideDrawer
                             state={state}
-                            handleSnackBarOpen={handleSnackBarOpen}
-                            handleSuccessMessage={handleSuccessMessage}
-                            handleErrorMessage={handleErrorMessage}
-                            snackBarOpen={snackBarOpen}
-                            severity={severity}
-                            errorMessage={errorMessage}
-                            successMessage={successMessage}
                             style={{float: 'left'}}
                             /> 
                         </Grid>
@@ -105,13 +90,7 @@ export const Header = ({ state, handleSnackBarOpen, handleSuccessMessage, handle
                     <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
                         <LeftSideDrawer
                             state={state}
-                            handleSnackBarOpen={handleSnackBarOpen}
-                            handleSuccessMessage={handleSuccessMessage}
-                            handleErrorMessage={handleErrorMessage}
-                            snackBarOpen={snackBarOpen}
-                            severity={severity}
-                            errorMessage={errorMessage}
-                            successMessage={successMessage}
+                           
                         /> 
                     </Grid>
                     <Grid item xs={7} sm={7} md={7} lg={7} xl={7}>

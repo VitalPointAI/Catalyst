@@ -14,8 +14,7 @@ import Chip from '@material-ui/core/Chip'
 import Grid from '@material-ui/core/Grid'
 import Avatar from '@material-ui/core/Avatar'
 import Typography from '@material-ui/core/Typography'
-import Snackbar from '@material-ui/core/Snackbar'
-import MuiAlert from '@material-ui/lab/Alert'
+
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
@@ -49,13 +48,6 @@ export default function RepDaoCard(props) {
         hasDao,
         tokenName,
         contract,
-        handleSuccessMessage,
-        handleErrorMessage,
-        handleSnackBarOpen,
-        snackBarOpen,
-        severity,
-        errorMessage,
-        successMessage,
         daoContract,
         handleInitChange,
         currentDaosList,
@@ -83,18 +75,7 @@ export default function RepDaoCard(props) {
     setCreateDAOClicked(property)
     }
 
-    const snackBarHandleClose = (event, reason) => {
-    if (reason === 'clickaway') {
-        return;
-    }
-
-    handleSnackBarOpen(false);
-    };
-
-    function Alert(props) {
-        return <MuiAlert elevation={6} variant="filled" {...props} />
-    }
-
+   
 
     return(
         <>
@@ -148,11 +129,7 @@ export default function RepDaoCard(props) {
         </CardActions>
       </Card>
 
-      <Snackbar open={snackBarOpen} autoHideDuration={4000} onClose={snackBarHandleClose}>
-      <Alert onClose={snackBarHandleClose} severity={severity}>
-      {severity=='success' ? successMessage : errorMessage}
-      </Alert>
-      </Snackbar>
+     
 
       {createDAOClicked ? <CreateRepDAO
         contract={contract}
@@ -161,9 +138,6 @@ export default function RepDaoCard(props) {
         depositToken={depositToken}
         proposalDeposit={proposalDeposit}
         tokenName={tokenName}
-        handleSnackBarOpen={handleSnackBarOpen}
-        handleErrorMessage={handleErrorMessage}
-        handleSuccessMessage={handleSuccessMessage}
         daoContract={daoContract}
         didsContract={didsContract}
         idx={idx}

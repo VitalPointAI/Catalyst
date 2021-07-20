@@ -118,13 +118,7 @@ export default function AppFramework(props) {
     const classes = useStyles()
     
     const {
-      handleSnackBarOpen,
-      handleSuccessMessage,
-      handleErrorMessage,
-      snackBarOpen,
-      severity,
-      errorMessage,
-      successMessage,
+        
       tributeToken,
       tributeOffer,
       processingReward,
@@ -718,9 +712,7 @@ export default function AppFramework(props) {
               currentPeriod={currentPeriod}
               accountId={state.accountId} 
               contract={daoContract}
-              handleErrorMessage={handleErrorMessage} 
-              handleSuccessMessage={handleSuccessMessage}
-              handleSnackBarOpen={handleSnackBarOpen} 
+             
               summoner={summoner}
               totalMembers={allMemberInfo.length}
               proposalDeposit={proposalDeposit}
@@ -781,10 +773,6 @@ export default function AppFramework(props) {
                 periodDuration={periodDuration}
                 proposalComments={proposalComments}
                
-               
-                handleSnackBarOpen={handleSnackBarOpen}
-                handleSuccessMessage={handleSuccessMessage}
-                handleErrorMessage={handleErrorMessage}
                 summoner={summoner}
                 contractIdx={contractIdx}
                 curUserIdx={curUserIdx}
@@ -798,9 +786,7 @@ export default function AppFramework(props) {
           </>
           ) : <Initialize 
                 summoner={summoner}
-                handleSnackBarOpen={handleSnackBarOpen}
-                handleSuccessMessage={handleSuccessMessage}
-                handleErrorMessage={handleErrorMessage}
+               
               />
           }
         </Grid>

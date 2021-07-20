@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { submitProposal, formatNearAmount } from '../../state/near'
+import Persona from '@aluhning/get-personas-js'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -21,6 +22,7 @@ import Checkbox from '@material-ui/core/Checkbox'
 import Tooltip from '@material-ui/core/Tooltip'
 import Zoom from '@material-ui/core/Zoom'
 import InfoIcon from '@material-ui/icons/Info'
+import Avatar from '@material-ui/core/Avatar'
 
 const useStyles = makeStyles((theme) => ({
   warning: {
@@ -46,6 +48,8 @@ const useStyles = makeStyles((theme) => ({
   },
   }));
 
+  const defaultImage = require('../../img/default_logo.png')
+
 export default function MemberProposal(props) {
   const [open, setOpen] = useState(true)
   const [finished, setFinished] = useState(true)
@@ -53,6 +57,8 @@ export default function MemberProposal(props) {
   const [shares, setShares] = useState('')
   const [tribute, setTribute] = useState('')
   const [confirm, setConfirm] = useState(false)
+  const [communityName, setCommunityName] = useState('')
+  const [logo, setLogo] = useState(defaultImage)
   
   const classes = useStyles()
   const { register, handleSubmit, watch, errors } = useForm()
@@ -63,12 +69,32 @@ export default function MemberProposal(props) {
     depositToken,
     proposalDeposit,
     handleMemberProposalClickState,
-
-  
-    handleSnackBarOpen,
-    handleErrorMessage,
-    handleSuccessMessage,
    } = props
+
+   const data = new Persona()
+
+   useEffect(
+    () => {
+      async function fetchData() {
+        // get community information
+        console.log('contractId mem', contractId)
+        if(contractId){
+          let daoResult = await data.getDao(contractId)
+          console.log('daoResult memb', daoResult)
+          if(daoResult){
+            daoResult.name ? setCommunityName(daoResult.name) : setCommunityName('')
+            daoResult.logo ? setLogo(daoResult.logo) : setLogo(defaultImage)
+          }
+        }
+      }
+
+      fetchData()
+        .then((res) => {
+
+        })
+
+   }, [contractId]
+   )
 
   const handleClose = () => {
     handleMemberProposalClickState(false)
@@ -104,8 +130,6 @@ export default function MemberProposal(props) {
                       )
             
     } catch (err) {
-      handleErrorMessage('There was a problem adding the member proposal' + err.message, 'error')
-      handleSnackBarOpen(true)
       setFinished(true)
       setOpen(false)
       handleClose()
@@ -115,7 +139,15 @@ export default function MemberProposal(props) {
   return (
     <div>
       <Dialog open={open} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Request Membership For</DialogTitle>
+        <Grid container alignItems="center" justify="center" style={{padding: '5px'}}>
+          <Grid item xs={12} sm={12} md={1} lg={1} xl={1} >
+          <Avatar variant="square" src={logo} />
+          </Grid>
+          <Grid item xs={12} sm={12} md={11} lg={11} xl={11} >
+            <Typography variant="body1">{communityName ? communityName : contractId}</Typography>
+          </Grid>
+        </Grid>
+        <DialogTitle id="form-dialog-title">Request Membership</DialogTitle>
         <DialogContent className={classes.rootForm}>
           <div>
             <TextField
@@ -162,7 +194,7 @@ export default function MemberProposal(props) {
               <Card>
               <CardContent>
                 <WarningIcon fontSize='large' className={classes.warning} />
-                <Typography variant="body1">You are requesting that <b>{applicant}</b> become a member of the community.  After submitting
+                <Typography variant="body1">You are requesting that <b>{applicant}</b> become a member of <b>{communityName? communityName : contractId}</b>.  After submitting
                 this proposal, you must provide enough supporting detail to help other members vote on and decide whether to approve your proposal or not.</Typography>
                 <Grid container className={classes.confirmation} spacing={1}>
                   <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>

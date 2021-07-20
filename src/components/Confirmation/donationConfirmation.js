@@ -70,9 +70,6 @@ export default function DonationConfirmation(props) {
   const { register, handleSubmit, watch, errors } = useForm()
 
   const { handleDonationConfirmationClickState, 
-    handleSuccessMessage,
-    handleErrorMessage,
-    handleSnackBarOpen,
     depositToken,
     proposalDeposit,
     proposalIdentifier,
@@ -104,8 +101,6 @@ export default function DonationConfirmation(props) {
         let split = err.message.split(': ')
         let split2 = split[1].split(",", 1)
         let message = split2[0]
-        handleErrorMessage('There was a problem sponsoring the proposal. (' + message + ')', 'error')
-        handleSnackBarOpen(true)
         setFinished(true)
         setOpen(false)
         handleClose()

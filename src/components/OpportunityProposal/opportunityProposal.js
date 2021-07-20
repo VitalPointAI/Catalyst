@@ -76,9 +76,6 @@ export default function OpportunityProposal(props) {
     state,
     handleOpportunityProposalClickState,
     proposalDeposit,
-    handleSnackBarOpen,
-    handleErrorMessage,
-    handleSuccessMessage,
     tokenName,
     depositToken,
     contractId } = props
@@ -110,8 +107,6 @@ export default function OpportunityProposal(props) {
         )
       } catch (err) {
         console.log('problem submitting opportunity proposal', err)
-        handleErrorMessage('There was a problem submitting the opportunity proposal.', 'error')
-        handleSnackBarOpen(true)
       }
   } 
 

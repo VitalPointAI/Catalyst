@@ -77,9 +77,6 @@ export default function TributeProposal(props) {
     state,
     handleTributeProposalClickState,
     proposalDeposit,
-    handleSnackBarOpen,
-    handleErrorMessage,
-    handleSuccessMessage,
     tokenName,
     depositToken,
     contractId } = props
@@ -119,8 +116,6 @@ export default function TributeProposal(props) {
         )
       } catch (err) {
         console.log('problem submitting funding proposal', err)
-        handleErrorMessage('There was a problem submitting the funding proposal.', 'error')
-        handleSnackBarOpen(true)
       }
   } 
 

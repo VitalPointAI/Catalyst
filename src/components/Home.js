@@ -57,7 +57,7 @@ const useStyles = makeStyles((theme) => ({
     }
   }));
 
-export const Home = ({ children, state, handleSnackBarOpen, handleSuccessMessage, handleErrorMessage, snackBarOpen, severity, errorMessage, successMessage }) => {
+export const Home = ({ children, state }) => {
 
     const [key, setKey] = useState(false)
     const classes = useStyles();
@@ -79,13 +79,7 @@ export const Home = ({ children, state, handleSnackBarOpen, handleSuccessMessage
         <>
         <div className={classes.root}>
             <Header state={state}
-            handleSnackBarOpen={handleSnackBarOpen}
-            handleSuccessMessage={handleSuccessMessage}
-            handleErrorMessage={handleErrorMessage}
-            snackBarOpen={snackBarOpen}
-            severity={severity}
-            errorMessage={errorMessage}
-            successMessage={successMessage}
+        
             />
        
         {finished ? 

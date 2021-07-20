@@ -118,14 +118,15 @@ export default function OpportunityProposalDetails(props) {
         curDaoIdx,
         applicant,
         proposer,
-        contract
+        contract,
+        contractId
     } = props
 
-    const {
-      contractId
-    } = useParams()
+    // const {
+    //   contractId
+    // } = useParams()
 
-   
+   let useContractId
   
 
     useEffect(
@@ -135,6 +136,12 @@ export default function OpportunityProposalDetails(props) {
           async function fetchData() {
          
             // Get Applicant Persona Information
+            // if(!contractId && passedContractId){
+            //   useContractId = passedContractId
+            // }
+            // if(contractId){
+            //   useContractId = contractId
+            // }
            
             if(proposer){                           
                   const thisPersona = new Persona()
@@ -145,7 +152,8 @@ export default function OpportunityProposalDetails(props) {
                       }
             }
             
-            if(wallet){
+            if(wallet && contractId){
+              console.log('useContractId', contractId)
               const daoContract = await dao.initDaoContract(wallet.account(), contractId)
               let proposal = await daoContract.getProposal({proposalId: parseInt(opportunityId)})
               let thisStatus = getStatus(proposal.f)
@@ -215,7 +223,7 @@ export default function OpportunityProposalDetails(props) {
               setFinished(true)
             })
           
-    }, [applicant, proposerAvatar, title, details, proposerName, isUpdated]
+    }, [applicant, proposerAvatar, title, details, proposerName, contractId, isUpdated]
     )
 
     const handleClose = () => {

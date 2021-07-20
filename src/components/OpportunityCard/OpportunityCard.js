@@ -8,6 +8,7 @@ import Persona from '@aluhning/get-personas-js'
 import FundingProposal from '../FundingProposal/fundingProposal'
 import EditFundingProposalForm from '../EditProposal/editFundingProposal'
 import OpportunityProposalDetails from '../ProposalDetails/opportunityProposalDetails'
+import EditOpportunityProposalForm from '../EditProposal/editOpportunityProposal'
 import MemberProposal from '../MemberProposal/memberProposal'
 import MemberProfileDisplay from '../MemberProfileDisplay/memberProfileDisplay'
 import { getStatus } from '../../state/near'
@@ -25,6 +26,8 @@ import Avatar from '@material-ui/core/Avatar'
 import Typography from '@material-ui/core/Typography'
 import { green, red } from '@material-ui/core/colors'
 import DoneIcon from '@material-ui/icons/Done'
+import HelpOutlineIcon from '@material-ui/icons/HelpOutline'
+import BlockIcon from '@material-ui/icons/Block'
 
 const useStyles = makeStyles((theme) => ({
     pos: {
@@ -43,6 +46,7 @@ const useStyles = makeStyles((theme) => ({
   }));
 
   const imageName = require('../../img/default-profile.png') // default no-image avatar
+  const defaultImage = require('../../img/default_logo.png')
 
 export default function OpportunityCard(props) {
 
@@ -59,13 +63,15 @@ export default function OpportunityCard(props) {
     const [status, setStatus] = useState()
     const [proposalDeposit, setProposalDeposit] = useState()
     const [memberStatus, setMemberStatus] = useState()
+    const [communityName, setCommunityName] = useState('')
+    const [logo, setLogo] = useState(defaultImage)
+    const [thisContractId, setThisContractId] = useState()
     const [memberProfileDisplayClicked, setMemberProfileDisplayClicked] = useState(false)
     const [editFundingProposalDetailsClicked, setEditFundingProposalDetailsClicked] = useState(false)
+    const [editOpportunityProposalDetailsClicked, setEditOpportunityProposalDetailsClicked] = useState(false)
     const [opportunityProposalDetailsClicked, setOpportunityProposalDetailsClicked] = useState(false)
     const [memberProposalClicked, setMemberProposalClicked] = useState(false)
     const [fundingProposalClicked, setFundingProposalClicked] = useState(false)
-
-
 
     const [anchorEl, setAnchorEl] = useState(null)
 
@@ -98,7 +104,8 @@ export default function OpportunityCard(props) {
       skillMatch,
       developerSkillCount,
       developerSkillMatch,
-      suitabilityScore
+      suitabilityScore,
+      passedContractId
     } = props
 
     const {
@@ -109,16 +116,26 @@ export default function OpportunityCard(props) {
     const inactive = red[500]
 
     const data = new Persona()
+    let useContractId
 
     useEffect(
         () => {
          
         async function fetchData() {
-
+         
           if(didRegistryContract && near){
-            if(contractId){
+            state.isUpdated
+            if(!contractId && passedContractId) {
+              useContractId = passedContractId
+              setThisContractId(passedContractId)
+            }
+            if(contractId) {
+              useContractId = contractId
+              setThisContractId(contractId)
+            }
+            if(useContractId){
               let thisCurDaoIdx
-              let daoAccount = new nearAPI.Account(near.connection, contractId)
+              let daoAccount = new nearAPI.Account(near.connection, useContractId)
                
               thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
             
@@ -126,8 +143,8 @@ export default function OpportunityCard(props) {
             }
           }
 
-          if(contractId && near){
-            let contract = await dao.initDaoContract(state.wallet.account(), contractId)
+          if(useContractId && near){
+            let contract = await dao.initDaoContract(state.wallet.account(), useContractId)
             try {
               let deposit = await contract.getProposalDeposit()
               setProposalDeposit(deposit)
@@ -152,7 +169,7 @@ export default function OpportunityCard(props) {
           }
 
           if(wallet && opportunityId){
-            const daoContract = await dao.initDaoContract(wallet.account(), contractId)
+            const daoContract = await dao.initDaoContract(wallet.account(), useContractId)
             let proposal = await daoContract.getProposal({proposalId: parseInt(opportunityId)})
             let thisStatus = getStatus(proposal.f)
             setStatus(thisStatus)
@@ -170,6 +187,13 @@ export default function OpportunityCard(props) {
               result.name ? setName(result.name) : setName('')
             }
           }
+
+          // get community information
+          let daoResult = await data.getDao(useContractId)
+          if(daoResult){
+            daoResult.name ? setCommunityName(daoResult.name) : setCommunityName('')
+            daoResult.logo ? setLogo(daoResult.logo) : setLogo(defaultImage)
+          }
         }
         
         fetchData()
@@ -177,7 +201,7 @@ export default function OpportunityCard(props) {
            
           })
 
-    }, [avatar, status, name, state, near, isUpdated]
+    }, [avatar, status, name, state, near, contractId, isUpdated]
     )
     
     function formatDate(timestamp) {
@@ -188,6 +212,17 @@ export default function OpportunityCard(props) {
 
     function handleUpdate(property){
       setIsUpdated(property)
+    }
+
+     // Opportunity Proposal Functions
+
+     const handleEditOpportunityProposalDetailsClick = () => {
+      handleExpanded()
+      handleEditOpportunityProposalDetailsClickState(true)
+    }
+  
+    function handleEditOpportunityProposalDetailsClickState(property){
+      setEditOpportunityProposalDetailsClicked(property)
     }
 
     // Funding Commitment Proposal Functions
@@ -245,13 +280,17 @@ export default function OpportunityCard(props) {
     return(
         <>
    
-        <Card raised={true} className={classes.card} >   
+        <Card raised={true} className={classes.card}>
+          <Grid container alignItems="center" justify="center" spacing={1} style={{padding: '5px'}}>
+            <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
+              <Avatar variant="square" src={logo} />
+            </Grid>
+            <Grid item xs={12} sm={12} md={9} lg={9} xl={9}>
+              <Typography variant="body1">{communityName ? communityName : useContractId}</Typography>
+            </Grid>
+          </Grid>
           <CardHeader
-          title={<><Chip
-            label={`Suitability Score: ${suitabilityScore}%`}
-            deleteIcon={<DoneIcon />}
-            variant="outlined"
-          /><br></br><Typography variant="h5" align="center">{title}</Typography></>}
+          title={<Typography variant="h5" align="center">{title}</Typography>}
           subheader={ <> <Grid container alignItems="flex-start" justify="space-between">
           <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
              <Typography variant="overline">Added: {created ? formatDate(created) : null}</Typography>
@@ -271,10 +310,20 @@ export default function OpportunityCard(props) {
  
           <CardContent>
             <Grid container alignItems="center" style={{marginTop: '-20px', display:'inherit'}}>
-              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
                 <Typography variant="h6" align="center">Base Reward</Typography>
-                <Typography variant="h6" align="center">{reward} Ⓝ</Typography>
+                <Typography variant="h6" align="center">{reward} Ⓝ</Typography><br></br>
+                <Chip
+                  label={`Suitability Score: ${suitabilityScore}%`}
+                  icon={suitabilityScore > 75 ? <DoneIcon /> 
+                    : suitabilityScore > 50 && suitabilityScore < 75 ? <HelpOutlineIcon />
+                    : suitabilityScore < 50 ? <BlockIcon />
+                    : null}
+                  variant="outlined"
+                  align="center"
+                />
               </Grid>
+              
             </Grid>
           </CardContent>
           <CardActions>
@@ -304,6 +353,14 @@ export default function OpportunityCard(props) {
               onClick={handleOpportunityProposalDetailsClick}>
                 Details
             </Button>
+            {accountId == creator ? (
+            <Button 
+              color="primary"
+              align="right"
+              onClick={handleEditOpportunityProposalDetailsClick}>
+                Edit
+            </Button>
+            ) : null }
           </CardActions>
         </Card>
 
@@ -313,7 +370,7 @@ export default function OpportunityCard(props) {
           /> : null }
 
         {fundingProposalClicked ? <FundingProposal
-          contractId={contractId}
+          contractId={thisContractId}
           handleFundingProposalClickState={handleFundingProposalClickState}
           state={state}
           depositToken={'Ⓝ'}
@@ -324,7 +381,7 @@ export default function OpportunityCard(props) {
           /> : null }
 
         {memberProposalClicked ? <MemberProposal
-          contractId={contractId}
+          contractId={thisContractId}
           state={state}
           depositToken={'Ⓝ'}
           proposalDeposit={proposalDeposit}
@@ -351,7 +408,20 @@ export default function OpportunityCard(props) {
           applicant={accountId}
           handleUpdate={handleUpdate}
           opportunityId={opportunityId}
+          contractId={thisContractId}
           /> : null }
+
+          {editOpportunityProposalDetailsClicked ? <EditOpportunityProposalForm
+            state={state}
+            handleEditOpportunityProposalDetailsClickState={handleEditOpportunityProposalDetailsClickState}
+            curDaoIdx={curDaoIdx}
+            applicant={accountId}
+            proposer={creator}
+            handleUpdate={handleUpdate}
+            accountId={accountId}
+            opportunityId={opportunityId}
+            contractId={thisContractId}
+            /> : null }
 
           </>
     )

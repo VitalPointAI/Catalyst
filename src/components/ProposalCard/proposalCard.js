@@ -1321,6 +1321,7 @@ export default function ProposalCard(props) {
           handleUpdate={handleUpdate}
           accountId={accountId}
           opportunityId={requestId}
+          contractId={contractId}
           /> : null }
 
 
@@ -1384,6 +1385,7 @@ export default function ProposalCard(props) {
           applicant={applicant}
           handleUpdate={handleUpdate}
           opportunityId={requestId}
+          contractId={contractId}
           /> : null }
 
         </>

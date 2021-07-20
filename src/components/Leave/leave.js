@@ -88,8 +88,6 @@ export default function Leave(props) {
                       )
             
     } catch (err) {
-      handleErrorMessage('There was a problem leaving the community' + err.message, 'error')
-      handleSnackBarOpen(true)
       setFinished(true)
       setOpen(false)
       handleClose()

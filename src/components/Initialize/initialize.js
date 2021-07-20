@@ -91,11 +91,6 @@ export default function Initialize(props) {
       contractId
     } = useParams()
 
-    const {
-      handleSnackBarOpen,
-      handleSuccessMessage,
-      handleErrorMessage
-    } = props
     
     useEffect(
       () => {
@@ -158,14 +153,10 @@ export default function Initialize(props) {
             voteThreshold,
             summonerContribution
             )
-          
-          handleSuccessMessage('Successfully created Democracy DAO.', 'success')
-          handleSnackBarOpen(true)
           setFinished(true)
         } catch (err) {
           console.log('error initializing dao', err)
-          handleErrorMessage('There was a problem creating the Democracy DAO' + err.message, 'error')
-          handleSnackBarOpen(true)
+
           setFinished(true)
         }
         setFinished(false)

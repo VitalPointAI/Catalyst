@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react'
-import { appStore, onAppMount } from '../../state/app';
+import { appStore, onAppMount } from '../../state/app'
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import FileUpload from '../IPFSupload/ipfsUpload'
@@ -151,8 +151,22 @@ export default function EditPersonaForm(props) {
                 result.language ? setLanguage(result.language): setLanguage([])
                 result.skill ? setSkill(result.skill): setSkill([])
                 result.familiarity? setFamiliarity(result.familiarity): setFamiliarity('0')
-                result.skillSet? setSkillSet(result.skillSet): setSkillSet({})
-                result.developerSkillSet? setDeveloperSkillSet(result.developerSkillSet): developerSkillSet({})
+                result.skillSet? setSkillSet(result.skillSet): setSkillSet({
+                  memeCreation: false,
+                  videoCreation: false,
+                  writing: false,
+                  design: false,
+                  eventOrganization: false,
+                  socialMedia: false,
+                  marketing: false,
+                  translation: false})
+                result.developerSkillSet? setDeveloperSkillSet(result.developerSkillSet): setDeveloperSkillSet({
+                  rust: false,
+                  assemblyScript: false,
+                  javascript: false,
+                  typescript: false,
+                  solidity: false,
+                  webDevelopment: false})
               }
            }
         }

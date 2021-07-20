@@ -52,10 +52,6 @@ const useStyles = makeStyles((theme) => ({
 const App = () => {
     const { state, dispatch, update } = useContext(appStore)
 
-    const [errorMessage, setErrorMessage] = useState()
-    const [severity, setSeverity] = useState()
-    const [successMessage, setSuccessMessage] = useState()
-    const [snackBarOpen, setSnackBarOpen] = useState(false)
    
     const classes = useStyles()
 
@@ -69,22 +65,7 @@ const App = () => {
        '\nUrl: ' + url + 
        '\nLine Number: ' + lineNo);
     return true;   
-    }
-
-    function handleErrorMessage(message, severity) {
-        setErrorMessage(message)
-        setSeverity(severity)
-      }
-    
-    function handleSuccessMessage(message, severity) {
-    setSuccessMessage(message)
-    setSeverity(severity)
-    }
-
-    function handleSnackBarOpen(property) {
-    setSnackBarOpen(property)
-    }
-    
+    }    
     
     const {
         accountData, funding, wallet
@@ -118,13 +99,7 @@ const App = () => {
                 <Route exact path="/">
                     <Home 
                         state={state}
-                        handleSnackBarOpen={handleSnackBarOpen}
-                        handleSuccessMessage={handleSuccessMessage}
-                        handleErrorMessage={handleErrorMessage}
-                        snackBarOpen={snackBarOpen}
-                        severity={severity}
-                        errorMessage={errorMessage}
-                        successMessage={successMessage}>
+                     >
                         { children }
                     </Home>
                 </Route>
@@ -140,26 +115,14 @@ const App = () => {
                 <Route path="/personas">
                     <Container
                         state={state}
-                        handleSnackBarOpen={handleSnackBarOpen}
-                        handleSuccessMessage={handleSuccessMessage}
-                        handleErrorMessage={handleErrorMessage}
-                        snackBarOpen={snackBarOpen}
-                        severity={severity}
-                        errorMessage={errorMessage}
-                        successMessage={successMessage}>
+                      >
                         { children }
                     </Container>
                 </Route>
                 <Route path="/createDao">
                     <CreateDao 
                         state={state}
-                        handleSnackBarOpen={handleSnackBarOpen}
-                        handleSuccessMessage={handleSuccessMessage}
-                        handleErrorMessage={handleErrorMessage}
-                        snackBarOpen={snackBarOpen}
-                        severity={severity}
-                        errorMessage={errorMessage}
-                        successMessage={successMessage}
+                        
                     />
                 </Route>
                 <Route path="/inv">
@@ -182,13 +145,7 @@ const App = () => {
                 <Route path="/dao/:contractId">
                     <AppFramework
                         state={state}
-                        handleSnackBarOpen={handleSnackBarOpen}
-                        handleSuccessMessage={handleSuccessMessage}
-                        handleErrorMessage={handleErrorMessage}
-                        snackBarOpen={snackBarOpen}
-                        severity={severity}
-                        errorMessage={errorMessage}
-                        successMessage={successMessage}
+                       
                     />
                 </Route>
                 <Route path="/supporters/:contractId">

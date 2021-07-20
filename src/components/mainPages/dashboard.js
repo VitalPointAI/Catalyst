@@ -36,6 +36,7 @@ import Tab from '@material-ui/core/Tab'
 import TabContext from '@material-ui/lab/TabContext'
 import TabList from '@material-ui/lab/TabList'
 import TabPanel from '@material-ui/lab/TabPanel'
+import { CircularProgress } from '@material-ui/core'
 
 import './dashboard.css'
 
@@ -385,8 +386,10 @@ export default function Dashboard(props) {
                         currentRecommendations.push({opportunity: allOpportunities[j], skillMatch: skillMatch, developerSkillMatch: developerSkillMatch, skillCount: skillCount, developerSkillCount: developerSkillCount, suitabilityScore: asuitabilityScore})
                         j++
                     }
+                    
                     setRecommendations(currentRecommendations)
-                    if(currentRecommendations.opportunity.length > 0){
+                   
+                    if(currentRecommendations.length > 0){
                         setRecommendationsLoaded(true)
                     }
                     console.log('recommendations', currentRecommendations)
@@ -602,7 +605,7 @@ export default function Dashboard(props) {
             {recommendationsLoaded ?
             recommendations && recommendations.length > 0 ?
                 recommendations.map((fr, i) => {
-                
+                console.log('fr', fr)
                   return(
                     <OpportunityCard 
                       key={i}
@@ -622,6 +625,7 @@ export default function Dashboard(props) {
                       developerSkillCount={fr.developerSkillCount}
                       developerSkillMatch={fr.developerSkillMatch}
                       suitabilityScore={fr.suitabilityScore}
+                      passedContractId={fr.opportunity.contractId}
                     />
                   )
                 }) : <Card className={classes.card}>

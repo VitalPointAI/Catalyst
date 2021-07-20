@@ -75,9 +75,6 @@ export default function EditInitSettings(props) {
       handleEditSettingsClick,
       tokenName,
       depositToken,
-      handleErrorMessage,
-      handleSuccessMessage,
-      handleSnackBarOpen,
       accountId,
       hasDao,
       handleHasDao } = props
@@ -186,8 +183,6 @@ export default function EditInitSettings(props) {
           )
         } catch (err) {
           console.log('error', err)
-          handleErrorMessage('There was a problem changing the community settings' + err.message, 'error')
-          handleSnackBarOpen(true)
           setFinished(true)
           setOpen(false)
           handleClose()
@@ -211,20 +206,17 @@ export default function EditInitSettings(props) {
           console.log('finished', finished)
           if(finished) {
               await handleHasDao(false)
-              handleSuccessMessage('Successfully deleted Fleet DAO.', 'success')
-              handleSnackBarOpen(true)
+             
           } else {
               console.log('error deleting Fleet Dao')
-              handleErrorMessage('There was a problem deleting the Fleet DAO', 'error')
-              handleSnackBarOpen(true)
+             
               setFinished(true)
               handleEditSettingsClick()
           }
       }
       } catch (err) {
       console.log('error deleting fleet dao', err)
-      handleErrorMessage('There was a problem deleting the Fleet DAO' + err.message, 'error')
-      handleSnackBarOpen(true)
+     
       setFinish(true)
       handleEditSettingsClick()
       }

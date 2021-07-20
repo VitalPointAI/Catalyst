@@ -198,8 +198,7 @@ export default function ConfigurationProposal(props) {
         )
       } catch (err) {
         console.log('problem submitting funding proposal', err)
-        handleErrorMessage('There was a problem submitting the configuration proposal.', 'error')
-        handleSnackBarOpen(true)
+       
       }
   } 
 
