@@ -164,7 +164,8 @@ export default function ProposalCard(props) {
       near,
       appIdx,
       accountId,
-      wallet
+      wallet,
+      proposalDeposit
     } = state
 
     const {
@@ -189,7 +190,6 @@ export default function ProposalCard(props) {
         daoDid,
         memberStatus,
         contract,
-        proposalDeposit,
         summoner,
         queueList
     } = props

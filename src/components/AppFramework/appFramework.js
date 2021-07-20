@@ -208,6 +208,7 @@ export default function AppFramework(props) {
                    let d = 0
                    while(d < newProposal.length){
                      if(newProposal[d].contractId==contractId && newProposal[d].new == true){
+                       console.log('trans hash', transactionHash)
                        let loggedProposal = await logProposalEvent(
                          thisCurDaoIdx, 
                          contract, 

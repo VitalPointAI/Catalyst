@@ -8,7 +8,7 @@ import { config } from './config'
 
 export const {
     FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT, DAO_FIRST_INIT, CURRENT_DAO, REDIRECT,
-    NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, NEW_PROCESS, NEW_VOTE, IPFS_PROVIDER, NEW_DONATION, NEW_EXIT, NEW_RAGE, NEW_DELEGATION, NEW_REVOCATION,
+    NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, OPPORTUNITY_REDIRECT, NEW_PROCESS, NEW_VOTE, IPFS_PROVIDER, NEW_DONATION, NEW_EXIT, NEW_RAGE, NEW_DELEGATION, NEW_REVOCATION,
     networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix, explorerUrl,
     contractName, didRegistryContractName, factoryContractName
 } = config
@@ -161,14 +161,26 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
 
     if(wallet.signedIn){
     
-    // ********* Check and action redirect after DAO creation *************
-    let page = get(REDIRECT, [])
+    // ********* Check and action redirects after DAO and proposal creation *************
+    let urlVariables = window.location.search
+    const urlParameters = new URLSearchParams(urlVariables)
+    let transactionHash = urlParameters.get('transactionHashes')
 
+    let page = get(REDIRECT, [])
 
     if (page.action == true){
         window.location.assign(page.link)
         
         set(REDIRECT, {action: false, link: ''})
+    }
+    
+    if(transactionHash){
+        let pageMember = get(OPPORTUNITY_REDIRECT, [])
+        if (pageMember.action == true){
+            let link=`/dao/${pageMember.contractId}?transactionHashes=${transactionHash}`
+            window.location.assign(link)
+            set(OPPORTUNITY_REDIRECT, {action: false, link: ''})
+        }
     }
 
     // ********* Initiate Dids Registry Contract ************
@@ -556,7 +568,11 @@ export async function submitProposal(
 
     switch(proposalType){
         case 'Member':
-            try{
+            try{               
+            
+            // set redirect for new member from an opportunity
+            set(OPPORTUNITY_REDIRECT, {action: true, contractId: contractId})
+
             await daoContract.submitProposal({
                 a: applicant,
                 sR: sharesRequested,
@@ -591,6 +607,9 @@ export async function submitProposal(
             break
         case 'Commitment':
             try{
+                // set redirect for new commitment from an opportunity
+                set(OPPORTUNITY_REDIRECT, {action: true, contractId: contractId})
+
                 await daoContract.submitCommitmentProposal({
                     applicant: applicant,
                     depositToken: depositToken,
@@ -1478,15 +1497,18 @@ export async function logDelegationEvent (contractId, curDaoIdx, daoContract, de
 
 // Logs a new Proposal Event
 export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contractId, transactionHash) {
-
+    console.log('trans hash', transactionHash)
     let logged = false
     let dataLogged = false
 
     let proposal
     try{
         proposal = await daoContract.getProposal({proposalId: parseInt(proposalId)})
+        console.log('near proposal', proposal)
+
     } catch (err) {
         console.log('error retrieving proposal for this id', err)
+
         // reset new proposal flag
         let newProposal = get(NEW_PROPOSAL, [])     
         let d = 0
@@ -1495,6 +1517,7 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
                 newProposal[d].new = false
                 set(NEW_PROPOSAL, newProposal)
             }
+            
         d++
         }
     }

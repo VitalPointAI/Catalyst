@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react'
+import { Link } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 import { useParams } from 'react-router-dom'
 import * as nearAPI from 'near-api-js'
@@ -283,10 +284,14 @@ export default function OpportunityCard(props) {
         <Card raised={true} className={classes.card}>
           <Grid container alignItems="center" justify="center" spacing={1} style={{padding: '5px'}}>
             <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
-              <Avatar variant="square" src={logo} />
+              <Link to={`/dao/${thisContractId}`}>
+                <Avatar variant="square" src={logo} />
+              </Link>
             </Grid>
             <Grid item xs={12} sm={12} md={9} lg={9} xl={9}>
-              <Typography variant="body1">{communityName ? communityName : useContractId}</Typography>
+              <Link to={`/dao/${thisContractId}`}>
+                <Typography variant="body1">{communityName ? communityName : thisContractId}</Typography>
+              </Link>
             </Grid>
           </Grid>
           <CardHeader
