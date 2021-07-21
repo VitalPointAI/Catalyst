@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app'
 import { utils } from 'near-api-js'
-import { dao } from '../../utils/dao'
 import Fuse from 'fuse.js'
 
 import Footer from '../../components/common/Footer/footer'

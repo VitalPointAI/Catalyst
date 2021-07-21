@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../../state/app'
-import * as nearAPI from 'near-api-js'
-import { ceramic } from '../../../utils/ceramic'
 import Persona from '@aluhning/get-personas-js'
 
 import { makeStyles } from '@material-ui/core/styles'
@@ -64,21 +62,7 @@ export default function CommentDetails(props) {
                       result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                       result.name ? setName(result.name) : setName('')
                     }
-            //   let existingDid = await didRegistryContract.hasDID({accountId: commentAuthor})
-            
-            //   if(existingDid){
-                 
-            //       let authorAccount = new nearAPI.Account(near.connection, commentAuthor)
-
-            //       let thisAuthorIdx = await ceramic.getCurrentUserIdx(authorAccount, appIdx, didRegistryContract)
-              
-            //       let result = await thisAuthorIdx.get('profile', thisAuthorIdx.id)
-                  
-            //       if(result){
-            //         result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-            //         result.name ? setName(result.name) : setName('')
-            //       }
-            //   }
+           
             }
             setFinished(false)
            

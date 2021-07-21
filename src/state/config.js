@@ -1,5 +1,3 @@
-import { BN } from 'bn.js'
-
 // testnet / default
 let config = {
     SEED_PHRASE_LOCAL_COPY: '__SEED_PHRASE_LOCAL_COPY',

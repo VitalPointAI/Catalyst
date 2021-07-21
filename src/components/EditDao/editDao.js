@@ -26,17 +26,12 @@ import Typography from '@material-ui/core/Typography'
 import Divider from '@material-ui/core/Divider'
 import Switch from '@material-ui/core/Switch'
 import Card from '@material-ui/core/Card'
-import CardHeader from '@material-ui/core/CardHeader'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Accordion from '@material-ui/core/Accordion'
 import { AccordionDetails } from '@material-ui/core'
 import { AccordionSummary } from '@material-ui/core'
 
-// ReactQuill Component
-import ReactQuill from 'react-quill';
-
 // CSS Styles
-import '../../../node_modules/react-quill/dist/quill.snow.css'
 import { CircularProgress } from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
@@ -291,23 +286,6 @@ export default function EditDaoForm(props) {
       setOpen(false)
       handleClose()
     }
-
-    const modules = {
-        toolbar: [
-          [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-          ['bold', 'italic', 'underline','strike', 'blockquote', 'code', 'code-block'],
-          [{'list': 'ordered'}, {'list': 'bullet'}, {'indent': '-1'}, {'indent': '+1'}, {'align': []}],
-          ['link', 'image', 'video'],
-          ['clean']
-        ],
-    };
-    
-    const formats = [
-        'header',
-        'bold', 'italic', 'underline', 'strike', 'blockquote', 'code', 'code-block',
-        'list', 'bullet', 'indent','align',
-        'link', 'image', 'video'
-    ];
     
         return (
            

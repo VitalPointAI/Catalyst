@@ -2,9 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { MemoryRouter as Router } from 'react-router';
 import PersonaCard from '../components/PersonaCard/personaCard'
 
-
-const forExample = `(for example: "bestie.near" or "squad.near")`
-const baseUrl = window.location.href.substr(0, window.location.href.lastIndexOf('/'))
 const getLink = (accountId, key, wallet, owner) => `?accountId=${accountId}&key=${key}&from=${wallet.getAccountId()}&owner=${owner}`
 
 // Material UI

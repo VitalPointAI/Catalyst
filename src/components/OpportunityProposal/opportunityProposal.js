@@ -5,7 +5,6 @@ import { submitProposal, formatNearAmount } from '../../state/near'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
-import TextField from '@material-ui/core/TextField'
 import Dialog from '@material-ui/core/Dialog'
 import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
@@ -14,13 +13,9 @@ import LinearProgress from '@material-ui/core/LinearProgress'
 import Typography from '@material-ui/core/Typography'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
-import InputAdornment from '@material-ui/core/InputAdornment'
 import WarningIcon from '@material-ui/icons/WarningTwoTone'
 import Grid from '@material-ui/core/Grid'
 import Checkbox from '@material-ui/core/Checkbox'
-import Tooltip from '@material-ui/core/Tooltip'
-import Zoom from '@material-ui/core/Zoom'
-import InfoIcon from '@material-ui/icons/Info'
 
 
 const useStyles = makeStyles((theme) => ({

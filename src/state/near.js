@@ -211,10 +211,9 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     let currentDaosList = []
 
     try {
-    let currentDaosLength = await daoFactory.getDaoListLength()
-    console.log('currentdaolength', currentDaosLength)
-   
-    //if(currentDaosLength){
+        let currentDaosLength = await daoFactory.getDaoListLength()
+        console.log('currentdaolength', currentDaosLength)
+    
         while(t < currentDaosLength){
             if(currentDaosLength < interval){
                 end = currentDaosLength
@@ -231,7 +230,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
             }
             t++        
         }
-  //  }
+
     } catch (err) {
         console.log('error creating currentDaosList', err)
     }
@@ -379,7 +378,7 @@ export async function logout() {
     });
     const connection = new nearAPI.WalletConnection(near)
     connection.signOut()
-    window.location.replace('/')
+    window.location.replace('https://vitalpoint.ai/catalyst')
 }
 
 export const unclaimLink = (keyToFind) => async ({ update }) => {

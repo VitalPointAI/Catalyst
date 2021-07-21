@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
-import { Link } from 'react-router-dom'
 import { explorerUrl } from '../../state/near'
 import { appStore, onAppMount } from '../../state/app'
-import * as nearAPI from 'near-api-js'
 import Persona from '@aluhning/get-personas-js'
 
 // Material UI Components

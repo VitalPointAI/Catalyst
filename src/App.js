@@ -13,7 +13,6 @@ import { Container } from './components/Container'
 import { Receiver } from './components/Receiver'
 import { PersonaPage } from './components/mainPages/personas'
 import ExploreDaos from './components/mainPages/exploreDaos'
-import CreateDao from './components/mainPages/createDao'
 import AppFramework from './components/AppFramework/appFramework'
 import NewKey from './components/mainPages/newKey'
 import { Home } from './components/Home'
@@ -118,12 +117,6 @@ const App = () => {
                       >
                         { children }
                     </Container>
-                </Route>
-                <Route path="/createDao">
-                    <CreateDao 
-                        state={state}
-                        
-                    />
                 </Route>
                 <Route path="/inv">
                     <ReceiveInvite

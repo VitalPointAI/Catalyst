@@ -8,7 +8,6 @@ import OpportunityCard from '../OpportunityCard/OpportunityCard'
 import Footer from '../../components/common/Footer/footer'
 import Fuse from 'fuse.js'
 import SearchBar from '../../components/common/SearchBar/search'
-import { dao } from '../../utils/dao'
 import { ceramic } from '../../utils/ceramic'
 
 // Material UI components

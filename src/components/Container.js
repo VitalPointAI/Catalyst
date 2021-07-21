@@ -1,20 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { Redirect } from 'react-router-dom'
-import clsx from 'clsx';
 import { flexClass } from '../App'
-import SignIn from '../components/SignIn/signIn'
 import Footer from '../components/common/Footer/footer'
-import LeftSideDrawer from '../components/LeftSideDrawer/leftSideDrawer'
-import LogoutButton from '../components/LogoutButton/logoutButton'
-import LoginButton from '../components/LogInButton/loginButton'
-import Persona from '../components/Persona/persona'
-import Logo from '../components/Logo/logo'
 import { Header } from '../components/Header/header'
 
 
 // Material UI
 import { makeStyles } from '@material-ui/core/styles'
-import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import '../App.css'

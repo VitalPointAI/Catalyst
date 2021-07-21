@@ -1,17 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app';
-import { utils } from 'near-api-js'
 import { cancelProposal, processProposal, submitVote, GAS, synchMember, getStatus } from '../../state/near'
 import Fuse from 'fuse.js'
-
 import MemberCard from '../MemberCard/memberCard'
 import ProposalCard from '../ProposalCard/proposalCard'
-import MemberProposalForm from '../EditProposal/editMemberProposal'
-import MemberProposalDetails from '../ProposalDetails/memberProposalDetails'
-import FundingProposalForm from '../EditProposal/editFundingProposal'
-import FundingProposalDetails from '../ProposalDetails/fundingProposalDetails'
 import SponsorConfirmation from '../Confirmation/sponsorConfirmation'
-import DonationConfirmation from '../Confirmation/donationConfirmation'
 import RageQuit from '../RageQuit/rageQuit'
 import SearchBar from '../../components/common/SearchBar/search'
 

@@ -3,7 +3,6 @@ import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app'
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
-import FileUpload from '../IPFSupload/ipfsUpload'
 import { flexClass } from '../../App'
 import { ceramic, IPFS_PROVIDER } from '../../utils/ceramic'
 import * as nearAPI from 'near-api-js'
@@ -11,21 +10,12 @@ import DOMPurify from "dompurify"
 
 
 // Material UI components
-import Button from '@material-ui/core/Button'
-import TextField from '@material-ui/core/TextField'
 import Dialog from '@material-ui/core/Dialog'
-import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
-import DialogContentText from '@material-ui/core/DialogContentText'
 import DialogTitle from '@material-ui/core/DialogTitle'
-import LinearProgress from '@material-ui/core/LinearProgress'
 import Avatar from '@material-ui/core/Avatar'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
-import Divider from '@material-ui/core/Divider'
-import Switch from '@material-ui/core/Switch'
-import Card from '@material-ui/core/Card'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Table  from '@material-ui/core/Table'
 import TableContainer from '@material-ui/core/TableContainer'
 import TableHead from '@material-ui/core/TableHead'
@@ -33,14 +23,9 @@ import TableBody from '@material-ui/core/TableBody'
 import TableRow from '@material-ui/core/TableRow'
 import TableCell from '@material-ui/core/TableCell'
 import Paper from '@material-ui/core/Paper'
-// ReactQuill Component
-import ReactQuill from 'react-quill';
 
 // CSS Styles
-import '../../../node_modules/react-quill/dist/quill.snow.css'
-import { CircularProgress } from '@material-ui/core';
-import { TelegramShareButton } from 'react-share'
-import { CategorySharp } from '@material-ui/icons'
+import { CircularProgress } from '@material-ui/core'
 
 const useStyles = makeStyles((theme) => ({
     progress: {

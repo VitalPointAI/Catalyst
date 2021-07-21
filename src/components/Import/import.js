@@ -2,8 +2,6 @@ import React, { useState, useEffect, useContext } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { appStore, onAppMount } from '../../state/app';
 import { useForm } from 'react-hook-form'
-import { useParams } from 'react-router-dom'
-import { initDao } from '../../state/near'
 import { get, set, del } from '../../utils/storage'
 const base58 = require('bs58')
 
@@ -11,18 +9,10 @@ const base58 = require('bs58')
 // Material UI components
 import Button from '@material-ui/core/Button'
 import TextField from '@material-ui/core/TextField'
-import LinearProgress from '@material-ui/core/LinearProgress'
-import Divider from '@material-ui/core/Divider'
-import WarningIcon from '@material-ui/icons/WarningTwoTone'
-import InputAdornment from '@material-ui/core/InputAdornment'
 import Grid from '@material-ui/core/Grid'
-import Checkbox from '@material-ui/core/Checkbox'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
 import Typography from '@material-ui/core/Typography'
-import Tooltip from '@material-ui/core/Tooltip'
-import Zoom from '@material-ui/core/Zoom'
-import InfoIcon from '@material-ui/icons/Info'
 import { CardActions, CardHeader } from '@material-ui/core'
 import { ACCOUNT_LINKS } from '../../state/near'
 
