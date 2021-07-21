@@ -21,6 +21,7 @@ import RightSideDrawer from './RightSideDrawer'
 import Footer from '../../components/common/Footer/footer'
 import { Header } from '../Header/header'
 import Initialize from '../Initialize/initialize'
+import RandomPhrase from '../common/RandomPhrase/randomPhrase'
 
 import { dao } from '../../utils/dao'
 import { ceramic } from '../../utils/ceramic'
@@ -642,7 +643,11 @@ export default function AppFramework(props) {
             <div className={classes.root}>
             <Header state={state} />
             <Grid container style={{padding:'20px'}}>
-            {initLoad == false ? <div className={classes.centered}><CircularProgress/><br></br><Typography variant="h6">Setting Things Up...</Typography></div> :
+            {initLoad == false ? <div className={classes.centered}>
+            <CircularProgress/><br></br>
+            <Typography variant="h6">Setting Things Up...</Typography>
+            <RandomPhrase />
+            </div> :
             initialized == 'done' ? (
               <>
               {matches ? (<>

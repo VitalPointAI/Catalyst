@@ -7,7 +7,8 @@ import {
     Route,
     Link,
     useParams
-  } from "react-router-dom";
+  } from "react-router-dom"
+import RandomPhrase from './components/common/RandomPhrase/randomPhrase'
 
 import { Container } from './components/Container'
 import { Receiver } from './components/Receiver'
@@ -46,6 +47,16 @@ const useStyles = makeStyles((theme) => ({
       marginTop: '-200px',
       marginLeft: '-100px'
     },
+    centeredPhrase: {
+        maxWidth: '450px',
+        height: '100px',
+        textAlign: 'center',
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        marginTop: '-200px',
+        marginLeft: '-100px'
+      },
     }));
 
 const App = () => {
@@ -73,7 +84,13 @@ const App = () => {
     let children = null
 
     if (!accountData || !wallet) {
-        children = <div className={classes.centered}><CircularProgress/><br></br><Typography variant="h6">Setting Things Up...</Typography></div>
+        children = (<>
+        <div className={classes.centered}><CircularProgress/><br></br>
+            <Typography variant="h6">Setting Things Up...</Typography>
+        </div>
+        <div className={classes.centeredPhrase}>
+            <RandomPhrase />
+        </div></>)
     }
 
     if (accountData) {

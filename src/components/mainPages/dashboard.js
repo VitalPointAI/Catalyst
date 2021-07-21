@@ -388,10 +388,7 @@ export default function Dashboard(props) {
                     }
                     
                     setRecommendations(currentRecommendations)
-                   
-                    if(currentRecommendations.length > 0){
-                        setRecommendationsLoaded(true)
-                    }
+                    setRecommendationsLoaded(true)
                     console.log('recommendations', currentRecommendations)
             }
             

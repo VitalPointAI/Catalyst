@@ -6,7 +6,8 @@ import Dashboard from '../components/mainPages/dashboard'
 import Import from './Import/import'
 import { KEY_REDIRECT } from '../state/near'
 import { Header } from './Header/header'
-import FrontPage from './LandingSite/home'
+import RandomPhrase from './common/RandomPhrase/randomPhrase'
+import FrontPage from '../components/LandingSite/home'
 
 // Material UI
 import { makeStyles } from '@material-ui/core/styles'
@@ -84,19 +85,20 @@ export const Home = ({ children, state }) => {
                         </div>)
 
             : window.location.replace('https://vitalpoint.ai/catalyst')
-               
-            : state.accountData ? (
-                <div className={classes.root}>
-                <Header state={state}/>
-                    {children}
-                <Footer />
-                </div>
-            ) 
+            // :  (<div className={classes.root}><Header state={state}/><FrontPage /> <Footer /></div>)
+            // : state.accountData ? (
+            //     <div className={classes.root}>
+            //     <Header state={state}/>
+            //         {children}
+            //     <Footer />
+            //     </div>
+            // ) 
             : (<div className={classes.root}>
                 <Header state={state}/>
                 <div className={classes.centered}>
                     <CircularProgress/><br></br>
-                    <Typography variant="h6">Setting Things Up...</Typography>
+                    <Typography variant="h6">Setting Things Up...</Typography><br></br>
+                    <RandomPhrase />
                 </div>
                 <Footer />
                 </div>)

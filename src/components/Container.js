@@ -9,6 +9,7 @@ import { Header } from '../components/Header/header'
 import { makeStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import CircularProgress from '@material-ui/core/CircularProgress'
+import RandomPhrase from './common/RandomPhrase/randomPhrase'
 import '../App.css'
 
 
@@ -75,7 +76,11 @@ export const Container = ({ children, state }) => {
             : state.accountData ? 
                 children 
             
-            : <div className={classes.centered}><CircularProgress/><br></br><Typography variant="h6">Setting Things Up...</Typography></div>
+            : <div className={classes.centered}>
+            <CircularProgress/><br></br>
+            <Typography variant="h6">Setting Things Up...</Typography>
+            <RandomPhrase />
+            </div>
         }
       
         { state.app.alert &&
