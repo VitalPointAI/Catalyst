@@ -9,6 +9,7 @@ import OpportunityCard from '../OpportunityCard/OpportunityCard'
 import { dao } from '../../utils/dao'
 import * as nearAPI from 'near-api-js'
 import { ceramic } from '../../utils/ceramic'
+import MemberProfile from '../MemberProfileDisplay/memberProfile'
 
 // Material UI
 import { makeStyles } from '@material-ui/core/styles'
@@ -16,6 +17,7 @@ import useMediaQuery from '@material-ui/core/useMediaQuery'
 import Grid from '@material-ui/core/Grid'
 import Card from '@material-ui/core/Card'
 import CardHeader from '@material-ui/core/CardHeader'
+import CardActions from '@material-ui/core/CardActions'
 import Typography from '@material-ui/core/Typography'
 import InputLabel from '@material-ui/core/InputLabel'
 import FormControl from '@material-ui/core/FormControl'
@@ -37,6 +39,7 @@ import TabContext from '@material-ui/lab/TabContext'
 import TabList from '@material-ui/lab/TabList'
 import TabPanel from '@material-ui/lab/TabPanel'
 import { CircularProgress } from '@material-ui/core'
+import Pagination from '@material-ui/lab/Pagination'
 
 import './dashboard.css'
 
@@ -74,6 +77,8 @@ const formatTime = d3.timeFormat("%B %d, %Y")
 const data = new Persona()
 
 const defaultLogo = require('../../img/default_logo.png')
+
+const CARDS_TO_SHOW = 1
 
 export default function Dashboard(props) {
     const [memberData, setMemberData] = useState()
@@ -593,42 +598,54 @@ export default function Dashboard(props) {
             </TabList>
             </AppBar>
             <TabPanel value="1">
-            <Card>
-            <CardHeader
-            title="Opportunities for You"
-            subtitle="The higher the suitability score, the more closely the opportunity matches your skillset"
-            />
-            </Card>
-            {recommendationsLoaded ?
-            recommendations && recommendations.length > 0 ?
-                recommendations.map((fr, i) => {
-                console.log('fr', fr)
-                  return(
-                    <OpportunityCard 
-                      key={i}
-                      creator={fr.opportunity.proposer}
-                      created={fr.opportunity.submitDate}
-                      updated={fr.opportunity.updatedDate}
-                      reward={fr.opportunity.reward}
-                      category={fr.opportunity.category}
-                      projectName={fr.opportunity.projectName}
-                      details={fr.opportunity.details}
-                      title={fr.opportunity.title}
-                      opportunityId={fr.opportunity.opportunityId}
-                      opportunityStatus={fr.opportunity.status}
-                      permission={fr.opportunity.permission}
-                      skillCount={fr.skillCount}
-                      skillMatch={fr.skillMatch}
-                      developerSkillCount={fr.developerSkillCount}
-                      developerSkillMatch={fr.developerSkillMatch}
-                      suitabilityScore={fr.suitabilityScore}
-                      passedContractId={fr.opportunity.contractId}
-                    />
-                  )
-                }) : <Card className={classes.card}>
-                <Typography variant="h5">No Recommended Opportunities Yet - Please Check Back Soon.</Typography>
-              </Card> 
-                : <CircularProgress />}
+            <Grid container justify="center" alignItems="flex-start" spacing={1} >
+            <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                <MemberProfile member={accountId} />
+            </Grid>
+            <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
+                
+                <Typography variant="h6">Opportunities for You</Typography>
+                <Typography variant="body1" style={{marginBottom: '10px'}}>The higher the suitability score, the more closely the opportunity matches your skillset</Typography>
+                
+                {recommendationsLoaded ?
+                recommendations && recommendations.length > 0 ?
+                    recommendations.slice((CARDS_TO_SHOW -1) * CARDS_TO_SHOW, (CARDS_TO_SHOW -1) * CARDS_TO_SHOW + CARDS_TO_SHOW)
+                    .map((fr, i) => {
+                    console.log('fr', fr)
+                    return(
+                        <OpportunityCard 
+                        key={i}
+                        creator={fr.opportunity.proposer}
+                        created={fr.opportunity.submitDate}
+                        updated={fr.opportunity.updatedDate}
+                        reward={fr.opportunity.reward}
+                        category={fr.opportunity.category}
+                        projectName={fr.opportunity.projectName}
+                        details={fr.opportunity.details}
+                        title={fr.opportunity.title}
+                        opportunityId={fr.opportunity.opportunityId}
+                        opportunityStatus={fr.opportunity.status}
+                        permission={fr.opportunity.permission}
+                        skillCount={fr.skillCount}
+                        skillMatch={fr.skillMatch}
+                        developerSkillCount={fr.developerSkillCount}
+                        developerSkillMatch={fr.developerSkillMatch}
+                        suitabilityScore={fr.suitabilityScore}
+                        passedContractId={fr.opportunity.contractId}
+                        />
+                    )
+                  
+                    }) : <Card className={classes.card}>
+                    <Typography variant="h5">No Recommended Opportunities Yet - Please Check Back Soon.</Typography>
+                </Card> 
+                    : <CircularProgress />}
+                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{justifyContent: 'center'}}>
+                        <Pagination count={recommendations.length} variant="outlined" color="primary" style={{margin:'auto', padding:'20px', justifyContent: 'center'}}/>
+                    </Grid>
+                       
+                   
+                </Grid>
+            </Grid>
             </TabPanel>
             <TabPanel value="2">
                 <div>

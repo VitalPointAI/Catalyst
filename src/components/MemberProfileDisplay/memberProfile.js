@@ -64,7 +64,7 @@ const useStyles = makeStyles((theme) => ({
     },
     }));
 
-export default function MemberProfileDisplay(props) {
+export default function MemberProfile(props) {
     const [open, setOpen] = useState(true)
     const [avatar, setAvatar] = useState()
     const [name, setName] = useState('')
@@ -87,12 +87,6 @@ export default function MemberProfileDisplay(props) {
     const { state, dispatch, update } = useContext(appStore)
 
     const {
-      accountId,
-      curUserIdx
-    } = state
-
-    const {
-        handleMemberProfileDisplayClickState,
         member,
     } = props
 
@@ -146,19 +140,14 @@ export default function MemberProfileDisplay(props) {
     }, [member, avatar, isUpdated]
     )
 
-    const handleClose = () => {
-        handleMemberProfileDisplayClickState(false)
-        setOpen(false)
-    }
-
     console.log('skillset', skillSet)
 
         return (
             <div>
      
-            <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+           
               {finished ? (<>
-                <DialogContent>
+              
                   <Grid container justify="space-evenly" spacing={1} style={{marginTop:'20px'}}>
                     
                     <center><Typography variant="h5"><Avatar src={avatar} className={classes.large}  />{name ? name : member}</Typography></center>
@@ -253,19 +242,14 @@ export default function MemberProfileDisplay(props) {
                   </TableContainer>
 
                  
-                </DialogContent>
-              <DialogActions>
-                <Button onClick={handleClose} color="primary">
-                  Close
-                </Button>
-              </DialogActions>
+               
               </>)
               : (
                     <div className={classes.progress}>
                         <CircularProgress size={100} color="primary"  />
                    </div>
               )}
-            </Dialog>
+           
           </div>
         )
 }
