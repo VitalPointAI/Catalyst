@@ -212,6 +212,7 @@ export default function Dashboard(props) {
 
                     // construct proposals data frame
                     if(propData && propData.data.length > 0){
+                        console.log('prop data here', propData)
                         let k = 0
                         let totalProposals = propData.data.length
                         let communityName = contractId.split('.')[0]
@@ -220,7 +221,7 @@ export default function Dashboard(props) {
                         let inProgress = 0
                         while(k < propData.data.length) {
                             //count number of passed proposals
-                            if(propData.data[k].data.proposalType[1]==true && propData.data[k].data.proposalType[2]==true){
+                            if(propData.data[k].data.proposalType && propData.data[k].data.proposalType[1]==true && propData.data[k].data.proposalType[2]==true){
                                 passed++
                                 activityDataFrame.push({
                                     type: 'Proposal Passed',
@@ -229,7 +230,7 @@ export default function Dashboard(props) {
                                 })
                             }
                             //count number of failed proposals
-                            if(propData.data[k].data.proposalType[1]==true && propData.data[k].data.proposalType[2]==false){
+                            if(propData.data[k].data.proposalType && propData.data[k].data.proposalType[1]==true && propData.data[k].data.proposalType[2]==false){
                                 notPassed++
                                 activityDataFrame.push({
                                     type: 'Proposal Failed',
@@ -238,7 +239,7 @@ export default function Dashboard(props) {
                                 })
                             }
                             //count number of proposals in process (sponsored but not processed, thus in voting period)
-                            if(propData.data[k].data.proposalType[0]==true && propData.data[k].data.proposalType[1]==false){
+                            if(propData.data[k].data.proposalType && propData.data[k].data.proposalType[0]==true && propData.data[k].data.proposalType[1]==false){
                                 inProgress++
                                 activityDataFrame.push({
                                     type: 'Proposal Sponsored',
