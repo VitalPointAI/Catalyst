@@ -162,7 +162,7 @@ export default function MemberProfile(props) {
                       {member ? <TableRow key={member}><TableCell>NEAR Account</TableCell><TableCell component="th" scope="row">{member}</TableCell></TableRow> : null }
                       {birthdate ? <TableRow key={birthdate}><TableCell>Birthday</TableCell><TableCell component="th" scope="row">{birthdate}</TableCell></TableRow> : null }
                       {country ? <TableRow key={country}><TableCell>Country</TableCell><TableCell component="th" scope="row">{country}</TableCell></TableRow> : null }
-                      {language && language.length > 0 ? <TableRow key='language'><TableCell>Language</TableCell><TableCell component="th" scope="row">{language.map((item, i) => { return (<><Typography key={i} variant="overline">{item},</Typography> </>) })}</TableCell></TableRow>: null }                
+                      {language && language.length > 0 ? <TableRow key='languages'><TableCell>Language</TableCell><TableCell component="th" scope="row">{language.map((item, i) => { return (<><Typography variant="overline">{item},</Typography> </>) })}</TableCell></TableRow>: null }                
                       </TableBody>
                     </Table>
                   </TableContainer>
@@ -181,17 +181,17 @@ export default function MemberProfile(props) {
                       {skillSet && skillSet.length > 0 ?(
                         
                               <>
-                              {skillSet[0].memeCreation ? <TableRow key={1}><TableCell>Meme Creation</TableCell></TableRow>: null}
-                              {skillSet[0].videoCreation ? <TableRow key={2}><TableCell>Video Creation</TableCell></TableRow>: null}
-                              {skillSet[0].writing ? <TableRow key={3}><TableCell>Writing</TableCell></TableRow>: null}
-                              {skillSet[0].design ? <TableRow key={4}><TableCell>Design</TableCell></TableRow>: null}
-                              {skillSet[0].eventOrganization ? <TableRow key={5}><TableCell>Event Organization</TableCell></TableRow>: null} 
-                              {skillSet[0].socialMedia ? <TableRow key={6}><TableCell>Social Media</TableCell></TableRow>: null}
-                              {skillSet[0].marketing ? <TableRow key={7}><TableCell>Marketing</TableCell></TableRow>: null}
-                              {skillSet[0].translation ? <TableRow key={8}><TableCell>Translation</TableCell></TableRow>: null}
+                              {skillSet[0].memeCreation ? <TableRow key='1'><TableCell>Meme Creation</TableCell></TableRow>: null}
+                              {skillSet[0].videoCreation ? <TableRow key='2'><TableCell>Video Creation</TableCell></TableRow>: null}
+                              {skillSet[0].writing ? <TableRow key='3'><TableCell>Writing</TableCell></TableRow>: null}
+                              {skillSet[0].design ? <TableRow key='4'><TableCell>Design</TableCell></TableRow>: null}
+                              {skillSet[0].eventOrganization ? <TableRow key='5'><TableCell>Event Organization</TableCell></TableRow>: null} 
+                              {skillSet[0].socialMedia ? <TableRow key='6'><TableCell>Social Media</TableCell></TableRow>: null}
+                              {skillSet[0].marketing ? <TableRow key='7'><TableCell>Marketing</TableCell></TableRow>: null}
+                              {skillSet[0].translation ? <TableRow key='8'><TableCell>Translation</TableCell></TableRow>: null}
                               </>
                               )
-                      : <TableRow key={0}><TableCell>None</TableCell></TableRow>
+                      : <TableRow key='0'><TableCell>None</TableCell></TableRow>
                       }
                          
                       </TableBody>
@@ -209,16 +209,16 @@ export default function MemberProfile(props) {
                       {developerSkillSet && developerSkillSet.length > 0 ? (
                          
                               <>
-                              {developerSkillSet[0].rust ? <TableRow key={1}><TableCell>RUST</TableCell></TableRow>: null}
-                              {developerSkillSet[0].assemblyScript ? <TableRow key={2}><TableCell>AssemblyScript</TableCell></TableRow>: null}
-                              {developerSkillSet[0].javascript ? <TableRow key={3}><TableCell>JavaScript</TableCell></TableRow>: null}
-                              {developerSkillSet[0].typescript ? <TableRow key={4}><TableCell>TypeScript</TableCell></TableRow>: null}
-                              {developerSkillSet[0].solidity ? <TableRow key={5}><TableCell>Solidity</TableCell></TableRow>: null}
-                              {developerSkillSet[0].webDevelopment ? <TableRow key={6}><TableCell>Web Development</TableCell></TableRow>: null}
+                              {developerSkillSet[0].rust ? <TableRow key='11'><TableCell>RUST</TableCell></TableRow>: null}
+                              {developerSkillSet[0].assemblyScript ? <TableRow key='12'><TableCell>AssemblyScript</TableCell></TableRow>: null}
+                              {developerSkillSet[0].javascript ? <TableRow key='13'><TableCell>JavaScript</TableCell></TableRow>: null}
+                              {developerSkillSet[0].typescript ? <TableRow key='14'><TableCell>TypeScript</TableCell></TableRow>: null}
+                              {developerSkillSet[0].solidity ? <TableRow key='15'><TableCell>Solidity</TableCell></TableRow>: null}
+                              {developerSkillSet[0].webDevelopment ? <TableRow key='16'><TableCell>Web Development</TableCell></TableRow>: null}
                               </>
                             )
                        
-                        : <TableRow key={0}><TableCell>None</TableCell></TableRow>
+                        : <TableRow key='0'><TableCell>None</TableCell></TableRow>
                         }
                       </TableBody>
                     </Table>

@@ -368,7 +368,6 @@ export default function EditPersonaForm(props) {
                                   id = "profile-language"
                                   value = {language}
                                   onChange = {handleLanguageChange}
-                                  helperText = "Select all that apply"
                                   input={<Input />}
                                   >
                                   {languages.map((language) => (

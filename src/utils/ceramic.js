@@ -187,7 +187,7 @@ async makeSeed(account){
   }
 
   async getAppCeramic() {
-    let retrieveSeed = await axios.get('https://vpbackend.azurewebsites.net/appseed')
+    let retrieveSeed = await axios.get('https://vpbackend-apim.azure-api.net/appseed')
     const seed = Buffer.from((retrieveSeed.data).slice(0, 32))
    // const ceramic = new CeramicClient(CERAMIC_API_URL, {docSyncEnabled: false, docSynchInterval: 30000})
     const ceramic = new CeramicClient(CERAMIC_API_URL)
