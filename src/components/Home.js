@@ -84,15 +84,15 @@ export const Home = ({ children, state }) => {
                         <Footer />
                         </div>)
 
-            : window.location.replace('https://vitalpoint.ai/catalyst')
-            // :  (<div className={classes.root}><Header state={state}/><FrontPage /> <Footer /></div>)
-            // : state.accountData ? (
-            //     <div className={classes.root}>
-            //     <Header state={state}/>
-            //         {children}
-            //     <Footer />
-            //     </div>
-            // ) 
+           // : window.location.replace('https://vitalpoint.ai/catalyst')
+            :  (<div className={classes.root}><Header state={state}/><FrontPage /> <Footer /></div>)
+            : state.accountData ? (
+                <div className={classes.root}>
+                <Header state={state}/>
+                    {children}
+                <Footer />
+                </div>
+            ) 
             : (<div className={classes.root}>
                 <Header state={state}/>
                 <div className={classes.centered}>

@@ -370,9 +370,11 @@ export default function Dashboard(props) {
                         for (const [key, value] of Object.entries(allOpportunities[j].desiredDeveloperSkillSet)){
                             if(value){
                                 developerSkillCount++
-                                for (const [pkey, pvalue] of Object.entries(currentPersona.developerSkillSet)){
-                                    if(pkey == key && pvalue == value){
-                                        developerSkillMatch ++
+                                if(currentPersona.developerSkillSet){
+                                    for (const [pkey, pvalue] of Object.entries(currentPersona.developerSkillSet)){
+                                        if(pkey == key && pvalue == value){
+                                            developerSkillMatch ++
+                                        }
                                     }
                                 }
                             }
@@ -380,9 +382,11 @@ export default function Dashboard(props) {
                         for (const [key, value] of Object.entries(allOpportunities[j].desiredSkillSet)){
                             if(value){
                                 skillCount++
-                                for (const [pkey, pvalue] of Object.entries(currentPersona.skillSet)){
-                                    if(pkey == key && pvalue == value){
-                                        skillMatch++
+                                if(currentPersona.skillSet){
+                                    for (const [pkey, pvalue] of Object.entries(currentPersona.skillSet)){
+                                        if(pkey == key && pvalue == value){
+                                            skillMatch++
+                                        }
                                     }
                                 }
                             }
@@ -613,6 +617,7 @@ export default function Dashboard(props) {
                     recommendations.slice((CARDS_TO_SHOW -1) * CARDS_TO_SHOW, (CARDS_TO_SHOW -1) * CARDS_TO_SHOW + CARDS_TO_SHOW)
                     .map((fr, i) => {
                     console.log('fr', fr)
+                    console.log('i', i)
                     return(
                         <OpportunityCard 
                         key={i}

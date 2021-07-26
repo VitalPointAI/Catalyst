@@ -142,6 +142,17 @@ export default function MemberProfile(props) {
 
     console.log('skillset', skillSet)
 
+    const languages = language.map((item, i) => {
+      if (i == language.length -1){
+        item = item
+      } else {
+        item = item + ', '
+      }
+      return (
+        <Typography key={i} variant="overline">{item}</Typography>
+        ) 
+      })
+
         return (
             <div>
      
@@ -162,7 +173,7 @@ export default function MemberProfile(props) {
                       {member ? <TableRow key={member}><TableCell>NEAR Account</TableCell><TableCell component="th" scope="row">{member}</TableCell></TableRow> : null }
                       {birthdate ? <TableRow key={birthdate}><TableCell>Birthday</TableCell><TableCell component="th" scope="row">{birthdate}</TableCell></TableRow> : null }
                       {country ? <TableRow key={country}><TableCell>Country</TableCell><TableCell component="th" scope="row">{country}</TableCell></TableRow> : null }
-                      {language && language.length > 0 ? <TableRow key='languages'><TableCell>Language</TableCell><TableCell component="th" scope="row">{language.map((item, i) => { return (<><Typography variant="overline">{item},</Typography> </>) })}</TableCell></TableRow>: null }                
+                      {language && language.length > 0 ? <TableRow key='languages'><TableCell>Language</TableCell><TableCell component="th" scope="row">{languages}</TableCell></TableRow>: null }                
                       </TableBody>
                     </Table>
                   </TableContainer>
@@ -233,10 +244,11 @@ export default function MemberProfile(props) {
                       
                       </TableHead>
                       <TableBody>
-                      {email ? <TableRow key={email}><TableCell>Email</TableCell><TableCell component="a" href={`mailto:${email}`} scope="row">{email}</TableCell></TableRow> : null }
-                      {discord ? <TableRow key={discord}><TableCell>Discord</TableCell><TableCell component="th" scope="row">{discord}</TableCell></TableRow> : null }
-                      {twitter ? <TableRow key={twitter}><TableCell>Twitter</TableCell><TableCell component="a" href={`https://twitter.com/${twitter}`} scope="row">{twitter}</TableCell></TableRow> : null }
-                      {reddit ? <TableRow key={reddit}><TableCell>Reddit</TableCell><TableCell component="a" href={`https://reddit.com/user/${reddit}`} scope="row">{reddit}</TableCell></TableRow> : null }
+                      {email ? <TableRow key={email}><TableCell>Email</TableCell><TableCell><a href={`mailto:${email}`}>{email}</a></TableCell></TableRow> : null }
+                      {discord ? <TableRow key={discord}><TableCell>Discord</TableCell><TableCell>{discord}</TableCell></TableRow> : null }
+                      {twitter ? <TableRow key={twitter}><TableCell>Twitter</TableCell><TableCell><a href={`https://twitter.com/${twitter}`}>{twitter}</a></TableCell></TableRow> : null }
+                      {reddit ? <TableRow key={reddit}><TableCell>Reddit</TableCell><TableCell><a href={`https://reddit.com/user/${reddit}`}>{reddit}</a></TableCell></TableRow> : null }
+                
                       </TableBody>
                     </Table>
                   </TableContainer>
