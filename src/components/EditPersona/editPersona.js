@@ -5,6 +5,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import FileUpload from '../IPFSupload/ipfsUpload'
 import { flexClass } from '../../App'
 import { IPFS_PROVIDER } from '../../utils/ceramic' 
+import { config } from '../../state/config'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -39,6 +40,7 @@ import RedditIcon from '@material-ui/icons/Reddit'
 import TwitterIcon from '@material-ui/icons/Twitter'
 import { InputAdornment } from '@material-ui/core'
 import { CircularProgress } from '@material-ui/core'
+import { QueryBuilder } from '@material-ui/icons'
 
 const useStyles = makeStyles((theme) => ({
     progress: {
@@ -79,6 +81,13 @@ const useStyles = makeStyles((theme) => ({
 const imageName = require('../../img/default-profile.png') // default no-image avatar
 const discordIcon = require('../../img/discord-icon.png')
 
+export const {
+  FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT, DAO_FIRST_INIT, CURRENT_DAO, REDIRECT,
+  NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, OPPORTUNITY_REDIRECT, NEW_PROCESS, NEW_VOTE, NEW_DONATION, NEW_EXIT, NEW_RAGE, NEW_DELEGATION, NEW_REVOCATION,
+  networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix, explorerUrl,
+  contractName, didRegistryContractName, factoryContractName
+} = config
+
 export default function EditPersonaForm(props) {
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
@@ -97,8 +106,10 @@ export default function EditPersonaForm(props) {
     const [language, setLanguage] = useState([])
     const [skill, setSkill] = useState([])
     const [familiarity, setFamiliarity] = useState('0')
+    const [airtableClicked, setAirtableClicked] = useState(false)
     const { register, handleSubmit, watch, errors } = useForm()
-
+    const [otherSkills, setOtherSkills] = useState([])
+    
     const { state, dispatch, update } = useContext(appStore)
     const countries = ["Afghanistan","Albania","Algeria","Andorra","Angola","Anguilla","Antigua &amp; Barbuda","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bermuda","Bhutan","Bolivia","Bosnia &amp; Herzegovina","Botswana","Brazil","British Virgin Islands","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Cayman Islands","Chad","Chile","China","Colombia","Congo","Cook Islands","Costa Rica","Cote D Ivoire","Croatia","Cruise Ship","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Estonia","Ethiopia","Falkland Islands","Faroe Islands","Fiji","Finland","France","French Polynesia","French West Indies","Gabon","Gambia","Georgia","Germany","Ghana","Gibraltar","Greece","Greenland","Grenada","Guam","Guatemala","Guernsey","Guinea","Guinea Bissau","Guyana","Haiti","Honduras","Hong Kong","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Isle of Man","Israel","Italy","Jamaica","Japan","Jersey","Jordan","Kazakhstan","Kenya","Kuwait","Kyrgyz Republic","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Macau","Macedonia","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Mauritania","Mauritius","Mexico","Moldova","Monaco","Mongolia","Montenegro","Montserrat","Morocco","Mozambique","Namibia","Nepal","Netherlands","Netherlands Antilles","New Caledonia","New Zealand","Nicaragua","Niger","Nigeria","Norway","Oman","Pakistan","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Puerto Rico","Qatar","Reunion","Romania","Russia","Rwanda","Saint Pierre &amp; Miquelon","Samoa","San Marino","Satellite","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","South Africa","South Korea","Spain","Sri Lanka","St Kitts &amp; Nevis","St Lucia","St Vincent","St. Lucia","Sudan","Suriname","Swaziland","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor L'Este","Togo","Tonga","Trinidad &amp; Tobago","Tunisia","Turkey","Turkmenistan","Turks &amp; Caicos","Uganda","Ukraine","United Arab Emirates","United Kingdom","Uruguay","Uzbekistan","Venezuela","Vietnam","Virgin Islands (US)","Yemen","Zambia","Zimbabwe"];
     const languages = ['Abkhazian','Afar','Afrikaans','Akan','Albanian','Amharic','Arabic','Aragonese','Armenian','Assamese','Avaric','Avestan','Aymara','Azerbaijani','Bambara','Bashkir','Basque','Belarusian','Bengali','Bihari languages','Bislama','Bosnian','Breton','Bulgarian','Burmese','Catalan, Valencian','Central Khmer','Chamorro','Chechen','Chichewa, Chewa, Nyanja','Chinese','Church Slavonic, Old Bulgarian, Old Church Slavonic','Chuvash','Cornish','Corsican','Cree','Croatian','Czech','Danish','Divehi, Dhivehi, Maldivian','Dutch, Flemish','Dzongkha','English','Esperanto','Estonian','Ewe','Faroese','Fijian','Finnish','French','Fulah','Gaelic, Scottish Gaelic','Galician','Ganda', 'Georgian','German','Gikuyu, Kikuyu','Greek (Modern)','Greenlandic, Kalaallisut','Guarani','Gujarati','Haitian, Haitian Creole','Hausa','Hebrew','Herero','Hindi','Hiri Motu','Hungarian','Icelandic','Ido','Igbo','Indonesian','Interlingua (International Auxiliary Language Association)','Interlingue','Inuktitut','Inupiaq','Irish','Italian','Japanese','Javanese','Kannada','Kanuri','Kashmiri','Kazakh','Kinyarwanda','Komi','Kongo','Korean','Kwanyama, Kuanyama','Kurdish','Kyrgyz','Lao','Latin','Latvian','Letzeburgesch, Luxembourgish','Limburgish, Limburgan, Limburger','Lingala','Lithuanian','Luba-Katanga','Macedonian','Malagasy','Malay','Malayalam','Maltese','Manx','Maori','Marathi','Marshallese','Moldovan, Moldavian, Romanian','Mongolian','Nauru','Navajo, Navaho','Northern Ndebele','Ndonga','Nepali','Northern Sami','Norwegian','Norwegian Bokmål','Norwegian Nynorsk','Nuosu, Sichuan Yi','Occitan (post 1500)','Ojibwa','Oriya','Oromo','Ossetian, Ossetic','Pali','Panjabi, Punjabi','Pashto, Pushto','Persian','Polish','Portuguese','Quechua','Romansh','Rundi','Russian','Samoan','Sango','Sanskrit','Sardinian','Serbian','Shona','Sindhi','Sinhala, Sinhalese','Slovak','Slovenian','Somali','Sotho, Southern','South Ndebele','Spanish, Castilian','Sundanese','Swahili','Swati','Swedish','Tagalog','Tahitian','Tajik','Tamil','Tatar','Telugu','Thai','Tibetan','Tigrinya','Tonga (Tonga Islands)','Tsonga','Tswana','Turkish','Turkmen','Twi','Uighur, Uyghur','Ukrainian','Urdu','Uzbek','Venda','Vietnamese','Volap_k','Walloon','Welsh','Western Frisian','Wolof','Xhosa','Yiddish','Yoruba','Zhuang, Chuang','Zulu' ]
@@ -110,7 +121,7 @@ export default function EditPersonaForm(props) {
       eventOrganization: false,
       socialMedia: false,
       marketing: false,
-      translation: false
+      translation: false,
     })
     const [developerSkillSet, setDeveloperSkillSet] = useState({
       rust: false,
@@ -118,11 +129,9 @@ export default function EditPersonaForm(props) {
       javascript: false,
       typescript: false,
       solidity: false,
-      webDevelopment: false
+      webDevelopment: false,
     })
   
-    const skills = ['Content Creation (memes)', "Content Creation (video)","Content Creation (writing)","Content Creation (other)", "Design", "Development (Rust / Asssembly Script)", "Development (Solidity)", "Development (Web)", "Event Organization", "Marketing or Social Media", "Translation", "Other"] 
-
     const {
         handleUpdate,
         handleEditPersonaClickState,
@@ -159,14 +168,16 @@ export default function EditPersonaForm(props) {
                   eventOrganization: false,
                   socialMedia: false,
                   marketing: false,
-                  translation: false})
+                  translation: false,
+                  })
                 result.developerSkillSet? setDeveloperSkillSet(result.developerSkillSet): setDeveloperSkillSet({
                   rust: false,
                   assemblyScript: false,
                   javascript: false,
                   typescript: false,
                   solidity: false,
-                  webDevelopment: false})
+                  webDevelopment: false,
+                  })
               }
            }
         }
@@ -230,15 +241,110 @@ export default function EditPersonaForm(props) {
       let options = {year: 'numeric', month: 'long', day: 'numeric'}
       return new Date(intDate).toLocaleString('en-US', options)
     }
-
     const handleSkillSetChange = (event) => {
       setSkillSet({ ...skillSet, [event.target.name]: event.target.checked })
     }
-
+  
     const handleDeveloperSkillSetChange = (event) => {
       setDeveloperSkillSet({ ...developerSkillSet, [event.target.name]: event.target.checked })
     }
+
+    const handleOtherSkillsChange = (event) => {
+      setOtherSkills(event.target.value.split(","))
+    }
+    const handleAirtableClick = async function(){
+      if(airtableClicked == false)
+      {
+        let axios = require('axios')
+        let accessVariables = await axios.get('https://vpbackend-apim.azure-api.net/airtable')
+        let Airtable = require('airtable');
+        let base = new Airtable({apiKey: accessVariables.data.airtableKey}).base(accessVariables.data.contributorBase);
+
+        base(accessVariables.data.contributorTable).select({
+            pageSize: 3, 
+            view: "Grid view"
+        }).eachPage(function page(records, fetchNextPage) {
+            
+            records.forEach(function(record) {
+              try{
+                console.log(record)
+                if(record.get('NEAR Wallet Address') == state.accountId){
+                  record.get("Name") ? setName(record.get("Name")) : null
+                  record.get("Email") ? setEmail(record.get("Email")): null
+                  record.get("Country") ? setCountry(record.get("Country")): null
+                  record.get("Discord Handle")? setDiscord(record.get("Discord Handle")): null 
+                  record.get("Languages")? setLanguage(record.get("Languages")): null
+                  record.get("Skills") ? setSkill(record.get("Skills")): null
+                  
+                  
+                  console.log("Skills", skill.length)
   
+               
+                  for(let index = 0; index < skill.length; index++){
+                    console.log(i)
+                    setSkillSet({ ...skillSet, ["eventOrganization"]: true})
+                    switch(skill[index]){
+                      case "Content Creation (Writing)": 
+                        setSkillSet({...skillSet, ["writing"]: true})
+                        break; 
+                      case "Content Creation (Memes)": 
+                        setSkillSet({...skillSet, ["memeCreation"]: true})
+                        break; 
+                      case "Content Creation (Video)":
+                        setSkillSet({...skillSet, ["videoCreation"]: true})
+                        break; 
+                      case "Content Creation (Other)":
+                        setSkillSet({...skillSet, ["videoCreation"]: true})
+                        break; 
+                      case "Marketing & Social Media": 
+                        setSkillSet({...skillSet, ["marketing"]: true})
+                        break; 
+                      case "Design":
+                        console.log("case entered")      
+                        setSkillSet({...skillSet, ["design"]: true})
+                        break; 
+                      case "Event Organization":
+                        setSkillSet({ ...skillSet, ["eventOrganization"]: true})
+                        break; 
+                      case "Translation":   
+                        setSkillSet({ ...skillSet, ["translation"]: true})
+                        break;
+                      case "Development (Rust/Assembly Script)":
+                        setDeveloperSkillSet({ ...developerSkillSet, ["rust"]: true, ['assemblyScript']: true})
+                        break; 
+                      case "Development (Solidity)":
+                        setDeveloperSkillSet({ ...developerSkillSet, ["solidity"]: true})
+                        break;
+                      case "Development (Web)":
+                        setDeveloperSkillSet({ ...developerSkillSet, ["webDevelopment"]: true})
+                        break; 
+                      default: 
+                        break; 
+                    }
+                    
+                  }
+              
+                }
+              }
+              catch{return;}
+            })
+           
+            // If there are more records, `page` will get called again.
+            // If there are no more records, `done` will get called.
+            // fetchNextPage() handles this behaviour entirely
+            try{  
+              fetchNextPage() 
+            } catch{
+              console.log("ERROR")
+              return; 
+            }
+            
+        }, function done(err) {
+            if (err) { console.error(err); return; }
+        });
+      }
+    }
+    
     const error = [skillSet.memeCreation].filter((v) => v).length !== 2;
 
     const onSubmit = async (values) => {
@@ -368,6 +474,7 @@ export default function EditPersonaForm(props) {
                                   id = "profile-language"
                                   value = {language}
                                   onChange = {handleLanguageChange}
+                                  helperText = "Select all that apply"
                                   input={<Input />}
                                   >
                                   {languages.map((language) => (
@@ -423,7 +530,7 @@ export default function EditPersonaForm(props) {
                                     control={<Checkbox checked={skillSet.marketing} onChange={handleSkillSetChange} name="marketing" />}
                                     label="Marketing"
                                   />
-                                  <FormControlLabel
+                                   <FormControlLabel
                                     control={<Checkbox checked={skillSet.translation} onChange={handleSkillSetChange} name="translation" />}
                                     label="Translation"
                                   />
@@ -460,11 +567,12 @@ export default function EditPersonaForm(props) {
                                       control={<Checkbox checked={developerSkillSet.webDevelopment} onChange={handleDeveloperSkillSetChange} name="webDevelopment" />}
                                       label="Web Development"
                                     />
-                                  
+                              
                                   </FormGroup>
                                   <FormHelperText>Identify which developer skills you have.</FormHelperText>
                                 </FormControl>
                               </Grid>
+                              
                               <Grid item xs={12}>
                                     <Typography>Familiarity with Crypto/Blockchain</Typography>
                                     <Rating name="Familiarity" onChange={handleRatingChange} value={parseInt(familiarity)} />
@@ -580,6 +688,10 @@ export default function EditPersonaForm(props) {
                          
                         </AccordionDetails>
                       </Accordion>
+                        
+                  <Button onClick={handleAirtableClick} color="primary">
+                  From OWS?
+                  </Button>
                   </div>
               
                   
