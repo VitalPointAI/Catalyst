@@ -41,6 +41,7 @@ import TwitterIcon from '@material-ui/icons/Twitter'
 import { InputAdornment } from '@material-ui/core'
 import { CircularProgress } from '@material-ui/core'
 import { QueryBuilder } from '@material-ui/icons'
+import { truncate } from 'fs'
 
 const useStyles = makeStyles((theme) => ({
     progress: {
@@ -261,13 +262,13 @@ export default function EditPersonaForm(props) {
         let base = new Airtable({apiKey: accessVariables.data.airtableKey}).base(accessVariables.data.contributorBase);
 
         base(accessVariables.data.contributorTable).select({
-            pageSize: 3, 
+            pageSize: 20, 
             view: "Grid view"
         }).eachPage(function page(records, fetchNextPage) {
             
             records.forEach(function(record) {
               try{
-                console.log(record)
+                
                 if(record.get('NEAR Wallet Address') == state.accountId){
                   record.get("Name") ? setName(record.get("Name")) : null
                   record.get("Email") ? setEmail(record.get("Email")): null
@@ -275,49 +276,44 @@ export default function EditPersonaForm(props) {
                   record.get("Discord Handle")? setDiscord(record.get("Discord Handle")): null 
                   record.get("Languages")? setLanguage(record.get("Languages")): null
                   record.get("Skills") ? setSkill(record.get("Skills")): null
-                  
+                  record.get("Familiarity with Crypto") ? setFamiliarity(record.get('Familiarity with Crypto')): null
                   
                   console.log("Skills", skill.length)
   
                
                   for(let index = 0; index < skill.length; index++){
-                    console.log(i)
-                    setSkillSet({ ...skillSet, ["eventOrganization"]: true})
                     switch(skill[index]){
                       case "Content Creation (Writing)": 
-                        setSkillSet({...skillSet, ["writing"]: true})
+                       skillSet['writing'] = true; 
                         break; 
                       case "Content Creation (Memes)": 
-                        setSkillSet({...skillSet, ["memeCreation"]: true})
-                        break; 
+                        skillSet['memeCreation'] = true; 
+                        break;
                       case "Content Creation (Video)":
-                        setSkillSet({...skillSet, ["videoCreation"]: true})
-                        break; 
-                      case "Content Creation (Other)":
-                        setSkillSet({...skillSet, ["videoCreation"]: true})
+                        skillSet['videoCreation'] = true; 
                         break; 
                       case "Marketing & Social Media": 
-                        setSkillSet({...skillSet, ["marketing"]: true})
+                        skillSet['marketing'] = true; 
                         break; 
-                      case "Design":
-                        console.log("case entered")      
-                        setSkillSet({...skillSet, ["design"]: true})
+                      case "Design":  
+                        skillSet['design'] = true;    
                         break; 
                       case "Event Organization":
-                        setSkillSet({ ...skillSet, ["eventOrganization"]: true})
+                        skillSet['eventOrganization'] = true; 
                         break; 
                       case "Translation":   
-                        setSkillSet({ ...skillSet, ["translation"]: true})
+                        skillSet['translation'] = true; 
                         break;
                       case "Development (Rust/Assembly Script)":
-                        setDeveloperSkillSet({ ...developerSkillSet, ["rust"]: true, ['assemblyScript']: true})
+                        developerSkillSet['rust'] = true
+                        developerSkillSet['assemblyScript'] = true
                         break; 
                       case "Development (Solidity)":
-                        setDeveloperSkillSet({ ...developerSkillSet, ["solidity"]: true})
-                        break;
-                      case "Development (Web)":
-                        setDeveloperSkillSet({ ...developerSkillSet, ["webDevelopment"]: true})
+                        developerSkillSet['solidity'] = true
                         break; 
+                      case "Development (Web)":
+                        developerSkillSet[webDevelopment] = true
+                        break;
                       default: 
                         break; 
                     }
@@ -326,7 +322,8 @@ export default function EditPersonaForm(props) {
               
                 }
               }
-              catch{return;}
+              catch(err){ console.log(err) 
+                return;}
             })
            
             // If there are more records, `page` will get called again.
@@ -334,8 +331,7 @@ export default function EditPersonaForm(props) {
             // fetchNextPage() handles this behaviour entirely
             try{  
               fetchNextPage() 
-            } catch{
-              console.log("ERROR")
+            } catch{ 
               return; 
             }
             
@@ -688,10 +684,18 @@ export default function EditPersonaForm(props) {
                          
                         </AccordionDetails>
                       </Accordion>
-                        
-                  <Button onClick={handleAirtableClick} color="primary">
-                  From OWS?
-                  </Button>
+                  <Grid container spacing={1} justify="space-between">  
+                    <Grid item xs={7} sm={7} md={7} lg={7} xl={7}>
+                      <Typography style={{marginTop: 5}}> 
+                        From the Open Web Sandbox?
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={5} sm={5} md={5} lg={5} xl={5}>
+                     <Button onClick={handleAirtableClick} color="primary">
+                        Import Data from Airtable
+                      </Button>
+                    </Grid>
+                  </Grid>
                   </div>
               
                   
