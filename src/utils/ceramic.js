@@ -5,10 +5,8 @@ import { IDX } from '@ceramicstudio/idx'
 import { TileDocument } from '@ceramicnetwork/stream-tile'
 import { createDefinition, publishSchema } from '@ceramicstudio/idx-tools'
 import { Ed25519Provider } from 'key-did-provider-ed25519'
-import ThreeIdProvider from '3id-did-provider'
 import KeyDidResolver from 'key-did-resolver'
 import ThreeIdResolver from '@ceramicnetwork/3id-did-resolver'
-import { ThreeIdConnect, NearAuthProvider } from '@3id/connect'
 import { DID } from 'dids'
 
 // schemas
@@ -39,27 +37,16 @@ import { config } from '../state/config'
 
 const axios = require('axios').default
 
-
-
 export const {
-    FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, REDIRECT, KEY_REDIRECT, APP_OWNER_ACCOUNT, IPFS_PROVIDER, FACTORY_DEPOSIT,
-    CERAMIC_API_URL, networkId, nodeUrl, walletUrl, nameSuffix,
+    FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, REDIRECT, 
+    KEY_REDIRECT, APP_OWNER_ACCOUNT, IPFS_PROVIDER, FACTORY_DEPOSIT, CERAMIC_API_URL, APPSEED_CALL, 
+    networkId, nodeUrl, walletUrl, nameSuffix,
     contractName, didRegistryContractName
 } = config
 
 const {
-  KeyPair,
-  InMemorySigner,
-  transactions: {
-      addKey
-  },
-  utils: {
-      PublicKey,
-      format: {
-          parseNearAmount, formatNearAmount
-      }
-  }
-} = nearApiJs
+  KeyPair
+  } = nearApiJs
 
 class Ceramic {
 
@@ -187,9 +174,8 @@ async makeSeed(account){
   }
 
   async getAppCeramic() {
-    let retrieveSeed = await axios.get('https://vpbackend-apim.azure-api.net/appseed')
+    let retrieveSeed = await axios.get(APPSEED_CALL)
     const seed = Buffer.from((retrieveSeed.data).slice(0, 32))
-   // const ceramic = new CeramicClient(CERAMIC_API_URL, {docSyncEnabled: false, docSynchInterval: 30000})
     const ceramic = new CeramicClient(CERAMIC_API_URL)
     const provider = new Ed25519Provider(seed)
     const resolver = {...KeyDidResolver.getResolver()}
@@ -264,12 +250,6 @@ async makeSeed(account){
     let didRegistryContract = new nearApiJs.Contract(account, didRegistryContractName, {
       viewMethods: [
           'getDID',
-          'getSchemas',
-          'findSchema',
-          'getDefinitions',
-          'findDefinition',
-          'findAlias',
-          'getAliases',
           'hasDID',
           'retrieveAlias',
           'hasAlias'
@@ -277,59 +257,49 @@ async makeSeed(account){
       // Change methods can modify the state. But you don't receive the returned value when called.
       changeMethods: [
           'putDID',
-          'initialize',
-          'addSchema',
-          'addDefinition',
-          'addAlias',
-          'storeAlias'
+          'deleteDID',
+          'storeAlias',
+          'deleteAlias'
       ],
   })
     return didRegistryContract
   }
 
-  async useDidContractFullAccessKey() {    
+  // async useDidContractFullAccessKey() {    
 
-    // Step 1:  get the keypair from the contract's full access private key
-    let retrieveKey = await axios.get('https://vpbackend.azurewebsites.net/didkey')
-    let keyPair = KeyPair.fromString(retrieveKey.data)
+  //   // Step 1:  get the keypair from the contract's full access private key
+  //   let retrieveKey = await axios.get('https://vpbackend.azurewebsites.net/didkey')
+  //   let keyPair = KeyPair.fromString(retrieveKey.data)
 
-    // Step 2:  load up an inMemorySigner using the keyPair for the account
-    let signer = await InMemorySigner.fromKeyPair(networkId, didRegistryContractName, keyPair)
+  //   // Step 2:  load up an inMemorySigner using the keyPair for the account
+  //   let signer = await InMemorySigner.fromKeyPair(networkId, didRegistryContractName, keyPair)
 
-    // Step 3:  create a connection to the network using the signer's keystore and default config for testnet
-    const near = await nearApiJs.connect({
-      networkId, nodeUrl, walletUrl, deps: { keyStore: signer.keyStore },
-    })
+  //   // Step 3:  create a connection to the network using the signer's keystore and default config for testnet
+  //   const near = await nearApiJs.connect({
+  //     networkId, nodeUrl, walletUrl, deps: { keyStore: signer.keyStore },
+  //   })
 
-    // Step 4:  get the account object of the currentAccount.  At this point, we should have full control over the account.
-    let account = new nearApiJs.Account(near.connection, didRegistryContractName)
+  //   // Step 4:  get the account object of the currentAccount.  At this point, we should have full control over the account.
+  //   let account = new nearApiJs.Account(near.connection, didRegistryContractName)
 
-    // initiate the contract so its associated with this current account and exposing all the methods
-    let didRegistryContract = new nearApiJs.Contract(account, didRegistryContractName, {
-      viewMethods: [
-          'getDID',
-          'getSchemas',
-          'findSchema',
-          'getDefinitions',
-          'findDefinition',
-          'findAlias',
-          'getAliases',
-          'hasDID',
-          'retrieveAlias',
-          'hasAlias'
-      ],
-      // Change methods can modify the state. But you don't receive the returned value when called.
-      changeMethods: [
-          'putDID',
-          'initialize',
-          'addSchema',
-          'addDefinition',
-          'addAlias',
-          'storeAlias'
-      ],
-  })
-    return didRegistryContract
-  }
+  //   // initiate the contract so its associated with this current account and exposing all the methods
+  //   let didRegistryContract = new nearApiJs.Contract(account, didRegistryContractName, {
+  //     viewMethods: [
+  //         'getDID',
+  //         'hasDID',
+  //         'retrieveAlias',
+  //         'hasAlias'
+  //     ],
+  //     // Change methods can modify the state. But you don't receive the returned value when called.
+  //     changeMethods: [
+  //         'putDID',
+  //         'deleteDID',
+  //         'storeAlias',
+  //         'deleteAlias'
+  //     ],
+  // })
+  //   return didRegistryContract
+  // }
 
   async changeDefinition(accountId, aliasName, client, schema, description, contract) {
   
@@ -345,8 +315,7 @@ async makeSeed(account){
           console.log('alias is misformed', err)
           alias = false
         }
-      }
-   
+      } 
       
       let newSchemaURL = await publishSchema(client, {content: schema})
       const doc = await TileDocument.load(client, alias)
@@ -390,145 +359,145 @@ async makeSeed(account){
     }
   }
 
-  async aliasSetup(idx, accountId, aliasName, defDesc, schemaFormat, ceramicClient) {
-    const currentDefinitions = await idx.get('definitions', idx.id)
-    let defExists
-    if(currentDefinitions != null){
-      let m = 0
-        while (m < currentDefinitions.defs.length) {
-            if (currentDefinitions.defs[m].accountId == accountId && currentDefinitions.defs[m].alias == aliasName){
-              defExists = true
-              return true
-            }
-        m++
-      }
-    } else {
-      defExists = false
-    }
+  // async aliasSetup(idx, accountId, aliasName, defDesc, schemaFormat, ceramicClient) {
+  //   const currentDefinitions = await idx.get('definitions', idx.id)
+  //   let defExists
+  //   if(currentDefinitions != null){
+  //     let m = 0
+  //       while (m < currentDefinitions.defs.length) {
+  //           if (currentDefinitions.defs[m].accountId == accountId && currentDefinitions.defs[m].alias == aliasName){
+  //             defExists = true
+  //             return true
+  //           }
+  //       m++
+  //     }
+  //   } else {
+  //     defExists = false
+  //   }
     
-    if(!defExists) {
+  //   if(!defExists) {
 
-      const currentSchemas = await idx.get('schemas', idx.id)
+  //     const currentSchemas = await idx.get('schemas', idx.id)
 
-      // check for existing schema for this account from it's owner's account idx
-      let schemaExists
-      if(currentSchemas != null ){
-        let k = 0
-        while (k < currentSchemas.schemas.length) {
-            if (currentSchemas.schemas[k].accountId == accountId && currentSchemas.schemas[k].name == aliasName){
-            schemaExists = true
-            break
-            }
-            k++
-        }
-      } else {
-        schemaExists = false
-      }
+  //     // check for existing schema for this account from it's owner's account idx
+  //     let schemaExists
+  //     if(currentSchemas != null ){
+  //       let k = 0
+  //       while (k < currentSchemas.schemas.length) {
+  //           if (currentSchemas.schemas[k].accountId == accountId && currentSchemas.schemas[k].name == aliasName){
+  //           schemaExists = true
+  //           break
+  //           }
+  //           k++
+  //       }
+  //     } else {
+  //       schemaExists = false
+  //     }
 
-      let schemaURL
-      if(!schemaExists){
-          // create a new Schema
+  //     let schemaURL
+  //     if(!schemaExists){
+  //         // create a new Schema
           
-          let schemaURL = await publishSchema(ceramicClient, {content: schemaFormat})
+  //         let schemaURL = await publishSchema(ceramicClient, {content: schemaFormat})
 
-          let schemaRecords = await idx.get('schemas', idx.id)
+  //         let schemaRecords = await idx.get('schemas', idx.id)
         
   
-          if(schemaRecords == null){
-            schemaRecords = { schemas: [] }
-          }
+  //         if(schemaRecords == null){
+  //           schemaRecords = { schemas: [] }
+  //         }
          
-          let record = {
-              accountId: accountId,
-              name: aliasName,
-              url: schemaURL.commitId.toUrl()
-            }
+  //         let record = {
+  //             accountId: accountId,
+  //             name: aliasName,
+  //             url: schemaURL.commitId.toUrl()
+  //           }
             
-          schemaRecords.schemas.push(record)
-          let result = await idx.set('schemas', schemaRecords)
-      }
+  //         schemaRecords.schemas.push(record)
+  //         let result = await idx.set('schemas', schemaRecords)
+  //     }
 
-      let updatedSchemas = await idx.get('schemas', idx.id)
+  //     let updatedSchemas = await idx.get('schemas', idx.id)
       
-      let n = 0
-      while (n < updatedSchemas.schemas.length) {
-        if(updatedSchemas.schemas[n].accountId == accountId && updatedSchemas.schemas[n].name == aliasName){
-            schemaURL = updatedSchemas.schemas[n].url
-            break
-        }
-        n++
-      }
+  //     let n = 0
+  //     while (n < updatedSchemas.schemas.length) {
+  //       if(updatedSchemas.schemas[n].accountId == accountId && updatedSchemas.schemas[n].name == aliasName){
+  //           schemaURL = updatedSchemas.schemas[n].url
+  //           break
+  //       }
+  //       n++
+  //     }
 
-      // create a new profile definition
-      let definition
-      try {
-        definition = await createDefinition(ceramicClient, {
-          name: aliasName,
-          description: defDesc,
-          schema: schemaURL
-        })
-      } catch (err) {
-        console.log('definition issue', err)
-      }
+  //     // create a new profile definition
+  //     let definition
+  //     try {
+  //       definition = await createDefinition(ceramicClient, {
+  //         name: aliasName,
+  //         description: defDesc,
+  //         schema: schemaURL
+  //       })
+  //     } catch (err) {
+  //       console.log('definition issue', err)
+  //     }
       
-      if(definition){
-        let defRecords = await idx.get('definitions', idx.id)
-        if(defRecords == null){
-          defRecords = { defs: [] }
-        }
+  //     if(definition){
+  //       let defRecords = await idx.get('definitions', idx.id)
+  //       if(defRecords == null){
+  //         defRecords = { defs: [] }
+  //       }
 
-        let record = {
-            accountId: accountId,
-            alias: aliasName,
-            def: definition.id.toString()
-          }
+  //       let record = {
+  //           accountId: accountId,
+  //           alias: aliasName,
+  //           def: definition.id.toString()
+  //         }
 
-        defRecords.defs.push(record)
+  //       defRecords.defs.push(record)
 
-        let result = await idx.set('definitions', defRecords)
+  //       let result = await idx.set('definitions', defRecords)
         
-        return true
-      }
-    }
-    return true
-  }
+  //       return true
+  //     }
+  //   }
+  //   return true
+  // }
 
-  async getAliases(idx, accountId) {
+  //async getAliases(idx, accountId) {
     
-    let aliases = {}
+  //   let aliases = {}
     
-    let allAliases = await idx.get('definitions', idx.id)
+  //   let allAliases = await idx.get('definitions', idx.id)
     
-    if(allAliases != null) {
+  //   if(allAliases != null) {
 
-      //retrieve aliases for each definition
-      let i = 0
+  //     //retrieve aliases for each definition
+  //     let i = 0
       
-      while (i < allAliases.defs.length) {
-          if(allAliases.defs[i].accountId == accountId){
-            let alias = {[allAliases.defs[i].alias]: allAliases.defs[i].def}
-            aliases = {...aliases, ...alias}
-          }
-          i++
-      }
-      return aliases
-    } else {
-    return {}
-    }
-  }
+  //     while (i < allAliases.defs.length) {
+  //         if(allAliases.defs[i].accountId == accountId){
+  //           let alias = {[allAliases.defs[i].alias]: allAliases.defs[i].def}
+  //           aliases = {...aliases, ...alias}
+  //         }
+  //         i++
+  //     }
+  //     return aliases
+  //   } else {
+  //   return {}
+  //   }
+  // }
 
 
   // application IDX - maintains most up to date schemas and definitions ensuring chain always has the most recent commit
+  
   async getAppIdx(contract){
 
     const appClient = await this.getAppCeramic()
 
-    
     const appDid = this.associateAppDID(APP_OWNER_ACCOUNT, contract, appClient)
 
-    // uncomment below to change a definition
+  // uncomment below to change a definition
    //let changed = await this.changeDefinition(APP_OWNER_ACCOUNT, 'opportunities', appClient, opportunitiesSchema, 'opportunities to complete', contract)
-   // console.log('changed schema', changed)
+   //console.log('changed schema', changed)
 
     const definitions = this.getAlias(APP_OWNER_ACCOUNT, 'Definitions', appClient, definitionsSchema, 'alias definitions', contract)
     const schemas = this.getAlias(APP_OWNER_ACCOUNT, 'Schemas', appClient, schemaSchema, 'user schemas', contract)
@@ -553,7 +522,6 @@ async makeSeed(account){
     const votingData = this.getAlias(APP_OWNER_ACCOUNT, 'votingData', appClient, votingDataSchema, 'voting data', contract)
     const configurationProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'configurationProposalDetails', appClient, configurationProposalDetailsSchema, 'configuration proposal details', contract)
 
-   
     const done = await Promise.all([
       appDid, 
       definitions, 
@@ -648,12 +616,11 @@ async makeSeed(account){
     }
     let currentDaoCeramicClient = await this.getCeramic(contractAccount, seed)
     this.associateDID(contractAccount.accountId, contract, currentDaoCeramicClient)
-    let curDaoIdx = new IDX({ ceramic: currentDaoCeramicClient, aliases: appIdx._aliases})
+    let curDaoIdx = new IDX({ceramic: currentDaoCeramicClient, aliases: appIdx._aliases})
     return curDaoIdx
 }
 
   async getCurrentUserIdxNoDid(appIdx, contract, account, keyPair, owner) {
-    
     
     owner = owner == undefined ? account.accountId : owner 
 
