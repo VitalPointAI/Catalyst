@@ -833,9 +833,9 @@ export async function leaveCommunity(daoContract, contractId, share, accountId, 
         newExit.push({contractId: contractId, account: accountId, new: true, share: share})
         set(NEW_EXIT, newExit)
 
-        // format amount properly
-        let floatAmount = parseFloat(share)
-        let nearAmount = parseNearAmount(floatAmount.toString())
+        // format amount properly (to allow fractional amounts of NEAR)
+        // let floatAmount = parseFloat(share)
+        // let nearAmount = parseNearAmount(floatAmount.toString())
      
         // set trigger for new donation if share is not the total share
         if(share < entitlement){
@@ -864,7 +864,7 @@ export async function leaveCommunity(daoContract, contractId, share, accountId, 
         await daoContract.leave({
             contractId: contractId,
             accountId: accountId,
-            share: nearAmount,
+            share: share,
             }, GAS)
 
     } catch (err) {
