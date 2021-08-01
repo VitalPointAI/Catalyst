@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
-import { submitProposal, formatNearAmount } from '../../state/near'
+import { submitProposal } from '../../state/near'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -105,8 +105,6 @@ export default function TributeProposal(props) {
       await submitProposal(
         state.wallet,
         contractId,
-        depositToken,
-        proposalDeposit,
         'Tribute',
         applicant,
         '0',
@@ -183,7 +181,7 @@ export default function TributeProposal(props) {
               />
             </Grid>
             <Grid item xs={10} sm={10} md={10} lg={10} xl={10} style={{margin:'auto'}}>
-              <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{parseInt(tribute) + parseInt(formatNearAmount(proposalDeposit))} Ⓝ</b>:</Typography>
+              <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{parseInt(tribute) + parseInt(proposalDeposit)} Ⓝ</b>:</Typography>
               <Grid container justify="center" spacing={0}>
                 <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                   <Typography variant="body2"><u>Proposal passes:</u></Typography>
@@ -195,7 +193,7 @@ export default function TributeProposal(props) {
                         <Typography variant="body2">Community fund will increase by {tribute} Ⓝ.</Typography>
                       </li>
                       <li>
-                        <Typography variant="body2">{formatNearAmount(proposalDeposit)} Ⓝ proposal deposit is returned to you</Typography>
+                        <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you</Typography>
                       </li>
                     </ul>
                 </Grid>
@@ -209,7 +207,7 @@ export default function TributeProposal(props) {
                         <Typography variant="body2">Community fund does not change.</Typography>
                       </li>
                       <li>
-                        <Typography variant="body2">{formatNearAmount(proposalDeposit)} Ⓝ proposal deposit is returned to you.</Typography>
+                        <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you.</Typography>
                       </li>
                     </ul>
                 </Grid>

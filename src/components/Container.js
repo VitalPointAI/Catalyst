@@ -27,7 +27,7 @@ const useStyles = makeStyles((theme) => ({
         position: 'fixed',
         top: '50%',
         left: '50%',
-        marginTop: '-200px',
+       
         marginLeft: '-100px'
       },
     paper: {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
-import { submitProposal, formatNearAmount } from '../../state/near'
+import { submitProposal } from '../../state/near'
 import Persona from '@aluhning/get-personas-js'
 
 // Material UI components
@@ -55,6 +55,7 @@ export default function MemberProposal(props) {
   const [finished, setFinished] = useState(true)
   const [applicant, setApplicant] = useState(props.accountId)
   const [shares, setShares] = useState('')
+  const [loot, setLoot] = useState('')
   const [tribute, setTribute] = useState('')
   const [confirm, setConfirm] = useState(false)
   const [communityName, setCommunityName] = useState('')
@@ -109,6 +110,10 @@ export default function MemberProposal(props) {
     setShares(event.target.value)
   }
 
+  const handleLootChange = (event) => {
+    setLoot(event.target.value)
+  }
+
   const handleConfirmChange = (event) => {
     setConfirm(event.target.checked)
   }
@@ -119,11 +124,9 @@ export default function MemberProposal(props) {
       await submitProposal(
                       state.wallet,
                       contractId,
-                      depositToken,
-                      proposalDeposit,
                       'Member',
                       applicant,
-                      '0',
+                      loot,
                       tribute,
                       tribute,
                       '0'
@@ -174,7 +177,7 @@ export default function MemberProposal(props) {
                 id="member-proposal-tribute"
                 variant="outlined"
                 name="memberTribute"
-                label="Contribution"
+                label="Voting Shares"
                 placeholder="100"
                 value={tribute}
                 onChange={handleTributeChange}
@@ -183,7 +186,7 @@ export default function MemberProposal(props) {
                 })}
                 InputProps={{
                   endAdornment: <><InputAdornment position="end">Ⓝ</InputAdornment>
-                  <Tooltip TransitionComponent={Zoom} title="The amount of NEAR the member is contributing to the community fund. This fund is used to fund proposals that benefit the community in some way that members vote on and decide collectively to pass.  Members receive one share for every one NEAR contributed which represents their portion of the community fund.">
+                  <Tooltip TransitionComponent={Zoom} title="The amount of NEAR the member is contributing to the community fund in return for voting shares. This fund is used to fund proposals that benefit the community in some way that members vote on and decide collectively to pass.  Members receive one voting share for every one NEAR contributed which represents their portion of the community fund.">
                       <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
                   </Tooltip>
                   </>
@@ -191,6 +194,30 @@ export default function MemberProposal(props) {
               />
               {errors.memberTribute && <p style={{color: 'red'}}>You must enter a contribution amount.</p>}
             </div>
+
+            <div>
+            <TextField
+              margin="dense"
+              id="member-proposal-loot"
+              variant="outlined"
+              name="memberLoot"
+              label="Non-Voting Shares"
+              placeholder="100"
+              value={loot}
+              onChange={handleLootChange}
+              inputRef={register({
+                  required: false,
+              })}
+              InputProps={{
+                endAdornment: <><InputAdornment position="end">Ⓝ</InputAdornment>
+                <Tooltip TransitionComponent={Zoom} title="The amount of NEAR the member is contributing to the community fund in return for non-voting shares. This fund is used to fund proposals that benefit the community in some way that members vote on and decide collectively to pass.  Members receive one non-voting share for every one NEAR contributed as loot which represents their portion of the community fund.">
+                    <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
+                </Tooltip>
+                </>
+              }}
+            />
+          
+          </div>
               <Card>
               <CardContent>
                 <WarningIcon fontSize='large' className={classes.warning} />
@@ -209,19 +236,22 @@ export default function MemberProposal(props) {
                     />
                   </Grid>
                   <Grid item xs={10} sm={10} md={10} lg={10} xl={10} style={{margin:'auto'}}>
-                    <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{(tribute ? parseInt(tribute) : 0) + (parseInt(formatNearAmount(proposalDeposit)))} Ⓝ</b>:</Typography>
+                    <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{(loot ? parseInt(loot) : 0) + (tribute ? parseInt(tribute) : 0) + (parseInt(proposalDeposit))} Ⓝ</b>:</Typography>
                     <Grid container justify="center" spacing={0}>
                       <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                         <Typography variant="body2"><u>Proposal passes:</u></Typography>
                           <ul style={{paddingInlineStart:'10px', paddingInlineEnd:'10px'}}>
                             <li>
-                              <Typography variant="body2">Applicant becomes a member and receives {shares ? parseInt(shares) : 0} shares.</Typography>
+                              <Typography variant="body2">Applicant becomes a member and receives {shares ? parseInt(shares) : 0} voting shares.</Typography>
                             </li>
                             <li>
-                              <Typography variant="body2">Contribution of {tribute ? parseInt(tribute) : 0} Ⓝ goes into the community fund.</Typography>
+                              <Typography variant="body2">Applicant receives {loot ? parseInt(loot) : 0} non-voting shares.</Typography>
                             </li>
                             <li>
-                              <Typography variant="body2">{formatNearAmount(proposalDeposit)} Ⓝ proposal deposit is returned to you</Typography>
+                              <Typography variant="body2">Total contribution (tribute and loot) of {(loot ? parseInt(loot) : 0) + (tribute ? parseInt(tribute) : 0)} Ⓝ goes into the community fund.</Typography>
+                            </li>
+                            <li>
+                              <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you</Typography>
                             </li>
                           </ul>
                       </Grid>
@@ -232,15 +262,15 @@ export default function MemberProposal(props) {
                               <Typography variant="body2">Applicant does not become a member.</Typography>
                             </li>
                              <li>
-                              <Typography variant="body2">Contribution of {tribute ? parseInt(tribute) : 0} Ⓝ is returned to you.</Typography>
+                              <Typography variant="body2">Total contribution (tribute and loot) of {(loot ? parseInt(loot) : 0) + (tribute ? parseInt(tribute) : 0)} Ⓝ is returned to you.</Typography>
                             </li>
                             <li>
-                              <Typography variant="body2">{formatNearAmount(proposalDeposit)} Ⓝ proposal deposit is returned to you.</Typography>
+                              <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you.</Typography>
                             </li>
                           </ul>
                       </Grid>
                     </Grid>
-                    <Typography variant="body2">Your contribution of <b>{(tribute ? parseInt(tribute) : 0)} Ⓝ</b> immediately goes into the community escrow and stays there until the proposal is processed (finalized) or cancelled.</Typography>     
+                    <Typography variant="body2">Your contribution of <b>{(loot ? parseInt(loot) : 0) + (tribute ? parseInt(tribute) : 0)} Ⓝ</b> immediately goes into the community escrow and stays there until the proposal is processed (finalized) or cancelled.</Typography>     
                   </Grid>
               </Grid>
                 </CardContent>

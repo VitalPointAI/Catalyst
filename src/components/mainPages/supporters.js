@@ -76,7 +76,7 @@ export default function Supporters(props) {
                   <SupporterCard 
                     key={i}
                     accountId={fr.contributor}
-                    donation= {Math.round(fr.donation/1000000000000000000000000, 2)}
+                    donation= {fr.donation}
                     contributed={fr.contributed}
                     transactionHash={fr.transactionHash}
                   />

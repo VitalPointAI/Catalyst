@@ -134,7 +134,7 @@ export default function Initialize(props) {
 
       const onSubmit = async (values) => {
         try{
-        
+          console.log('conractid init', contractId)
           await initDao(
             state.wallet, 
             contractId,

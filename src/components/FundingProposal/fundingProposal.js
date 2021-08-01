@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
-import { submitProposal, formatNearAmount } from '../../state/near'
+import { submitProposal } from '../../state/near'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -105,8 +105,6 @@ export default function FundingProposal(props) {
       await submitProposal(
         state.wallet,
         contractId,
-        depositToken,
-        proposalDeposit,
         'Commitment',
         applicant,
         '0',
@@ -171,8 +169,8 @@ export default function FundingProposal(props) {
           <WarningIcon fontSize='large' className={classes.warning} />
           <Typography variant="body1" gutterBottom>You are requesting that {funding} Ⓝ be reserved for use by <b>{applicant}</b>. After submitting
           this proposal, you must provide enough supporting detail to help other members vote on and decide whether to approve your proposal or not.</Typography> 
-          <Typography variant="body1">Note: while you can submit a request for any funding amount, funding commitment proposals can not be sponsored if they exceed 50% of what is 
-          available in the community fund.</Typography>
+          <Typography variant="body1">Note: while you can submit a request for any funding amount, you should consider whether your request really warrants 
+          using as much of the community fund as it proposes.</Typography>
           <Grid container className={classes.confirmation} spacing={1}>
             <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
               <Checkbox
@@ -186,7 +184,7 @@ export default function FundingProposal(props) {
               />
             </Grid>
             <Grid item xs={10} sm={10} md={10} lg={10} xl={10} style={{margin:'auto'}}>
-              <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{formatNearAmount(proposalDeposit)} Ⓝ</b>:</Typography>
+              <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{proposalDeposit} Ⓝ</b>:</Typography>
               <Grid container justify="center" spacing={0}>
                 <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                   <Typography variant="body2"><u>Proposal passes:</u></Typography>
@@ -198,7 +196,7 @@ export default function FundingProposal(props) {
                         <Typography variant="body2">Community fund will decrease by {funding} Ⓝ.</Typography>
                       </li>
                       <li>
-                        <Typography variant="body2">{formatNearAmount(proposalDeposit)} Ⓝ proposal deposit is returned to you</Typography>
+                        <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you</Typography>
                       </li>
                     </ul>
                 </Grid>
@@ -212,7 +210,7 @@ export default function FundingProposal(props) {
                         <Typography variant="body2">Community fund does not change.</Typography>
                       </li>
                       <li>
-                        <Typography variant="body2">{formatNearAmount(proposalDeposit)} Ⓝ proposal deposit is returned to you.</Typography>
+                        <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you.</Typography>
                       </li>
                     </ul>
                 </Grid>

@@ -24,7 +24,7 @@ import Paper from '@material-ui/core/Paper'
 
 import './daoSettings.css'
 
-import { GAS, formatNearAmount, changeDao } from '../../state/near'
+import { GAS, changeDao } from '../../state/near'
 import { CircularProgress } from '@material-ui/core'
 
 const useStyles = makeStyles((theme) => ({
@@ -95,7 +95,7 @@ export default function EditInitSettings(props) {
                 result[0][1] ? setPeriodDuration(result[0][1]) : setPeriodDuration('')
                 result[0][2] ? setVotingPeriodLength(result[0][2]) : setVotingPeriodLength('')
                 result[0][3] ? setGracePeriodLength(result[0][3]) : setGracePeriodLength('')
-                result[0][4] ? setProposalDeposit(formatNearAmount(result[0][4])) : setProposalDeposit('')
+                result[0][4] ? setProposalDeposit(result[0][4]) : setProposalDeposit('')
                 result[0][5] ? setDilutionBound(result[0][5]) : setDilutionBound('')
                 result[0][6] ? setVoteThreshold(result[0][6]) : setVoteThreshold('')
     
@@ -189,42 +189,42 @@ export default function EditInitSettings(props) {
         }
     }
 
-    const onDeleteSubmit = async (values) => {
-      setFinish(false)
-      let finished
+  //   const onDeleteSubmit = async (values) => {
+  //     setFinish(false)
+  //     let finished
 
-      try {
-      let accountName = accountId.split('.')
-      console.log('accountName', accountName[0])
-      let name = accountName[0]
-      if(hasDao){
-          // create Fleet for account
-         finished = await contract.deleteDAO({
-              name: name,
-              beneficiary: accountId
-          }, GAS)
-          console.log('finished', finished)
-          if(finished) {
-              await handleHasDao(false)
+  //     try {
+  //     let accountName = accountId.split('.')
+  //     console.log('accountName', accountName[0])
+  //     let name = accountName[0]
+  //     if(hasDao){
+  //         // create Fleet for account
+  //        finished = await contract.deleteDAO({
+  //             name: name,
+  //             beneficiary: accountId
+  //         }, GAS)
+  //         console.log('finished', finished)
+  //         if(finished) {
+  //             await handleHasDao(false)
              
-          } else {
-              console.log('error deleting Fleet Dao')
+  //         } else {
+  //             console.log('error deleting Fleet Dao')
              
-              setFinished(true)
-              handleEditSettingsClick()
-          }
-      }
-      } catch (err) {
-      console.log('error deleting fleet dao', err)
+  //             setFinished(true)
+  //             handleEditSettingsClick()
+  //         }
+  //     }
+  //     } catch (err) {
+  //     console.log('error deleting fleet dao', err)
      
-      setFinish(true)
-      handleEditSettingsClick()
-      }
-      if(finished) {
-          setFinish(true)
-          handleEditSettingsClick()
-      }
-  }
+  //     setFinish(true)
+  //     handleEditSettingsClick()
+  //     }
+  //     if(finished) {
+  //         setFinish(true)
+  //         handleEditSettingsClick()
+  //     }
+  // }
 
   const handleConfigureClick = () => {
     handleExpanded()
@@ -354,10 +354,6 @@ export default function EditInitSettings(props) {
                         Reset
                   </Button>
 
-                  <Button variant="contained" color="secondary" onClick={handleSubmit(onDeleteSubmit)}>
-                     Delete DAO
-                  </Button>
-
                   </div>
                   ) : (
                     <>
@@ -409,7 +405,7 @@ export default function EditInitSettings(props) {
                             Proposal Deposit
                           </TableCell>
                           <TableCell>
-                            {initSettings.length > 0 ? formatNearAmount(initSettings[0].proposalDeposit) : <CircularProgress />} Ⓝ
+                            {initSettings.length > 0 ? initSettings[0].proposalDeposit : <CircularProgress />} Ⓝ
                           </TableCell>
                         </TableRow>
                         <TableRow>

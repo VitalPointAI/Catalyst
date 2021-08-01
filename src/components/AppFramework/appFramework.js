@@ -12,6 +12,8 @@ import { logInitEvent,
   logDonationEvent,
   logDelegationEvent,
   logExitEvent,
+  logDeleteCommunity,
+  deleteCommunity,
   synchProposalEvent, 
   synchMember } from '../../state/near'
 
@@ -26,7 +28,8 @@ import RandomPhrase from '../common/RandomPhrase/randomPhrase'
 import { dao } from '../../utils/dao'
 import { ceramic } from '../../utils/ceramic'
 
-import { NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE, NEW_DONATION, NEW_EXIT, NEW_DELEGATION, NEW_REVOCATION, hasKey } from '../../state/near'
+import { NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE, NEW_DONATION, NEW_EXIT, 
+  NEW_DELEGATION, NEW_REVOCATION, COMMUNITY_DELETE, NEW_DELETE, hasKey } from '../../state/near'
 
 // Material UI imports
 import { makeStyles } from '@material-ui/core/styles'
@@ -39,18 +42,9 @@ import NotInterestedIcon from '@material-ui/icons/NotInterested'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
 import Card from '@material-ui/core/Card'
-
+import LinearProgress from '@material-ui/core/LinearProgress'
 
 const axios = require('axios').default
-
-const {
-  utils: {
-      PublicKey,
-      format: {
-          parseNearAmount, formatNearAmount
-      }
-  }
-} = nearAPI
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -66,7 +60,7 @@ const useStyles = makeStyles((theme) => ({
     position: 'fixed',
     top: '50%',
     left: '50%',
-    marginTop: '-200px',
+    marginTop: '-100px',
     marginLeft: '-100px'
   },
     top: {
@@ -136,6 +130,7 @@ export default function AppFramework(props) {
       didRegistryContract,
       near,
       accountId,
+      daoFactory
     } = state
     
     const {
@@ -157,7 +152,6 @@ export default function AppFramework(props) {
 
             const urlParameters = new URLSearchParams(urlVariables)
             let transactionHash = urlParameters.get('transactionHashes')
-           
 
             if(didRegistryContract && near){
 
@@ -179,6 +173,28 @@ export default function AppFramework(props) {
 
                 // *********CHECK FOR TRIGGERS AND EXECUTE*************
 
+                // check for successfully deleted community and log it then redirect to dashboard as contract account is gone
+                let newDelete = get(NEW_DELETE, [])
+                              
+                let u = 0
+                while(u < newDelete.length){
+                  if(newDelete[u].contractId==contractId && newDelete[u].new == true){
+                    let loggedDelete = await logDeleteCommunity(
+                      contractId,
+                      appIdx, 
+                      accountId,
+                      transactionHash)
+                      
+                    if (loggedDelete) {
+                      // newDelete[u].new = false
+                      // set(NEW_DELETE, newDelete)
+                      del(NEW_DELETE)
+                      setChange(!change)
+                      window.location.assign('/')
+                    }
+                  }
+                  u++
+                }
                    // check for first init to log summon and member events
                    let firstInit = get(DAO_FIRST_INIT, [])
               
@@ -195,13 +211,36 @@ export default function AppFramework(props) {
                          transactionHash)
                          
                        if (logged) {
-                         firstInit[c].init = false
-                         set(DAO_FIRST_INIT, firstInit)
+                        //  firstInit[c].init = false
+                        //  set(DAO_FIRST_INIT, firstInit)
+                         del(DAO_FIRST_INIT)
                          setChange(!change)
                        }
                      }
                      c++
                    }
+
+                    // check for and action any community deletions
+                    let deletion = get(COMMUNITY_DELETE, [])
+              
+                    let t = 0
+                    while(t < deletion.length){
+                      if(deletion[t].contractId==contractId && deletion[t].new == true){
+                        let deleted = await deleteCommunity(
+                          daoFactory,
+                          contractId, 
+                          accountId
+                        )
+                          
+                        if (deleted) {
+                          // deletion[t].true = false
+                          // set(COMMUNITY_DELETE, deletion)
+                          del(COMMUNITY_DELETE)
+                          setChange(!change)
+                        }
+                      }
+                      t++
+                    }
    
                    // check for successfully added new proposal to log it
                    let newProposal = get(NEW_PROPOSAL, [])
@@ -219,9 +258,10 @@ export default function AppFramework(props) {
                          )
                          
                        if (loggedProposal) {
-                         newProposal[d].new = false
-                         set(NEW_PROPOSAL, newProposal)
-                         setChange(!change)
+                        //  newProposal[d].new = false
+                        //  set(NEW_PROPOSAL, newProposal)
+                         del(NEW_PROPOSAL)
+                         await renewProposals(thisCurDaoIdx, contract)
                        }
                      }
                      d++
@@ -241,9 +281,10 @@ export default function AppFramework(props) {
                          transactionHash)
                          
                        if (loggedSponsor) {
-                         newSponsor[f].new = false
-                         set(NEW_SPONSOR, newSponsor)
-                         setChange(!change)
+                        //  newSponsor[f].new = false
+                        //  set(NEW_SPONSOR, newSponsor)
+                        del(NEW_SPONSOR)
+                        await renewProposals(thisCurDaoIdx, contract)
                        }
                      }
                      f++
@@ -265,9 +306,10 @@ export default function AppFramework(props) {
                           )
                      
                         if (loggedProcess) {
-                          newProcess[g].new = false
-                          set(NEW_PROCESS, newProcess)
-                          setChange(!change)
+                          // newProcess[g].new = false
+                          // set(NEW_PROCESS, newProcess)
+                          del(NEW_PROCESS)
+                          await renewProposals(thisCurDaoIdx, contract)
                         }
                       }
                       g++
@@ -289,9 +331,10 @@ export default function AppFramework(props) {
                            )
                            
                          if (loggedVote) {
-                           newVotes[x].new = false
-                           set(NEW_VOTE, newVotes)
-                           setChange(!change)
+                          //  newVotes[x].new = false
+                          //  set(NEW_VOTE, newVotes)
+                           del(NEW_VOTE)
+                           await renewProposals(thisCurDaoIdx, contract)
                          }
                        }
                        x++
@@ -310,9 +353,10 @@ export default function AppFramework(props) {
                            transactionHash)
                            
                          if (loggedCancel) {
-                           newCancel[h].new = false
-                           set(NEW_CANCEL, newCancel)
-                           setChange(!change)
+                          //  newCancel[h].new = false
+                          //  set(NEW_CANCEL, newCancel)
+                           del(NEW_CANCEL)
+                           await renewProposals(thisCurDaoIdx, contract)
                          }
                        }
                        h++
@@ -332,9 +376,9 @@ export default function AppFramework(props) {
                          transactionHash)
                          
                        if (loggedDonation) {
-                         newDonation[y].new = false
-                         set(NEW_DONATION, newDonation)
-                         setChange(!change)
+                        //  newDonation[y].new = false
+                        //  set(NEW_DONATION, newDonation)
+                         del(NEW_DONATION)
                        }
                      }
                      y++
@@ -354,13 +398,16 @@ export default function AppFramework(props) {
                          transactionHash)
                          
                        if (loggedExit) {
-                         newExit[a].new = false
-                         set(NEW_EXIT, newExit)
-                         setChange(!change)
+                        //  newExit[a].new = false
+                        //  set(NEW_EXIT, newExit)
+                         del(NEW_EXIT)
+                         await renewProposals(thisCurDaoIdx, contract)
                        }
                      }
                      a++
                    }
+
+                  
 
                    // check for successfully added delegation and log it
                    let newDelegation = get(NEW_DELEGATION, [])
@@ -377,8 +424,11 @@ export default function AppFramework(props) {
                          transactionHash)
                          
                        if (loggedDelegation) {
-                         newDelegation[l].new = false
-                         set(NEW_DELEGATION, newDelegation)
+                        //  newDelegation[l].new = false
+                        //  set(NEW_DELEGATION, newDelegation)
+                         del(NEW_DELEGATION)
+                         let newPeriod = contract.getCurrentPeriod()
+                         setCurrentPeriod(newPeriod)
                          setChange(!change)
                        }
                      }
@@ -400,8 +450,11 @@ export default function AppFramework(props) {
                           transactionHash)
                           
                         if (loggedRevocation) {
-                          newRevocation[m].new = false
-                          set(NEW_REVOCATION, newRevocation)
+                          // newRevocation[m].new = false
+                          // set(NEW_REVOCATION, newRevocation)
+                          del(NEW_REVOCATION)
+                          let newPeriod = contract.getCurrentPeriod()
+                          setCurrentPeriod(newPeriod)
                           setChange(!change)
                         }
                       }
@@ -413,28 +466,24 @@ export default function AppFramework(props) {
                   //  console.log('proposalCheck', proposalCheck)
 
                 //************SYNCH PROPOSALS AND CONTRACT AND MEMBERS */
-                  let proposals
-                  try {
-                    let synched = await synchProposalEvent(thisCurDaoIdx, contract)
-                    if(synched){
-                        proposals = await thisCurDaoIdx.get('proposals', thisCurDaoIdx.id)
-                     
-                      setAllProposals(proposals.events)
-                    }
-                  } catch (err) {
-                    console.log('no proposals yet', err)
-                  }
+                  
+                try {
+                    let proposals = await thisCurDaoIdx.get('proposals', thisCurDaoIdx.id)
+                    setAllProposals(proposals.events)
+                } catch (err) {
+                  console.log('no proposals yet', err)
+                }
 
-                  try {
-                    let synched = await synchMember(thisCurDaoIdx, contract, contractId, accountId)
-                   
-                    if(synched){
-                      let members = await thisCurDaoIdx.get('members', thisCurDaoIdx.id)
-                      setAllMemberInfo(members.events)
-                    }
-                  } catch (err) {
-                    console.log('no members yet', err)
+                try {
+                  let synched = await synchMember(thisCurDaoIdx, contract, contractId, accountId)
+                  
+                  if(synched){
+                    let members = await thisCurDaoIdx.get('members', thisCurDaoIdx.id)
+                    setAllMemberInfo(members.events)
                   }
+                } catch (err) {
+                  console.log('no members yet', err)
+                }
 
                 //************ LOAD COMMUNITY SETTINGS AND INFORMATION */
                      
@@ -506,8 +555,8 @@ export default function AppFramework(props) {
 
                     try {
                       let thisCurrentShare = await contract.getCurrentShare({member: accountId})
-                      setCurrentShare(formatNearAmount(thisCurrentShare, 2))
-                      setFairShareLabel('Current Share: ' + formatNearAmount(thisCurrentShare, 2) + 'Ⓝ')
+                      setCurrentShare(thisCurrentShare)
+                      setFairShareLabel('Current Share: ' + thisCurrentShare + 'Ⓝ')
                     } catch (err) {
                       console.log('no current share yet')
                     }
@@ -527,7 +576,7 @@ export default function AppFramework(props) {
 
                       if(ebalance) {
                         for (let i = 0; i < ebalance.length; i++) {
-                          escrowRow = (<>{formatNearAmount(ebalance[i].balance, 2)} {ebalance[i].token}</>)
+                          escrowRow = (<>{ebalance[i].balance} {ebalance[i].token}</>)
                         }
                       } else {
                         escrowRow = '0 Ⓝ'
@@ -545,7 +594,7 @@ export default function AppFramework(props) {
 
                       if(gbalance) {
                         for (let i = 0; i < gbalance.length; i++) {
-                          guildRow = (<>{formatNearAmount(gbalance[i].balance, 2)} {gbalance[i].token}</>)
+                          guildRow = (<>{gbalance[i].balance} {gbalance[i].token}</>)
                         }
                       } else {
                         guildRow = '0 Ⓝ'
@@ -608,6 +657,19 @@ export default function AppFramework(props) {
 
     function handleTabValueState(value) {
       setTabValue(value)
+    }
+
+    async function renewProposals(curDaoIdx, contract){
+      let proposals
+      try {
+        let synched = await synchProposalEvent(curDaoIdx, contract)
+        if(synched){
+            proposals = await curDaoIdx.get('proposals', curDaoIdx.id)
+          setAllProposals(proposals.events)
+        }
+      } catch (err) {
+        console.log('no proposals yet', err)
+      }
     }
 
     async function handleGuildBalanceChanges() {
@@ -729,16 +791,16 @@ export default function AppFramework(props) {
             <Grid container justify="center" alignItems="center" spacing={1} className={classes.top}>
            
               <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
-                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Fund: {guildBalanceChip} {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '($' + (parseInt(formatNearAmount(guildBalance[0].balance, 2)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : null } </Typography>
+                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Fund: {guildBalanceChip} {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '($' + (parseInt(guildBalance[0].balance) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : <LinearProgress /> } </Typography>
               </Grid>
               <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
-                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Escrow: {escrowBalanceChip} {escrowBalance && escrowBalance.length > 0 ? escrowBalance[0].balance > 0 ? '($' + (parseInt(formatNearAmount(escrowBalance[0].balance, 2)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : null }</Typography>
+                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Escrow: {escrowBalanceChip} {escrowBalance && escrowBalance.length > 0 ? escrowBalance[0].balance > 0 ? '($' + (parseInt(escrowBalance[0].balance) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : <LinearProgress />  }</Typography>
               </Grid>
               <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
-                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Total Shares: {totalShares}</Typography>
+                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Total Shares: {totalShares ? totalShares : <LinearProgress />}</Typography>
               </Grid>
               <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
-                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Share Value: {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '$' + ((formatNearAmount(guildBalance[0].balance, 2)/totalShares)*nearPrice).toFixed(2) + ' USD' : '$0.00 USD' : null }</Typography>
+                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Share Value: {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '$' + ((parseInt(guildBalance[0].balance)/totalShares)*nearPrice).toFixed(2) + ' USD' : '$0.00 USD' : <LinearProgress />  }</Typography>
               </Grid>
             </Grid>
           </Card>
@@ -749,7 +811,6 @@ export default function AppFramework(props) {
               <ProposalList
                 contractId={contractId}
                 curDaoIdx={curDaoIdx}
-               // daoDid={did}
                 proposalEvents={allProposals}
                 allMemberInfo={allMemberInfo}
                 contract={daoContract}

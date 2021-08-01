@@ -87,7 +87,6 @@ export default function Donation(props) {
       makeDonation(
         state.wallet,
         contractId,
-        depositToken,
         contributor,
         donation
         )

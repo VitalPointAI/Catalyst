@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
-import { makeDonation, formatNearAmount } from '../../state/near'
+import { makeDonation } from '../../state/near'
 
 // Material UI components
 import Button from '@material-ui/core/Button'

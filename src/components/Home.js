@@ -30,7 +30,7 @@ const useStyles = makeStyles((theme) => ({
         position: 'fixed',
         top: '50%',
         left: '50%',
-        marginTop: '-200px',
+        marginTop: '-100px',
         marginLeft: '-100px'
       },
     paper: {

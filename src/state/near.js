@@ -1,14 +1,15 @@
 import * as nearAPI from 'near-api-js'
 import { get, set, del } from '../utils/storage'
-import { ceramic } from '../utils/ceramic'
+import { APP_OWNER_ACCOUNT, ceramic } from '../utils/ceramic'
 import { factory } from '../utils/factory'
 import { dao } from '../utils/dao'
 
 import { config } from './config'
 
 export const {
-    FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT, DAO_FIRST_INIT, CURRENT_DAO, REDIRECT,
-    NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, OPPORTUNITY_REDIRECT, NEW_PROCESS, NEW_VOTE, IPFS_PROVIDER, NEW_DONATION, NEW_EXIT, NEW_RAGE, NEW_DELEGATION, NEW_REVOCATION,
+    FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT, DAO_FIRST_INIT, 
+    CURRENT_DAO, REDIRECT, NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, OPPORTUNITY_REDIRECT, NEW_PROCESS, NEW_VOTE, 
+    IPFS_PROVIDER, NEW_DONATION, NEW_EXIT, NEW_RAGE, NEW_DELEGATION, NEW_REVOCATION, COMMUNITY_DELETE, NEW_DELETE,
     networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix, explorerUrl,
     contractName, didRegistryContractName, factoryContractName
 } = config
@@ -66,8 +67,8 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     })
 
     const daoFactoryContract = new nearAPI.Contract(wallet.account(), factoryContractName, {
-        viewMethods: ['getDaoList'],
-        changeMethods: ['createDemDAO'],
+        viewMethods: ['getDaoList', 'getDaoListLength', 'getDaoIndex'],
+        changeMethods: ['createDAO', 'deleteDAO'],
     })
 
     wallet.isAccountTaken = async (accountId) => {
@@ -149,7 +150,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
                     set(REDIRECT, {action: true, link: link})
 
                     if(result){
-                        await daoFactoryContract.createDemDAO({ accountId: accountId, deposit: FACTORY_DEPOSIT }, GAS, parseNearAmount(FACTORY_DEPOSIT))
+                        await daoFactoryContract.createDAO({ accountId: accountId, deposit: FACTORY_DEPOSIT }, GAS, parseNearAmount(FACTORY_DEPOSIT))
                     }
                  
                 }
@@ -468,6 +469,7 @@ export async function initDao(wallet, contractId, periodDuration, votingPeriodLe
         set(DAO_FIRST_INIT, firstInit)
        
         await daoContract.init({
+            _approvedTokens: ['Ⓝ'],
             _periodDuration: parseInt(periodDuration),
             _votingPeriodLength: parseInt(votingPeriodLength),
             _gracePeriodLength: parseInt(gracePeriodLength),
@@ -547,8 +549,6 @@ async function sendMessage(content, type, type2, data, curDaoIdx){
 export async function submitProposal(
     wallet, 
     contractId, 
-    depositToken, 
-    proposalDeposit, 
     proposalType, 
     applicant, 
     loot, 
@@ -559,6 +559,8 @@ export async function submitProposal(
    
     const daoContract = await dao.initDaoContract(wallet.account(), contractId)
     const proposalId = await daoContract.getProposalsLength()
+    const proposalDeposit = await daoContract.getProposalDeposit()
+    const depositToken = await daoContract.getDepositToken()
 
     // set trigger for to log new proposal
     let newProposal = get(NEW_PROPOSAL, [])
@@ -572,16 +574,14 @@ export async function submitProposal(
             // set redirect for new member from an opportunity
             set(OPPORTUNITY_REDIRECT, {action: true, contractId: contractId})
 
-            await daoContract.submitProposal({
+            await daoContract.submitMemberProposal({
                 a: applicant,
                 sR: sharesRequested,
                 lR: loot,
-                tO: parseNearAmount(tribute),
+                tO: tribute,
                 tT: depositToken,
-                pR: parseNearAmount(paymentRequested),
-                pT: depositToken,
                 contractId: contractId
-                }, GAS, parseNearAmount((parseInt(tribute) + parseInt(formatNearAmount(proposalDeposit))).toString()))
+                }, GAS, parseNearAmount(((parseInt(tribute) + parseInt(lR) + parseInt(proposalDeposit)).toString())))
             } catch (err) {
                 console.log('submit member proposal failed', err)
                 return false
@@ -592,13 +592,10 @@ export async function submitProposal(
             await daoContract.submitTributeProposal({
                 a: applicant,
                 sR: sharesRequested,
-                lR: loot,
-                tO: parseNearAmount(tribute),
+                tO: tribute,
                 tT: depositToken,
-                pR: parseNearAmount(paymentRequested),
-                pT: depositToken,
                 contractId: contractId
-                }, GAS, parseNearAmount((parseInt(tribute) + parseInt(formatNearAmount(proposalDeposit))).toString()))
+                }, GAS, parseNearAmount(((parseInt(tribute) + parseInt(proposalDeposit)).toString())))
             } catch (err) {
                 console.log('submit tribute proposal failed', err)
                 return false
@@ -611,11 +608,10 @@ export async function submitProposal(
 
                 await daoContract.submitCommitmentProposal({
                     applicant: applicant,
-                    depositToken: depositToken,
-                    paymentRequested: parseNearAmount(paymentRequested),
+                    paymentRequested: paymentRequested,
                     paymentToken: depositToken,
                     contractId: contractId
-                    }, GAS, proposalDeposit)
+                    }, GAS, parseNearAmount(proposalDeposit))
                 } catch (err) {
                     console.log('submit commitment proposal failed', err)
                     return false
@@ -625,11 +621,9 @@ export async function submitProposal(
             try{
                 await daoContract.submitConfigurationProposal({
                     applicant: applicant,
-                    depositToken: depositToken,
-                    paymentToken: depositToken,
                     configuration: configuration,
                     contractId: contractId
-                    }, GAS, proposalDeposit)
+                    }, GAS, parseNearAmount(proposalDeposit))
                 } catch (err) {
                     console.log('submit configuration proposal failed', err)
                     return false
@@ -639,9 +633,8 @@ export async function submitProposal(
             try{
                 await daoContract.submitOpportunityProposal({
                     creator: applicant,
-                    depositToken: depositToken,
                     contractId: contractId
-                    }, GAS, proposalDeposit)
+                    }, GAS, parseNearAmount(proposalDeposit))
                 } catch (err) {
                     console.log('submit opportunity proposal failed', err)
                     return false
@@ -649,16 +642,12 @@ export async function submitProposal(
                 break
         case 'Payout':
             try{
-                await daoContract.submitProposal({
+                await daoContract.submitPayoutProposal({
                     a: applicant,
-                    sR: sharesRequested,
-                    lR: loot,
-                    tO: parseNearAmount(tribute),
-                    tT: depositToken,
-                    pR: parseNearAmount(paymentRequested),
+                    pR: paymentRequested,
                     pT: depositToken,
                     contractId: contractId
-                    }, GAS, proposalDeposit)
+                    }, GAS, parseNearAmount(proposalDeposit))
                 } catch (err) {
                     console.log('submit payout proposal failed', err)
                     return false
@@ -683,7 +672,7 @@ export async function sponsorProposal(daoContract, contractId, proposalId, depos
             pI: proposalId,
             depositToken: depositToken,
             contractId: contractId
-            }, GAS, proposalDeposit)
+            }, GAS, parseNearAmount(proposalDeposit))
 
 
     } catch (err) {
@@ -696,9 +685,10 @@ export async function sponsorProposal(daoContract, contractId, proposalId, depos
 }
 
 // Make a Donation
-export async function makeDonation(wallet, contractId, donationToken, contributor, donation) {
+export async function makeDonation(wallet, contractId, contributor, donation) {
     const daoContract = await dao.initDaoContract(wallet.account(), contractId)
     const donationId = await daoContract.getDonationsLength()
+    const depositToken = await daoContract.getDepositToken()
     try {
         // set trigger for to log new donation
         let newDonation = get(NEW_DONATION, [])
@@ -708,8 +698,9 @@ export async function makeDonation(wallet, contractId, donationToken, contributo
         await daoContract.makeDonation({
             args: {
                 contractId: contractId,
-                token: donationToken,
-                amount: parseNearAmount(0)
+                contributor: contributor,
+                token: depositToken,
+                amount: donation
             },
             gas: GAS,
             amount: parseNearAmount(donation),
@@ -844,10 +835,8 @@ export async function leaveCommunity(daoContract, contractId, share, accountId, 
 
         // format amount properly
         let floatAmount = parseFloat(share)
-        
         let nearAmount = parseNearAmount(floatAmount.toString())
      
-
         // set trigger for new donation if share is not the total share
         if(share < entitlement){
         const donationId = await daoContract.getDonationsLength()
@@ -858,10 +847,24 @@ export async function leaveCommunity(daoContract, contractId, share, accountId, 
         set(NEW_DONATION, newDonation)
         }
 
+        // check if this is the last member and if so, set trigger to delete the community
+        let totalMembers
+        try {
+            totalMembers = await daoContract.getTotalMembers()
+            if(totalMembers == 1){
+                let communityDelete = get(COMMUNITY_DELETE, [])
+                communityDelete.push({contractId: contractId, new: true})
+                set(COMMUNITY_DELETE, communityDelete)
+            }
+        } catch (err) {
+            console.log('no members', err)
+            return false
+        }
+
         await daoContract.leave({
+            contractId: contractId,
             accountId: accountId,
             share: nearAmount,
-            contractId: contractId
             }, GAS)
 
     } catch (err) {
@@ -871,8 +874,29 @@ export async function leaveCommunity(daoContract, contractId, share, accountId, 
     return true
 }
 
+// Delete Community
+export async function deleteCommunity(factoryContract, contractId, accountId) {
+
+    // set trigger for new community delete
+    let newDelete = get(NEW_DELETE, [])
+    newDelete.push({contractId: contractId, accountId: accountId, new: true})
+    set(NEW_DELETE, newDelete)
+
+    try{
+        await factoryContract.deleteDAO({
+            accountId: contractId,
+            beneficiary: APP_OWNER_ACCOUNT
+            }, GAS)
+
+    } catch (err) {
+        console.log('delete community failed', err)
+        return false
+    }
+    return true
+}
+
 // Cancel a DAO Proposal
-export async function cancelProposal(daoContract, contractId, proposalId, proposalDeposit, tribute = 0) {
+export async function cancelProposal(daoContract, contractId, proposalId, loot = 0, tribute = 0) {
 
     try {
         // set trigger for to log new proposal
@@ -882,32 +906,12 @@ export async function cancelProposal(daoContract, contractId, proposalId, propos
 
         await daoContract.cancelProposal({
             pI: proposalId,
-            deposit: proposalDeposit,
-            tribute: tribute
+            tribute: tribute,
+            loot: loot
             }, GAS)
 
     } catch (err) {
         console.log('cancel proposal failed', err)
-        return false
-    }
-    return true
-}
-
-// Delete a DAO
-export async function deleteDao(daoContract, contractId) {
-
-    try {
-        // set trigger for to log new proposal
-        let newDelete = get(NEW_DELETE, [])
-        newDelete.push({contractId: contractId, proposalId: proposalId, new: true})
-        set(NEW_DELETE, newDelete)
-
-        await daoContract.deleteDAO({
-            beneficiary: accountId
-            }, GAS)
-
-    } catch (err) {
-        console.log('delete proposal failed', err)
         return false
     }
     return true
@@ -922,17 +926,22 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
     let proposalEventRecord
     try{
         contractProposals = await daoContract.getProposalsLength()
-      
+        console.log('synch contract proposal length', contractProposals)
     } catch (err) {
         console.log('problem retrieving proposal length', err)
     }
-    proposalEventRecord = await curDaoIdx.get('proposals', curDaoIdx.id)
-  
 
+    try{
+        proposalEventRecord = await curDaoIdx.get('proposals', curDaoIdx.id)
+    } catch (err) {
+        console.log('problem retreiving proposal events', err)
+    }
+  
     if(!proposalEventRecord){
         proposalEventRecord = { events: [] }
     }
-    
+    console.log('synch proposal events', proposalEventRecord.events)
+    console.log('synch proposal record events length', proposalEventRecord.events.length)
     if(proposalEventRecord.events.length != contractProposals){
         if(proposalEventRecord.events.length < contractProposals) {
             let i = 0
@@ -987,7 +996,11 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
         } else 
         if(proposalEventRecord.events.length > contractProposals){
             proposalEventRecord = { events: [] }
-
+            try {
+                await curDaoIdx.set('proposals', proposalEventRecord)
+            } catch (err) {
+                console.log('error emptying proposals', err)
+            }
             let i = 0
             while (i < contractProposals){
                 let proposal = await daoContract.getProposal({proposalId: i})
@@ -1028,35 +1041,28 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
                 console.log('error logging proposal', err)
             }
         }
-    } else {
-
     }
+
     return true
 }
 
-// Synch Current Member to Log
+// // Synch Current Member to Log
 export async function synchMember(curDaoIdx, daoContract, contractId, accountId) {
 
     let exists = false
-
     let member
-    let summoner
+ 
     try{
         member = await daoContract.getMemberInfo({member: accountId})
-        summoner = await daoContract.getSummoner()
-     
     } catch (err) {
         console.log('current user does not appear to be a member', err)
     }
 
     let logMembers = await curDaoIdx.get('members', curDaoIdx.id)
 
-
     if(!logMembers){
         logMembers = { events: [] }
     }
-
-    //add summoner as needed
 
     let i = 0
     if(member && member.length > 0){
@@ -1070,7 +1076,7 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId)
         }
 
         if(!exists){
-           
+        
             let memberId = generateId()
 
             let indivMemberRecord = {
@@ -1090,17 +1096,15 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId)
             }
         
             logMembers.events.push(indivMemberRecord)
-          
-            
+        
             try {
-            await curDaoIdx.set('members', logMembers)
-           
+                await curDaoIdx.set('members', logMembers)
             } catch (err) {
                 console.log('error adding new member', err)
             }
         }
+        return true
     }
-    return true
 }
 
 // Adds Dao to list of all DAOs running on Catalyst
@@ -1304,8 +1308,8 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
     }
 }
 
-// Logs the initial member and summoning event when a DAO is created
-export async function logExitEvent (contractId, curDaoIdx, daoContract, accountId, transactionHash) {
+// Logs when a member decides to leave a community
+export async function logExitEvent(contractId, curDaoIdx, daoContract, accountId, transactionHash) {
     let memberLogged = false
     let member
     try {
@@ -1368,6 +1372,48 @@ export async function logExitEvent (contractId, curDaoIdx, daoContract, accountI
         memberLogged = true    
     }
     if(memberLogged){
+        return true
+    } else {
+        return false
+    }
+}
+
+// Logs a deleted community
+export async function logDeleteCommunity(contractId, appIdx, accountId, transactionHash) {
+    let dataLogged = false
+
+    // Log Deletion Data
+    let dataRecord = await appIdx.get('daoDeletionData', appIdx.id)
+    if(!dataRecord){
+        dataRecord = { data: [] }
+    }
+    
+     // Associated Proposal Data to Log
+
+    let dataObject = {
+        accountId: accountId, // last member
+        contractId: contractId,
+        deleteTime: Date.now(),
+        transactionHash: transactionHash,
+    }
+
+    let individualDataRecord = {
+        dataType: 'newCommunityDelete',
+        contractId: contractId,
+        data: dataObject
+    }
+
+    dataRecord.data.push(individualDataRecord)
+    console.log('proposalData.data', dataRecord.data)
+
+    try {
+        await appIdx.set('daoDeletionData', dataRecord)
+        dataLogged = true
+    } catch (err) {
+        console.log('error logging dao deletion', err)
+    }
+
+    if(dataLogged){
         return true
     } else {
         return false

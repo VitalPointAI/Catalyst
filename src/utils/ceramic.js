@@ -32,6 +32,7 @@ import { memberDataSchema } from '../schemas/analytics/memberData'
 import { proposalDataSchema } from '../schemas/analytics/proposalData'
 import { votingDataSchema } from '../schemas/analytics/votingData'
 import { configurationProposalDetailsSchema} from '../schemas/configurationProposals'
+import { daoDeletionSchema } from '../schemas/analytics/deletedDAOs'
 
 import { config } from '../state/config'
 
@@ -521,6 +522,7 @@ async makeSeed(account){
     const proposalData = this.getAlias(APP_OWNER_ACCOUNT, 'proposalData', appClient, proposalDataSchema, 'proposal data', contract)
     const votingData = this.getAlias(APP_OWNER_ACCOUNT, 'votingData', appClient, votingDataSchema, 'voting data', contract)
     const configurationProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'configurationProposalDetails', appClient, configurationProposalDetailsSchema, 'configuration proposal details', contract)
+    const daoDeletionData = this.getAlias(APP_OWNER_ACCOUNT, 'daoDeletionData', appClient, daoDeletionSchema, 'dao deletion data', contract)
 
     const done = await Promise.all([
       appDid, 
@@ -545,7 +547,8 @@ async makeSeed(account){
       memberData,
       proposalData,
       votingData,
-      configurationProposalDetails
+      configurationProposalDetails,
+      daoDeletionData
     ])
     
     let rootAliases = {
@@ -570,7 +573,8 @@ async makeSeed(account){
       memberData: done[19],
       proposalData: done[20],
       votingData: done[21],
-      configurationProposalDetails: done[22]
+      configurationProposalDetails: done[22],
+      daoDeletionData: done[23]
     }
 
     const appIdx = new IDX({ ceramic: appClient, aliases: rootAliases})

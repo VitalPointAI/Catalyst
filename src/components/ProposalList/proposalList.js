@@ -156,7 +156,7 @@ export default function ProposalList(props) {
           proposalEvents[i].voted = result == 'yes' || result == 'no'? true : false
           i++
       }
-
+      currentPeriod
       
       let newLists = await resolveStatus(proposalEvents)
       console.log('newlists', newLists)
@@ -192,10 +192,6 @@ export default function ProposalList(props) {
       fetchData()
     }
 
-    
-  
-    
-   
   },[proposalEvents, allMemberInfo, currentPeriod])
 
   const handleTabChange = (event, newValue) => {
@@ -231,10 +227,10 @@ export default function ProposalList(props) {
     return <MuiAlert elevation={6} variant="filled" {...props} />
   }
 
-  async function handleCancelAction(proposalId, proposalDeposit, tribute) {
+  async function handleCancelAction(proposalId, loot, tribute) {
     setCancelFinish(false)
     try{
-      await cancelProposal(contract, contractId, proposalId, proposalDeposit, tribute)
+      await cancelProposal(contract, contractId, proposalId, loot, tribute)
     } catch (err) {
       console.log('problem cancelling proposal', err)
     }
@@ -289,13 +285,13 @@ export default function ProposalList(props) {
     return type
   }
 
-  function getVotingPeriod(startPeriod, votePeriod) {
-    let votingPeriod = currentPeriod >= startPeriod && currentPeriod <= votePeriod
+  function getVotingPeriod(startPeriod, votePeriod, isFinalized) {
+    let votingPeriod = currentPeriod >= startPeriod && currentPeriod <= votePeriod && !isFinalized
     return votingPeriod
   }
 
-  function getGracePeriod(votePeriod, grPeriod) {
-      let gracePeriod = currentPeriod > votePeriod && currentPeriod <= grPeriod
+  function getGracePeriod(votePeriod, grPeriod, isFinalized) {
+      let gracePeriod = currentPeriod > votePeriod && currentPeriod <= grPeriod && isFinalized
       return gracePeriod
   }
 
@@ -339,8 +335,9 @@ export default function ProposalList(props) {
      console.log('requests fr', fr)
         status = getStatus(fr.flags)
         proposalType = getProposalType(fr.flags)
-        let isVotingPeriod = getVotingPeriod(fr.startingPeriod, fr.votingPeriod)
-        let isGracePeriod = getGracePeriod(fr.votingPeriod, fr.gracePeriod)
+        let isFinalized = fr.voteFinalized != 0 ? true : false
+        let isVotingPeriod = getVotingPeriod(fr.startingPeriod, fr.votingPeriod, isFinalized)
+        let isGracePeriod = getGracePeriod(fr.votingPeriod, fr.gracePeriod, isFinalized)
         let disabled
         let isDisabled = isVotingPeriod ? disabled = false : disabled = true       
 
@@ -730,7 +727,7 @@ export default function ProposalList(props) {
           proposer={fr[0].proposer}
           sponsor={fr[0].sponsor}
           funding={fr[0].funding}
-          requestId={fr[0].requestId}
+          requestId={parseInt(fr[0].requestId)}
           shares={fr[0].shares}
           tribute={fr[0].tribute}
           loot={fr[0].loot}

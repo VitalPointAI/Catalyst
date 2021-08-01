@@ -101,7 +101,6 @@ export default function RageQuit(props) {
       await rageQuit(
         state.wallet,
         contractId,
-        depositToken,
         sharesToBurn,
         lootToBurn
         )

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
-import { submitProposal, formatNearAmount, parseNearAmount } from '../../state/near'
+import { submitProposal } from '../../state/near'
 import { appStore, onAppMount } from '../../state/app'
 
 // ReactQuill Component
@@ -118,7 +118,7 @@ export default function ConfigurationProposal(props) {
                 result[0][1] ? setPeriodDuration(result[0][1]) : setPeriodDuration('')
                 result[0][2] ? setVotingPeriodLength(result[0][2]) : setVotingPeriodLength('')
                 result[0][3] ? setGracePeriodLength(result[0][3]) : setGracePeriodLength('')
-                result[0][4] ? setProposalDeposit(formatNearAmount(result[0][4])) : setProposalDeposit('')
+                result[0][4] ? setProposalDeposit(result[0][4]) : setProposalDeposit('')
                 result[0][5] ? setDilutionBound(result[0][5]) : setDilutionBound('')
                 result[0][6] ? setVoteThreshold(result[0][6]) : setVoteThreshold('')
                 return true
@@ -183,8 +183,6 @@ export default function ConfigurationProposal(props) {
       await submitProposal(
         wallet,
         contractId,
-        depositToken,
-        parseNearAmount(proposalDeposit),
         'Configuration',
         accountId,
         '0',

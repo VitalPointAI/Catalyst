@@ -18,7 +18,7 @@ export default function RandomPhrase(props) {
     const classes = useStyles()
     
     const randomPhrases = [
-        'Catalyst is build on NEAR Protocol and Ceramic IDX',
+        'Catalyst is built on NEAR Protocol and Ceramic IDX',
         'We like to think that we are catalyzing the future of communities with Catalyst',
         'It will not be much longer now, we promise.',
         'We are retrieving all kinds of data goodness from the decentralized, open web.',

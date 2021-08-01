@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 import { dao } from '../../utils/dao'
-import { formatNearAmount, explorerUrl } from '../../state/near'
+import { explorerUrl } from '../../state/near'
 import Persona from '@aluhning/get-personas-js'
 
 import EditMemberProposalForm from '../EditProposal/editMemberProposal'
@@ -187,7 +187,6 @@ export default function ProposalCard(props) {
         handleProcessAction,
         handleRageQuitClick,
         curDaoIdx,
-        daoDid,
         memberStatus,
         contract,
         summoner,
@@ -995,7 +994,7 @@ export default function ProposalCard(props) {
               <Grid container alignItems="center" justify="space-evenly" style={{marginBottom:'5px'}}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-20px'}}>
                   <Typography variant="overline">Shares: {shares}</Typography><br></br>
-                  <Typography variant="overline">{`Tribute: ${formatNearAmount(tribute)} Ⓝ`}</Typography>
+                  <Typography variant="overline">{`Tribute: ${tribute} Ⓝ`}</Typography>
                 </Grid>
               </Grid>
             ) : null }
@@ -1019,7 +1018,7 @@ export default function ProposalCard(props) {
                   <Typography variant="h6" align="center" style={{marginBottom: '10px'}}>Funding Requested</Typography>
                 </Grid>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                  <Typography variant="h5" align="center">{`${formatNearAmount(funding)} Ⓝ`}</Typography>
+                  <Typography variant="h5" align="center">{`${funding} Ⓝ`}</Typography>
                 </Grid>
               </Grid>
             ) : null}
@@ -1028,7 +1027,7 @@ export default function ProposalCard(props) {
               <Grid container alignItems="center" justify="space-evenly" style={{marginBottom:'5px'}}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-20px'}}>
                   <Typography variant="overline">Shares: {shares}</Typography><br></br>
-                  <Typography variant="overline">{`Tribute: ${formatNearAmount(tribute)} Ⓝ`}</Typography>
+                  <Typography variant="overline">{`Tribute: ${tribute} Ⓝ`}</Typography>
                 </Grid>
               </Grid>
             ) : null }
@@ -1042,7 +1041,7 @@ export default function ProposalCard(props) {
                   <Typography variant="h6" align="center" style={{marginBottom: '10px'}}>Payout Requested</Typography>
                 </Grid>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                  <Typography variant="h5" align="center">{`${formatNearAmount(funding)} Ⓝ`}</Typography>
+                  <Typography variant="h5" align="center">{`${funding} Ⓝ`}</Typography>
                 </Grid>
               </Grid>
             ) : null}
@@ -1199,7 +1198,7 @@ export default function ProposalCard(props) {
               <Grid item xs={8} sm={8} md={8} lg={8} xl={8} align="right">
                 {accountId == proposer && status == 'Submitted' ? 
                 cancelFinish ? 
-                  <><Button color="primary" onClick={() => handleCancelAction(requestId, proposalDeposit, tribute)}>
+                  <><Button color="primary" onClick={() => handleCancelAction(requestId, loot, tribute)}>
                     Cancel
                   </Button>
                   {proposalType === 'Member' || proposalType === 'GuildKick' ? (
