@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
+import * as nearAPI from 'near-api-js'
 import { leaveCommunity, formatNearAmount, parseNearAmount } from '../../state/near'
 
 // Material UI components
@@ -69,20 +70,17 @@ export default function Leave(props) {
     () => {
 
       async function fetchData(){
-        if(contractId && daoContract){
+        if(contractId && daoContract && state){
           let totalMembers = await daoContract.getTotalMembers()
           setCurrentMembers(totalMembers)
           setShare(fairShare)
           
           let account
           try {
-              account = await state.near.connection.provider.query({
-                  request_type: "view_account",
-                  finality: "final",
-                  account_id: contractId,
-              })
+              account = new nearAPI.Account(state.near.connection, contractId);
 
-              let balance = await state.account.getAccountBalance()
+              let balance = await account.getAccountBalance()
+              console.log('balance', balance)
               setBalanceAvailable((balance.available).toString())
           
           

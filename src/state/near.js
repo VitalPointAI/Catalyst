@@ -1053,12 +1053,14 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId)
  
     try{
         member = await daoContract.getMemberInfo({member: accountId})
+        console.log('member here', member)
     } catch (err) {
+        
         console.log('current user does not appear to be a member', err)
     }
 
     let logMembers = await curDaoIdx.get('members', curDaoIdx.id)
-
+    console.log('logmembers', logMembers)
     if(!logMembers){
         logMembers = { events: [] }
     }
@@ -1104,6 +1106,7 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId)
         }
         return true
     }
+    return true
 }
 
 // Adds Dao to list of all DAOs running on Catalyst
