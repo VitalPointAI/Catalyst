@@ -150,7 +150,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
                     set(REDIRECT, {action: true, link: link})
 
                     if(result){
-                        await daoFactoryContract.createDAO({ accountId: accountId, deposit: FACTORY_DEPOSIT }, GAS, parseNearAmount(FACTORY_DEPOSIT))
+                        await daoFactoryContract.createDAO({ accountId: accountId, deposit: FACTORY_DEPOSIT}, GAS, parseNearAmount(FACTORY_DEPOSIT))
                     }
                  
                 }
@@ -249,8 +249,10 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     if(!existingDid){
         curUserIdx = await ceramic.getCurrentUserIdxNoDid(appIdx, didRegistryContract, account, null, null, accountId)
     }
+
+
    
-    update('', { didRegistryContract, appIdx, accountId, curUserIdx, daoFactory, currentDaosList })
+    update('', { didRegistryContract, appIdx, account, accountId, curUserIdx, daoFactory, currentDaosList })
     
     if(curUserIdx){
         // check localLinks, see if they're still valid
@@ -825,7 +827,7 @@ export async function rageQuit(daoContract, contractId, accountId, sharesToBurn,
 }
 
 // Leave Community
-export async function leaveCommunity(daoContract, contractId, share, accountId, entitlement) {
+export async function leaveCommunity(daoContract, contractId, share, accountId, entitlement, balanceAvailable) {
 
     try {
         // set trigger for to log member exit
@@ -833,18 +835,14 @@ export async function leaveCommunity(daoContract, contractId, share, accountId, 
         newExit.push({contractId: contractId, account: accountId, new: true, share: share})
         set(NEW_EXIT, newExit)
 
-        // format amount properly (to allow fractional amounts of NEAR)
-        // let floatAmount = parseFloat(share)
-        // let nearAmount = parseNearAmount(floatAmount.toString())
-     
         // set trigger for new donation if share is not the total share
         if(share < entitlement){
-        const donationId = await daoContract.getDonationsLength()
-        
-        // set trigger for to log new proposal
-        let newDonation = get(NEW_DONATION, [])
-        newDonation.push({contractId: contractId, donationId: donationId, contributor: accountId, new: true})
-        set(NEW_DONATION, newDonation)
+            const donationId = await daoContract.getDonationsLength()
+            
+            // set trigger for to log new proposal
+            let newDonation = get(NEW_DONATION, [])
+            newDonation.push({contractId: contractId, donationId: donationId, contributor: accountId, new: true})
+            set(NEW_DONATION, newDonation)
         }
 
         // check if this is the last member and if so, set trigger to delete the community
@@ -865,6 +863,8 @@ export async function leaveCommunity(daoContract, contractId, share, accountId, 
             contractId: contractId,
             accountId: accountId,
             share: share,
+            remainingBalance: balanceAvailable,
+            appOwner: APP_OWNER_ACCOUNT
             }, GAS)
 
     } catch (err) {
@@ -884,8 +884,7 @@ export async function deleteCommunity(factoryContract, contractId, accountId) {
 
     try{
         await factoryContract.deleteDAO({
-            accountId: contractId,
-            beneficiary: APP_OWNER_ACCOUNT
+            accountId: contractId
             }, GAS)
 
     } catch (err) {

@@ -128,7 +128,7 @@ export default function AddDaoForm(props) {
                         />
                     {errors.id && <p style={{color: 'red'}}>You must provide an community account name.</p>}
                     <div>
-                        {app.accountTaken ? 'Dao name is already taken' : null}
+                        {app.accountTaken ? 'Community name is already taken' : null}
                     </div>                
                    
                     <Card>
@@ -150,8 +150,8 @@ export default function AddDaoForm(props) {
           
                           <Grid item xs={11} sm={11} md={11} lg={11} xl={11} style={{margin:'auto'}}>
                               <WarningIcon fontSize='large' className={classes.warning} />
-                              <Typography variant="body2" gutterBottom>Creating a community requires you to deposit <b>{parseInt(FACTORY_DEPOSIT)} Ⓝ</b>.</Typography>
-                              <Typography variant="body2">The <b>{FACTORY_DEPOSIT} Ⓝ</b> you are about to transfer covers the cost of storage of the code that runs the community on the NEAR blockchain.  As this is a decentralized community, you will have to submit a proposal that passes in order to shut down the community and recover this deposit.</Typography>     
+                              <Typography variant="body2" gutterBottom>Creating a community requires <b>{parseInt(FACTORY_DEPOSIT)} Ⓝ</b>.</Typography>
+                              <Typography variant="body2">The <b>{FACTORY_DEPOSIT} Ⓝ</b> you are about to transfer covers storage costs on the NEAR chain and is non-refundable.</Typography>     
                           </Grid>
                         </Grid>
                       </CardContent>

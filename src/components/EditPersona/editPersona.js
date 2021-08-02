@@ -43,6 +43,8 @@ import { CircularProgress } from '@material-ui/core'
 import { QueryBuilder } from '@material-ui/icons'
 import { truncate } from 'fs'
 
+const axios = require('axios').default
+
 const useStyles = makeStyles((theme) => ({
     progress: {
       width: '100%',
@@ -256,7 +258,7 @@ export default function EditPersonaForm(props) {
     const handleAirtableClick = async function(){
       if(airtableClicked == false)
       {
-        let axios = require('axios')
+       
         let accessVariables = await axios.get('https://vpbackend-apim.azure-api.net/airtable')
         let Airtable = require('airtable');
         let base = new Airtable({apiKey: accessVariables.data.airtableKey}).base(accessVariables.data.contributorBase);
@@ -470,7 +472,6 @@ export default function EditPersonaForm(props) {
                                   id = "profile-language"
                                   value = {language}
                                   onChange = {handleLanguageChange}
-                                  helperText = "Select all that apply"
                                   input={<Input />}
                                   >
                                   {languages.map((language) => (
@@ -479,6 +480,7 @@ export default function EditPersonaForm(props) {
                                       </MenuItem>
                                     ))}
                                   </Select>
+                                  <FormHelperText>Select the languages you are comfortable with.</FormHelperText>
                                 </FormControl>
                               </Grid>
                             </Grid>

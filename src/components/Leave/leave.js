@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
-import { leaveCommunity } from '../../state/near'
+import { leaveCommunity, formatNearAmount, parseNearAmount } from '../../state/near'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -52,6 +52,7 @@ export default function Leave(props) {
   const [share, setShare] = useState('')
   const [confirm, setConfirm] = useState(false)
   const [currentMembers, setCurrentMembers] = useState()
+  const [balanceAvailable, setBalanceAvailable] = useState('')
   
   const classes = useStyles()
   const { register, handleSubmit, watch, errors } = useForm()
@@ -72,6 +73,22 @@ export default function Leave(props) {
           let totalMembers = await daoContract.getTotalMembers()
           setCurrentMembers(totalMembers)
           setShare(fairShare)
+          
+          let account
+          try {
+              account = await state.near.connection.provider.query({
+                  request_type: "view_account",
+                  finality: "final",
+                  account_id: contractId,
+              })
+
+              let balance = await state.account.getAccountBalance()
+              setBalanceAvailable((balance.available).toString())
+          
+          
+            } catch (err) {
+              console.log('problem retrieving account', err)
+          }
         }
       }
       fetchData()
@@ -98,7 +115,8 @@ export default function Leave(props) {
                       contractId,
                       share,
                       state.accountId,
-                      fairShare
+                      fairShare,
+                      balanceAvailable
                       )
             
     } catch (err) {

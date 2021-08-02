@@ -246,7 +246,6 @@ async makeSeed(account){
   }
 
   async initiateDidRegistryContract(account) {    
-   
     // initiate the contract so its associated with this current account and exposing all the methods
     let didRegistryContract = new nearApiJs.Contract(account, didRegistryContractName, {
       viewMethods: [

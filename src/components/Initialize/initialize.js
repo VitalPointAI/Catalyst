@@ -346,7 +346,7 @@ export default function Initialize(props) {
                   variant="contained"
                   color="primary"
                   onClick={handleSubmit(onSubmit)}>
-                    INITIALIZE DAO
+                    INITIALIZE COMMUNITY DAO
                   </Button>
                 </Grid>
               </Grid>
@@ -354,7 +354,7 @@ export default function Initialize(props) {
           </Card>
         </Grid>
       </Grid>
-        ) : 'DAO not initialized yet'}
+        ) : 'Community not initialized yet'}
         </>
     )
   

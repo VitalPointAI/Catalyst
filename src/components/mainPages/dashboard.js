@@ -112,7 +112,7 @@ export default function Dashboard(props) {
       appIdx,
       didRegistryContract,
     } = state
-
+    
     console.log('curDaosList', currentDaosList)
     useEffect(
         () => {
@@ -250,6 +250,7 @@ export default function Dashboard(props) {
                         k++
                         }
                         console.log('activitydataframe', activityDataFrame)
+                       
                         let account
                         let balance = 0
                         if(contractId != ''){
@@ -331,19 +332,29 @@ export default function Dashboard(props) {
                         while (i < currentDaosList.length){
                             let thisCurDaoIdx
                             let daoAccount
+                            let singleDaoOpportunity
                             try{
                               daoAccount = new nearAPI.Account(near.connection, currentDaosList[i].contractId)
                             } catch (err) {
                               console.log('no account', err)
                             }
-                            thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
-                        
-                            let singleDaoOpportunity = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
-                        //let singleDaoOpportunity = await data.getOpportunities(currentDaosList[i].contractId)
-                        console.log('singleDaoopportunity', singleDaoOpportunity)
-                        if(singleDaoOpportunity && Object.keys(singleDaoOpportunity).length > 0){
-                            allOpportunities.push(singleDaoOpportunity.opportunities[0])
-                        }
+                            try{
+                                thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+                                console.log('curdaoidx here', thisCurDaoIdx)
+                            } catch (err) {
+                                console.log('error getting dao idx', err)
+                            }
+                            if(thisCurDaoIdx){
+                                try{
+                                    singleDaoOpportunity = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
+                                } catch (err) {
+                                    console.log('error loading singledao opportunity', err)
+                                }
+
+                                if(singleDaoOpportunity && Object.keys(singleDaoOpportunity).length > 0){
+                                    allOpportunities.push(singleDaoOpportunity.opportunities[0])
+                                }
+                            }
                         i++
                         }
                     }

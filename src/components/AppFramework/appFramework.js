@@ -113,13 +113,11 @@ export default function AppFramework(props) {
     const classes = useStyles()
     
     const {
-        
       tributeToken,
       tributeOffer,
       processingReward,
       handleProposalEventChange,
       handleUserBalanceChanges,
-     
       minSharePrice,
       proposalComments,
       appClient,
@@ -142,508 +140,507 @@ export default function AppFramework(props) {
     useEffect(
       () => {
 
-         
-          
-
           async function fetchData() {
             
             let urlVariables = window.location.search
-         
-
             const urlParameters = new URLSearchParams(urlVariables)
             let transactionHash = urlParameters.get('transactionHashes')
-
+            console.log('didregistrycontract', didRegistryContract)
+            console.log('near', near)
             if(didRegistryContract && near){
 
               if(contractId){
                 let thisCurDaoIdx
                 let daoAccount
+                let contract
                 try{
                   daoAccount = new nearAPI.Account(near.connection, contractId)
                 } catch (err) {
                   console.log('no account', err)
                 }
                
-                thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
-               
-                setCurDaoIdx(thisCurDaoIdx)
-           
-                let contract = await dao.initDaoContract(state.wallet.account(), contractId)
-                setDaoContract(contract)
-
-                // *********CHECK FOR TRIGGERS AND EXECUTE*************
-
-                // check for successfully deleted community and log it then redirect to dashboard as contract account is gone
-                let newDelete = get(NEW_DELETE, [])
-                              
-                let u = 0
-                while(u < newDelete.length){
-                  if(newDelete[u].contractId==contractId && newDelete[u].new == true){
-                    let loggedDelete = await logDeleteCommunity(
-                      contractId,
-                      appIdx, 
-                      accountId,
-                      transactionHash)
-                      
-                    if (loggedDelete) {
-                      // newDelete[u].new = false
-                      // set(NEW_DELETE, newDelete)
-                      del(NEW_DELETE)
-                      setChange(!change)
-                      window.location.assign('/')
-                    }
-                  }
-                  u++
-                }
-                   // check for first init to log summon and member events
-                   let firstInit = get(DAO_FIRST_INIT, [])
-              
-                   let c = 0
-                   while(c < firstInit.length){
-                     if(firstInit[c].contractId==contractId && firstInit[c].init == true){
-                       let logged = await logInitEvent(
-                         contractId, 
-                         thisCurDaoIdx, 
-                         contract, 
-                         'Democracy', 
-                         state.accountId,
-                         firstInit[c].contribution,
-                         transactionHash)
-                         
-                       if (logged) {
-                        //  firstInit[c].init = false
-                        //  set(DAO_FIRST_INIT, firstInit)
-                         del(DAO_FIRST_INIT)
-                         setChange(!change)
-                       }
-                     }
-                     c++
-                   }
-
-                    // check for and action any community deletions
-                    let deletion = get(COMMUNITY_DELETE, [])
-              
-                    let t = 0
-                    while(t < deletion.length){
-                      if(deletion[t].contractId==contractId && deletion[t].new == true){
-                        let deleted = await deleteCommunity(
-                          daoFactory,
-                          contractId, 
-                          accountId
-                        )
-                          
-                        if (deleted) {
-                          // deletion[t].true = false
-                          // set(COMMUNITY_DELETE, deletion)
-                          del(COMMUNITY_DELETE)
-                          setChange(!change)
-                        }
-                      }
-                      t++
-                    }
-   
-                   // check for successfully added new proposal to log it
-                   let newProposal = get(NEW_PROPOSAL, [])
-                 
-                   let d = 0
-                   while(d < newProposal.length){
-                     if(newProposal[d].contractId==contractId && newProposal[d].new == true){
-                       console.log('trans hash', transactionHash)
-                       let loggedProposal = await logProposalEvent(
-                         thisCurDaoIdx, 
-                         contract, 
-                         newProposal[d].proposalId,
-                         contractId,
-                         transactionHash
-                         )
-                         
-                       if (loggedProposal) {
-                        //  newProposal[d].new = false
-                        //  set(NEW_PROPOSAL, newProposal)
-                         del(NEW_PROPOSAL)
-                         await renewProposals(thisCurDaoIdx, contract)
-                       }
-                     }
-                     d++
-                   }
-   
-                   // check for successfully added new sponsor event to log it
-                   let newSponsor = get(NEW_SPONSOR, [])
-                 
-                   let f = 0
-                   while(f < newSponsor.length){
-                     if(newSponsor[f].contractId==contractId && newSponsor[f].new == true){
-                       let loggedSponsor = await logSponsorEvent(
-                         thisCurDaoIdx, 
-                         contract,
-                         contractId,
-                         newSponsor[f].proposalId,
-                         transactionHash)
-                         
-                       if (loggedSponsor) {
-                        //  newSponsor[f].new = false
-                        //  set(NEW_SPONSOR, newSponsor)
-                        del(NEW_SPONSOR)
-                        await renewProposals(thisCurDaoIdx, contract)
-                       }
-                     }
-                     f++
-                   }
-                   
-                    // check for new proposals to process
-                    let newProcess = get(NEW_PROCESS, [])
-                
-                    let g = 0
-                    while(g < newProcess.length){
-                      if(newProcess[g].contractId==contractId && newProcess[g].new == true){
-                        let loggedProcess = await logProcessEvent(
-                          thisCurDaoIdx, 
-                          contract,
-                          contractId,
-                          newProcess[g].proposalId,
-                          newProcess[g].type,
-                          transactionHash
-                          )
-                     
-                        if (loggedProcess) {
-                          // newProcess[g].new = false
-                          // set(NEW_PROCESS, newProcess)
-                          del(NEW_PROCESS)
-                          await renewProposals(thisCurDaoIdx, contract)
-                        }
-                      }
-                      g++
-                    }
-   
-                     // check for new votes
-                     let newVotes = get(NEW_VOTE, [])
-                 
-                     let x = 0
-                     while(x < newVotes.length){
-                       if(newVotes[x].contractId==contractId && newVotes[x].new == true){
-                         
-                          let loggedVote = await logVoteEvent(
-                           thisCurDaoIdx,
-                           contractId,
-                           contract, 
-                           newVotes[x].proposalId,
-                           accountId
-                           )
-                           
-                         if (loggedVote) {
-                          //  newVotes[x].new = false
-                          //  set(NEW_VOTE, newVotes)
-                           del(NEW_VOTE)
-                           await renewProposals(thisCurDaoIdx, contract)
-                         }
-                       }
-                       x++
-                     }
-   
-                     // check for cancelled proposal event
-                     let newCancel = get(NEW_CANCEL, [])
-                     let h = 0
-                     while(h < newCancel.length){
-                       if(newCancel[h].contractId==contractId && newCancel[h].new == true){
-                         let loggedCancel = await logCancelEvent(
-                           thisCurDaoIdx, 
-                           contract,
-                           contractId,
-                           newCancel[h].proposalId,
-                           transactionHash)
-                           
-                         if (loggedCancel) {
-                          //  newCancel[h].new = false
-                          //  set(NEW_CANCEL, newCancel)
-                           del(NEW_CANCEL)
-                           await renewProposals(thisCurDaoIdx, contract)
-                         }
-                       }
-                       h++
-                     }
-                  
-                   // check for successfully added donation log it
-                   let newDonation = get(NEW_DONATION, [])
-                 
-                   let y = 0
-                   while(y < newDonation.length){
-                     if(newDonation[y].contractId==contractId && newDonation[y].new == true){
-                       let loggedDonation = await logDonationEvent(
-                         thisCurDaoIdx, 
-                         contract,
-                         newDonation[y].donationId,
-                         newDonation[y].contractId,
-                         transactionHash)
-                         
-                       if (loggedDonation) {
-                        //  newDonation[y].new = false
-                        //  set(NEW_DONATION, newDonation)
-                         del(NEW_DONATION)
-                       }
-                     }
-                     y++
-                   }
-
-                   // check for successfully added exit and log it
-                   let newExit = get(NEW_EXIT, [])
-                 
-                   let a = 0
-                   while(a < newExit.length){
-                     if(newExit[a].contractId==contractId && newExit[a].new == true){
-                       let loggedExit = await logExitEvent(
-                         contractId,
-                         thisCurDaoIdx, 
-                         contract,
-                         newExit[a].account,
-                         transactionHash)
-                         
-                       if (loggedExit) {
-                        //  newExit[a].new = false
-                        //  set(NEW_EXIT, newExit)
-                         del(NEW_EXIT)
-                         await renewProposals(thisCurDaoIdx, contract)
-                       }
-                     }
-                     a++
-                   }
-
-                  
-
-                   // check for successfully added delegation and log it
-                   let newDelegation = get(NEW_DELEGATION, [])
-                 
-                   let l = 0
-                   while(l < newDelegation.length){
-                     if(newDelegation[l].contractId==contractId && newDelegation[l].new == true){
-                       let loggedDelegation = await logDelegationEvent(
-                         contractId,
-                         thisCurDaoIdx, 
-                         contract,
-                         newDelegation[l].delegator,
-                         newDelegation[l].receiver,
-                         transactionHash)
-                         
-                       if (loggedDelegation) {
-                        //  newDelegation[l].new = false
-                        //  set(NEW_DELEGATION, newDelegation)
-                         del(NEW_DELEGATION)
-                         let newPeriod = contract.getCurrentPeriod()
-                         setCurrentPeriod(newPeriod)
-                         setChange(!change)
-                       }
-                     }
-                     l++
-                   }
-
-                    // check for successfully added revoke delegation and log it
-                    let newRevocation = get(NEW_REVOCATION, [])
-                
-                    let m = 0
-                    while(m < newRevocation.length){
-                      if(newRevocation[m].contractId==contractId && newRevocation[m].new == true){
-                        let loggedRevocation = await logDelegationEvent(
-                          contractId,
-                          thisCurDaoIdx, 
-                          contract,
-                          newRevocation[m].delegator,
-                          newRevocation[m].receiver,
-                          transactionHash)
-                          
-                        if (loggedRevocation) {
-                          // newRevocation[m].new = false
-                          // set(NEW_REVOCATION, newRevocation)
-                          del(NEW_REVOCATION)
-                          let newPeriod = contract.getCurrentPeriod()
-                          setCurrentPeriod(newPeriod)
-                          setChange(!change)
-                        }
-                      }
-                      m++
-                    }
-
-                  // For debugging
-                  //  let proposalCheck= await contract.getProposal({proposalId: 0})
-                  //  console.log('proposalCheck', proposalCheck)
-
-                //************SYNCH PROPOSALS AND CONTRACT AND MEMBERS */
-                  
-                try {
-                    let proposals = await thisCurDaoIdx.get('proposals', thisCurDaoIdx.id)
-                    setAllProposals(proposals.events)
-                } catch (err) {
-                  console.log('no proposals yet', err)
-                }
-
-                try {
-                  let synched = await synchMember(thisCurDaoIdx, contract, contractId, accountId)
-                  
-                  if(synched){
-                    let members = await thisCurDaoIdx.get('members', thisCurDaoIdx.id)
-                    setAllMemberInfo(members.events)
-                  }
-                } catch (err) {
-                  console.log('no members yet', err)
-                }
-
-                //************ LOAD COMMUNITY SETTINGS AND INFORMATION */
-                     
                 try{
-                  let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
-                  if(result){
-                    result.name ? setName(result.name) : setName('')
-                    result.date ? setDate(result.date) : setDate('')
-                    result.logo ? setLogo(result.logo) : setLogo(imageName)
-                    result.purpose ? setPurpose(result.purpose) : setPurpose('')
-                    result.category ? setCategory(result.category) : setCategory('')
-                  }
+                  thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+                  setCurDaoIdx(thisCurDaoIdx)
                 } catch (err) {
-                  console.log('problem retrieving DAO profile')
+                  console.log('problem getting curdaoidx', err)
+                }
+                
+                try{
+                  contract = await dao.initDaoContract(state.wallet.account(), contractId)
+                  setDaoContract(contract)
+                } catch (err) {
+                  console.log('problem initializing dao contract', err)
                 }
 
-                    
-                let init = await contract.getInit()
-                setInitialized(init)
-                setInitLoad(true)
+                if(thisCurDaoIdx && contract){
 
-                if(initialized){
-                    let thisMemberInfo
-                    let thisMemberStatus
-                    
-                    try {
-                      thisMemberInfo = await contract.getMemberInfo({member: accountId})
-                      thisMemberStatus = await contract.getMemberStatus({member: accountId})
-                     
-                      setMemberInfo(thisMemberInfo)
-                      if(thisMemberStatus && thisMemberInfo[0].active){
-                        setMemberStatus(true)
-                      } else {
-                        setMemberStatus(false)
-                      }
-                    } catch (err) {
-                      console.log('no member info yet')
-                    }
-        
-                    try {
-                      let owner = await contract.getSummoner()
-                      setSummoner(owner)
-                    } catch (err) {
-                      console.log('no summoner yet')
-                    }
-        
-                    try {
-                      let shares = await contract.getTotalShares()
-                      setTotalShares(shares)
-                    } catch (err) {
-                      console.log('no total shares yet')
-                    }
-        
-                    try {
-                      let token = await contract.getDepositToken()
-                      setDepositToken(token)
-                      setTokenName(token)
-                    } catch (err) {
-                      console.log('no deposit token yet')
-                    }
+                  // *********CHECK FOR TRIGGERS AND EXECUTE*************
+
+                  // check for successfully added exit and log it
+                  let newExit = get(NEW_EXIT, [])
+              
+                  let a = 0
+                  while(a < newExit.length){
+                    if(newExit[a].contractId==contractId && newExit[a].new == true){
+                      let loggedExit = await logExitEvent(
+                        contractId,
+                        thisCurDaoIdx, 
+                        contract,
+                        newExit[a].account,
+                        transactionHash)
                         
-                    try {
-                      let deposit = await contract.getProposalDeposit()
-                      setProposalDeposit(deposit)
-                      update('', { proposalDeposit: deposit })
-                    } catch (err) {
-                      console.log('no proposal deposit yet')
+                      if (loggedExit) {
+                      //  newExit[a].new = false
+                      //  set(NEW_EXIT, newExit)
+                        del(NEW_EXIT)
+                        await renewProposals(thisCurDaoIdx, contract)
+                      }
                     }
+                    a++
+                  }
 
-                    try {
-                      let thisCurrentShare = await contract.getCurrentShare({member: accountId})
-                      setCurrentShare(thisCurrentShare)
-                      setFairShareLabel('Current Share: ' + thisCurrentShare + 'Ⓝ')
-                    } catch (err) {
-                      console.log('no current share yet')
+                  // check for successfully deleted community and log it then redirect to dashboard as contract account is gone
+                  let newDelete = get(NEW_DELETE, [])
+                                
+                  let u = 0
+                  while(u < newDelete.length){
+                    if(newDelete[u].contractId==contractId && newDelete[u].new == true){
+                      let loggedDelete = await logDeleteCommunity(
+                        contractId,
+                        appIdx, 
+                        accountId,
+                        transactionHash)
+                        
+                      if (loggedDelete) {
+                        // newDelete[u].new = false
+                        // set(NEW_DELETE, newDelete)
+                        del(NEW_DELETE)
+                        setChange(!change)
+                        window.location.assign('/')
+                      }
                     }
+                    u++
+                  }
+
+                  // check for and action any community deletions
+                  let deletion = get(COMMUNITY_DELETE, [])
+            
+                  let t = 0
+                  while(t < deletion.length){
+                    if(deletion[t].contractId==contractId && deletion[t].new == true){
+                      let deleted = await deleteCommunity(
+                        daoFactory,
+                        contractId, 
+                        accountId
+                      )
+                        
+                      if (deleted) {
+                        // deletion[t].true = false
+                        // set(COMMUNITY_DELETE, deletion)
+                        del(COMMUNITY_DELETE)
+                        setChange(!change)
+                      }
+                    }
+                    t++
+                  }
+   
+                  // check for first init to log summon and member events
+                  let firstInit = get(DAO_FIRST_INIT, [])
         
-                    try {
-                      let duration = await contract.getPeriodDuration()
-                      setPeriodDuration(duration)
-                    } catch (err) {
-                      console.log('no period duration yet')
+                  let c = 0
+                  while(c < firstInit.length){
+                    if(firstInit[c].contractId==contractId && firstInit[c].init == true){
+                      let logged = await logInitEvent(
+                        contractId, 
+                        thisCurDaoIdx, 
+                        contract, 
+                        'Democracy', 
+                        state.accountId,
+                        firstInit[c].contribution,
+                        transactionHash)
+                        
+                      if (logged) {
+                      //  firstInit[c].init = false
+                      //  set(DAO_FIRST_INIT, firstInit)
+                        del(DAO_FIRST_INIT)
+                        setChange(!change)
+                      }
                     }
+                    c++
+                  }
+
+                  // check for successfully added new proposal to log it
+                  let newProposal = get(NEW_PROPOSAL, [])
+                
+                  let d = 0
+                  while(d < newProposal.length){
+                    if(newProposal[d].contractId==contractId && newProposal[d].new == true){
+                      console.log('trans hash', transactionHash)
+                      let loggedProposal = await logProposalEvent(
+                        thisCurDaoIdx, 
+                        contract, 
+                        newProposal[d].proposalId,
+                        contractId,
+                        transactionHash
+                        )
+                        
+                      if (loggedProposal) {
+                      //  newProposal[d].new = false
+                      //  set(NEW_PROPOSAL, newProposal)
+                        del(NEW_PROPOSAL)
+                        await renewProposals(thisCurDaoIdx, contract)
+                      }
+                    }
+                    d++
+                  }
+   
+                  // check for successfully added new sponsor event to log it
+                  let newSponsor = get(NEW_SPONSOR, [])
+                
+                  let f = 0
+                  while(f < newSponsor.length){
+                    if(newSponsor[f].contractId==contractId && newSponsor[f].new == true){
+                      let loggedSponsor = await logSponsorEvent(
+                        thisCurDaoIdx, 
+                        contract,
+                        contractId,
+                        newSponsor[f].proposalId,
+                        transactionHash)
+                        
+                      if (loggedSponsor) {
+                      //  newSponsor[f].new = false
+                      //  set(NEW_SPONSOR, newSponsor)
+                      del(NEW_SPONSOR)
+                      await renewProposals(thisCurDaoIdx, contract)
+                      }
+                    }
+                    f++
+                  }
+                   
+                  // check for new proposals to process
+                  let newProcess = get(NEW_PROCESS, [])
+              
+                  let g = 0
+                  while(g < newProcess.length){
+                    if(newProcess[g].contractId==contractId && newProcess[g].new == true){
+                      let loggedProcess = await logProcessEvent(
+                        thisCurDaoIdx, 
+                        contract,
+                        contractId,
+                        newProcess[g].proposalId,
+                        newProcess[g].type,
+                        transactionHash
+                        )
+                    
+                      if (loggedProcess) {
+                        // newProcess[g].new = false
+                        // set(NEW_PROCESS, newProcess)
+                        del(NEW_PROCESS)
+                        await renewProposals(thisCurDaoIdx, contract)
+                      }
+                    }
+                    g++
+                  }
+   
+                  // check for new votes
+                  let newVotes = get(NEW_VOTE, [])
+              
+                  let x = 0
+                  while(x < newVotes.length){
+                    if(newVotes[x].contractId==contractId && newVotes[x].new == true){
+                      
+                      let loggedVote = await logVoteEvent(
+                        thisCurDaoIdx,
+                        contractId,
+                        contract, 
+                        newVotes[x].proposalId,
+                        accountId
+                        )
+                        
+                      if (loggedVote) {
+                      //  newVotes[x].new = false
+                      //  set(NEW_VOTE, newVotes)
+                        del(NEW_VOTE)
+                        await renewProposals(thisCurDaoIdx, contract)
+                      }
+                    }
+                    x++
+                  }
+  
+                  // check for cancelled proposal event
+                  let newCancel = get(NEW_CANCEL, [])
+                  let h = 0
+                  while(h < newCancel.length){
+                    if(newCancel[h].contractId==contractId && newCancel[h].new == true){
+                      let loggedCancel = await logCancelEvent(
+                        thisCurDaoIdx, 
+                        contract,
+                        contractId,
+                        newCancel[h].proposalId,
+                        transactionHash)
+                        
+                      if (loggedCancel) {
+                      //  newCancel[h].new = false
+                      //  set(NEW_CANCEL, newCancel)
+                        del(NEW_CANCEL)
+                        await renewProposals(thisCurDaoIdx, contract)
+                      }
+                    }
+                    h++
+                  }
                   
-                    let ebalance
-                    let escrowRow
-                    try {
-                      ebalance = await contract.getEscrowTokenBalances()
-                      setEscrowBalance(ebalance)
-
-                      if(ebalance) {
-                        for (let i = 0; i < ebalance.length; i++) {
-                          escrowRow = (<>{ebalance[i].balance} {ebalance[i].token}</>)
-                        }
-                      } else {
-                        escrowRow = '0 Ⓝ'
+                  // check for successfully added donation log it
+                  let newDonation = get(NEW_DONATION, [])
+                
+                  let y = 0
+                  while(y < newDonation.length){
+                    if(newDonation[y].contractId==contractId && newDonation[y].new == true){
+                      let loggedDonation = await logDonationEvent(
+                        thisCurDaoIdx, 
+                        contract,
+                        newDonation[y].donationId,
+                        newDonation[y].contractId,
+                        transactionHash)
+                        
+                      if (loggedDonation) {
+                      //  newDonation[y].new = false
+                      //  set(NEW_DONATION, newDonation)
+                        del(NEW_DONATION)
                       }
-                      setEscrowBalanceChip(<>{escrowRow}</>)
-                    } catch (err) {
-                      console.log('no escrow balance')
                     }
-        
-                    let gbalance
-                    let guildRow
-                    try {
-                      gbalance = await contract.getGuildTokenBalances()
-                      setGuildBalance(gbalance)
+                    y++
+                  }
 
-                      if(gbalance) {
-                        for (let i = 0; i < gbalance.length; i++) {
-                          guildRow = (<>{gbalance[i].balance} {gbalance[i].token}</>)
-                        }
-                      } else {
-                        guildRow = '0 Ⓝ'
+                  // check for successfully added delegation and log it
+                  let newDelegation = get(NEW_DELEGATION, [])
+                
+                  let l = 0
+                  while(l < newDelegation.length){
+                    if(newDelegation[l].contractId==contractId && newDelegation[l].new == true){
+                      let loggedDelegation = await logDelegationEvent(
+                        contractId,
+                        thisCurDaoIdx, 
+                        contract,
+                        newDelegation[l].delegator,
+                        newDelegation[l].receiver,
+                        transactionHash)
+                        
+                      if (loggedDelegation) {
+                      //  newDelegation[l].new = false
+                      //  set(NEW_DELEGATION, newDelegation)
+                        del(NEW_DELEGATION)
+                        let newPeriod = contract.getCurrentPeriod()
+                        setCurrentPeriod(newPeriod)
+                        setChange(!change)
                       }
-                      setGuildBalanceChip(<>{guildRow}</>)
-                    } catch (err) {
-                      console.log('no guild balance')
                     }
-        
-                    if(thisMemberStatus && thisMemberInfo !== undefined) {
-                      thisMemberInfo[0].active ? setMemberIcon(<CheckCircleIcon />) : setMemberIcon(<NotInterestedIcon />)
-                      setSharesLabel('Shares: ' + thisMemberInfo[0].shares)
-                      setLootLabel('Loot: ' + thisMemberInfo[0].loot)
+                    l++
+                  }
+
+                  // check for successfully added revoke delegation and log it
+                  let newRevocation = get(NEW_REVOCATION, [])
+              
+                  let m = 0
+                  while(m < newRevocation.length){
+                    if(newRevocation[m].contractId==contractId && newRevocation[m].new == true){
+                      let loggedRevocation = await logDelegationEvent(
+                        contractId,
+                        thisCurDaoIdx, 
+                        contract,
+                        newRevocation[m].delegator,
+                        newRevocation[m].receiver,
+                        transactionHash)
+                        
+                      if (loggedRevocation) {
+                        // newRevocation[m].new = false
+                        // set(NEW_REVOCATION, newRevocation)
+                        del(NEW_REVOCATION)
+                        let newPeriod = contract.getCurrentPeriod()
+                        setCurrentPeriod(newPeriod)
+                        setChange(!change)
+                      }
                     }
- 
-                    let getNearPrice = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd')
-                    setNearPrice(getNearPrice.data.near.usd)
-                    update('', nearPrice)
+                    m++
+                  }
+
+                  //************SYNCH PROPOSALS AND CONTRACT AND MEMBERS */
                     
-                    if(currentPeriod == undefined || currentPeriod == 0){
+                  try {
+                      let proposals = await thisCurDaoIdx.get('proposals', thisCurDaoIdx.id)
+                      setAllProposals(proposals.events)
+                  } catch (err) {
+                    console.log('no proposals yet', err)
+                  }
+
+                  try {
+                    let synched = await synchMember(thisCurDaoIdx, contract, contractId, accountId)
+                    
+                    if(synched){
+                      let members = await thisCurDaoIdx.get('members', thisCurDaoIdx.id)
+                      setAllMemberInfo(members.events)
+                    }
+                  } catch (err) {
+                    console.log('no members yet', err)
+                  }
+
+                  //************ LOAD COMMUNITY SETTINGS AND INFORMATION */
+                     
+                  try{
+                    let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
+                    if(result){
+                      result.name ? setName(result.name) : setName('')
+                      result.date ? setDate(result.date) : setDate('')
+                      result.logo ? setLogo(result.logo) : setLogo(imageName)
+                      result.purpose ? setPurpose(result.purpose) : setPurpose('')
+                      result.category ? setCategory(result.category) : setCategory('')
+                    }
+                  } catch (err) {
+                    console.log('problem retrieving DAO profile')
+                  }
+
+                    
+                  let init = await contract.getInit()
+                  setInitialized(init)
+                  setInitLoad(true)
+
+                  if(initialized){
+                      let thisMemberInfo
+                      let thisMemberStatus
+                      
                       try {
-                        let period = await contract.getCurrentPeriod()
-                          setCurrentPeriod(period)
+                        thisMemberInfo = await contract.getMemberInfo({member: accountId})
+                        thisMemberStatus = await contract.getMemberStatus({member: accountId})
+                      
+                        setMemberInfo(thisMemberInfo)
+                        if(thisMemberStatus && thisMemberInfo[0].active){
+                          setMemberStatus(true)
+                        } else {
+                          setMemberStatus(false)
+                        }
                       } catch (err) {
-                        console.log('get period issue', err)
+                        console.log('no member info yet')
                       }
-                    }
+          
+                      try {
+                        let owner = await contract.getSummoner()
+                        setSummoner(owner)
+                      } catch (err) {
+                        console.log('no summoner yet')
+                      }
+          
+                      try {
+                        let shares = await contract.getTotalShares()
+                        setTotalShares(shares)
+                      } catch (err) {
+                        console.log('no total shares yet')
+                      }
+          
+                      try {
+                        let token = await contract.getDepositToken()
+                        setDepositToken(token)
+                        setTokenName(token)
+                      } catch (err) {
+                        console.log('no deposit token yet')
+                      }
+                          
+                      try {
+                        let deposit = await contract.getProposalDeposit()
+                        setProposalDeposit(deposit)
+                        update('', { proposalDeposit: deposit })
+                      } catch (err) {
+                        console.log('no proposal deposit yet')
+                      }
+
+                      try {
+                        let thisCurrentShare = await contract.getCurrentShare({member: accountId})
+                        setCurrentShare(thisCurrentShare)
+                        setFairShareLabel('Current Share: ' + thisCurrentShare + 'Ⓝ')
+                      } catch (err) {
+                        console.log('no current share yet')
+                      }
+          
+                      try {
+                        let duration = await contract.getPeriodDuration()
+                        setPeriodDuration(duration)
+                      } catch (err) {
+                        console.log('no period duration yet')
+                      }
                     
-                  //***********START PERIOD REFRESH TIMER */
-                    if(started==false){
-                      setTimeout(async function refreshCurrentPeriod() {
+                      let ebalance
+                      let escrowRow
+                      try {
+                        ebalance = await contract.getEscrowTokenBalances()
+                        setEscrowBalance(ebalance)
+
+                        if(ebalance) {
+                          for (let i = 0; i < ebalance.length; i++) {
+                            escrowRow = (<>{ebalance[i].balance} {ebalance[i].token}</>)
+                          }
+                        } else {
+                          escrowRow = '0 Ⓝ'
+                        }
+                        setEscrowBalanceChip(<>{escrowRow}</>)
+                      } catch (err) {
+                        console.log('no escrow balance')
+                      }
+          
+                      let gbalance
+                      let guildRow
+                      try {
+                        gbalance = await contract.getGuildTokenBalances()
+                        setGuildBalance(gbalance)
+
+                        if(gbalance) {
+                          for (let i = 0; i < gbalance.length; i++) {
+                            guildRow = (<>{gbalance[i].balance} {gbalance[i].token}</>)
+                          }
+                        } else {
+                          guildRow = '0 Ⓝ'
+                        }
+                        setGuildBalanceChip(<>{guildRow}</>)
+                      } catch (err) {
+                        console.log('no guild balance')
+                      }
+          
+                      if(thisMemberStatus && thisMemberInfo !== undefined) {
+                        thisMemberInfo[0].active ? setMemberIcon(<CheckCircleIcon />) : setMemberIcon(<NotInterestedIcon />)
+                        setSharesLabel('Shares: ' + thisMemberInfo[0].shares)
+                        setLootLabel('Loot: ' + thisMemberInfo[0].loot)
+                      }
+  
+                      let getNearPrice = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd')
+                      setNearPrice(getNearPrice.data.near.usd)
+                      update('', nearPrice)
+                      
+                      if(currentPeriod == undefined || currentPeriod == 0){
                         try {
                           let period = await contract.getCurrentPeriod()
-                          setCurrentPeriod(period)
+                            setCurrentPeriod(period)
                         } catch (err) {
                           console.log('get period issue', err)
                         }
-                        if(started == false){
-                         setTimeout(refreshCurrentPeriod, 20000)
-                          setStarted(true)
-                        }
-                      }, 20000)
-                    }
-                  
+                      }
+                      
+                    //***********START PERIOD REFRESH TIMER */
+                      if(started==false){
+                        setTimeout(async function refreshCurrentPeriod() {
+                          try {
+                            let period = await contract.getCurrentPeriod()
+                            setCurrentPeriod(period)
+                          } catch (err) {
+                            console.log('get period issue', err)
+                          }
+                          if(started == false){
+                          setTimeout(refreshCurrentPeriod, 20000)
+                            setStarted(true)
+                          }
+                        }, 20000)
+                      }
+                    
+                  }
                 }
-                
               } 
-               
-              
             }  
           }
 
