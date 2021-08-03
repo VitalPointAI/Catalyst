@@ -48,6 +48,9 @@ export const summonSchema = {
         "dilutionBound": {
           "type": "number",
         },
+        "voteThreshold": {
+          "type": "number",
+        },
         "updateTime": {
           "type": "number",
         },

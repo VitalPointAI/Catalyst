@@ -1,4 +1,4 @@
-export const communityRoleProposalDetailsSchema = {
+export const repFactorProposalDetailsSchema = {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "title": "ProposalDetails",
@@ -18,34 +18,6 @@ export const communityRoleProposalDetailsSchema = {
         "proposalId": {
           type: 'string',
         },
-        "roleName": {
-          type: 'string',
-        },
-        "roleReward": {
-          type: 'string',
-        },
-        "roleDescription": {
-          type: 'string',
-        },
-        "rolePermissions": {
-          type: 'array',
-          items: {
-            type: 'string'
-          }
-        },
-        "roleParticulars": {
-          type: 'array',
-          items: {
-            type: 'string'
-          }
-        },
-        "action": {
-          type: 'string'
-        },
-        "roleDuration": {
-          type: 'number',
-          minimum: 0,
-        },
         "title": {
           type: 'string',
         },
@@ -61,6 +33,38 @@ export const communityRoleProposalDetailsSchema = {
         },
         "published": {
           type: 'boolean'
+        },
+        "repFactorName": {
+          type: 'string',
+        },
+        "repFactorPoints": {
+          type: 'string',
+        },
+        "repFactorDescription": {
+          type: 'string',
+        },
+        "repFactorFactors": {
+          type: 'array',
+          items: {
+            type: 'string'
+          }
+        },
+        "repFactorActions": {
+          type: 'array',
+          items: {
+            type: 'string'
+          }
+        },
+        "action": {
+          type: 'string'
+        },
+        "repFactorStart": {
+          type: 'number',
+          minimum: 0,
+        },
+        "repFactorEnd": {
+          type: 'number',
+          minimum: 0,
         },
       },
     }

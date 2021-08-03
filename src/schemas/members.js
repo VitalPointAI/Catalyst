@@ -43,6 +43,12 @@ export const memberSchema = {
           "type": "number",
           "minimum": 0,
         },
+        "roles": {
+          "type": "array",
+        },
+        "reputation": {
+          "type": "array",
+        },
         "jailed": {
           "type": "number",
           "minimum": 0,

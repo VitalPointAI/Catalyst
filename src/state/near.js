@@ -1090,6 +1090,8 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId)
                 loot: member[0].loot,
                 existing: member[0].existing,
                 highestIndexYesVote: member[0].highestIndexYesVote,
+                roles: member[0].roles,
+                reputation: member[0].reputation,
                 jailed: member[0].jailed,
                 joined: parseInt(member[0].joined),
                 updated: parseInt(member[0].updated),
@@ -1174,7 +1176,8 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
         gracePeriodLength = result[0][3]
         proposalDeposit = result[0][4]
         dilutionBound = result[0][5]
-        summonTime = result[0][6]
+        voteThreshold = result[0][6]
+        summonTime = result[0][7]
     } catch (err) {
         console.log('failure fetching init settings')
         return false
@@ -1223,6 +1226,8 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
         loot: '0',
         existing: true,
         highestIndexYesVote: 0,
+        roles: ['member'],
+        reputation: [],
         jailed: 0,
         joined: numberSummonTime,
         updated: Date.now(),
@@ -1288,6 +1293,7 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
     gracePeriodLength: parseInt(gracePeriodLength),
     proposalDeposit: proposalDeposit,
     dilutionBound: parseInt(dilutionBound),
+    voteThreshold: parseInt(voteThreshold),
     updateTime: Date.now(),
     transactionHash: transactionHash
     }
@@ -1351,6 +1357,8 @@ export async function logExitEvent(contractId, curDaoIdx, daoContract, accountId
                     loot: member[0].loot,
                     existing: member[0].existing,
                     highestIndexYesVote: member[0].highestIndexYesVote,
+                    roles: member[0].roles,
+                    reputation: member[0].reputation,
                     jailed: member[0].jailed,
                     joined: parseInt(member[0].joined),
                     updated: parseInt(member[0].updated),
@@ -1471,6 +1479,8 @@ export async function logDelegationEvent (contractId, curDaoIdx, daoContract, de
                     receivedDelegations: delegatorAccount[0].receivedDelegations,
                     loot: delegatorAccount[0].loot,
                     existing: delegatorAccount[0].existing,
+                    roles: delegatorAccount[0].roles, 
+                    reputation: delegatorAccount[0].reputation,
                     highestIndexYesVote: delegatorAccount[0].highestIndexYesVote,
                     jailed: delegatorAccount[0].jailed,
                     joined: parseInt(delegatorAccount[0].joined),
@@ -1513,6 +1523,8 @@ export async function logDelegationEvent (contractId, curDaoIdx, daoContract, de
                     existing: receiverAccount[0].existing,
                     highestIndexYesVote: receiverAccount[0].highestIndexYesVote,
                     jailed: receiverAccount[0].jailed,
+                    roles: receiverAccount[0].roles,
+                    reputation: receiverAccount[0].reputation,
                     joined: parseInt(receiverAccount[0].joined),
                     updated: parseInt(receiverAccount[0].updated),
                     active: receiverAccount[0].active
@@ -1868,6 +1880,8 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                 loot: member[0].loot,
                 existing: member[0].existing,
                 highestIndexYesVote: member[0].highestIndexYesVote,
+                roles: member[0].roles,
+                reputation: member[0].reputation,
                 jailed: member[0].jailed,
                 joined: parseInt(member[0].joined),
                 updated: parseInt(member[0].updated),
@@ -1932,6 +1946,8 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                         loot: member[0].loot,
                         existing: member[0].existing,
                         highestIndexYesVote: member[0].highestIndexYesVote,
+                        roles: member[0].roles,
+                        reputation: member[0].reputation,
                         jailed: member[0].jailed,
                         joined: parseInt(member[0].joined),
                         updated: parseInt(member[0].updated),
@@ -2100,6 +2116,8 @@ export async function logVoteEvent(curDaoIdx, contractId, daoContract, proposalI
                     loot: member[0].loot,
                     existing: member[0].existing,
                     highestIndexYesVote: member[0].highestIndexYesVote,
+                    roles: member[0].roles,
+                    reputation: member[0].reputation,
                     jailed: member[0].jailed,
                     joined: parseInt(member[0].joined),
                     updated: parseInt(member[0].updated),
