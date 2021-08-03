@@ -33,6 +33,7 @@ import { proposalDataSchema } from '../schemas/analytics/proposalData'
 import { votingDataSchema } from '../schemas/analytics/votingData'
 import { configurationProposalDetailsSchema} from '../schemas/configurationProposals'
 import { daoDeletionSchema } from '../schemas/analytics/deletedDAOs'
+import { communityRoleProposalDetailsSchema } from '../schemas/communityRoleProposal'
 
 import { config } from '../state/config'
 
@@ -496,7 +497,7 @@ async makeSeed(account){
     const appDid = this.associateAppDID(APP_OWNER_ACCOUNT, contract, appClient)
 
   // uncomment below to change a definition
-   //let changed = await this.changeDefinition(APP_OWNER_ACCOUNT, 'opportunities', appClient, opportunitiesSchema, 'opportunities to complete', contract)
+   //let changed = await this.changeDefinition(APP_OWNER_ACCOUNT, 'proposals', appClient, proposalSchema, 'proposal events', contract)
    //console.log('changed schema', changed)
 
     const definitions = this.getAlias(APP_OWNER_ACCOUNT, 'Definitions', appClient, definitionsSchema, 'alias definitions', contract)
@@ -522,6 +523,7 @@ async makeSeed(account){
     const votingData = this.getAlias(APP_OWNER_ACCOUNT, 'votingData', appClient, votingDataSchema, 'voting data', contract)
     const configurationProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'configurationProposalDetails', appClient, configurationProposalDetailsSchema, 'configuration proposal details', contract)
     const daoDeletionData = this.getAlias(APP_OWNER_ACCOUNT, 'daoDeletionData', appClient, daoDeletionSchema, 'dao deletion data', contract)
+    const communityRoles = this.getAlias(APP_OWNER_ACCOUNT, 'communityRoles', appClient, communityRoleProposalDetailsSchema, 'community roles', contract)
 
     const done = await Promise.all([
       appDid, 
@@ -547,7 +549,8 @@ async makeSeed(account){
       proposalData,
       votingData,
       configurationProposalDetails,
-      daoDeletionData
+      daoDeletionData,
+      communityRoles
     ])
     
     let rootAliases = {
@@ -573,7 +576,8 @@ async makeSeed(account){
       proposalData: done[20],
       votingData: done[21],
       configurationProposalDetails: done[22],
-      daoDeletionData: done[23]
+      daoDeletionData: done[23],
+      communityRoles: done[24]
     }
 
     const appIdx = new IDX({ ceramic: appClient, aliases: rootAliases})

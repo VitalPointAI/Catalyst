@@ -75,6 +75,12 @@ export const proposalSchema = {
         "voteFinalized": {
           "type": "number",
         },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "submitTransactionHash": {
           "type": "string",
         },
@@ -88,6 +94,12 @@ export const proposalSchema = {
           "type": "string",
         },
         "configuration": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "roleConfiguration": {
           "type": "array",
           "items": {
             "type": "string"
