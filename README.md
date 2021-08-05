@@ -9,7 +9,7 @@ All code for the hackathon is in the wallet-login branch.
 Vital Point AI (NEAR Guild) is building Catalyst - a DAOaaS with social/community features on NEAR.  Targeting non-technical users interested in exploring how a DAO (without knowing what a DAO is) can help them build and nurture a loyal community around a common cause.  Already Included or on the roadmap:
 * Base DAO configurations that are customizable by DAO proposal (democracy, oligarchy, plutocracy, republic, autocracy)
 * Integrated NEAR wallet
-* Ability to build a persona (decentralized identity) around a NEAR account that can then interact as that persona with DAOs of choice
+* Ability to build personas (decentralized identity) around a NEAR account that can then interact as that persona with DAOs of choice
 * DAO discoverability - makes it easy for people to find and participate in DAOs based on interest, values, beliefs
 * Everything occurs in app using decentralized technologies (i.e, Ceramic network (IDX), NEAR, IPFS)
 * Ability to build up reputation value via DAO specific fungible tokens (tradeable) (social tokens)
