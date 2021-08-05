@@ -4,6 +4,10 @@
     },
     "appService.zipIgnorePattern": [
         "node_modules{,/**}",
+        ".parcel-cache{,/**}",
+        "neardev{,/**}",
+        "contract{,/**}",
+        "dist{,/**}",
         ".vscode{,/**}",
         ".env{,/**}"
     ],
