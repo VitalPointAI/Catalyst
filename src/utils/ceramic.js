@@ -177,8 +177,9 @@ async makeSeed(account){
   }
 
   async getAppCeramic() {
-    let retrieveSeed = await axios.get(APPSEED_CALL)
-    const seed = Buffer.from((retrieveSeed.data).slice(0, 32))
+    let appSeed = process.env.APP_SEED
+    //let provider = await axios.get(APPSEED_CALL)
+    const seed = Buffer.from((appSeed).slice(0, 32))
     const ceramic = new CeramicClient(CERAMIC_API_URL)
     const provider = new Ed25519Provider(seed)
     const resolver = {...KeyDidResolver.getResolver()}
