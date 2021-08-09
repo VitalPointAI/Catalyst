@@ -75,11 +75,12 @@ export default function EditOpportunityProposalForm(props) {
     const [name, setName] = useState('')
     const [avatar, setAvatar] = useState(imageName)
     const [shortBio, setShortBio] = useState('')
-
+    const [deadline, setDeadline] = useState('')
     // Opportunity Proposal Fields
     const [title, setTitle] = useState('')
     const [details, setDetails] = useState(EditorState.createEmpty())
     const [reward, setReward] = useState('')
+    const [budget, setBudget] = useState('')
     const [category, setCategory] = useState('')
     const [projectName, setProjectName] = useState('')
     const [status, setStatus] = useState(false)
@@ -155,11 +156,14 @@ export default function EditOpportunityProposalForm(props) {
                       setDetails(EditorState.createEmpty())
                     }
                     propResult.opportunities[i].reward ? setReward(propResult.opportunities[i].reward) : setReward('')
+                    propResult.opportunities[i].dadline ? setDeadline(propResult.opportunies[i].deadline) : setDeadline('')
                     propResult.opportunities[i].category ? setCategory(propResult.opportunities[i].category) : setCategory('')
                     propResult.opportunities[i].projectName ? setProjectName(propResult.opportunities[i].projectName) : setProjectName('')
                     propResult.opportunities[i].status ? setStatus(propResult.opportunities[i].status) : setStatus(false)
                     propResult.opportunities[i].permission ? setPermission(propResult.opportunities[i].permission) : setPermission('')
+                    propResult.opportunities[i].deadline ? setDeadline(propResult.opportunities[i].deadline) : setDeadline('')
                     propResult.opportunities[i].familiarity ? setFamiliarity(propResult.opportunities[i].familiarity) : setFamiliarity('0')
+                    propResult.opportunities[i].budget ? setBudget(propResult.opportunities[i].budget) : setBudget(''); 
                     propResult.opportunities[i].desiredSkillSet ? setDesiredSkillSet(propResult.opportunities[i].desiredSkillSet): setDesiredSkillSet({})
                     propResult.opportunities[i].desiredDeveloperSkillSet ? setDesiredDeveloperSkillSet(propResult.opportunities[i].desiredDeveloperSkillSet): setDesiredDeveloperSkillSet({})
                     break
@@ -193,12 +197,18 @@ export default function EditOpportunityProposalForm(props) {
         let value = event.target.value;
         setTitle(value)
     }
-   
+    const handleDeadlineChange = (event) => {
+      let value = event.target.value.toString();
+      setDeadline(value)
+    }
     const handleRewardChange = (event) => {
       let value = event.target.value;
       setReward(value)
     }
-
+    const handleBudgetChange = (event) => {
+      let value = event.target.value;
+      setBudget(value)
+    }
     const handleCategoryChange = (event) => {
       let value = event.target.value;
       setCategory(value)
@@ -253,6 +263,8 @@ export default function EditOpportunityProposalForm(props) {
           reward: reward,
           category: category,
           projectName: projectName,
+          deadline: deadline, 
+          budget: budget,
           status: status,
           permission: permission,
           familiarity: familiarity,
@@ -300,7 +312,7 @@ export default function EditOpportunityProposalForm(props) {
                   Please describe the opportunity requirements:
                   
                   </DialogContentText>
-                  <Grid container justifyContent="center" alignItems="center" spacing={1}>
+                  <Grid container justify="center" alignItems="center" spacing={1}>
                   <Grid item xs={12} sm={12} md={7} lg={7} xl={7}>
                     <TextField
                         autoFocus
@@ -319,13 +331,14 @@ export default function EditOpportunityProposalForm(props) {
                     />
                     {errors.opportunityProposalTitle && <p style={{color: 'red'}}>You must give your proposal a title.</p>}
                   </Grid>
+                  
                   <Grid item xs={12} sm={12} md={5} lg={5} xl={5}>
                     <FormControlLabel
                       control={<Switch checked={status} onChange={handleStatusChange} name="status" color="primary"/>}
                       label="Activate Opportunity"
                     />
                   </Grid>
-                  <Grid item xs={12} sm={12} md={4} lg={4} xl={4} style={{marginBottom: '10px'}}>
+                  <Grid item xs={12} sm={12} md={6} lg={6} xl={6} style={{marginBottom: '10px'}}>
                     <TextField
                       margin="dense"
                       id="base-reward"
@@ -348,7 +361,48 @@ export default function EditOpportunityProposalForm(props) {
                       }}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={12} md={8} lg={8} xl={8} style={{marginBottom: '10px'}}>
+                  <Grid item xs={12} sm={12} md={6} lg={6} xl={6} style={{marginBottom: '10px'}}>
+                     <TextField
+                                autoFocus
+                                margin="dense"
+                                id="opportunity-deadline"
+                                type = "date"
+                                name="deadline"
+                                label="Deadline"
+                                value={deadline}
+                                onChange={handleDeadlineChange}
+                                InputLabelProps={{shrink: true,}}
+                                inputRef={register({
+                                    required: false                              
+                                })}
+                              />
+                  </Grid>
+                  <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                    <TextField
+                        autoFocus
+                        fullWidth
+                        margin="dense"
+                        id="opportunity-proposal-budget"
+                        variant="outlined"
+                        name="opportunityProposalBudget"
+                        label="Budget"
+                        placeholder="9999"
+                        value={budget}
+                        onChange={handleBudgetChange}
+                        inputRef={register({
+                            required: true                              
+                        })}
+                        InputProps={{
+                          endAdornment: <><InputAdornment position="end">Ⓝ</InputAdornment>
+                          <Tooltip TransitionComponent={Zoom} title="The budget that is available for the sum of all instances of this opportunity">
+                          <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                          </Tooltip>
+                          </>
+                        }}
+                    />
+                    {errors.opportunityProposalTitle && <p style={{color: 'red'}}>You must give your proposal a title.</p>}
+                  </Grid>
+                  <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                     <TextField
                       autoFocus
                       margin="dense"
@@ -488,7 +542,7 @@ export default function EditOpportunityProposalForm(props) {
               </DialogActions>)}
               <Divider style={{marginBottom: 10}}/>
               
-              </>) : <><div className={classes.waiting}><div class={flexClass}><CircularProgress/></div><Grid container spacing={1} alignItems="center" justifyContent="center" >
+              </>) : <><div className={classes.waiting}><div class={flexClass}><CircularProgress/></div><Grid container spacing={1} alignItems="center" justify="center" >
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                 <Typography variant="h5" align="center">Loading Proposal Data</Typography>
               </Grid>
