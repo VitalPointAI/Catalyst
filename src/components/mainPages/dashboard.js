@@ -891,42 +891,7 @@ export default function Dashboard(props) {
       
     </div>
 
-                {recommendationsLoaded ?
-                recommendations && recommendations.length > 0 ?
-                    recommendations.slice((CARDS_TO_SHOW -1) * CARDS_TO_SHOW, (CARDS_TO_SHOW -1) * CARDS_TO_SHOW + CARDS_TO_SHOW)
-                    .map((fr, i) => {
-                    console.log('fr', fr)
-                    console.log('i', i)
-                    return(
-                        <OpportunityCard 
-                        key={i}
-                        creator={fr.opportunity.proposer}
-                        created={fr.opportunity.submitDate}
-                        updated={fr.opportunity.updatedDate}
-                        reward={fr.opportunity.reward}
-                        category={fr.opportunity.category}
-                        projectName={fr.opportunity.projectName}
-                        details={fr.opportunity.details}
-                        title={fr.opportunity.title}
-                        opportunityId={fr.opportunity.opportunityId}
-                        opportunityStatus={fr.opportunity.status}
-                        permission={fr.opportunity.permission}
-                        skillCount={fr.skillCount}
-                        skillMatch={fr.skillMatch}
-                        developerSkillCount={fr.developerSkillCount}
-                        developerSkillMatch={fr.developerSkillMatch}
-                        suitabilityScore={fr.suitabilityScore}
-                        passedContractId={fr.opportunity.contractId}
-                        />
-                    )
-                  
-                    }) : <Card className={classes.card}>
-                    <Typography variant="h5">No Recommended Opportunities Yet - Please Check Back Soon.</Typography>
-                </Card> 
-                    : <CircularProgress />}
-                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{justifyContent: 'center'}}>
-                        <Pagination count={recommendations.length} variant="outlined" color="primary" style={{margin:'auto', padding:'20px', justifyContent: 'center'}}/>
-                    </Grid>
+                
                        
                    
                 </Grid>
