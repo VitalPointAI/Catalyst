@@ -710,7 +710,7 @@ export default function AppFramework(props) {
             initialized == 'done' ? (
               <>
               {matches ? (<>
-                <Grid container justify="space-evenly" alignItems="center" style={{marginBottom:'15px'}} spacing={0}>
+                <Grid container justifyContent="space-evenly" alignItems="center" style={{marginBottom:'15px'}} spacing={0}>
                   <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" style={{marginBottom: '15px'}}>                    
                     <Chip variant="outlined" label="Member" icon={memberIcon} />
                     <Chip variant="outlined" label={sharesLabel}  />
@@ -740,7 +740,7 @@ export default function AppFramework(props) {
             </Grid></>
               )
               : (<>
-            <Grid container justify="space-evenly" alignItems="center" style={{marginBottom:'15px'}} spacing={0}>
+            <Grid container justifyContent="space-evenly" alignItems="center" style={{marginBottom:'15px'}} spacing={0}>
               <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
               <div style={{marginLeft: '10px'}}>
                 <ActionSelector 
@@ -785,7 +785,7 @@ export default function AppFramework(props) {
               depositToken={depositToken}
             />
           </div>
-            <Grid container justify="center" alignItems="center" spacing={1} className={classes.top}>
+            <Grid container justifyContent="center" alignItems="center" spacing={1} className={classes.top}>
            
               <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
                 <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Fund: {guildBalanceChip} {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '($' + (parseInt(guildBalance[0].balance) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : <LinearProgress /> } </Typography>
@@ -803,7 +803,7 @@ export default function AppFramework(props) {
           </Card>
           <Divider variant="middle" align="center" style={{width:'75%', margin: 'auto'}}/>
 
-          <Grid container justify="space-evenly" alignItems="center" spacing={1} >
+          <Grid container justifyContent="space-evenly" alignItems="center" spacing={1} >
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
               <ProposalList
                 contractId={contractId}

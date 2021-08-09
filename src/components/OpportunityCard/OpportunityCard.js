@@ -282,7 +282,7 @@ export default function OpportunityCard(props) {
         <>
    
         <Card raised={true} className={classes.card}>
-          <Grid container alignItems="center" justify="center" spacing={1} style={{padding: '5px'}}>
+          <Grid container alignItems="center" justifyContent="center" spacing={1} style={{padding: '5px'}}>
             <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
               <Link to={`/dao/${thisContractId}`}>
                 <Avatar variant="square" src={logo} />
@@ -295,8 +295,16 @@ export default function OpportunityCard(props) {
             </Grid>
           </Grid>
           <CardHeader
-          title={<Typography variant="h5" align="center">{title}</Typography>}
-          subheader={ <> <Grid container alignItems="flex-start" justify="space-between">
+          title={
+            <>
+            <Button 
+             color="primary"
+             style={{fontWeight: '800', fontSize: '110%', lineHeight: '1.1em'}}
+             onClick={handleOpportunityProposalDetailsClick}
+            >{title}
+            </Button>
+            </>}
+          subheader={ <> <Grid container alignItems="flex-start" justifyContent="space-between">
           <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
              <Typography variant="overline">Added: {created ? formatDate(created) : null}</Typography>
           </Grid>

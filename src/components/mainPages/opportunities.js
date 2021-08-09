@@ -80,7 +80,7 @@ export default function Opportunities(props) {
               thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
           
               let opportunities = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
-            
+              console.log('all opportunities', opportunities)
               if(opportunities && Object.keys(opportunities).length > 0){
                 setaOpportunities(opportunities.opportunities)
               }
@@ -90,9 +90,12 @@ export default function Opportunities(props) {
                     // 1. Build complete list of all opportuntities for all DAOs
                     let allOpportunities = []
                     let i = 0
-                    while (i < Object.keys(opportunities).length){
-                      allOpportunities.push(opportunities.opportunities[0])
+                    if(aopportunities){
+                    while (i < aopportunities.length){
+                      console.log('aopportunities', aopportunities)
+                      allOpportunities.push(aopportunities[i])
                       i++
+                    }
                     }
                     console.log('all opportunities', allOpportunities)
 
@@ -181,7 +184,7 @@ export default function Opportunities(props) {
         <>
         <div className={classes.root}>
         <Header state={state}/>
-        <Grid container alignItems="center" justify="flex-start" spacing={0}>
+        <Grid container alignItems="center" justifyContent="flex-start" spacing={0}>
           <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom:'30px'}}>
             <Typography variant='h3' style={{marginTop: '20px'}}>Community Opportunities</Typography>
             <Typography variant='body1' style={{padding: '5px'}}>These are the opportunitites currently available to the community.</Typography>

@@ -38,7 +38,7 @@ const ArtStory = () => {
     <>
     <Header state={state}></Header>
     <div className={classes.top}><h1 className={classes.titletext}>How Karen Built <br /> a Thriving Art Community</h1></div>
-    <Grid container alignItems="center" justify="space-between" spacing={0} style={{paddingLeft: '10%', paddingRight: '10%',
+    <Grid container alignItems="center" justifyContent="space-between" spacing={0} style={{paddingLeft: '10%', paddingRight: '10%',
      paddingTop: '4%', paddingBottom: '4%'}}>
        
        <Typography className={classes.text}> 

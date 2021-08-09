@@ -130,11 +130,11 @@ export default function Daos(props) {
         <div className={classes.root}>
         <Header state={state}/>
        
-        <Grid container alignItems="center" justify="space-between" spacing={3} style={{padding: '20px'}} >
+        <Grid container alignItems="center" justifyContent="space-between" spacing={3} style={{padding: '20px'}} >
             { daos && daos.length > 0 ? 
                 (<>
                   {console.log('daos', daos)}
-                  <Grid container alignItems="center" justify="space-between" spacing={0} >
+                  <Grid container alignItems="center" justifyContent="space-between" spacing={0} >
                     <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                       <SearchBar
                           placeholder="Search"
@@ -142,7 +142,7 @@ export default function Daos(props) {
                       />
                     </Grid>
                   </Grid>
-                <Grid container alignItems="center" justify="center" spacing={3} style={{padding: '20px'}}>
+                <Grid container alignItems="center" justifyContent="center" spacing={3} style={{padding: '20px'}}>
                     {daos.filter(dao => dao.summoner == accountId).reverse().map(({ contractId, created, summoner }, i) =>
                     <DaoCard
                         key={i}

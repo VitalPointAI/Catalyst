@@ -35,7 +35,7 @@ const FAQ = () => {
         <>
         <Header state={state}></Header>
         <div className={classes.top}><h1 className={classes.titletext}>Frequently Asked Questions</h1></div>
-        <Grid container alignItems="center" justify="space-between" spacing={0} style={{padding: '20px'}} >
+        <Grid container alignItems="center" justifyContent="space-between" spacing={0} style={{padding: '20px'}} >
             <Accordion>
                 <AccordionSummary>  
                     <Typography>

@@ -159,7 +159,7 @@ export default function MemberProfileDisplay(props) {
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
               {finished ? (<>
                 <DialogContent>
-                  <Grid container justify="space-evenly" spacing={1} style={{marginTop:'20px'}}>
+                  <Grid container justifyContent="space-evenly" spacing={1} style={{marginTop:'20px'}}>
                     
                     <center><Typography variant="h5"><Avatar src={avatar} className={classes.large}  />{name ? name : member}</Typography></center>
                   </Grid>
@@ -177,7 +177,7 @@ export default function MemberProfileDisplay(props) {
                       </TableBody>
                     </Table>
                   </TableContainer>
-                  <Grid container justify="space-evenly" spacing={1} style={{marginTop:'20px', marginBottom: '20px'}}>
+                  <Grid container justifyContent="space-evenly" spacing={1} style={{marginTop:'20px', marginBottom: '20px'}}>
                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                     <Typography variant="h6">Crypto/Blockchain Familiarity: <Rating readOnly value={parseInt(familiarity)} /> </Typography>
                   </Grid>

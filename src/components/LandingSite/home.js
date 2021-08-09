@@ -87,7 +87,7 @@ const FrontPage = () => {
     
    <div className={classes.top}>
    {!matches ?
-        <Grid container justify="center" alignItems="center" spacing={3} >
+        <Grid container justifyContent="center" alignItems="center" spacing={3} >
             <Grid item xs={12} sm={12} md={10} lg={8} xl={8} style={{marginTop: '50px', marginBottom: '50px'}}>
                 <MainBanner />
             </Grid> 
@@ -103,7 +103,7 @@ const FrontPage = () => {
             <Button href='/FAQ' className={classes.button2}>Visit the FAQ</Button>
         </Grid>
     :
-        <Grid container justify="center" alignItems="center" spacing={0} >
+        <Grid container justifyContent="center" alignItems="center" spacing={0} >
             <Grid item xs={12} sm={12} md={10} lg={8} xl={8} style={{marginTop: '20px', marginBottom: '50px'}}>
                 <MainBanner />
             </Grid>

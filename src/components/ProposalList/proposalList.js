@@ -925,11 +925,11 @@ export default function ProposalList(props) {
     </Paper>
     <TabContext value={tabValue}>
       <TabPanel value="1" >
-      <Grid container alignItems="center" justify="space-between" spacing={3} style={{padding: '20px'}} >
+      <Grid container alignItems="center" justifyContent="space-between" spacing={3} style={{padding: '20px'}} >
       { membersArray && membersArray.length > 0 ? 
           (<>
     
-            <Grid container alignItems="center" justify="space-between" spacing={0} >
+            <Grid container alignItems="center" justifyContent="space-between" spacing={0} >
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                 <SearchBar
                     placeholder="Search"
@@ -937,7 +937,7 @@ export default function ProposalList(props) {
                 />
               </Grid>
             </Grid>
-          <Grid container alignItems="center" justify="space-evenly" spacing={3} style={{padding: '20px'}}>
+          <Grid container alignItems="center" justifyContent="space-evenly" spacing={3} style={{padding: '20px'}}>
               {membersArray.map((fr, i) => (
                   <MemberCard 
                     key={fr.memberId}

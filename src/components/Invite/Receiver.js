@@ -41,7 +41,7 @@ const Receiver = ({state}) => {
     return (
         <>
         {finished? 
-        <Grid container spacing={6} direction="column" alignItems='center' justify='center' style={{flexGrow: 1}}>
+        <Grid container spacing={6} direction="column" alignItems='center' justifyContent='center' style={{flexGrow: 1}}>
                 <Grid item xs={6}>
                     <img style={{width: 300}} src={logo}/>
                 </Grid>

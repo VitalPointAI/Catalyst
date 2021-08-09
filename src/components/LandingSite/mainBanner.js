@@ -60,7 +60,7 @@ const MainBanner = () => {
     !matches ?
         <>
       
-            <Grid container justify="flex-start" alignItems="center" spacing={0}> 
+            <Grid container justifyContent="flex-start" alignItems="center" spacing={0}> 
                 <Grid item xs={8} sm={8} md={7} lg={7} xl={7}>
                     <Typography variant="h1" style={{fontSize: 0}} gutterBottom>
                         <span className={classes.specialtext}>A New Era for</span><br></br>
@@ -81,7 +81,7 @@ const MainBanner = () => {
     :
         <>
        
-        <Grid container justify="center" alignItems="center" spacing={0}> 
+        <Grid container justifyContent="center" alignItems="center" spacing={0}> 
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
                 <Typography variant="h1" style={{fontSize: 0}}>
                     <span className={classes.specialtextMobile}>A New Era for</span><br></br>

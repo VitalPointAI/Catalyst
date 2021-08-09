@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react'
 import { Link } from 'react-router-dom'
+import PropTypes from 'prop-types'
+import clsx from 'clsx'
 import { appStore, onAppMount } from '../../state/app'
 import * as d3 from 'd3'
 import "d3-time-format"
@@ -10,9 +12,10 @@ import { dao } from '../../utils/dao'
 import * as nearAPI from 'near-api-js'
 import { ceramic } from '../../utils/ceramic'
 import MemberProfile from '../MemberProfileDisplay/memberProfile'
+import OpportunityProposalDetails from '../ProposalDetails/opportunityProposalDetails'
 
 // Material UI
-import { makeStyles } from '@material-ui/core/styles'
+import { lighten, makeStyles } from '@material-ui/core/styles'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
 import Grid from '@material-ui/core/Grid'
 import Card from '@material-ui/core/Card'
@@ -27,8 +30,17 @@ import TableBody from '@material-ui/core/TableBody'
 import TableCell from '@material-ui/core/TableCell'
 import TableContainer from '@material-ui/core/TableContainer'
 import TableHead from '@material-ui/core/TableHead'
+import TablePagination from '@material-ui/core/TablePagination'
 import TableRow from '@material-ui/core/TableRow'
+import TableSortLabel from '@material-ui/core/TableSortLabel'
+import Toolbar from '@material-ui/core/Toolbar'
 import Paper from '@material-ui/core/Paper'
+import Checkbox from '@material-ui/core/Checkbox'
+import IconButton from '@material-ui/core/IconButton'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import Switch from '@material-ui/core/Switch'
+import DeleteIcon from '@material-ui/icons/Delete'
+import FilterListIcon from '@material-ui/icons/FilterList'
 import Tooltip from '@material-ui/core/Tooltip'
 import Zoom from '@material-ui/core/Zoom'
 import InfoIcon from '@material-ui/icons/Info'
@@ -40,6 +52,7 @@ import TabList from '@material-ui/lab/TabList'
 import TabPanel from '@material-ui/lab/TabPanel'
 import { CircularProgress } from '@material-ui/core'
 import Pagination from '@material-ui/lab/Pagination'
+import Button from '@material-ui/core/Button'
 
 import './dashboard.css'
 
@@ -67,9 +80,48 @@ const useStyles = makeStyles((theme) => ({
         backgroundColor: theme.palette.background.paper,
     },
     selectEmpty: {
-    marginTop: theme.spacing(2),
+        marginTop: theme.spacing(2),
+    },
+    paper: {
+        width: '100%',
+        marginBottom: theme.spacing(2),
+        padding: '5px'
+    },
+    table: {
+        
+    },
+    visuallyHidden: {
+        border: 0,
+        clip: 'rect(0 0 0 0)',
+        height: 1,
+        margin: -1,
+        overflow: 'hidden',
+        padding: 0,
+        position: 'absolute',
+        top: 20,
+        width: 1,
     },
   }))
+
+const useToolbarStyles = makeStyles((theme) => ({
+root: {
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(1),
+},
+highlight:
+    theme.palette.type === 'light'
+    ? {
+        color: theme.palette.secondary.main,
+        backgroundColor: lighten(theme.palette.secondary.light, 0.85),
+        }
+    : {
+        color: theme.palette.text.primary,
+        backgroundColor: theme.palette.secondary.dark,
+        },
+title: {
+    flex: '1 1 100%',
+},
+}));
 
 const parseTime = d3.timeParse("%B %d, %Y")
 const formatTime = d3.timeFormat("%B %d, %Y")
@@ -81,6 +133,7 @@ const defaultLogo = require('../../img/default_logo.png')
 const CARDS_TO_SHOW = 1
 
 export default function Dashboard(props) {
+
     const [memberData, setMemberData] = useState()
     const [proposalData, setProposalData] = useState()
     const [finalPropDataFrame, setFinalPropDataFrame] = useState()
@@ -93,6 +146,20 @@ export default function Dashboard(props) {
     const [recommendations, setRecommendations] = useState([])
     const [suitabilityScore, setSuitabilityScore] = useState()
     const [recommendationsLoaded, setRecommendationsLoaded] = useState(false)
+    const [opportunityProposalDetailsClicked, setOpportunityProposalDetailsClicked] = useState(false)
+    const [opportunityId, setOpportunityId] = useState()
+    const [proposer, setProposer] = useState()
+    const [rowContractId, setRowContractId] = useState()
+    const [curDaoIdx, setCurDaoIdx] = useState()
+
+    const [order, setOrder] = useState('desc')
+    const [orderBy, setOrderBy] = useState('suitability')
+    const [selected, setSelected] = useState([])
+    const [page, setPage] = useState(0)
+    const [rowsPerPage, setRowsPerPage] = useState(5)
+
+    const [anchorEl, setAnchorEl] = useState(null)
+
     const classes = useStyles()
 
     const { state, dispatch, update } = useContext(appStore)
@@ -347,12 +414,17 @@ export default function Dashboard(props) {
                             if(thisCurDaoIdx){
                                 try{
                                     singleDaoOpportunity = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
+                                    console.log('singledaoopp', singleDaoOpportunity)
                                 } catch (err) {
                                     console.log('error loading singledao opportunity', err)
                                 }
 
                                 if(singleDaoOpportunity && Object.keys(singleDaoOpportunity).length > 0){
-                                    allOpportunities.push(singleDaoOpportunity.opportunities[0])
+                                    let j = 0
+                                    while (j < singleDaoOpportunity.opportunities.length){
+                                    allOpportunities.push(singleDaoOpportunity.opportunities[j])
+                                    j++
+                                    }
                                 }
                             }
                         i++
@@ -370,14 +442,15 @@ export default function Dashboard(props) {
                     // 3. For each opportunity, compare opportunity skillset requirements to persona skillsets and add to recommendations array if the same
                     // calculate a suitability percentage from skills required (true) (total skills possessed / total skills)
                     let j = 0
-                    let developerPercentage = 0
-                    let developerSkillCount = 0
-                    let developerSkillMatch = 0
-                    let skillPercentage = 0
-                    let skillCount = 0
-                    let skillMatch = 0
+                   
                   
                     while (j < allOpportunities.length){
+                        let developerPercentage = 0
+                        let developerSkillCount = 0
+                        let developerSkillMatch = 0
+                        let skillPercentage = 0
+                        let skillCount = 0
+                        let skillMatch = 0
                         for (const [key, value] of Object.entries(allOpportunities[j].desiredDeveloperSkillSet)){
                             if(value){
                                 developerSkillCount++
@@ -402,9 +475,12 @@ export default function Dashboard(props) {
                                 }
                             }
                         }
-                        let asuitabilityScore = ((skillMatch + developerSkillMatch)/(skillCount + developerSkillCount)*100).toFixed(0)
+                        let asuitabilityScore = parseInt(((skillMatch + developerSkillMatch)/(skillCount + developerSkillCount)*100).toFixed(0))
+                        if (!asuitabilityScore){
+                            asuitabilityScore = 0
+                        }
                         setSuitabilityScore(asuitabilityScore)
-                        currentRecommendations.push({opportunity: allOpportunities[j], skillMatch: skillMatch, developerSkillMatch: developerSkillMatch, skillCount: skillCount, developerSkillCount: developerSkillCount, suitabilityScore: asuitabilityScore})
+                        currentRecommendations.push({opportunity: allOpportunities[j], baseReward: parseInt(allOpportunities[j].reward), skillMatch: skillMatch, developerSkillMatch: developerSkillMatch, skillCount: skillCount, developerSkillCount: developerSkillCount, suitabilityScore: asuitabilityScore})
                         j++
                     }
                     
@@ -445,6 +521,125 @@ export default function Dashboard(props) {
         let options = {year: 'numeric', month: 'long', day: 'numeric'}
         return new Date(parseInt(stringDate.slice(0,13))).toLocaleString('en-US', options)  
     }
+
+    const handleOpportunityProposalDetailsClick = (proposer, opportunityId, rowContractId) => {
+        handleExpanded()
+        setOpportunityId(opportunityId)
+        setProposer(proposer)
+        setRowContractId(rowContractId)
+        handleOpportunityProposalDetailsClickState(true)
+      }
+    
+    function handleOpportunityProposalDetailsClickState(property){
+    setOpportunityProposalDetailsClicked(property)
+    }
+
+    function handleExpanded() {
+        setAnchorEl(null)
+    }
+
+    function handleUpdate(property){
+        setIsUpdated(property)
+    }
+
+    function descendingComparator(a, b, orderBy) {
+        if (b[orderBy] < a[orderBy]) {
+          return -1;
+        }
+        if (b[orderBy] > a[orderBy]) {
+          return 1;
+        }
+        return 0;
+    }
+      
+    function getComparator(order, orderBy) {
+    return order === 'desc'
+        ? (a, b) => descendingComparator(a, b, orderBy)
+        : (a, b) => -descendingComparator(a, b, orderBy);
+    }
+      
+    function stableSort(array, comparator) {
+        console.log('array', array)
+    const stabilizedThis = array.map((el, index) => [el, index]);
+    console.log('stabiizedthis', stabilizedThis)
+    stabilizedThis.sort((a, b) => {
+        console.log('sort a', a)
+        console.log('sort b', b)
+        const order = comparator(a[0], b[0]);
+        if (order !== 0) return order;
+        return a[1] - b[1];
+    });
+    console.log('stabilized this', stabilizedThis)
+    return stabilizedThis.map((el) => el[0]);
+    }
+
+    const headCells = [
+        { id: 'name', numeric: false, disablePadding: true, label: 'Opportunity' },
+        { id: 'suitabilityScore', numeric: true, disablePadding: false, label: 'Suitability' },
+        { id: 'baseReward', numeric: true, disablePadding: false, label: 'Base Reward' },
+    ]
+
+    function EnhancedTableHead(props) {
+        const { classes, onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } = props
+        const createSortHandler = (property) => (event) => {
+          onRequestSort(event, property)
+        }
+      
+        return (
+          <TableHead>
+            <TableRow key={'header'}>
+              {headCells.map((headCell) => (
+                <TableCell
+                  key={headCell.id}
+                  align={headCell.numeric ? 'right' : 'left'}
+                  padding={headCell.disablePadding ? 'none' : 'normal'}
+                  sortDirection={orderBy === headCell.id ? order : false}
+                >
+                  <TableSortLabel
+                    active={orderBy === headCell.id}
+                    direction={orderBy === headCell.id ? order : 'asc'}
+                    onClick={createSortHandler(headCell.id)}
+                  >
+                    {headCell.label}
+                    {orderBy === headCell.id ? (
+                      <span className={classes.visuallyHidden}>
+                        {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                      </span>
+                    ) : null}
+                  </TableSortLabel>
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+        );
+      }
+      
+    EnhancedTableHead.propTypes = {
+        classes: PropTypes.object.isRequired,
+        onRequestSort: PropTypes.func.isRequired,
+        order: PropTypes.oneOf(['asc', 'desc']).isRequired,
+        orderBy: PropTypes.string.isRequired,
+        rowCount: PropTypes.number.isRequired,
+    }
+
+    const handleRequestSort = (event, property) => {
+        console.log('event', event)
+        console.log('property', property)
+        const isAsc = orderBy === property && order === 'asc'
+            setOrder(isAsc ? 'desc' : 'asc')
+            setOrderBy(property)
+    }
+
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage)
+    }
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10))
+        setPage(0)
+    }
+
+    const emptyRows = rowsPerPage - Math.min(rowsPerPage, recommendations.length - page * rowsPerPage)
 
     const createMemberGraph = async () => {
       //  let data = newMemberDataFrame
@@ -614,7 +809,7 @@ export default function Dashboard(props) {
             </TabList>
             </AppBar>
             <TabPanel value="1">
-            <Grid container justify="center" alignItems="flex-start" spacing={1} >
+            <Grid container justifyContent="center" alignItems="flex-start" spacing={1} >
             <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                 <MemberProfile member={accountId} />
             </Grid>
@@ -622,7 +817,80 @@ export default function Dashboard(props) {
                 
                 <Typography variant="h6">Opportunities for You</Typography>
                 <Typography variant="body1" style={{marginBottom: '10px'}}>The higher the suitability score, the more closely the opportunity matches your skillset</Typography>
-                
+               
+
+                <div className={classes.root}>
+      <Paper className={classes.paper}>
+        
+        <TableContainer>
+          <Table
+            className={classes.table}
+            aria-labelledby="tableTitle"
+            size="small"
+            aria-label="enhanced table"
+          >
+            <EnhancedTableHead
+              classes={classes}
+              order={order}
+              orderBy={orderBy}
+              onRequestSort={handleRequestSort}
+              rowCount={recommendations.length}
+            />
+            <TableBody>
+                {recommendations && recommendations.length > 0 ?
+                stableSort(recommendations, getComparator(order, orderBy))
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((row, index) => {
+                  console.log('row', row)
+                  console.log('index', index)
+                  return (
+                    <TableRow key={index}>
+                      
+                      <TableCell component="th" scope="row" padding="none">
+                        <Button 
+                            color="primary"
+                            style={{fontWeight: '800', fontSize: '100%', lineHeight: '1.1em'}}
+                            onClick={(e) => handleOpportunityProposalDetailsClick(row.opportunity.proposer, row.opportunity.opportunityId, row.opportunity.contractId)}
+                            >{row.opportunity.title}
+                        </Button>
+                      </TableCell>
+                      <TableCell align="right">{row.suitabilityScore}</TableCell>
+                      <TableCell align="right">{row.baseReward}</TableCell>
+                    </TableRow>
+                    
+                  )
+                  
+                }) :
+              emptyRows > 0 && (
+                <TableRow style={{ height: 33 * emptyRows }}>
+                  <TableCell colSpan={3} />
+                </TableRow>
+              )
+              }
+            </TableBody>
+            {opportunityProposalDetailsClicked ? <OpportunityProposalDetails
+                proposer={proposer}
+                handleOpportunityProposalDetailsClickState={handleOpportunityProposalDetailsClickState}
+                applicant={accountId}
+                handleUpdate={handleUpdate}
+                opportunityId={opportunityId}
+                contractId={rowContractId}
+                /> : null }
+          </Table>
+        </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={recommendations.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </Paper>
+      
+    </div>
+
                 {recommendationsLoaded ?
                 recommendations && recommendations.length > 0 ?
                     recommendations.slice((CARDS_TO_SHOW -1) * CARDS_TO_SHOW, (CARDS_TO_SHOW -1) * CARDS_TO_SHOW + CARDS_TO_SHOW)
@@ -666,7 +934,7 @@ export default function Dashboard(props) {
             </TabPanel>
             <TabPanel value="2">
                 <div>
-                <Grid container alignItems="center" justify="center" spacing={1} style={{padding: '20px'}}>
+                <Grid container alignItems="center" justifyContent="center" spacing={1} style={{padding: '20px'}}>
                     <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom:'30px'}}>
                     {!matches ? <Typography variant='h3'>Community Dashboard</Typography> : <Typography variant='h4'>Community Dashboard</Typography>}
                         <Typography variant='body1'>Community and participation metrics.</Typography>
@@ -775,6 +1043,8 @@ export default function Dashboard(props) {
         </TabContext>
        
         </div>
+
+       
        
         </>
     )

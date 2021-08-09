@@ -66,7 +66,7 @@ const Stories = () => {
 
     return(
         !matches ? 
-        <Grid justify='center' container className={classes.root} spacing={5}>
+        <Grid justifyContent='center' container className={classes.root} spacing={5}>
             <Grid item xs={6}>
                 <Card className={classes.card}>
                     <CardHeader
@@ -129,7 +129,7 @@ const Stories = () => {
             </Grid>
         </Grid>
         : 
-        <Grid justify="center" container spacing={2}>
+        <Grid justifyContent="center" container spacing={2}>
             <Grid item xs={11}>
                 <Card>
                     <CardHeader

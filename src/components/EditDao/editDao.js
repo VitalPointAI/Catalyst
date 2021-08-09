@@ -336,7 +336,7 @@ export default function EditDaoForm(props) {
                    
                   <Card style={{marginTop: '10px', marginBottom: '20px', padding: '5px'}}>
                   <Typography variant="h6">Notifications</Typography>
-                      <Grid container justify="flex-start" alignItems="center" spacing={1}>
+                      <Grid container justifyContent="flex-start" alignItems="center" spacing={1}>
                         <Grid item xs={9} sm={9} md={9} lg={9} xl={9}>
                           <TextField
                             autoFocus
@@ -510,7 +510,7 @@ export default function EditDaoForm(props) {
               </DialogActions>)}
               <Divider style={{marginBottom: 10}}/>
               
-              </>) : <><div className={classes.waiting}><div class={flexClass}><CircularProgress/></div><Grid container spacing={1} alignItems="center" justify="center" >
+              </>) : <><div className={classes.waiting}><div class={flexClass}><CircularProgress/></div><Grid container spacing={1} alignItems="center" justifyContent="center" >
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                 <Typography variant="h5" align="center">Loading DAO Details</Typography>
               </Grid>

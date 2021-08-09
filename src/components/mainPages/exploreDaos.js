@@ -182,12 +182,12 @@ export default function ExploreDaos(props) {
         <div className={classes.root}>
         <Header state={state}/>
         {!matches ? (<>
-        <Grid container alignItems="center" justify="center" spacing={0} style={{margin:'auto', width:'98%'}}>
+        <Grid container alignItems="center" justifyContent="center" spacing={0} style={{margin:'auto', width:'98%'}}>
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
             <Paper elevation={3}>
                 <Typography align="center" style={{color:'#1341a4', fontSize:'60px',fontWeight:'700', marginTop: '5px', lineHeight:'1em', verticalAlign:'middle'}}>
                 Catalyst Powers</Typography>
-                <Grid container alignItems="center" justify="space-evenly" spacing={1}>
+                <Grid container alignItems="center" justifyContent="space-evenly" spacing={1}>
                     <Grid item xs={6} sm={6} md={6} lg={6} xl={6} align="center">
                         <Typography style={{color:'#1341a4', fontSize:'80px',fontWeight:'700', marginTop: '5px', lineHeight:'1em', verticalAlign:'middle'}}>
                             {daos ? daoCount : null} 
@@ -212,12 +212,12 @@ export default function ExploreDaos(props) {
         </Grid>
         </>
         ) : (<>
-            <Grid container alignItems="center" justify="space-between" spacing={0}  style={{margin:'auto', width:'98%'}}>
+            <Grid container alignItems="center" justifyContent="space-between" spacing={0}  style={{margin:'auto', width:'98%'}}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                 <Paper elevation={3}>
                     <Typography align="center" style={{color:'#1341a4', fontSize:'40px',fontWeight:'700', marginTop:'10px', lineHeight:'1em', verticalAlign:'middle'}}>
                     Catalyst Powers</Typography>
-                    <Grid container alignItems="center" justify="space-evenly" spacing={1}>
+                    <Grid container alignItems="center" justifyContent="space-evenly" spacing={1}>
                         <Grid item xs={6} sm={6} md={6} lg={6} xl={6} align="center">
                             <Typography style={{color:'#1341a4', fontSize:'40px',fontWeight:'700', marginTop:'5px', lineHeight:'1em', verticalAlign:'middle'}}>
                                 {daos ? daoCount : null} 
@@ -244,7 +244,7 @@ export default function ExploreDaos(props) {
 
         )}
       
-        <Grid container alignItems="center" justify="space-between" spacing={0} >
+        <Grid container alignItems="center" justifyContent="space-between" spacing={0} >
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
             <SearchBar
                 placeholder="Search"
@@ -253,7 +253,7 @@ export default function ExploreDaos(props) {
             </Grid>
         </Grid>
 
-        <Grid container alignItems="center" justify="center" spacing={3} style={{padding: '20px'}}>
+        <Grid container alignItems="center" justifyContent="center" spacing={3} style={{padding: '20px'}}>
         {daos && daoCount > 0 ? 
                 (<>
                   

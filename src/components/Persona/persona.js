@@ -174,11 +174,11 @@ const classes = useStyles()
 
     return (
         <>    
-        <Grid container justify="center" alignItems="center" spacing={1} >        
+        <Grid container justifyContent="center" alignItems="center" spacing={1} >        
             <Grid item xs={12} sm={12} md={7} lg={7} xl={7} align="center">
                 {profileExists && contractId == undefined ? (
                     <>
-                    <Grid container justify="center" alignItems="center" spacing={1} >
+                    <Grid container justifyContent="center" alignItems="center" spacing={1} >
                         <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                         {!matches ? (
                             <>
@@ -226,7 +226,7 @@ const classes = useStyles()
                     :
                     contractId == undefined ? (
                     <>
-                        <Grid container justify="center" alignItems="center" spacing={1} >
+                        <Grid container justifyContent="center" alignItems="center" spacing={1} >
                             <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                                 <Typography variant="overline" display="inline" style={{marginLeft: '10px'}}>
                                     <Tooltip TransitionComponent={Zoom} title="The number of personas claimed by the signed in persona.">
@@ -282,7 +282,7 @@ const classes = useStyles()
                 
                 {finished ? (
                     <>
-                    <Grid container justify="center" alignItems="center" spacing={1} >
+                    <Grid container justifyContent="center" alignItems="center" spacing={1} >
                         <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                             <Typography variant="overline" display="block" style={{display: 'inline-flex', float: 'right'}} onClick={handleEditPersonaClick}>
                                 <Avatar src={avatar} className={classes.small} style={{marginRight: '5px'}} onClick={handleEditPersonaClick}/>
@@ -299,7 +299,7 @@ const classes = useStyles()
             <Grid item xs={12} sm={12} md={3} lg={3} xl={3} align="center">
                 {finished ? (
                     <>
-                    <Grid container justify="center" alignItems="center" spacing={1} >
+                    <Grid container justifyContent="center" alignItems="center" spacing={1} >
                         <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                             <Typography variant="overline" display="block" style={{display: 'inline-flex'}} onClick={handleEditPersonaClick}>
                                 <Avatar src={avatar} className={classes.small} style={{marginRight: '5px'}} onClick={handleEditPersonaClick}/>

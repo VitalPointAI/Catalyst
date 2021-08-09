@@ -126,6 +126,7 @@ export default function ProposalCard(props) {
     const [proposals, setProposals] = useState()
 
     const [isUpdated, setIsUpdated] = useState(false)
+    const [detailsExist, setDetailsExist] = useState(false)
 
     const[hasVoted, setHasVoted] = useState(props.voted)
     const[isDone, setIsDone] = useState(props.done)
@@ -227,6 +228,7 @@ export default function ProposalCard(props) {
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == requestId){
                     propResult.proposals[i].intro ? setIntro(propResult.proposals[i].intro) : setIntro('')
+                    setDetailsExist(true)
                     break
                   }
                   i++
@@ -243,6 +245,7 @@ export default function ProposalCard(props) {
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == requestId){
                     propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
+                    setDetailsExist(true)
                     break
                   }
                   i++
@@ -259,6 +262,7 @@ export default function ProposalCard(props) {
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == requestId){
                     propResult.proposals[i].title ? setTributeTitle(propResult.proposals[i].title) : setTributeTitle('')
+                    setDetailsExist(true)
                     break
                   }
                   i++
@@ -275,6 +279,7 @@ export default function ProposalCard(props) {
                 while (i < propResult.opportunities.length){
                   if(propResult.opportunities[i].opportunityId == requestId){
                     propResult.opportunities[i].title ? setOpportunityTitle(propResult.opportunities[i].title) : setOpportunityTitle('')
+                    setDetailsExist(true)
                     break
                   }
                   i++
@@ -291,6 +296,7 @@ export default function ProposalCard(props) {
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == requestId){
                     propResult.proposals[i].title ? setPayoutTitle(propResult.proposals[i].title) : setPayoutTitle('')
+                    setDetailsExist(true)
                     break
                   }
                   i++
@@ -497,7 +503,7 @@ export default function ProposalCard(props) {
               <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px', marginTop: '12px'}} color="textSecondary">{proposalType}Proposal</Typography>
               <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
             <div style={{clear: 'both'}}></div>
-            <Grid container justify="space-evenly" spacing={1} style={{marginTop:'20px'}}>
+            <Grid container justifyContent="space-evenly" spacing={1} style={{marginTop:'20px'}}>
               <Button
               color="primary"
               onClick={handleMemberProposalDetailsClick}
@@ -512,7 +518,7 @@ export default function ProposalCard(props) {
                align="center"
               
                subheader={
-                 <Grid container alignItems="center" justify="space-evenly">
+                 <Grid container alignItems="center" justifyContent="space-evenly">
                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
                       <Typography variant="overline">Proposed: {created}</Typography>
                    </Grid>
@@ -591,7 +597,7 @@ export default function ProposalCard(props) {
                  </>
                 }
                subheader={
-                 <Grid container alignItems="center" justify="space-evenly">
+                 <Grid container alignItems="center" justifyContent="space-evenly">
                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
                       <Typography variant="overline">Proposed: {created}</Typography>
                    </Grid>
@@ -670,7 +676,7 @@ export default function ProposalCard(props) {
                  </>
                 }
                subheader={
-                 <Grid container alignItems="center" justify="space-evenly">
+                 <Grid container alignItems="center" justifyContent="space-evenly">
                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
                       <Typography variant="overline">Proposed: {created}</Typography>
                    </Grid>
@@ -749,7 +755,7 @@ export default function ProposalCard(props) {
                  </>
                 }
                subheader={
-                 <Grid container alignItems="center" justify="space-evenly">
+                 <Grid container alignItems="center" justifyContent="space-evenly">
                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
                       <Typography variant="overline">Proposed: {created}</Typography>
                    </Grid>
@@ -828,7 +834,7 @@ export default function ProposalCard(props) {
                  </>
                 }
                subheader={
-                 <Grid container alignItems="center" justify="space-evenly">
+                 <Grid container alignItems="center" justifyContent="space-evenly">
                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
                       <Typography variant="overline">Proposed: {created}</Typography>
                    </Grid>
@@ -906,7 +912,7 @@ export default function ProposalCard(props) {
                 </>}
                subheader={
                 <><Typography variant="overline">Proposed: {created}</Typography>
-                 <Grid container alignItems="center" justify="space-between">
+                 <Grid container alignItems="center" justifyContent="space-between">
                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
                     <Typography variant="overline">By:</Typography>
                     <Chip avatar={<Avatar src={proposerAvatar} className={classes.small}  />} label={proposerName != '' ? proposerName : proposer}/>
@@ -974,7 +980,7 @@ export default function ProposalCard(props) {
                  variant="outlined"
                />}
                subheader={
-                 <Grid container alignItems="center" justify="space-evenly">
+                 <Grid container alignItems="center" justifyContent="space-evenly">
                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                      <Typography variant="overline">Proposed: {created}</Typography>
                    </Grid>
@@ -991,7 +997,7 @@ export default function ProposalCard(props) {
             <CardContent>
                
             {proposalType == 'Member' ? (
-              <Grid container alignItems="center" justify="space-evenly" style={{marginBottom:'5px'}}>
+              <Grid container alignItems="center" justifyContent="space-evenly" style={{marginBottom:'5px'}}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-20px'}}>
                   <Typography variant="overline">Shares: {shares}</Typography><br></br>
                   <Typography variant="overline">{`Tribute: ${tribute} Ⓝ`}</Typography>
@@ -1000,7 +1006,7 @@ export default function ProposalCard(props) {
             ) : null }
 
             {proposalType == 'GuildKick' ? (
-              <Grid container alignItems="center" justify="space-evenly" style={{marginTop: '-20px', marginBottom:'20px'}}>
+              <Grid container alignItems="center" justifyContent="space-evenly" style={{marginTop: '-20px', marginBottom:'20px'}}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                   <Typography variant="h6" noWrap={true} style={{border: '1px solid', padding: '2px', textAlign: 'center', fontWeight: '800', color: 'black'}}
                   onClick={(e) => handleMemberProposalDetailsClick(requestId, applicant, status, proposer, proposalType, e)}
@@ -1010,7 +1016,7 @@ export default function ProposalCard(props) {
             ) : null}
 
             {proposalType == 'Commitment' ? (
-              <Grid container alignItems="center" justify="space-evenly" style={{marginTop: '-20px', marginBottom:'20px'}}>
+              <Grid container alignItems="center" justifyContent="space-evenly" style={{marginTop: '-20px', marginBottom:'20px'}}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                  
                 </Grid>    
@@ -1024,7 +1030,7 @@ export default function ProposalCard(props) {
             ) : null}
 
             {proposalType == 'Tribute' ? (
-              <Grid container alignItems="center" justify="space-evenly" style={{marginBottom:'5px'}}>
+              <Grid container alignItems="center" justifyContent="space-evenly" style={{marginBottom:'5px'}}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-20px'}}>
                   <Typography variant="overline">Shares: {shares}</Typography><br></br>
                   <Typography variant="overline">{`Tribute: ${tribute} Ⓝ`}</Typography>
@@ -1033,7 +1039,7 @@ export default function ProposalCard(props) {
             ) : null }
 
             {proposalType == 'Payout' ? (
-              <Grid container alignItems="center" justify="space-evenly" style={{marginTop: '-20px', marginBottom:'20px'}}>
+              <Grid container alignItems="center" justifyContent="space-evenly" style={{marginTop: '-20px', marginBottom:'20px'}}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                  
                 </Grid>    
@@ -1055,7 +1061,7 @@ export default function ProposalCard(props) {
            
 
               {status == 'Sponsored' && isVotingPeriod && !isGracePeriod ? (
-                <Grid container alignItems="center" justify="space-between" spacing={1}>
+                <Grid container alignItems="center" justifyContent="space-between" spacing={1}>
                   <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="left">
                      {done ? ( <StyledBadge badgeContent={yesVotes} color="primary">
                         <IconButton onClick={(e) => handleVotingAction(requestId, 'yes')} disabled={voted}>
@@ -1084,7 +1090,7 @@ export default function ProposalCard(props) {
               ) : null }
 
               {status == 'Sponsored' && isGracePeriod && !isVotingPeriod && vote != 'yes' ? (
-                <Grid container alignItems="center" justify="space-evenly" spacing={1}>
+                <Grid container alignItems="center" justifyContent="space-evenly" spacing={1}>
                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
                     <Button
                       variant="contained"
@@ -1104,7 +1110,7 @@ export default function ProposalCard(props) {
               
               {status == 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && currentPeriod > gracePeriod && !isVotingPeriod && !isGracePeriod ? (
                 <>
-                <Grid container alignItems="center" justify="space-between" spacing={1}>
+                <Grid container alignItems="center" justifyContent="space-between" spacing={1}>
                   <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="left" >
                     <StyledBadge badgeContent={yesVotes} color="primary">
                       <IconButton onClick={(e) => handleVotingAction(requestId, 'yes')} disabled={true}>
@@ -1126,7 +1132,7 @@ export default function ProposalCard(props) {
                   </Grid>
                 </Grid>
                 
-                <Grid container alignItems="center" justify="space-evenly" spacing={1}>
+                <Grid container alignItems="center" justifyContent="space-evenly" spacing={1}>
                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
                   {nextToFinalize == requestId ?
                     <Button
@@ -1145,7 +1151,7 @@ export default function ProposalCard(props) {
               ) : null }
 
               {status == 'Passed' || status == 'Not Passed' ? (
-                <Grid container alignItems="center" justify="space-between" spacing={0} >
+                <Grid container alignItems="center" justifyContent="space-between" spacing={0} >
                   <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center" >
                     <StyledBadge badgeContent={yesVotes} color="primary">
                       <IconButton onClick={(e) => handleVotingAction(requestId, 'yes')} disabled={true}>
@@ -1169,30 +1175,27 @@ export default function ProposalCard(props) {
               ) : null }
                
               
-              <Grid container alignItems="center" justify="space-evenly" spacing={1}>
+              <Grid container alignItems="center" justifyContent="space-evenly" spacing={1}>
 
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                  {totalMembers != 1 ?
-                    (accountId != proposer && accountId != applicant) && status=='Submitted' && memberStatus == true ? 
-                  <><Button 
-                      color="primary" 
-                      onClick={(e) => handleSponsorConfirmationClick(requestId, proposalType, funding)}
-                    >
-                    Sponsor
-                    </Button>
-                  </> : null
-                  :
-                  accountId == summoner && status=='Submitted' && memberStatus == true ? 
-                  <><Button 
-                      color="primary" 
-                      onClick={(e) => handleSponsorConfirmationClick(requestId, proposalType, funding)}
-                    >
-                    Sponsor
-                    </Button>
-                  </> : null }
-                </Grid>
-
-                <Grid item xs={4} sm={4} md={4} lg={4} xl={4}>
+                <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
+                {totalMembers != 1 ?
+                  (accountId != proposer && accountId != applicant) && status=='Submitted' && memberStatus == true && detailsExist == true ? 
+                <><Button 
+                    color="primary" 
+                    onClick={detailsExist ? (e) => handleSponsorConfirmationClick(requestId, proposalType, funding) :<p>Details Required</p>}
+                  >
+                  Sponsor
+                  </Button>
+                </> : null
+                :
+                accountId == summoner && status=='Submitted' && memberStatus == true && detailsExist == true ? 
+                <><Button 
+                    color="primary" 
+                    onClick={detailsExist ? (e) => handleSponsorConfirmationClick(requestId, proposalType, funding) : <p>Details required</p>}
+                  >
+                  Sponsor
+                  </Button>
+                </> : null }
                 </Grid>
 
               <Grid item xs={8} sm={8} md={8} lg={8} xl={8} align="right">

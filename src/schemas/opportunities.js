@@ -39,7 +39,8 @@ export const opportunitiesSchema = {
           minimum: 0,
         },
         "reward": {
-          type: 'string',
+          type: 'number',
+          minimum: 0,
         },
         "category": {
           type: 'string',

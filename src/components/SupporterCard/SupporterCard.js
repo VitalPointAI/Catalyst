@@ -100,7 +100,7 @@ export default function SupporterCard(props) {
     return(
         <>
         <Card raised={true} className={classes.card} >
-          <Grid container justify="flex-start" alignItems="center" spacing={0}>
+          <Grid container justifyContent="flex-start" alignItems="center" spacing={0}>
             <Grid item xs={12} sm={12} md={1} lg={1} xl={1} align="center">
               <Avatar variant="circular" src={avatar} style={{marginLeft: '3px'}} />
             </Grid>

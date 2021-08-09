@@ -230,7 +230,7 @@ export default function EditMemberProposalForm(props) {
               </DialogActions>)}
               <Divider style={{marginBottom: 10}}/>
               
-              </>) : <><div className={classes.waiting}><div class={flexClass}><CircularProgress/></div><Grid container spacing={1} alignItems="center" justify="center" >
+              </>) : <><div className={classes.waiting}><div class={flexClass}><CircularProgress/></div><Grid container spacing={1} alignItems="center" justifyContent="center" >
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                 <Typography variant="h5" align="center">Loading Proposal Data</Typography>
               </Grid>

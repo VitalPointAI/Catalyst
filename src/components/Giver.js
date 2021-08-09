@@ -86,7 +86,7 @@ export const Giver = ({ state, update, dispatch }) => {
     return (
         <Router>
         <>
-        <Grid container alignItems="center" justify="center" spacing={2}>
+        <Grid container alignItems="center" justifyContent="center" spacing={2}>
             {countOfLinks > 0 ? 
                 (<> <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                         <Typography variant="h5" style={{marginBottom: '20px'}}>Reserved Personas</Typography>
@@ -115,7 +115,7 @@ export const Giver = ({ state, update, dispatch }) => {
             }
         </Grid>
         <Divider variant="middle" style={{marginBottom: '20px'}}/>
-        <Grid container alignItems="center" justify="center" spacing={2}>
+        <Grid container alignItems="center" justifyContent="center" spacing={2}>
             { countOfClaims > 0 ? 
                 (<>
                     <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >

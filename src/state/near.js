@@ -1706,6 +1706,18 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
                 console.log('error sending notification', err)
             }
         }
+        else if(proposal.f[8]){
+            let data = {
+                applicant: proposal.a,
+                url: window.location.href
+            }
+            try{
+               
+                sendMessage(proposal.a + " has submitted an opportunity", "", data, curDaoIdx)
+            } catch (err) {
+                console.log('error sending notification', err)
+            }
+        }
         else{
             let data = {
                 applicant: proposal.a,

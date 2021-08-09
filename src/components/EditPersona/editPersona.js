@@ -686,7 +686,7 @@ export default function EditPersonaForm(props) {
                          
                         </AccordionDetails>
                       </Accordion>
-                  <Grid container spacing={1} justify="space-between">  
+                  <Grid container spacing={1} justifyContent="space-between">  
                     <Grid item xs={7} sm={7} md={7} lg={7} xl={7}>
                       <Typography style={{marginTop: 5}}> 
                         From the Open Web Sandbox?
@@ -719,7 +719,7 @@ export default function EditPersonaForm(props) {
               </DialogActions>)}
               <Divider style={{marginBottom: 10}}/>
               
-              </>) : <><div className={classes.waiting}><div class={flexClass}><CircularProgress/></div><Grid container spacing={1} alignItems="center" justify="center" >
+              </>) : <><div className={classes.waiting}><div class={flexClass}><CircularProgress/></div><Grid container spacing={1} alignItems="center" justifyContent="center" >
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                 <Typography variant="h5" align="center">Loading Persona Data</Typography>
               </Grid>

@@ -47,7 +47,7 @@ const NearStory = () => {
     <>
     <Header state={state}></Header>
     <div className={classes.top}><h1 className={classes.titletext}>How NEAR uses Catalyst to<br /> Fund Community Projects</h1></div>
-    <Grid container alignItems="center" justify="space-between" spacing={0} style={{paddingLeft: '10%',
+    <Grid container alignItems="center" justifyContent="space-between" spacing={0} style={{paddingLeft: '10%',
      paddingRight: '10%', paddingTop: '4%', paddingBottom: '4%'}} >
        <Grid item xs={12}>
        <Typography className={classes.text}> 
@@ -60,7 +60,7 @@ const NearStory = () => {
             Catalyst is an application built on NEAR for quickly constructing decentralized communities, and the default community on Catalyst is plutocratic, meaning that the more NEAR a member contributes to the fund, the more voting shares they receive upon being approved. Because the NEAR community fund is a pool governed by the council, so long as the majority of the funds came from them, they are able to retain ultimate deciding power over which projects are funded, and which aren’t.  <br /> <br /> 
         </Typography>
         </Grid>
-        <Grid container alignItems="center" justify="space-between" spacing={3}>
+        <Grid container alignItems="center" justifyContent="space-between" spacing={3}>
         <Grid item xs={7}>
         <Typography className={classes.text}>
             However, an important feature introduced through the use of a Catalyst community is the ability for other members of the community to vote on project proposals as well. This allows the potential for the community to decide whether a project should be funded when council members disagree and -- most importantly -- lets the NEAR team see an exact metric denoting community support for a particular project.  <br /> <br />

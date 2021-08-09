@@ -179,7 +179,7 @@ export default function MemberCard(props) {
     return(
         <>
         <Card raised={true} className={classes.card} >
-        <Grid container justify="space-evenly" spacing={1} style={{marginTop:'20px'}}>
+        <Grid container justifyContent="space-evenly" spacing={1} style={{marginTop:'20px'}}>
           <Button
           color="primary"
           onClick={handleMemberProfileDisplayClick}

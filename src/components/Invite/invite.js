@@ -48,12 +48,12 @@ const Invite = (props) => {
             <DialogTitle>Share Link</DialogTitle>
             <Card style={{marginLeft:15, marginRight: 15, marginBottom: 5}} >
             
-            <Grid container justify='center' spacing={5}>
+            <Grid container justifyContent='center' spacing={5}>
                 <Grid item>
                     <TextField style={{width: 300}} disable defaultValue={`${link}`} id="linkField"/>
                     <Button onClick={handleCopy}>Copy</Button>
                 </Grid>
-                <Grid direction = "row" container alingItems='center' justify='center' spacing={3}>
+                <Grid direction = "row" container alingItems='center' justifyContent='center' spacing={3}>
                     <Grid item>
                         <FacebookShareButton style={{width: 40}} url={link}>
                             <FacebookIcon style={{fontSize: "35px"}}></FacebookIcon>

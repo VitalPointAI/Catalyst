@@ -63,7 +63,7 @@ export default function Supporters(props) {
         <>
         <div className={classes.root}>
         <Header state={state}/>
-        <Grid container alignItems="center" justify="center" spacing={3}>
+        <Grid container alignItems="center" justifyContent="center" spacing={3}>
           <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom:'30px'}}>
             <Typography variant='h3' style={{marginTop: '20px'}}>Community Supporters</Typography>
             <Typography variant='body1' style={{padding: '5px'}}>These pers have made donations to our community fund - Thank-You.</Typography>
