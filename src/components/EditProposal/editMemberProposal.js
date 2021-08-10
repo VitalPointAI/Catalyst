@@ -3,6 +3,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { flexClass } from '../../App'
 import { IPFS_PROVIDER } from '../../utils/ceramic'
+import { EditorState, convertFromRaw, convertToRaw, ContentState } from 'draft-js'
 import { Editor } from "react-draft-wysiwyg"
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
 import draftToHtml from 'draftjs-to-html'
@@ -210,7 +211,7 @@ export default function EditMemberProposalForm(props) {
                   <div><Avatar src={avatar} /></div>
                   <Typography variant="h6">{name}</Typography>
                   <Editor
-                    editorState={details}
+                    editorState={intro}
                     toolbarClassName="toolbarClassName"
                     wrapperClassName="wrapperClassName"
                     editorClassName="editorClassName"

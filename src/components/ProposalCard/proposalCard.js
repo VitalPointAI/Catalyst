@@ -58,7 +58,11 @@ const useStyles = makeStyles((theme) => ({
     card: {
       marginTop: '10px',
       maxWidth: '250px',
-      minWidth: '250px'
+      minWidth: '250px',
+      position: 'relative'
+    },
+    cardAction: {
+      display: 'block'
     },
     votes: {
       paddingLeft: 0,
@@ -66,6 +70,11 @@ const useStyles = makeStyles((theme) => ({
     },
     avatar: {
       backgroundColor: red[500],
+    },
+    bottom: {
+      position: 'absolute',
+      bottom: '50px',
+      left: '70px'
     },
     small: {
       width: theme.spacing(3),
@@ -1020,18 +1029,16 @@ export default function ProposalCard(props) {
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                  
                 </Grid>    
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                  <Typography variant="h6" align="center" style={{marginBottom: '10px'}}>Funding Requested</Typography>
-                </Grid>
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                  <Typography variant="h5" align="center">{`${funding} Ⓝ`}</Typography>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '50px'}}>
+                  <Typography variant="overline" align="center" style={{marginBottom: '10px'}}>Funding Requested</Typography><br></br>
+                  <Typography variant="overline" align="center">{`${funding} Ⓝ`}</Typography>
                 </Grid>
               </Grid>
             ) : null}
 
             {proposalType == 'Tribute' ? (
               <Grid container alignItems="center" justifyContent="space-evenly" style={{marginBottom:'5px'}}>
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-20px'}}>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-20px', marginBottom:'40px'}}>
                   <Typography variant="overline">Shares: {shares}</Typography><br></br>
                   <Typography variant="overline">{`Tribute: ${tribute} Ⓝ`}</Typography>
                 </Grid>
@@ -1043,22 +1050,21 @@ export default function ProposalCard(props) {
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                  
                 </Grid>    
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                  <Typography variant="h6" align="center" style={{marginBottom: '10px'}}>Payout Requested</Typography>
-                </Grid>
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                  <Typography variant="h5" align="center">{`${funding} Ⓝ`}</Typography>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '50px'}}>
+                  <Typography variant="overline" align="center" style={{marginBottom: '10px'}}>Payout Requested</Typography><br></br>
+                  <Typography variant="overline" align="center">{`${funding} Ⓝ`}</Typography>
                 </Grid>
               </Grid>
             ) : null}
 
             
-
-            <Divider className={classes.divider}/>
-            {status == 'Submitted' ? <Typography variant="subtitle2" display="block" align="center">Awaiting Sponsor</Typography> : null}
-
-            </CardContent>
            
+            </CardContent>
+            <CardActions className={classes.cardAction}>
+            <div className={classes.bottom}>
+              <Divider className={classes.divider}/>
+              {status == 'Submitted' ? <Typography variant="subtitle2" display="block" align="center">Awaiting Sponsor</Typography> : null}
+            </div>
 
               {status == 'Sponsored' && isVotingPeriod && !isGracePeriod ? (
                 <Grid container alignItems="center" justifyContent="space-between" spacing={1}>
@@ -1250,6 +1256,7 @@ export default function ProposalCard(props) {
                   </>: <LinearProgress /> : null }
               </Grid>
               </Grid>
+            </CardActions>
         </Card>
 
 
