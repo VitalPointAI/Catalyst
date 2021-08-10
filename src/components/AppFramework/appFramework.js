@@ -467,8 +467,11 @@ export default function AppFramework(props) {
                   //************SYNCH PROPOSALS AND CONTRACT AND MEMBERS */
                     
                   try {
+                    let synched = await synchProposalEvent(thisCurDaoIdx, contract)
+                    if(synched){
                       let proposals = await thisCurDaoIdx.get('proposals', thisCurDaoIdx.id)
                       setAllProposals(proposals.events)
+                    }
                   } catch (err) {
                     console.log('no proposals yet', err)
                   }

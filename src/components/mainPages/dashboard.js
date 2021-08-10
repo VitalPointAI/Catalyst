@@ -13,9 +13,10 @@ import * as nearAPI from 'near-api-js'
 import { ceramic } from '../../utils/ceramic'
 import MemberProfile from '../MemberProfileDisplay/memberProfile'
 import OpportunityProposalDetails from '../ProposalDetails/opportunityProposalDetails'
+import Communities from '../Communities/communities'
 
 // Material UI
-import { lighten, makeStyles } from '@material-ui/core/styles'
+import { lighten, makeStyles, withStyles } from '@material-ui/core/styles'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
 import Grid from '@material-ui/core/Grid'
 import Card from '@material-ui/core/Card'
@@ -53,6 +54,7 @@ import TabPanel from '@material-ui/lab/TabPanel'
 import { CircularProgress } from '@material-ui/core'
 import Pagination from '@material-ui/lab/Pagination'
 import Button from '@material-ui/core/Button'
+import Fade from '@material-ui/core/Fade'
 
 import './dashboard.css'
 
@@ -102,6 +104,16 @@ const useStyles = makeStyles((theme) => ({
         width: 1,
     },
   }))
+
+  const HtmlTooltip = withStyles((theme) => ({
+    tooltip: {
+      backgroundColor: '#f5f5f9',
+      color: 'rgba(0, 0, 0, 0.87)',
+      maxWidth: 220,
+      fontSize: theme.typography.pxToRem(12),
+      border: '1px solid #dadde9',
+    },
+  }))(Tooltip)
 
 const useToolbarStyles = makeStyles((theme) => ({
 root: {
@@ -180,7 +192,6 @@ export default function Dashboard(props) {
       didRegistryContract,
     } = state
     
-    console.log('curDaosList', currentDaosList)
     useEffect(
         () => {
             
@@ -480,7 +491,19 @@ export default function Dashboard(props) {
                             asuitabilityScore = 0
                         }
                         setSuitabilityScore(asuitabilityScore)
-                        currentRecommendations.push({opportunity: allOpportunities[j], baseReward: parseInt(allOpportunities[j].reward), skillMatch: skillMatch, developerSkillMatch: developerSkillMatch, skillCount: skillCount, developerSkillCount: developerSkillCount, suitabilityScore: asuitabilityScore})
+                        let data = new Persona()
+                        let result = await data.getDao(allOpportunities[j].contractId)
+                        currentRecommendations.push({
+                            opportunity: allOpportunities[j],
+                            communityLogo: result.logo,
+                            communityName: result.name,
+                            communityPurpose: result.purpose,
+                            baseReward: parseInt(allOpportunities[j].reward), 
+                            skillMatch: skillMatch, 
+                            developerSkillMatch: developerSkillMatch, 
+                            skillCount: skillCount, 
+                            developerSkillCount: developerSkillCount, 
+                            suitabilityScore: asuitabilityScore})
                         j++
                     }
                     
@@ -574,9 +597,11 @@ export default function Dashboard(props) {
     }
 
     const headCells = [
+        { id: 'community', numeric: false, disablePadding: true, label: 'Community'},
         { id: 'name', numeric: false, disablePadding: true, label: 'Opportunity' },
         { id: 'suitabilityScore', numeric: true, disablePadding: false, label: 'Suitability' },
         { id: 'baseReward', numeric: true, disablePadding: false, label: 'Base Reward' },
+        { id: 'deadline', numeric: true, disablePadding: false, label: 'Deadline' }
     ]
 
     function EnhancedTableHead(props) {
@@ -800,22 +825,26 @@ export default function Dashboard(props) {
     return (
         <>
         <div className={classes.root}>
-       
+        
         <TabContext value={value}>
             <AppBar position="static">
             <TabList onChange={handleTabChange} aria-label="dashboard tabs" centered>
-                <Tab label="Persona Dashboard" value="1" />
-                <Tab label="Community Dashboard" value="2" />
+                <Tab label="Dashboard" value="1" />
+                <Tab label="Analytics" value="2" />
             </TabList>
             </AppBar>
             <TabPanel value="1">
             <Grid container justifyContent="center" alignItems="flex-start" spacing={1} >
-            <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+            <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
                 <MemberProfile member={accountId} />
             </Grid>
-            <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
+            <Grid item xs={12} sm={12} md={8} lg={8} xl={8} align="center">
+            <Typography variant="h4">Your Communities</Typography>
+                <Communities />
+            </Grid>
+            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '40px'}}>
                 
-                <Typography variant="h6">Opportunities for You</Typography>
+                <Typography variant="h4">Opportunities for You</Typography>
                 <Typography variant="body1" style={{marginBottom: '10px'}}>The higher the suitability score, the more closely the opportunity matches your skillset</Typography>
                
 
@@ -826,7 +855,7 @@ export default function Dashboard(props) {
           <Table
             className={classes.table}
             aria-labelledby="tableTitle"
-            size="small"
+            
             aria-label="enhanced table"
           >
             <EnhancedTableHead
@@ -843,21 +872,40 @@ export default function Dashboard(props) {
                 .map((row, index) => {
                   console.log('row', row)
                   console.log('index', index)
-                  return (
+                  return (<>
                     <TableRow key={index}>
-                      
                       <TableCell component="th" scope="row" padding="none">
+                      <a href={`/dao/${row.opportunity.contractId}`}> 
+                      <HtmlTooltip
+                        title={
+                        <>
+                            <Typography color="inherit">{row.communityName}</Typography>
+                            <div dangerouslySetInnerHTML={{ __html: row.communityPurpose}}></div>
+                        </>
+                        }
+                        placement="right-start"
+                      >
+                                  
+                        <Avatar 
+                            src={row.communityLogo} 
+                            variant="square"
+                        />
+                       
+                    </HtmlTooltip> </a>
+                      </TableCell>
+                      <TableCell>
                         <Button 
                             color="primary"
-                            style={{fontWeight: '800', fontSize: '100%', lineHeight: '1.1em'}}
+                            style={{fontWeight: '800', fontSize: '100%', lineHeight: '1.1em', textAlign: 'left'}}
                             onClick={(e) => handleOpportunityProposalDetailsClick(row.opportunity.proposer, row.opportunity.opportunityId, row.opportunity.contractId)}
                             >{row.opportunity.title}
                         </Button>
                       </TableCell>
                       <TableCell align="right">{row.suitabilityScore}</TableCell>
                       <TableCell align="right">{row.baseReward}</TableCell>
+                      <TableCell align="right">deadline</TableCell>
                     </TableRow>
-                    
+                    </>
                   )
                   
                 }) :
@@ -901,7 +949,7 @@ export default function Dashboard(props) {
                 <div>
                 <Grid container alignItems="center" justifyContent="center" spacing={1} style={{padding: '20px'}}>
                     <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom:'30px'}}>
-                    {!matches ? <Typography variant='h3'>Community Dashboard</Typography> : <Typography variant='h4'>Community Dashboard</Typography>}
+                    {!matches ? <Typography variant='h3'>Analytics Dashboard</Typography> : <Typography variant='h4'>Analytics Dashboard</Typography>}
                         <Typography variant='body1'>Community and participation metrics.</Typography>
                     </Grid>
                     <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom:'30px'}}>

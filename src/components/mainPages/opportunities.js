@@ -72,6 +72,7 @@ export default function Opportunities(props) {
               let Persona = new Personas()
               let thisCurDaoIdx
               let daoAccount
+              let opportunities
               try{
                 daoAccount = new nearAPI.Account(near.connection, contractId)
               } catch (err) {
@@ -79,9 +80,9 @@ export default function Opportunities(props) {
               }
               thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
           
-              let opportunities = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
-              console.log('all opportunities', opportunities)
-              if(opportunities && Object.keys(opportunities).length > 0){
+              opportunities = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
+              console.log('opportunities', opportunities)
+              if(opportunities && opportunities.length > 0){
                 setaOpportunities(opportunities.opportunities)
               }
 
@@ -90,10 +91,11 @@ export default function Opportunities(props) {
                     // 1. Build complete list of all opportuntities for all DAOs
                     let allOpportunities = []
                     let i = 0
-                    if(aopportunities){
-                    while (i < aopportunities.length){
-                      console.log('aopportunities', aopportunities)
-                      allOpportunities.push(aopportunities[i])
+                    console.log('opportunities here', opportunities)
+                    if(opportunities){
+                    while (i < opportunities.opportunities.length){
+                      console.log('opportunities', opportunities)
+                      allOpportunities.push(opportunities.opportunities[i])
                       i++
                     }
                     }

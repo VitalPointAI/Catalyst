@@ -109,6 +109,8 @@ export default function OpportunityProposalDetails(props) {
     const [proposalComments, setProposalComments] = useState([])
     const [finished, setFinished] = useState(false)
 
+    const [loaded, setLoaded] = useState(false)
+
     const [thisProposalDeposit, setThisProposalDeposit] = useState()
 
     const classes = useStyles()
@@ -135,8 +137,6 @@ export default function OpportunityProposalDetails(props) {
         contractId
     } = props
   
-console.log('detail contractid', contractId)
-console.log('proposer', proposer)
     useEffect(
         () => {
          
@@ -214,6 +214,7 @@ console.log('proposer', proposer)
                   i++
                 }
               }
+              setLoaded(true)
             }
 
             // Set Existing Proposal Comments      
@@ -307,10 +308,12 @@ console.log('proposer', proposer)
 
         return (
            
-     
-            <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-            {finished ? (<>
+         
+            <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" style={{overflow: 'hidden', minWidth: '150px', minHeight: '150px', margin: 'auto'}}>
+            {loaded ? 
+            finished ? (<>
               <DialogTitle id="form-dialog-title">Opportunity Proposal Details</DialogTitle>
+              
                 <DialogContent>
                 {details == '' ? (
                   <DialogContentText style={{marginBottom: 10}}>
@@ -476,8 +479,8 @@ console.log('proposer', proposer)
                     <div className={classes.progress}>
                         <CircularProgress size={100} color="primary"  />
                    </div>
-              )}
-
+              )
+               : <CircularProgress /> }
               {fundingProposalClicked ? <FundingProposal
                 contractId={contractId}
                 handleFundingProposalClickState={handleFundingProposalClickState}
@@ -498,9 +501,9 @@ console.log('proposer', proposer)
                 accountId={accountId} 
           
                 /> : null }
-
+              
             </Dialog>
-
+            
            
               
          

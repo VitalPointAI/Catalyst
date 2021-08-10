@@ -582,8 +582,9 @@ export async function submitProposal(
                 lR: loot,
                 tO: tribute,
                 tT: depositToken,
+                roleNames: ['member'],
                 contractId: contractId
-                }, GAS, parseNearAmount(((parseInt(tribute) + parseInt(lR) + parseInt(proposalDeposit)).toString())))
+                }, GAS, parseNearAmount(((parseInt(tribute) + parseInt(loot) + parseInt(proposalDeposit)).toString())))
             } catch (err) {
                 console.log('submit member proposal failed', err)
                 return false
