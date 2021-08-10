@@ -400,7 +400,7 @@ export default function EditOpportunityProposalForm(props) {
                           </>
                         }}
                     />
-                    {errors.opportunityProposalTitle && <p style={{color: 'red'}}>You must give your proposal a title.</p>}
+                    {errors.opportunityProposalBudget && <p style={{color: 'red'}}>You must provide an opportunity budget.</p>}
                   </Grid>
                   <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                     <TextField
