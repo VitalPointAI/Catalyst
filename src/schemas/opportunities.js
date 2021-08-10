@@ -39,7 +39,7 @@ export const opportunitiesSchema = {
           minimum: 0,
         },
         "reward": {
-          type: 'number',
+          type: 'string',
           minimum: 0,
         },
         "category": {
@@ -50,6 +50,12 @@ export const opportunitiesSchema = {
         },
         "status": {
           type: 'boolean',
+        },
+        "deadline":{
+          type:'string'
+        },
+        "budget":{
+          type:'string'
         },
         "permission": {
           type: 'string',
