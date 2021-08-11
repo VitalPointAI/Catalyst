@@ -136,10 +136,63 @@ export default function AppFramework(props) {
     } = useParams()
 
     const matches = useMediaQuery('(max-width:500px)')
-    
+
     useEffect(
       () => {
+        let timer
+        async function refreshCurrentPeriod() {
+          try {
+            let contract = await dao.initDaoContract(state.wallet.account(), contractId)
+            let period = await contract.getCurrentPeriod()
+            setCurrentPeriod(period)
+          } catch (err) {
+            console.log('get period issue', err)
+          }
+        }
 
+        // async function period() {
+  
+          // //***********START PERIOD REFRESH TIMER */
+          
+          // if(contract && started==false){
+          //   timer = setTimeout(async function refreshCurrentPeriod() {
+          //     try {
+          //       let period = await contract.getCurrentPeriod()
+          //       setCurrentPeriod(period)
+          //     } catch (err) {
+          //       console.log('get period issue', err)
+          //     }
+          //     if(started == false){
+          //     timer = setTimeout(refreshCurrentPeriod, 20000)
+          //     console.log('timer starts')
+          //       setStarted(true)
+          //     }
+          //   }, 20000)
+          // }
+        // }
+  
+        function stop() {
+          if (timer) {
+              clearInterval(timer)
+              timer = 0
+          }
+        }
+
+        // period()
+        // .then((res) => {
+          
+        // })
+        timer = setInterval(refreshCurrentPeriod, 2000)
+        console.log('timer started')
+        return () => {
+          console.log('timer stopped')
+          stop()
+        }
+      }, [currentPeriod]
+    )
+    useEffect(
+      () => {
+       
           async function fetchData() {
             
             let urlVariables = window.location.search
@@ -624,35 +677,26 @@ export default function AppFramework(props) {
                           console.log('get period issue', err)
                         }
                       }
-                      
-                    //***********START PERIOD REFRESH TIMER */
-                      if(started==false){
-                        setTimeout(async function refreshCurrentPeriod() {
-                          try {
-                            let period = await contract.getCurrentPeriod()
-                            setCurrentPeriod(period)
-                          } catch (err) {
-                            console.log('get period issue', err)
-                          }
-                          if(started == false){
-                          setTimeout(refreshCurrentPeriod, 20000)
-                            setStarted(true)
-                          }
-                        }, 20000)
-                      }
-                    
                   }
                 }
               } 
             }  
           }
+      
+     
+      
+      let mounted = true
+      if(mounted){
+        fetchData()
+        .then((res) => {
+             
+        })
 
-        
-          fetchData()
-          .then((res) => {
-          })
-  
-      }, [initialized, didRegistryContract, near, change, currentPeriod]
+        return () => {
+          mounted = false
+        } 
+      }
+}, [initialized, didRegistryContract, near, change, currentPeriod]
     )
 
     function handleTabValueState(value) {

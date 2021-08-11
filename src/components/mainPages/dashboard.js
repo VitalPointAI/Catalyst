@@ -1,19 +1,20 @@
 import React, { useEffect, useState, useContext } from 'react'
 import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import clsx from 'clsx'
 import { appStore, onAppMount } from '../../state/app'
 import * as d3 from 'd3'
 import "d3-time-format"
 import Persona from '@aluhning/get-personas-js'
 import { formatNearAmount } from 'near-api-js/lib/utils/format'
-import OpportunityCard from '../OpportunityCard/OpportunityCard'
 import { dao } from '../../utils/dao'
+import { getStatus } from '../../state/near'
 import * as nearAPI from 'near-api-js'
 import { ceramic } from '../../utils/ceramic'
 import MemberProfile from '../MemberProfileDisplay/memberProfile'
 import OpportunityProposalDetails from '../ProposalDetails/opportunityProposalDetails'
 import Communities from '../Communities/communities'
+import CommunityCount from '../CommunityCount/communityCount'
+import PersonaCount from '../PersonaCount/personaCount'
 
 // Material UI
 import { lighten, makeStyles, withStyles } from '@material-ui/core/styles'
@@ -21,7 +22,6 @@ import useMediaQuery from '@material-ui/core/useMediaQuery'
 import Grid from '@material-ui/core/Grid'
 import Card from '@material-ui/core/Card'
 import CardHeader from '@material-ui/core/CardHeader'
-import CardActions from '@material-ui/core/CardActions'
 import Typography from '@material-ui/core/Typography'
 import InputLabel from '@material-ui/core/InputLabel'
 import FormControl from '@material-ui/core/FormControl'
@@ -34,14 +34,7 @@ import TableHead from '@material-ui/core/TableHead'
 import TablePagination from '@material-ui/core/TablePagination'
 import TableRow from '@material-ui/core/TableRow'
 import TableSortLabel from '@material-ui/core/TableSortLabel'
-import Toolbar from '@material-ui/core/Toolbar'
 import Paper from '@material-ui/core/Paper'
-import Checkbox from '@material-ui/core/Checkbox'
-import IconButton from '@material-ui/core/IconButton'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Switch from '@material-ui/core/Switch'
-import DeleteIcon from '@material-ui/icons/Delete'
-import FilterListIcon from '@material-ui/icons/FilterList'
 import Tooltip from '@material-ui/core/Tooltip'
 import Zoom from '@material-ui/core/Zoom'
 import InfoIcon from '@material-ui/icons/Info'
@@ -51,10 +44,8 @@ import Tab from '@material-ui/core/Tab'
 import TabContext from '@material-ui/lab/TabContext'
 import TabList from '@material-ui/lab/TabList'
 import TabPanel from '@material-ui/lab/TabPanel'
-import { CircularProgress } from '@material-ui/core'
-import Pagination from '@material-ui/lab/Pagination'
+import LinearProgress from '@material-ui/core/LinearProgress'
 import Button from '@material-ui/core/Button'
-import Fade from '@material-ui/core/Fade'
 
 import './dashboard.css'
 
@@ -491,19 +482,27 @@ export default function Dashboard(props) {
                             asuitabilityScore = 0
                         }
                         setSuitabilityScore(asuitabilityScore)
+                        let thisContract = await dao.initDaoContract(state.wallet.account(), allOpportunities[j].contractId)
+                        let propFlags = await thisContract.getProposalFlags({pI: parseInt(allOpportunities[j].opportunityId)})
+                        let status = getStatus(propFlags)
                         let data = new Persona()
                         let result = await data.getDao(allOpportunities[j].contractId)
-                        currentRecommendations.push({
-                            opportunity: allOpportunities[j],
-                            communityLogo: result.logo,
-                            communityName: result.name,
-                            communityPurpose: result.purpose,
-                            baseReward: parseInt(allOpportunities[j].reward), 
-                            skillMatch: skillMatch, 
-                            developerSkillMatch: developerSkillMatch, 
-                            skillCount: skillCount, 
-                            developerSkillCount: developerSkillCount, 
-                            suitabilityScore: asuitabilityScore})
+                        if(status == 'Passed' 
+                       // && parseInt(allOpportunities[j].opportunity.budget) > 0
+                        ){
+                            currentRecommendations.push({
+                                opportunity: allOpportunities[j],
+                                status: status,
+                                communityLogo: result.logo,
+                                communityName: result.name,
+                                communityPurpose: result.purpose,
+                                baseReward: parseInt(allOpportunities[j].reward), 
+                                skillMatch: skillMatch, 
+                                developerSkillMatch: developerSkillMatch, 
+                                skillCount: skillCount, 
+                                developerSkillCount: developerSkillCount, 
+                                suitabilityScore: asuitabilityScore})
+                            }
                         j++
                     }
                     
@@ -511,15 +510,20 @@ export default function Dashboard(props) {
                     setRecommendationsLoaded(true)
                     console.log('recommendations', currentRecommendations)
             }
-            
-         fetchData()
+        
+        let mounted = true
+        if(mounted){
+            fetchData()
             .then(res => {
                 d3.selectAll("#d3-members > *").remove()
                 createMemberGraph()
                 d3.selectAll("#d3-activity > *").remove()
                 createActivityGraph()
             })
-      
+            return () => {
+            mounted = false
+            } 
+        }
     }, [contractId, isUpdated]
     )
 
@@ -601,7 +605,9 @@ export default function Dashboard(props) {
         { id: 'name', numeric: false, disablePadding: true, label: 'Opportunity' },
         { id: 'suitabilityScore', numeric: true, disablePadding: false, label: 'Suitability' },
         { id: 'baseReward', numeric: true, disablePadding: false, label: 'Base Reward' },
-        { id: 'deadline', numeric: true, disablePadding: false, label: 'Deadline' }
+        { id: 'deadline', numeric: true, disablePadding: false, label: 'Deadline' },
+        { id: 'budget', numeric: true, disablePadding: false, label: 'Remaining Budget' }
+
     ]
 
     function EnhancedTableHead(props) {
@@ -751,6 +757,7 @@ export default function Dashboard(props) {
               console.log('d here', d)
               data.push({timeStamp: d[0], number: d[1] + (data.length > 0 ? data[data.length - 1].number : 0)})
           })
+          
           console.log('newData', data)
           // let ydomain = []
           // data.forEach((d) => {
@@ -836,10 +843,11 @@ export default function Dashboard(props) {
             <TabPanel value="1">
             <Grid container justifyContent="center" alignItems="flex-start" spacing={1} >
             <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
+                <PersonaCount />
                 <MemberProfile member={accountId} />
             </Grid>
             <Grid item xs={12} sm={12} md={8} lg={8} xl={8} align="center">
-            <Typography variant="h4">Your Communities</Typography>
+                <CommunityCount />
                 <Communities />
             </Grid>
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '40px'}}>
@@ -857,6 +865,7 @@ export default function Dashboard(props) {
             aria-labelledby="tableTitle"
             
             aria-label="enhanced table"
+            key={'opptable'}
           >
             <EnhancedTableHead
               classes={classes}
@@ -865,53 +874,54 @@ export default function Dashboard(props) {
               onRequestSort={handleRequestSort}
               rowCount={recommendations.length}
             />
-            <TableBody>
+            <TableBody key={'tbodyopptable'}>
+               
                 {recommendations && recommendations.length > 0 ?
                 stableSort(recommendations, getComparator(order, orderBy))
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row, index) => {
                   console.log('row', row)
                   console.log('index', index)
-                  return (<>
-                    <TableRow key={index}>
-                      <TableCell component="th" scope="row" padding="none">
-                      <a href={`/dao/${row.opportunity.contractId}`}> 
-                      <HtmlTooltip
-                        title={
-                        <>
-                            <Typography color="inherit">{row.communityName}</Typography>
-                            <div dangerouslySetInnerHTML={{ __html: row.communityPurpose}}></div>
-                        </>
-                        }
-                        placement="right-start"
-                      >
-                                  
-                        <Avatar 
-                            src={row.communityLogo} 
-                            variant="square"
-                        />
+                    return (<React.Fragment key={row.opportunity.title}>
+                        <TableRow key={row.opportunity.title}>
+                        <TableCell component="th" scope="row" padding="none" >
+                        <a href={`/dao/${row.opportunity.contractId}`}> 
+                            <HtmlTooltip
+                                title={
+                                <>
+                                    <Typography color="inherit">{row.communityName}</Typography>
+                                    <div dangerouslySetInnerHTML={{ __html: row.communityPurpose}}></div>
+                                </>
+                                }
+                                placement="right-start"
+                            >      
+                                <Avatar 
+                                    src={row.communityLogo} 
+                                    variant="square"
+                                />
+                            </HtmlTooltip> 
+                        </a>
+                        </TableCell>
+                        <TableCell style={{padding:'inherit'}}>
+                            <Button 
+                                color="primary"
+                                style={{fontWeight: '800', fontSize: '100%', lineHeight: '1.1em', textAlign: 'left'}}
+                                onClick={(e) => handleOpportunityProposalDetailsClick(row.opportunity.proposer, row.opportunity.opportunityId, row.opportunity.contractId)}
+                                >{row.opportunity.title}
+                            </Button>
+                        </TableCell>
+                        <TableCell align="right">{row.suitabilityScore}</TableCell>
+                        <TableCell align="right">{row.baseReward}</TableCell>
+                        <TableCell align="right">{row.opportunity.deadline}</TableCell>
+                        <TableCell align="right">{row.opportunity.budget}</TableCell>
+                        </TableRow>
                        
-                    </HtmlTooltip> </a>
-                      </TableCell>
-                      <TableCell>
-                        <Button 
-                            color="primary"
-                            style={{fontWeight: '800', fontSize: '100%', lineHeight: '1.1em', textAlign: 'left'}}
-                            onClick={(e) => handleOpportunityProposalDetailsClick(row.opportunity.proposer, row.opportunity.opportunityId, row.opportunity.contractId)}
-                            >{row.opportunity.title}
-                        </Button>
-                      </TableCell>
-                      <TableCell align="right">{row.suitabilityScore}</TableCell>
-                      <TableCell align="right">{row.baseReward}</TableCell>
-                      <TableCell align="right">deadline</TableCell>
-                    </TableRow>
-                    </>
-                  )
-                  
+                        </React.Fragment>
+                        )                               
                 }) :
               emptyRows > 0 && (
-                <TableRow style={{ height: 33 * emptyRows }}>
-                  <TableCell colSpan={3} />
+                <TableRow key={'na'} style={{ height: 33 * emptyRows }}>
+                  <TableCell colSpan={7}><LinearProgress /></TableCell>
                 </TableRow>
               )
               }

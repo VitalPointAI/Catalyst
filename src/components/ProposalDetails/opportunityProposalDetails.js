@@ -101,6 +101,7 @@ export default function OpportunityProposalDetails(props) {
     const [desiredSkillSet, setDesiredSkillSet] = useState([])
     const [desiredDeveloperSkillSet, setDesiredDeveloperSkillSet] = useState([])
     const [thisCurDaoIdx, setThisCurDaoIdx] = useState(props.curDaoIdx)
+    const [memberStatus, setMemberStatus] = useState()
 
     const [memberProposalClicked, setMemberProposalClicked] = useState(false)
     const [fundingProposalClicked, setFundingProposalClicked] = useState(false)
@@ -110,6 +111,8 @@ export default function OpportunityProposalDetails(props) {
     const [finished, setFinished] = useState(false)
 
     const [loaded, setLoaded] = useState(false)
+
+    const [anchorEl, setAnchorEl] = useState(null)
 
     const [thisProposalDeposit, setThisProposalDeposit] = useState()
 
@@ -166,7 +169,22 @@ export default function OpportunityProposalDetails(props) {
               let proposal = await daoContract.getProposal({proposalId: parseInt(opportunityId)})
               let thisStatus = getStatus(proposal.f)
               setProposalStatus(thisStatus)
+
+              try {
+                let thisMemberInfo = await daoContract.getMemberInfo({member: accountId})
+            
+                let thisMemberStatus = await daoContract.getMemberStatus({member: accountId})
+               
+                if(thisMemberStatus && thisMemberInfo[0].active){
+                  setMemberStatus(true)
+                } else {
+                  setMemberStatus(false)
+                }
+              } catch (err) {
+                console.log('no member info yet')
+              }
             }
+
             // Set Existing Proposal Data
             let loadCurDaoIdx
             if(!thisCurDaoIdx){
@@ -179,6 +197,8 @@ export default function OpportunityProposalDetails(props) {
 
               }
             }
+
+            
 
 
             if(thisCurDaoIdx){
@@ -263,6 +283,10 @@ export default function OpportunityProposalDetails(props) {
       handleMemberProposalClickState(true)
     }
 
+    function handleExpanded() {
+      setAnchorEl(null)
+    }
+
     function handleMemberProposalClickState(property) {
       setMemberProposalClicked(property)
     }
@@ -309,7 +333,7 @@ export default function OpportunityProposalDetails(props) {
         return (
            
          
-            <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" style={{overflow: 'hidden', minWidth: '150px', minHeight: '150px', margin: 'auto'}}>
+            <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             {loaded ? 
             finished ? (<>
               <DialogTitle id="form-dialog-title">Opportunity Proposal Details</DialogTitle>
@@ -440,6 +464,23 @@ export default function OpportunityProposalDetails(props) {
                     </>)}
                 </DialogContent>
               <DialogActions>
+              {memberStatus ? (
+              <>
+             <Button 
+                color="primary" 
+                onClick={handleFundingProposalClick}>
+                  Accept
+              </Button>
+              </>
+              ) : (
+                <>
+                <Button 
+                   color="primary" 
+                   onClick={handleMemberProposalClick}>
+                    Join Community
+                 </Button>
+                 </>
+              )}
                 <Button onClick={handleClose} color="primary">
                   Close
                 </Button>
@@ -480,7 +521,9 @@ export default function OpportunityProposalDetails(props) {
                         <CircularProgress size={100} color="primary"  />
                    </div>
               )
-               : <CircularProgress /> }
+               : <div style={{minWidth: '150px', minHeight: '150px', margin: 'auto'}}>
+               <CircularProgress style={{position: 'fixed', top: '50%', left: '50%', marginLeft:'-20px', marginTop: '-20px'}}/>
+               </div> }
               {fundingProposalClicked ? <FundingProposal
                 contractId={contractId}
                 handleFundingProposalClickState={handleFundingProposalClickState}

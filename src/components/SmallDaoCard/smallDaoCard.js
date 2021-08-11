@@ -129,13 +129,18 @@ export default function SmallDaoCard(props) {
            makeSearchDaos(result)
          }
         setFinished(false)
+        }
+        
+        
+      let mounted = true
+      if(mounted){
+        fetchData()
+            .then((res) => {
+              setFinished(true)
+            })
+      return () => mounted = false
       }
-
-      fetchData()
-          .then((res) => {
-            setFinished(true)
-          })
-
+      
   }, [makeSearchDaos, isUpdated]
   )
 

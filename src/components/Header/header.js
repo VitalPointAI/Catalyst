@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import LeftSideDrawer from '../LeftSideDrawer/leftSideDrawer'
 import LogoutButton from '../LogoutButton/logoutButton'
 import LoginButton from '../LogInButton/loginButton'
-import PersonaInfo from '../Persona/persona'
+import AccountInfo from '../AccountInfo/accountInfo'
 import Logo from '../Logo/logo'
 
 // Material UI
@@ -13,7 +13,6 @@ import Button from '@material-ui/core/Button'
 
 
 import '../../App.css'
-import { LinearProgress } from '@material-ui/core';
 
 export const Header = ({ state, handleUpdate, isUpdated }) => {
    
@@ -42,7 +41,7 @@ export const Header = ({ state, handleUpdate, isUpdated }) => {
                         <Logo />
                     </Grid>
                     <Grid item xs={1} sm={1} md={8} lg={8} xl={8}>
-                        <PersonaInfo balance={wallet.balance} /> 
+                        <AccountInfo balance={wallet.balance} /> 
                     </Grid>
                     <Grid item xs={4} sm={4} md={2} lg={2} xl={2}>
                         {wallet && !wallet.signedIn ? <LoginButton /> : <LogoutButton />}
@@ -63,7 +62,7 @@ export const Header = ({ state, handleUpdate, isUpdated }) => {
                             {wallet && !wallet.signedIn ? <LoginButton /> : <LogoutButton />}
                         </Grid>
                         <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                            <PersonaInfo balance={wallet.balance} /> 
+                            <AccountInfo balance={wallet.balance} /> 
                         </Grid>
                     </>
                 )

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import PersonaCard from '../../components/PersonaCard/personaCard'
+import PersonaCard from '../PersonaCard/personaCard'
 
 const getLink = (accountId, key, wallet, owner) => `?accountId=${accountId}&key=${key}&from=${wallet.getAccountId()}&owner=${owner}`
 

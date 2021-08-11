@@ -9,6 +9,8 @@ import Footer from '../../components/common/Footer/footer'
 import Fuse from 'fuse.js'
 import SearchBar from '../../components/common/SearchBar/search'
 import { ceramic } from '../../utils/ceramic'
+import { dao } from '../../utils/dao'
+import { getStatus } from '../../state/near'
 
 // Material UI components
 import { makeStyles } from '@material-ui/core/styles'
@@ -141,7 +143,10 @@ export default function Opportunities(props) {
                         }
                         let asuitabilityScore = ((skillMatch + developerSkillMatch)/(skillCount + developerSkillCount)*100).toFixed(0)
                         setSuitabilityScore(asuitabilityScore)
-                        currentRecommendations.push({opportunity: allOpportunities[j], skillMatch: skillMatch, developerSkillMatch: developerSkillMatch, skillCount: skillCount, developerSkillCount: developerSkillCount, suitabilityScore: asuitabilityScore})
+                        let thisContract = await dao.initDaoContract(state.wallet.account(), allOpportunities[j].contractId)
+                        let propFlags = await thisContract.getProposalFlags({pI: parseInt(allOpportunities[j].opportunityId)})
+                        let status = getStatus(propFlags)
+                        currentRecommendations.push({opportunity: allOpportunities[j], status: status, skillMatch: skillMatch, developerSkillMatch: developerSkillMatch, skillCount: skillCount, developerSkillCount: developerSkillCount, suitabilityScore: asuitabilityScore})
                         j++
                     }
                     setRecommendations(currentRecommendations)
@@ -201,6 +206,7 @@ export default function Opportunities(props) {
             {recommendations && recommendations.length > 0 ?
               recommendations.map((fr, i) => {
                 console.log('fr', fr)
+                if(fr.status == "Passed"){
                 return(
                   <OpportunityCard 
                     key={i}
@@ -221,7 +227,9 @@ export default function Opportunities(props) {
                     developerSkillMatch={fr.developerSkillMatch}
                     suitabilityScore={fr.suitabilityScore}
                   />
-                )
+                )} else {
+                  return null
+                }
               }) : <Card className={classes.card}>
               <Typography variant="h5">No Opportunities Yet - Please Check Back Soon.</Typography>
             </Card> }

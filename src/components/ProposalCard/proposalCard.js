@@ -76,6 +76,12 @@ const useStyles = makeStyles((theme) => ({
       bottom: '50px',
       left: '70px'
     },
+    bottom2: {
+      position: 'absolute',
+      bottom: '5px',
+      left: '0px',
+      width: '100%'
+    },
     small: {
       width: theme.spacing(3),
       height: theme.spacing(3),
@@ -1007,7 +1013,7 @@ export default function ProposalCard(props) {
                
             {proposalType == 'Member' ? (
               <Grid container alignItems="center" justifyContent="space-evenly" style={{marginBottom:'5px'}}>
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-20px'}}>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-20px', marginBottom: '40px'}}>
                   <Typography variant="overline">Shares: {shares}</Typography><br></br>
                   <Typography variant="overline">{`Tribute: ${tribute} Ⓝ`}</Typography>
                 </Grid>
@@ -1029,7 +1035,7 @@ export default function ProposalCard(props) {
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                  
                 </Grid>    
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '50px'}}>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '40px'}}>
                   <Typography variant="overline" align="center" style={{marginBottom: '10px'}}>Funding Requested</Typography><br></br>
                   <Typography variant="overline" align="center">{`${funding} Ⓝ`}</Typography>
                 </Grid>
@@ -1050,7 +1056,7 @@ export default function ProposalCard(props) {
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                  
                 </Grid>    
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '50px'}}>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '40px'}}>
                   <Typography variant="overline" align="center" style={{marginBottom: '10px'}}>Payout Requested</Typography><br></br>
                   <Typography variant="overline" align="center">{`${funding} Ⓝ`}</Typography>
                 </Grid>
@@ -1067,7 +1073,8 @@ export default function ProposalCard(props) {
             </div>
 
               {status == 'Sponsored' && isVotingPeriod && !isGracePeriod ? (
-                <Grid container alignItems="center" justifyContent="space-between" spacing={1}>
+               
+                <Grid container alignItems="center" justifyContent="space-between" spacing={1} style={{position: 'absolute', bottom:'5px', right:'1px'}}>
                   <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="left">
                      {done ? ( <StyledBadge badgeContent={yesVotes} color="primary">
                         <IconButton onClick={(e) => handleVotingAction(requestId, 'yes')} disabled={voted}>
@@ -1093,7 +1100,8 @@ export default function ProposalCard(props) {
                     <Typography variant="caption" display="block">Voting Ends in {(((votingPeriod - currentPeriod)+1) * periodDuration / 60).toFixed(2)} minutes</Typography>
                   </Grid>
                 </Grid>
-              ) : null }
+               
+                ) : null }
 
               {status == 'Sponsored' && isGracePeriod && !isVotingPeriod && vote != 'yes' ? (
                 <Grid container alignItems="center" justifyContent="space-evenly" spacing={1}>
@@ -1157,7 +1165,7 @@ export default function ProposalCard(props) {
               ) : null }
 
               {status == 'Passed' || status == 'Not Passed' ? (
-                <Grid container alignItems="center" justifyContent="space-between" spacing={0} >
+                <Grid container alignItems="center" justifyContent="space-between" spacing={0} style={{position: 'absolute', bottom:'5px', right:'1px'}} >
                   <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center" >
                     <StyledBadge badgeContent={yesVotes} color="primary">
                       <IconButton onClick={(e) => handleVotingAction(requestId, 'yes')} disabled={true}>
@@ -1180,8 +1188,8 @@ export default function ProposalCard(props) {
                 </Grid>
               ) : null }
                
-              
-              <Grid container alignItems="center" justifyContent="space-evenly" spacing={1}>
+              <div className={classes.bottom2}>
+                <Grid container alignItems="center" justifyContent="space-evenly" spacing={1}>
 
                 <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
                 {totalMembers != 1 ?
@@ -1256,7 +1264,8 @@ export default function ProposalCard(props) {
                   </>: <LinearProgress /> : null }
               </Grid>
               </Grid>
-            </CardActions>
+              </div>
+              </CardActions>
         </Card>
 
 
