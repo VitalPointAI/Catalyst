@@ -174,7 +174,7 @@ const classes = useStyles()
                 {contractId != undefined ? (
                     !matches ? (
                     <>
-                            <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" style={{display: 'inline'}}>
+                            
                                     <Button style={{textAlign: 'center', marginRight: '30px'}} onClick={handlePurposeClick}>Purpose</Button>
                                 <Link to={`/opportunities/${contractId}`} variant="body1">
                                     <Button style={{textAlign: 'center', marginRight: '30px'}}>Opportunities</Button>
@@ -182,11 +182,11 @@ const classes = useStyles()
                                 <Link to={`/supporters/${contractId}`} variant="body1">
                                     <Button style={{textAlign: 'center'}}>Supporters</Button>
                                 </Link>
-                            </Grid>
+                            
                     </>
                     ) : (
                         <>               
-                        <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" style={{display: 'inline'}}>
+                        
                                 <Button style={{textAlign: 'center', marginRight: '10px'}} onClick={handlePurposeClick}>Purpose</Button>
                             <Link to={`/opportunities/${contractId}`} variant="body1">
                                 <Button style={{textAlign: 'center', marginRight: '10px'}}>Opportunities</Button>
@@ -194,7 +194,7 @@ const classes = useStyles()
                             <Link to={`/supporters/${contractId}`} variant="body1">
                                 <Button style={{textAlign: 'center'}}>Supporters</Button>
                             </Link>
-                        </Grid>
+                       
                     </>
                     )
                     ) : null }
