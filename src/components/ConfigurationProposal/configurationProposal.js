@@ -5,12 +5,6 @@ import { makeStyles } from '@material-ui/core/styles'
 import { submitProposal } from '../../state/near'
 import { appStore, onAppMount } from '../../state/app'
 
-// ReactQuill Component
-import ReactQuill from 'react-quill';
-
-// CSS Styles
-import '../../../node_modules/react-quill/dist/quill.snow.css'
-
 // Material UI components
 import Button from '@material-ui/core/Button'
 import TextField from '@material-ui/core/TextField'

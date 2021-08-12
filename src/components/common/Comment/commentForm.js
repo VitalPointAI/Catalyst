@@ -1,6 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
+import { EditorState, convertFromRaw, convertToRaw, ContentState } from 'draft-js'
+import { Editor } from "react-draft-wysiwyg"
+import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
+import draftToHtml from 'draftjs-to-html'
+import htmlToDraft from 'html-to-draftjs'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -8,12 +13,6 @@ import TextField from '@material-ui/core/TextField'
 import LinearProgress from '@material-ui/core/LinearProgress'
 import Switch from '@material-ui/core/Switch'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
-
-// ReactQuill Component
-import ReactQuill from 'react-quill';
-
-// CSS Styles
-import '../../../../node_modules/react-quill/dist/quill.snow.css'
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -48,7 +47,7 @@ export default function CommentForm(props) {
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
     const [commentSubject, setCommentSubject] = useState('')
-    const [commentBody, setCommentBody] = useState('')
+    const [commentBody, setCommentBody] = useState(EditorState.createEmpty())
     const [commentPublished, setCommentPublished] = useState(false)
     const [commentParent, setCommentParent] = useState(props.proposalId.toString())
     const [commentAuthor, setCommentAuthor] = useState(props.accountId)
@@ -87,14 +86,14 @@ export default function CommentForm(props) {
         setCommentPublished(published)
     }
 
-    const handleCommentBodyChange = (content, delta, source, editor) => {
-        setCommentBody(content)
+    const handleCommentBodyChange = (editorState) => {
+      setDetails(editorState)
     }
 
     const handleReset = () => {
       setCommentSubject('')
       setCommentPublished(false)
-      setCommentBody('')
+      setCommentBody(EditorState.createEmpty())
     }
 
     const onSubmit = async (values) => {
@@ -120,7 +119,7 @@ export default function CommentForm(props) {
           commentId: nextCommentId.toString(),
           parent: proposalId.toString(),
           subject: commentSubject,
-          body: commentBody,
+          body: draftToHtml(convertToRaw(commentBody.getCurrentContent())),
           author: commentAuthor,
           postDate: new Date().getTime(),
           published: commentPublished
@@ -135,23 +134,6 @@ export default function CommentForm(props) {
       setFinished(true)
       handleUpdate(true)
     }
-
-    const modules = {
-        toolbar: [
-          [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-          ['bold', 'italic', 'underline','strike', 'blockquote', 'code', 'code-block'],
-          [{'list': 'ordered'}, {'list': 'bullet'}, {'indent': '-1'}, {'indent': '+1'}, {'align': []}],
-          ['link', 'image', 'video'],
-          ['clean']
-        ],
-    };
-    
-    const formats = [
-        'header',
-        'bold', 'italic', 'underline', 'strike', 'blockquote', 'code', 'code-block',
-        'list', 'bullet', 'indent','align',
-        'link', 'image', 'video'
-    ];
     
         return (
           <div>
@@ -181,17 +163,12 @@ export default function CommentForm(props) {
                     {errors.commentSubject && <p style={{color: 'red'}}>You must provide a subject/title.</p>}
                     </div>
                     <div>
-                    <ReactQuill
-                      theme="snow"
-                      modules={modules}
-                      formats={formats}
-                      name="commentBody"
-                      value={commentBody}
-                      onChange={handleCommentBodyChange}
-                      style={{height:'150px', marginBottom:'100px'}}
-                      inputRef={register({
-                          required: true
-                      })}
+                    <Editor
+                      editorState={intro}
+                      toolbarClassName="toolbarClassName"
+                      wrapperClassName="wrapperClassName"
+                      editorClassName="editorClassName"
+                      onEditorStateChange={handleCommentBodyChange}
                     />
                     </div>
                  

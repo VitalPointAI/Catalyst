@@ -1,9 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { flexClass } from '../../App'
 import { IPFS_PROVIDER } from '../../utils/ceramic'
 import Persona from '@aluhning/get-personas-js'
+import { EditorState, convertFromRaw, convertToRaw, ContentState } from 'draft-js'
+import { Editor } from "react-draft-wysiwyg"
+import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
+import draftToHtml from 'draftjs-to-html'
+import htmlToDraft from 'html-to-draftjs'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -23,14 +28,6 @@ import TableContainer from '@material-ui/core/TableContainer'
 import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
 import Paper from '@material-ui/core/Paper'
-
-
-
-// ReactQuill Component
-import ReactQuill from 'react-quill';
-
-// CSS Styles
-import '../../../node_modules/react-quill/dist/quill.snow.css'
 import { CircularProgress } from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
@@ -67,7 +64,7 @@ export default function EditConfigurationProposalForm(props) {
     const [shortBio, setShortBio] = useState('')
 
     // Configuration Proposal Fields
-    const [details, setDetails] = useState('')
+    const [details, setDetails] = useState(EditorState.createEmpty())
 
     const { register, handleSubmit, watch, errors } = useForm()
 
@@ -107,8 +104,17 @@ export default function EditConfigurationProposalForm(props) {
                 let i = 0
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == proposalId){
-                    propResult.proposals[i].details ? setDetails(propResult.proposals[i].details) : setDetails('')
-                    break
+                    if (propResult.proposals[i].details){
+                      let contentBlock = htmlToDraft(propResult.proposals[i].details)
+                      if (contentBlock){
+                        const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks)
+                        const editorState = EditorState.createWithContent(contentState)
+                        setDetails(editorState)
+                      }
+                      } else {
+                        setDetails(EditorState.createEmpty())
+                      }
+                  break
                   }
                   i++
                 }
@@ -137,8 +143,8 @@ export default function EditConfigurationProposalForm(props) {
       return new Date(intDate).toLocaleString('en-US', options)
     }
 
-    const handleDetailsChange = (content, delta, source, editor) => {
-        setDetails(content)
+    const handleDetailsChange = (editorState) => {
+      setDetails(editorState)
     }
 
     const onSubmit = async (values) => {
@@ -157,7 +163,7 @@ export default function EditConfigurationProposalForm(props) {
 
       let proposalRecord = {
           proposalId: proposalId.toString(),
-          details: details,
+          details: draftToHtml(convertToRaw(details.getCurrentContent())),
           proposer: proposer,
           submitDate: now,
           published: true
@@ -188,23 +194,6 @@ export default function EditConfigurationProposalForm(props) {
       setOpen(false)
       handleClose()
     }
-
-    const modules = {
-        toolbar: [
-          [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-          ['bold', 'italic', 'underline','strike', 'blockquote', 'code', 'code-block'],
-          [{'list': 'ordered'}, {'list': 'bullet'}, {'indent': '-1'}, {'indent': '+1'}, {'align': []}],
-          ['link', 'image', 'video'],
-          ['clean']
-        ],
-    };
-    
-    const formats = [
-        'header',
-        'bold', 'italic', 'underline', 'strike', 'blockquote', 'code', 'code-block',
-        'list', 'bullet', 'indent','align',
-        'link', 'image', 'video'
-    ];
     
         return (
            
@@ -283,18 +272,13 @@ export default function EditConfigurationProposalForm(props) {
                   </Table>
                 </TableContainer>
               
-                  <ReactQuill
-                    theme="snow"
-                    modules={modules}
-                    formats={formats}
-                    name="details"
-                    value={details}
-                    onChange={handleDetailsChange}
-                    style={{height:'200px', marginBottom:'100px'}}
-                    inputRef={register({
-                        required: false
-                    })}
-                  />
+                <Editor
+                  editorState={intro}
+                  toolbarClassName="toolbarClassName"
+                  wrapperClassName="wrapperClassName"
+                  editorClassName="editorClassName"
+                  onEditorStateChange={handleDetailsChange}
+                />
                    
                 </DialogContent>
                

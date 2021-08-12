@@ -3,6 +3,11 @@ import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { flexClass } from '../../App'
 import { IPFS_PROVIDER } from '../../utils/ceramic'
+import { EditorState, convertFromRaw, convertToRaw, ContentState } from 'draft-js'
+import { Editor } from "react-draft-wysiwyg"
+import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
+import draftToHtml from 'draftjs-to-html'
+import htmlToDraft from 'html-to-draftjs'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -16,15 +21,7 @@ import LinearProgress from '@material-ui/core/LinearProgress'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import Divider from '@material-ui/core/Divider'
-
-
-
-// ReactQuill Component
-import ReactQuill from 'react-quill';
-
-// CSS Styles
-import '../../../node_modules/react-quill/dist/quill.snow.css'
-import { CircularProgress, setRef } from '@material-ui/core';
+import { CircularProgress } from '@material-ui/core'
 
 const useStyles = makeStyles((theme) => ({
     progress: {
@@ -61,14 +58,14 @@ export default function EditPayoutProposalForm(props) {
  
      // Funding Proposal Fields
      const [title, setTitle] = useState('')
-     const [details, setDetails] = useState('')
+     const [details, setDetails] = useState(EditorState.createEmpty())
  
 
     // Payout Proposal Fields
     const [payoutTitle, setPayoutTitle] = useState('')
     const [refFundingId, setRefFundingId] = useState('')
     const [milestoneId, setMilestoneId] = useState('')
-    const [detailsOfCompletion, setDetailsOfCompletion] = useState('')
+    const [detailsOfCompletion, setDetailsOfCompletion] = useState(EditorState.createEmpty())
 
 
     const { register, handleSubmit, watch, errors } = useForm()
@@ -113,8 +110,17 @@ export default function EditPayoutProposalForm(props) {
                     propResult.proposals[i].title ? setPayoutTitle(propResult.proposals[i].title) : setPayoutTitle('')
                     propResult.proposals[i].milestoneId ? setMilestoneId(propResult.proposals[i].milestoneId) : setMilestoneId('')
                     propResult.proposals[i].referencedFundingProposalId ? setRefFundingId(propResult.proposals[i].referencedFundingProposalId) : setRefFundingId('')
-                    propResult.proposals[i].detailsOfCompletion ? setDetailsOfCompletion(propResult.proposals[i].detailsOfCompletion) : setDetailsOfCompletion('')
-                    break
+                    if (propResult.proposals[i].detailsOfCompletion){
+                      let contentBlock = htmlToDraft(propResult.proposals[i].detailsOfCompletion)
+                      if (contentBlock){
+                        const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks)
+                        const editorState = EditorState.createWithContent(contentState)
+                        setDetailsOfCompletion(editorState)
+                      }
+                      } else {
+                        setDetailsOfCompletion(EditorState.createEmpty())
+                      }
+                     break
                   }
                   i++
                 }
@@ -151,8 +157,8 @@ export default function EditPayoutProposalForm(props) {
       return new Date(intDate).toLocaleString('en-US', options)
     }
 
-    const handleDetailsOfCompletionChange = (content, delta, source, editor) => {
-        setDetailsOfCompletion(content)
+    const handleDetailsOfCompletionChange = (editorState) => {
+      setDetailsOfCompletion(editorState)
     }
 
     const onSubmit = async (values) => {
@@ -174,7 +180,7 @@ export default function EditPayoutProposalForm(props) {
           referencedFundingProposalId: refFundingId,
           milestoneId: milestoneId,
           title: payoutTitle,
-          detailsOfCompletion: detailsOfCompletion,
+          detailsOfCompletion: draftToHtml(convertToRaw(detailsOfCompletion.getCurrentContent())),
           proposer: proposer,
           submitDate: now,
           published: true
@@ -205,23 +211,6 @@ export default function EditPayoutProposalForm(props) {
       setOpen(false)
       handleClose()
     }
-
-    const modules = {
-        toolbar: [
-          [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-          ['bold', 'italic', 'underline','strike', 'blockquote', 'code', 'code-block'],
-          [{'list': 'ordered'}, {'list': 'bullet'}, {'indent': '-1'}, {'indent': '+1'}, {'align': []}],
-          ['link', 'image', 'video'],
-          ['clean']
-        ],
-    };
-    
-    const formats = [
-        'header',
-        'bold', 'italic', 'underline', 'strike', 'blockquote', 'code', 'code-block',
-        'list', 'bullet', 'indent','align',
-        'link', 'image', 'video'
-    ];
     
         return (
            
@@ -284,17 +273,13 @@ export default function EditPayoutProposalForm(props) {
                   />
                   {errors.milestoneId && <p style={{color: 'red'}}>You must provide the corresponding milestone Id.</p>}
               
-                  <ReactQuill
-                    theme="snow"
-                    modules={modules}
-                    formats={formats}
+                  <Editor
                     name="detailsOfCompletion"
-                    value={detailsOfCompletion}
-                    onChange={handleDetailsOfCompletionChange}
-                    style={{height:'200px', marginBottom:'100px'}}
-                    inputRef={register({
-                        required: true
-                    })}
+                    editorState={intro}
+                    toolbarClassName="toolbarClassName"
+                    wrapperClassName="wrapperClassName"
+                    editorClassName="editorClassName"
+                    onEditorStateChange={handleDetailsOfCompletionChange}
                   />
                   {errors.detailsOfCompletion && <p style={{color: 'red'}}>You must provide the details showing proof of project completion.</p>}
                    
