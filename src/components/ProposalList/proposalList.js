@@ -189,7 +189,15 @@ export default function ProposalList(props) {
     
     if(proposalEvents && proposalEvents.length > 0){
       console.log('proposalEvents', proposalEvents)
-      fetchData()
+      let mounted = true
+      if(mounted){
+        fetchData()
+            .then((res) => {
+             
+            })
+      return () => mounted = false
+      }
+    
     }
 
   },[proposalEvents, allMemberInfo, currentPeriod])

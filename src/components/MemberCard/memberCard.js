@@ -129,10 +129,14 @@ export default function MemberCard(props) {
           }
         }
         
+        let mounted = true
+      if(mounted){
         fetchData()
-          .then((res) => {
-           
-          })
+            .then((res) => {
+              
+            })
+      return () => mounted = false
+      }
 
     }, [avatar, currentMemberInfo, isUpdated]
     )

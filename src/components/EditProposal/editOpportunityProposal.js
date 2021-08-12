@@ -312,7 +312,7 @@ export default function EditOpportunityProposalForm(props) {
                   Please describe the opportunity requirements:
                   
                   </DialogContentText>
-                  <Grid container justify="center" alignItems="center" spacing={1}>
+                  <Grid container justifyContent="center" alignItems="center" spacing={1}>
                   <Grid item xs={12} sm={12} md={7} lg={7} xl={7}>
                     <TextField
                         autoFocus

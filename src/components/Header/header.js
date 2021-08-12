@@ -34,16 +34,16 @@ export const Header = ({ state, handleUpdate, isUpdated }) => {
             {wallet && wallet.signedIn ? 
                 !matches ? (
                     <>
-                    <Grid item xs={1} sm={1} md={2} lg={2} xl={2}>
+                    <Grid item xs={5} sm={5} md={5} lg={5} xl={5}>
                         <LeftSideDrawer
                         state={state}                        
                         /> 
                         <Logo />
                     </Grid>
-                    <Grid item xs={1} sm={1} md={8} lg={8} xl={8}>
+                    <Grid item xs={5} sm={5} md={5} lg={5} xl={5}>
                         <AccountInfo balance={wallet.balance} /> 
                     </Grid>
-                    <Grid item xs={4} sm={4} md={2} lg={2} xl={2}>
+                    <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
                         {wallet && !wallet.signedIn ? <LoginButton /> : <LogoutButton />}
                     </Grid>
                     </>
@@ -61,7 +61,7 @@ export const Header = ({ state, handleUpdate, isUpdated }) => {
                         <Grid item xs={4} sm={4} md={3} lg={3} xl={3} style={{marginTop: '3px'}}>
                             {wallet && !wallet.signedIn ? <LoginButton /> : <LogoutButton />}
                         </Grid>
-                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
                             <AccountInfo balance={wallet.balance} /> 
                         </Grid>
                     </>

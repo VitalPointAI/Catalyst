@@ -170,13 +170,10 @@ const classes = useStyles()
   }
 
     return (
-        <>    
-        <Grid container justifyContent="center" alignItems="center" spacing={1} >        
-            <Grid item xs={12} sm={12} md={7} lg={7} xl={7} align="center">
-                {contractId != undefined ? 
+            <>
+                {contractId != undefined ? (
                     !matches ? (
                     <>
-                       
                             <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" style={{display: 'inline'}}>
                                     <Button style={{textAlign: 'center', marginRight: '30px'}} onClick={handlePurposeClick}>Purpose</Button>
                                 <Link to={`/opportunities/${contractId}`} variant="body1">
@@ -200,46 +197,32 @@ const classes = useStyles()
                         </Grid>
                     </>
                     )
-                    : null }
-            </Grid>
+                    ) : null }
+          
+            {!matches ? (
 
-            {!matches ?
-               
-            <Grid item xs={12} sm={12} md={5} lg={5} xl={5}>
-                
-                {finished ? (
+                finished ? (
                     <>
-                    <Grid container justifyContent="center" alignItems="center" spacing={1} >
-                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                    
                             <Typography variant="overline" display="block" style={{display: 'inline-flex', float: 'right'}} onClick={handleEditPersonaClick}>
                                 <Avatar src={avatar} className={classes.small} style={{marginRight: '5px'}} onClick={handleEditPersonaClick}/>
                                 {accountId}: {balance} Ⓝ
                             </Typography>
-                        </Grid>
-                    </Grid>                    
+                                          
                     </>
                 ) : <LinearProgress />
-                }
-            </Grid>            
-               
-            :
-            <Grid item xs={12} sm={12} md={3} lg={3} xl={3} align="center">
-                {finished ? (
+            ) : (
+                finished ? (
                     <>
-                    <Grid container justifyContent="center" alignItems="center" spacing={1} >
-                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                   
                             <Typography variant="overline" display="block" style={{display: 'inline-flex'}} onClick={handleEditPersonaClick}>
                                 <Avatar src={avatar} className={classes.small} style={{marginRight: '5px'}} onClick={handleEditPersonaClick}/>
                                 {accountId}: {balance} Ⓝ
                             </Typography>
-                        </Grid>
-                    </Grid>
+                       
                     </>
                 ) : <LinearProgress />
-                }
-            </Grid>
-            }
-       
+           )}
 
             {editPersonaClicked ? <EditPersonaForm
                 state={state}
@@ -254,8 +237,6 @@ const classes = useStyles()
                 contractId={contractId}
             
                 /> : null }
-       
-        </Grid>
-      </>
+       </>
     )
 }

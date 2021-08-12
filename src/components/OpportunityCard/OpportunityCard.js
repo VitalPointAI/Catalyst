@@ -66,6 +66,8 @@ export default function OpportunityCard(props) {
     const [memberStatus, setMemberStatus] = useState()
     const [communityName, setCommunityName] = useState('')
     const [logo, setLogo] = useState(defaultImage)
+    const [budget, setBudget] = useState()
+    const [deadline, setDeadline] = useState()
     const [thisContractId, setThisContractId] = useState()
     const [memberProfileDisplayClicked, setMemberProfileDisplayClicked] = useState(false)
     const [editFundingProposalDetailsClicked, setEditFundingProposalDetailsClicked] = useState(false)
@@ -197,10 +199,14 @@ export default function OpportunityCard(props) {
           }
         }
         
-        fetchData()
-          .then((res) => {
-           
-          })
+        let mounted = true
+        if(mounted){
+          fetchData()
+              .then((res) => {
+                
+              })
+        return () => mounted = false
+        }
 
     }, [avatar, status, name, state, near, contractId, isUpdated]
     )

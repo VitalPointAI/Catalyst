@@ -332,10 +332,14 @@ export default function ProposalCard(props) {
             return true  
           }
 
-          fetchData()
-            .then((res) => {
-
-            })
+          let mounted = true
+          if(mounted){
+            fetchData()
+                .then((res) => {
+                  
+                })
+          return () => mounted = false
+          }
           
     }, [isUpdated, queueList, curDaoIdx]
     )
