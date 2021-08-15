@@ -52,7 +52,7 @@ export const PersonaPage = ({ state, update, dispatch }) => {
             let i = 0
             let countClaim = 0
             while (i < claimed.length ){
-                if(claimed[i].owner == accountId){
+                if(claimed[i].owner == accountId || claimed[i].accountId == accountId){
                     countClaim++
                 }
                 i++
@@ -138,7 +138,12 @@ export const PersonaPage = ({ state, update, dispatch }) => {
                 </Paper>
                 </Grid>
             </>)
-            : null
+            : <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
+            <Paper className={classes.paper}>
+                <Typography variant="h5" style={{marginBottom: '20px'}}>Claimed Personas</Typography>
+                <Typography variant="overline">No Personas available.</Typography>
+            </Paper>
+            </Grid>
             } 
         </Grid>
         </div>

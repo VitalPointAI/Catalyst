@@ -89,7 +89,7 @@ export default function PersonaCount(props) {
                     let i = 0
                     let count = 0
                     while (i < claimed.length){
-                        if(claimed[i].owner == accountId){
+                        if(claimed[i].owner == accountId || claimed[i].accountId == accountId){
                         count++
                         }
                     i++
