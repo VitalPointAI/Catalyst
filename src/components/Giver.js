@@ -51,7 +51,7 @@ export const Giver = ({ state, update, dispatch }) => {
             let i = 0
             let countClaim = 0
             while (i < claimed.length ){
-                if(claimed[i].owner == accountId){
+                if(claimed[i].owner == accountId || claimed[i].accountId == accountId){
                     countClaim++
                 }
                 i++

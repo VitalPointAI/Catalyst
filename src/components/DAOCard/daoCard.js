@@ -101,14 +101,12 @@ export default function DaoCard(props) {
       async function fetchData() {
         
          if(contractId){
-           console.log('contractid', contractId)
            let result = await Dao.getDao(contractId)
-           console.log('result dao', result)
            let memberStatus
            try{
             let contract = await dao.initDaoContract(state.wallet.account(), contractId)
             memberStatus = await contract.getMemberStatus({member: accountId})
-            console.log('daocard memberstatus', memberStatus)
+           
             setaMemberStatus(memberStatus)
             memberStatus ? setMemberIcon(<CheckCircleIcon />) : setMemberIcon(<NotInterestedIcon />)
            } catch (err) {
@@ -124,7 +122,6 @@ export default function DaoCard(props) {
                   result.status = memberStatus
                  
            }
-           
            makeSearchDaos(result)
          }
         setFinished(false)

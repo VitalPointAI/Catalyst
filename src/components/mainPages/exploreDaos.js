@@ -87,10 +87,8 @@ export default function ExploreDaos(props) {
                 if(currentDaosList && near){
                     setDaoCount(currentDaosList.length)
                     sortedDaos = _.sortBy(currentDaosList, 'created').reverse()
-                    if(!membersOnly){
-                        setDaos(sortedDaos)
-                    }
-
+                    setDaos(sortedDaos)
+                    
                     let i = 0
                     let balance = 0
                     while (i < currentDaosList.length){
@@ -162,14 +160,14 @@ export default function ExploreDaos(props) {
             }
             console.log('memberdaos', memberDaos)
             setDaos(memberDaos)
+            handleUpdate()
         } else {
-            sortedDaos = _.sortBy(currentDaosList, 'created')
-            setDaos(sortedDaos)
+           searchData()
         }
     }
 
     function makeSearchDaos(dao){
-        let i = 0
+       let i = 0
         let exists
         if(dao != false){
             while(i < searchDaos.length){
@@ -289,6 +287,7 @@ export default function ExploreDaos(props) {
         <Grid container alignItems="center" justifyContent="space-between" spacing={0} >
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
             <FormControlLabel
+            style={{marginLeft: '5px', marginTop: '10px'}}
             control={
               <Switch
                 checked={membersOnly}
