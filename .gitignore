@@ -22,6 +22,7 @@ target
 
 # production
 /dist
+/contract
 /contract/build
 /contract/node_modules
 
