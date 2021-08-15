@@ -2,12 +2,12 @@ import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app'
 import Fuse from 'fuse.js'
 import SmallDaoCard from '../SmallDaoCard/smallDaoCard'
+import { dao } from '../../utils/dao'
 import Carousel from 'react-material-ui-carousel'
 
 // Material UI components
 import { makeStyles } from '@material-ui/core/styles'
 import Grid from '@material-ui/core/Grid'
-import CircularProgress from '@material-ui/core/CircularProgress'
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -38,14 +38,14 @@ const useStyles = makeStyles((theme) => ({
     }
   }));
   
-export default function Communities(props) {
+export default function MemberCommunities(props) {
    
     const[daos, setDaos] = useState([])
     const[daoCount, setDaoCount] = useState(0)
     const [editDaoClicked, setEditDaoClicked] = useState(false)
+    const [memberStatus, setMemberStatus] = useState(false)
     const [isUpdated, setIsUpdated] = useState(false)
     const [searchDaos, setSearchDaos] = useState([])
-    const [loaded, setLoaded] = useState(false)
 
     const classes = useStyles()
 
@@ -58,13 +58,44 @@ export default function Communities(props) {
       currentDaosList,
     } = state
 
+    
     useEffect(
         () => {
-            if(currentDaosList){
+            async function fetchData() {
+            if(currentDaosList && state){
                 let sortedDaos = _.sortBy(currentDaosList, 'created')
-                setDaos(sortedDaos)
+                let contract
+                let memberDaos = []
+                let i = 0
+                while (i < sortedDaos.length){
+                    try{
+                        contract = await dao.initDaoContract(state.wallet.account(), sortedDaos[i].contractId)
+                      } catch (err) {
+                        console.log('problem initializing dao contract', err)
+                      }
+
+                    let thisMemberStatus
+                    let thisMemberInfo
+                    try {
+                      thisMemberInfo = await contract.getMemberInfo({member: accountId})
+                      thisMemberStatus = await contract.getMemberStatus({member: accountId})
+                      console.log('thisMemberStatus', thisMemberStatus)
+                      console.log('thisMemberinfo', thisMemberInfo)
+                      if(thisMemberStatus && thisMemberInfo[0].active){
+                        memberDaos.push(sortedDaos[i])
+                        console.log('memberDaos', memberDaos)
+                      } 
+                    } catch (err) {
+                      console.log('no member info yet')
+                    }
+                i++
+                }
+                setDaos(memberDaos)
             }
-    }, [currentDaosList, isUpdated]
+        }
+        fetchData()
+           
+    }, [currentDaosList, state, isUpdated]
     )
     
     function handleEditDaoClick(property){
@@ -139,11 +170,10 @@ export default function Communities(props) {
                      
                     </Grid>
                   </Grid>
-                <Grid container alignItems="center" justifyContent="center" spacing={3} style={{padding: '20px', minHeight: '150px'}}>
+                <Grid container alignItems="center" justifyContent="center" spacing={3} style={{padding: '20px'}}>
                 <Carousel
                     autoPlay={false}
-                >
-                
+                >   
                 {daos.filter(dao => dao.summoner == accountId).reverse().map(({ contractId, created, summoner }, i) =>
                     <SmallDaoCard
                         key={i}
@@ -155,7 +185,7 @@ export default function Communities(props) {
                         handleEditDaoClick={handleEditDaoClick}
                         handleUpdate={handleUpdate}
                         makeSearchDaos={makeSearchDaos}
-                    />   
+                    />            
                     )}
                 </Carousel>
                 </Grid>

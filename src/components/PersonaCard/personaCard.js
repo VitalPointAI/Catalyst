@@ -3,7 +3,7 @@ import { appStore, onAppMount } from '../../state/app'
 import { ceramic } from '../../utils/ceramic'
 import EditPersonaForm from '../EditPersona/editPersona'
 import * as nearAPI from 'near-api-js'
-
+import { get, set, del } from '../../utils/storage'
 
 // Material UI Components
 import { makeStyles, withStyles } from '@material-ui/core/styles'
@@ -16,8 +16,10 @@ import Badge from '@material-ui/core/Badge'
 import EditIcon from '@material-ui/icons/Edit'
 import IconButton from '@material-ui/core/IconButton'
 import { CardHeader, LinearProgress } from '@material-ui/core'
+import { Typography } from '@material-ui/core'
 
 import { config } from '../../state/config'
+import { KeyPair } from '../../state/near'
 
 export const {
     ACCOUNT_LINKS
@@ -99,12 +101,34 @@ export default function PersonaCard(props) {
               if(accountId && near && didRegistryContract){
              
                   let existingDid = await didRegistryContract.hasDID({accountId: accountId})
-               
+
+                  if(!existingDid){
+                    let i = 0
+                    while (i < state.claimed.length) {
+                      if(state.claimed[i].accountId == accountId && state.claimed[i].owner == state.accountId){
+                        let personaAccount = new nearAPI.Account(near.connection, accountId)
+                        let keys = get(ACCOUNT_LINKS, [])
+                        let j = 0
+                        let pkey
+                        while (j < keys.length){
+                          if(keys[j].accountId == accountId){
+                            pkey = keys[j].key
+                            break
+                          }
+                          j++
+                        }
+                        let newKeyPair = KeyPair.fromString(pkey)
+                        await ceramic.getCurrentUserIdxNoDid(appIdx, didRegistryContract, personaAccount, newKeyPair, state.accountId)
+                      break
+                      }
+                    i++
+                    }
+                  }
+
                   if(existingDid){
                      
                       let personaAccount = new nearAPI.Account(near.connection, accountId)
 
-                    
                       let thisCurPersonaIdx
                       try{
                         thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, didRegistryContract)
@@ -118,8 +142,9 @@ export default function PersonaCard(props) {
                    
                       while (i < state.claimed.length) {
                         if(state.claimed[i].accountId == accountId){
+                          console.log('claimed accountid here', state.claimed[i].accountId)
+                          console.log('accountid here', accountId)
                           setClaimed(true)
-                         
                           break
                         }
                         i++
@@ -170,8 +195,9 @@ export default function PersonaCard(props) {
         {!display ? <LinearProgress /> : 
                      
           finished && !claimed ? 
-      
+          
           (
+         
             <Card className={classes.card}>
               <CardHeader
               avatar={
@@ -186,7 +212,7 @@ export default function PersonaCard(props) {
               subheader={<>{finished ? (<span style={{fontSize: '80%'}}>{date}</span>) : <LinearProgress />}</>}
               />
               <CardActions>
-                <Link color="primary" href={link}>
+                 <Link color="primary" href={link}>
                   Claim
                 </Link>
               </CardActions>
@@ -207,7 +233,6 @@ export default function PersonaCard(props) {
             title={name ? name : accountId}
             subheader={<>{finished ? (<span style={{fontSize: '80%'}}>{date}</span>) : <LinearProgress />}</>}
           />
-           
             </Card>
           )
         }

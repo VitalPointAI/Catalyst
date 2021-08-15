@@ -121,15 +121,12 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
 
         let daoCreated = await isAccountTaken(accountId)
 
-
-      
             const keyPair = KeyPair.fromRandom('ed25519')
 
             let state = getState()
 
             let upLinks = await ceramic.downloadKeysSecret(state.appIdx, 'daoKeys')
-    
-
+   
             const daoInit = get(DAO_FIRST_INIT, [])
 
             try{
@@ -249,9 +246,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     if(!existingDid){
         curUserIdx = await ceramic.getCurrentUserIdxNoDid(appIdx, didRegistryContract, account, null, null, accountId)
     }
-
-
-   
+ 
     update('', { didRegistryContract, appIdx, account, accountId, curUserIdx, daoFactory, currentDaosList })
     
     if(curUserIdx){
@@ -261,10 +256,8 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
          //synch local links with what's stored for the account in ceramic
         let allAccounts = await ceramic.downloadKeysSecret(curUserIdx, 'accountsKeys')
     
-
         let storageLinks = get(ACCOUNT_LINKS, [])
      
-        
         if(allAccounts.length != storageLinks.length){
         
             if(allAccounts.length <= storageLinks.length){
@@ -378,7 +371,7 @@ export async function login() {
 export async function logout() {
     const near = await nearAPI.connect({
         networkId, nodeUrl, walletUrl, deps: { keyStore: new nearAPI.keyStores.BrowserLocalStorageKeyStore() },
-    });
+    })
     const connection = new nearAPI.WalletConnection(near)
     connection.signOut()
     window.location.replace('https://vitalpoint.ai/catalyst')

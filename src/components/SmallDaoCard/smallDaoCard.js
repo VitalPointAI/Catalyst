@@ -82,7 +82,8 @@ export default function SmallDaoCard(props) {
       contractId,
       link,
       contract,
-      makeSearchDaos
+      makeSearchDaos,
+      memberStatus
    } = props
  
    const {

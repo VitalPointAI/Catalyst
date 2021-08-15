@@ -15,6 +15,8 @@ import OpportunityProposalDetails from '../ProposalDetails/opportunityProposalDe
 import Communities from '../Communities/communities'
 import CommunityCount from '../CommunityCount/communityCount'
 import PersonaCount from '../PersonaCount/personaCount'
+import MemberCommunityCount from '../MemberCommunityCount/memberCommunityCount'
+import MemberCommunities from '../MemberCommunities/memberCommunities'
 
 // Material UI
 import { lighten, makeStyles, withStyles } from '@material-ui/core/styles'
@@ -849,6 +851,8 @@ export default function Dashboard(props) {
             <Grid item xs={12} sm={12} md={8} lg={8} xl={8} align="center">
                 <CommunityCount />
                 <Communities />
+                <MemberCommunityCount />
+                <MemberCommunities />
             </Grid>
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '40px'}}>
                 
