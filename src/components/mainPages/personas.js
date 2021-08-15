@@ -38,7 +38,7 @@ export const PersonaPage = ({ state, update, dispatch }) => {
     const {
         app, wallet, links, claimed, accountId,
     } = state
-
+  
     const [loaded, setLoaded] = useState(false)
     const [editPersonaClicked, setEditPersonaClicked] = useState(false)
     const [countOfClaims, setCountOfClaims] = useState()
@@ -94,9 +94,9 @@ export const PersonaPage = ({ state, update, dispatch }) => {
                     <Paper className={classes.paper}>
                         <Typography variant="h5" style={{marginBottom: '20px'}}>Reserved Personas</Typography>
                     <Grid container alignItems="flex-start" justifyContent="center" spacing={0} style={{padding: '20px'}}>
-                        {links.filter(person => person.owner == accountId).map(({ key, accountId, owner }) =>
+                        {links.filter(person => person.owner == accountId).map(({ key, keyStored, accountId, owner }) =>
                             <PersonaCard
-                                key={key}
+                                key={keyStored}
                                 accountId={accountId}
                                 owner={owner}
                                 link={getLink(accountId, key, wallet, owner)}
@@ -124,9 +124,9 @@ export const PersonaPage = ({ state, update, dispatch }) => {
                     <Paper className={classes.paper}>
                         <Typography variant="h5" style={{marginBottom: '20px'}}>Claimed Personas</Typography>
                         <Grid container alignItems="center" justifyContent="center" spacing={0} style={{padding: '20px'}}>
-                            {claimed.filter(person => person.owner == accountId).map(({ key, accountId, owner }) =>
+                            {claimed.filter(person => (person.owner == accountId || person.accountId == accountId)).map(({ keyStored, accountId, owner }) =>
                                 <PersonaCard
-                                    key={key}
+                                    key={keyStored}
                                     accountId={accountId}
                                     owner={owner}
                                     link={''}
