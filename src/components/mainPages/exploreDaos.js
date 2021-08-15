@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app'
 import { utils } from 'near-api-js'
 import Fuse from 'fuse.js'
-
+import { dao } from '../../utils/dao'
 import Footer from '../../components/common/Footer/footer'
 import DaoCard from '../DAOCard/daoCard'
 import { Header } from '../Header/header'
@@ -15,6 +15,8 @@ import Typography from '@material-ui/core/Typography'
 import Grid from '@material-ui/core/Grid'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
 import Paper from '@material-ui/core/Paper'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import Switch from '@material-ui/core/Switch'
 
 const axios = require('axios').default
 
@@ -54,6 +56,7 @@ export default function ExploreDaos(props) {
     const [daos, setDaos] = useState([])
     const [daoCount, setDaoCount] = useState(0)
     const [editDaoClicked, setEditDaoClicked] = useState(false)
+    const [membersOnly, setMembersOnly] = useState(false)
     const [resources, setResources] = useState(0)
     const [nearPrice, setNearPrice] = useState()
     const [searchDaos, setSearchDaos] = useState([])
@@ -68,6 +71,7 @@ export default function ExploreDaos(props) {
 
     const {
       currentDaosList,
+      accountId,
       near
     } = state
 
@@ -75,14 +79,17 @@ export default function ExploreDaos(props) {
 
     const matches = useMediaQuery('(max-width:500px)')
 
+    let sortedDaos
+
     useEffect(
         () => {
             async function fetchData() {
                 if(currentDaosList && near){
-                   
                     setDaoCount(currentDaosList.length)
-                    let sortedDaos = _.sortBy(currentDaosList, 'created').reverse()
-                    setDaos(sortedDaos)
+                    sortedDaos = _.sortBy(currentDaosList, 'created').reverse()
+                    if(!membersOnly){
+                        setDaos(sortedDaos)
+                    }
 
                     let i = 0
                     let balance = 0
@@ -124,6 +131,41 @@ export default function ExploreDaos(props) {
     function handleDaoUpdate(result){
         let newDaos = daos.push(result)
         setDaos(newDaos)
+    }
+
+    const handleMembersOnlyChange = async (event) => {
+        setMembersOnly(event.target.checked)
+        if(event.target.checked){
+            let contract
+            let memberDaos = []
+            let i = 0
+            console.log('daos', daos)
+            while (i < daos.length){
+                try{
+                    contract = await dao.initDaoContract(state.wallet.account(), daos[i].contractId)
+                } catch (err) {
+                    console.log('problem initializing dao contract', err)
+                }
+
+                let thisMemberStatus
+                let thisMemberInfo
+                try {
+                thisMemberInfo = await contract.getMemberInfo({member: accountId})
+                thisMemberStatus = await contract.getMemberStatus({member: accountId})
+                if(thisMemberStatus && thisMemberInfo[0].active){
+                    memberDaos.push(daos[i])
+                } 
+                } catch (err) {
+                console.log('no member info yet')
+                }
+            i++
+            }
+            console.log('memberdaos', memberDaos)
+            setDaos(memberDaos)
+        } else {
+            sortedDaos = _.sortBy(currentDaosList, 'created')
+            setDaos(sortedDaos)
+        }
     }
 
     function makeSearchDaos(dao){
@@ -246,6 +288,17 @@ export default function ExploreDaos(props) {
       
         <Grid container alignItems="center" justifyContent="space-between" spacing={0} >
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+            <FormControlLabel
+            control={
+              <Switch
+                checked={membersOnly}
+                onChange={handleMembersOnlyChange}
+                name="membersOnly"
+                color="primary"
+              />
+            }
+            label="Only show communities you are a member of"
+          />   
             <SearchBar
                 placeholder="Search"
                 onChange={(e) => searchData(e.target.value)}

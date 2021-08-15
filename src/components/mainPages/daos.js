@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react'
+import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 import Fuse from 'fuse.js'
 import DaoCard from '../DAOCard/daoCard'
 import { Header } from '../Header/header'
 import Footer from '../../components/common/Footer/footer'
 import SearchBar from '../../components/common/SearchBar/search'
+import { dao } from '../../utils/dao'
 
 // Material UI components
 import { makeStyles } from '@material-ui/core/styles'
@@ -57,13 +59,20 @@ export default function Daos(props) {
       accountId,
       currentDaosList,
     } = state
+    
+    let sortedDaos 
 
     useEffect(
         () => {
-            if(currentDaosList){
-                let sortedDaos = _.sortBy(currentDaosList, 'created')
-                setDaos(sortedDaos)
+            async function fetchData() {
+                if(currentDaosList){
+                    sortedDaos = _.sortBy(currentDaosList, 'created')
+                    setDaos(sortedDaos)
+                }
             }
+
+            fetchData()
+
     }, [currentDaosList, isUpdated]
     )
     
@@ -131,9 +140,9 @@ export default function Daos(props) {
         <Header state={state}/>
        
         <Grid container alignItems="center" justifyContent="space-between" spacing={3} style={{padding: '20px'}} >
-            { daos && daos.length > 0 ? 
+       
+        { daos && daos.length > 0 ? 
                 (<>
-                  {console.log('daos', daos)}
                   <Grid container alignItems="center" justifyContent="space-between" spacing={0} >
                     <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                       <SearchBar
