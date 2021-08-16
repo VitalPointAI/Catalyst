@@ -79,6 +79,7 @@ export default function PayoutProposal(props) {
     proposalDeposit,
     tokenName,
     depositToken,
+    reference,
     contractId } = props
 
   const handleClose = () => {
@@ -100,7 +101,10 @@ export default function PayoutProposal(props) {
   const onSubmit = async (values) => {
     event.preventDefault()
     setFinished(false)
-    
+
+    let references = []
+    references.push({'references': reference})
+
     try{
       await submitProposal(
         state.wallet,
@@ -110,7 +114,8 @@ export default function PayoutProposal(props) {
         '0',
         '0',
         '0',
-        payout
+        payout,
+        references
         )
       } catch (err) {
         console.log('problem submitting payout proposal', err)

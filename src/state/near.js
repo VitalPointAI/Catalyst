@@ -550,7 +550,8 @@ export async function submitProposal(
     tribute,
     sharesRequested,
     paymentRequested,
-    configuration) {
+    configuration,
+    references = []) {
    
     const daoContract = await dao.initDaoContract(wallet.account(), contractId)
     const proposalId = await daoContract.getProposalsLength()
@@ -606,6 +607,7 @@ export async function submitProposal(
                     applicant: applicant,
                     paymentRequested: paymentRequested,
                     paymentToken: depositToken,
+                    referenceIds: references,
                     contractId: contractId
                     }, GAS, parseNearAmount(proposalDeposit))
                 } catch (err) {
@@ -642,6 +644,7 @@ export async function submitProposal(
                     a: applicant,
                     pR: paymentRequested,
                     pT: depositToken,
+                    referenceIds: references,
                     contractId: contractId
                     }, GAS, parseNearAmount(proposalDeposit))
                 } catch (err) {
@@ -972,7 +975,8 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
                             votingPeriod: proposal.vP,
                             gracePeriod: proposal.gP,
                             voteFinalized: parseInt(proposal.voteFinalized),
-                            configuration: proposal.configuration
+                            configuration: proposal.configuration,
+                            referenceIds: proposal.referenceIds
                             }
 
                             proposalEventRecord.events.push(indivProposalRecord)
@@ -1020,7 +1024,8 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
                         votingPeriod: proposal.vP,
                         gracePeriod: proposal.gP,
                         voteFinalized: parseInt(proposal.voteFinalized),
-                        configuration: proposal.configuration
+                        configuration: proposal.configuration,
+                        referenceIds: proposal.referenceIds
                         }
 
                         proposalEventRecord.events.push(indivProposalRecord)
@@ -1611,7 +1616,8 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
             gracePeriod: proposal.gP,
             voteFinalized: parseInt(proposal.voteFinalized),
             submitTransactionHash: transactionHash,
-            configuration: proposal.configuration
+            configuration: proposal.configuration,
+            referenceIds: proposal.referenceIds
             }
 
             proposalEventRecord.events.push(indivProposalRecord)
@@ -1785,6 +1791,7 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                         gracePeriod: proposal.gP,
                         voteFinalized: parseInt(proposal.voteFinalized),
                         configuration: proposal.configuration,
+                        referenceIds: proposal.referenceIds,
                         processTransactionHash: transactionHash ? transactionHash : '',
                         submitTransactionHash: proposalRecords.events[i].submitTransactionHash,
                         cancelTransactionHash: proposalRecords.events[i].cancelTransactionHash,
@@ -2075,6 +2082,7 @@ export async function logVoteEvent(curDaoIdx, contractId, daoContract, proposalI
                     gracePeriod: proposal.gP,
                     voteFinalized: parseInt(proposal.voteFinalized),
                     configuration: proposal.configuration,
+                    referenceIds: proposal.referenceIds,
                     submitTransactionHash: proposalRecords.events[i].submitTransactionHash,
                     cancelTransactionHash: proposalRecords.events[i].cancelTransactionHash,
                     processTransactionHash: proposalRecords.events[i].processTransactionHash,
@@ -2196,6 +2204,7 @@ export async function logSponsorEvent (curDaoIdx, daoContract, contractId, propo
                 gracePeriod: proposal.gP,
                 voteFinalized: parseInt(proposal.voteFinalized),
                 configuration: proposal.configuration,
+                referenceIds: proposal.referenceIds,
                 submitTransactionHash: proposalRecords.events[i].submitTransactionHash,
                 cancelTransactionHash: proposalRecords.events[i].cancelTransactionHash,
                 processTransactionHash: proposalRecords.events[i].processTransactionHash,
@@ -2312,6 +2321,7 @@ export async function logCancelEvent (curDaoIdx, daoContract, contractId, propos
                     gracePeriod: proposal.gP,
                     voteFinalized: parseInt(proposal.voteFinalized),
                     configuration: proposal.configuration,
+                    referenceIds: proposal.referenceIds,
                     cancelTransactionHash: transactionHash,
                     submitTransactionHash: proposalRecords.events[i].submitTransactionHash,
                     processTransactionHash: proposalRecords.events[i].processTransactionHash,

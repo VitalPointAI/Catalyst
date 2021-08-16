@@ -79,6 +79,7 @@ export default function FundingProposal(props) {
     proposalDeposit,
     tokenName,
     depositToken,
+    reference,
     contractId } = props
 
   const handleClose = () => {
@@ -100,6 +101,9 @@ export default function FundingProposal(props) {
   const onSubmit = async (values) => {
     event.preventDefault()
     setFinished(false)
+
+    let references = []
+    references.push({'references': reference})
     
     try{
       await submitProposal(
@@ -110,7 +114,8 @@ export default function FundingProposal(props) {
         '0',
         '0',
         '0',
-        funding
+        funding,
+        references
         )
       } catch (err) {
         console.log('problem submitting funding proposal', err)

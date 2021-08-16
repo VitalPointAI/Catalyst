@@ -40,6 +40,9 @@ export const payoutProposalDetailsSchema = {
         "published": {
           type: 'boolean'
         },
+        "referenceIds": {
+          type: 'array'
+        },
       },
     }
   }

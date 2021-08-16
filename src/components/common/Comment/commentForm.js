@@ -164,7 +164,7 @@ export default function CommentForm(props) {
                     </div>
                     <div>
                     <Editor
-                      editorState={intro}
+                      editorState={commentBody}
                       toolbarClassName="toolbarClassName"
                       wrapperClassName="wrapperClassName"
                       editorClassName="editorClassName"

@@ -105,6 +105,9 @@ export const proposalSchema = {
             "type": "string"
           }
         },
+        "referenceIds": {
+          "type": "array",
+        },
       }
     }
   }

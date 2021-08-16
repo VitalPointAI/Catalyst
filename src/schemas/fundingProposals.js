@@ -34,6 +34,9 @@ export const fundingProposalDetailsSchema = {
         "published": {
           type: 'boolean'
         },
+        "referenceIds": {
+          type: 'array'
+        },
       },
     }
   }
