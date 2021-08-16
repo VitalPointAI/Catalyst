@@ -156,12 +156,11 @@ export default function EditOpportunityProposalForm(props) {
                       setDetails(EditorState.createEmpty())
                     }
                     propResult.opportunities[i].reward ? setReward(propResult.opportunities[i].reward) : setReward('')
-                    propResult.opportunities[i].deadline ? setDeadline(propResult.opportunies[i].deadline) : setDeadline('')
+                    propResult.opportunities[i].deadline ? setDeadline(propResult.opportunities[i].deadline) : setDeadline('')
                     propResult.opportunities[i].category ? setCategory(propResult.opportunities[i].category) : setCategory('')
                     propResult.opportunities[i].projectName ? setProjectName(propResult.opportunities[i].projectName) : setProjectName('')
                     propResult.opportunities[i].status ? setStatus(propResult.opportunities[i].status) : setStatus(false)
                     propResult.opportunities[i].permission ? setPermission(propResult.opportunities[i].permission) : setPermission('')
-                    propResult.opportunities[i].deadline ? setDeadline(propResult.opportunities[i].deadline) : setDeadline('')
                     propResult.opportunities[i].familiarity ? setFamiliarity(propResult.opportunities[i].familiarity) : setFamiliarity('0')
                     propResult.opportunities[i].budget ? setBudget(propResult.opportunities[i].budget) : setBudget(''); 
                     propResult.opportunities[i].desiredSkillSet ? setDesiredSkillSet(propResult.opportunities[i].desiredSkillSet): setDesiredSkillSet({})

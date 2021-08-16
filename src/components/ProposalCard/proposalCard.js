@@ -72,6 +72,7 @@ const useStyles = makeStyles((theme) => ({
       backgroundColor: red[500],
     },
     bottom: {
+      paddingTop: '20px',
       position: 'absolute',
       bottom: '50px',
       left: '70px'
@@ -533,7 +534,7 @@ export default function ProposalCard(props) {
               </Button>
             </Grid>
             <CardHeader
-               style={{display: 'block'}}
+               style={{display: 'block', marginBottom: '20px'}}
                align="center"
               
                subheader={
@@ -602,7 +603,7 @@ export default function ProposalCard(props) {
             <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
             <div style={{clear: 'both'}}></div>
             <CardHeader
-               style={{display: 'block'}}
+               style={{display: 'block', marginBottom: '20px'}}
                align="center"
                title={
                  <>
@@ -681,7 +682,7 @@ export default function ProposalCard(props) {
             <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
             <div style={{clear: 'both'}}></div>
             <CardHeader
-               style={{display: 'block'}}
+               style={{display: 'block', marginBottom: '20px'}}
                align="center"
                title={
                  <>
@@ -760,7 +761,7 @@ export default function ProposalCard(props) {
             <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
             <div style={{clear: 'both'}}></div>
             <CardHeader
-               style={{display: 'block'}}
+               style={{display: 'block', marginBottom: '20px'}}
                align="center"
                title={
                  <>
@@ -839,7 +840,7 @@ export default function ProposalCard(props) {
                 <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
             <div style={{clear: 'both'}}></div>
             <CardHeader
-               style={{display: 'block'}}
+               style={{display: 'block', marginBottom: '20px'}}
                align="center"
                title={
                  <>
@@ -918,7 +919,7 @@ export default function ProposalCard(props) {
             <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
             <div style={{clear: 'both'}}></div>
             <CardHeader
-               style={{display: 'block'}}
+               style={{display: 'block', marginBottom: '20px'}}
                align="center"
                title={ <>
                 <Button 

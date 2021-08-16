@@ -337,7 +337,7 @@ export default function OpportunityCard(props) {
                   icon={suitabilityScore > 75 ? <DoneIcon /> 
                     : suitabilityScore > 50 && suitabilityScore < 75 ? <HelpOutlineIcon />
                     : suitabilityScore < 50 ? <BlockIcon />
-                    : null}
+                    : <BlockIcon />}
                   variant="outlined"
                   align="center"
                 />
