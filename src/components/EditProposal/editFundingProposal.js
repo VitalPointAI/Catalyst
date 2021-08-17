@@ -23,6 +23,14 @@ import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import Divider from '@material-ui/core/Divider'
 import { CircularProgress } from '@material-ui/core'
+import Card from '@material-ui/core/Card'
+import CardContent from '@material-ui/core/CardContent'
+import CardActions from '@material-ui/core/CardActions'
+import InputAdornment from '@material-ui/core/InputAdornment'
+import Tooltip from '@material-ui/core/Tooltip'
+import Zoom from '@material-ui/core/Zoom'
+import InfoIcon from '@material-ui/icons/Info'
+import Paper from '@material-ui/core/Paper'
 
 const useStyles = makeStyles((theme) => ({
     progress: {
@@ -60,6 +68,7 @@ export default function EditFundingProposalForm(props) {
     // Funding Proposal Fields
     const [title, setTitle] = useState('')
     const [details, setDetails] = useState(EditorState.createEmpty())
+    const [milestones, setMilestones] = useState([{milestone: '', deadline: '', payout: '', briefDescription:''}])
 
     const { register, handleSubmit, watch, errors } = useForm()
 
@@ -121,7 +130,7 @@ export default function EditFundingProposalForm(props) {
           .then((res) => {
             setLoaded(true)
           })
-    },[curDaoIdx])
+    },[])
 
     function handleFileHash(hash) {
       setAvatar(IPFS_PROVIDER + hash)
@@ -130,6 +139,22 @@ export default function EditFundingProposalForm(props) {
     const handleClose = () => {
         handleEditFundingProposalDetailsClickState(false)
         setOpen(false)
+    }
+
+    const handleMilestonesChange = (i, e) => {
+      let newMilestone = [...mileStones]
+      newMilestone[i][e.target.milestone] = e.target.value
+      setMilestones(newMilestone)
+    }
+
+    const addMilestoneFields = () => {
+      setMilestones([...milestones, {milestoneId: '', milestone: '', deadline: '', payout: '', briefDescription:''}])
+    }
+
+    const removeMilestoneFields = (i) => {
+      let newMilestones = [...milestones]
+      newMilestones.splice(i, 1)
+      setMilestones(newMilestones)
     }
 
     const handleTitleChange = (event) => {
@@ -226,15 +251,145 @@ export default function EditFundingProposalForm(props) {
                       })}
                   />
                   {errors.fundingProposalTitle && <p style={{color: 'red'}}>You must give your proposal a title.</p>}
-              
+                  <Typography variant="h6" style={{marginTop: '30px'}}>Proposal Details</Typography>
+                  <Paper style={{padding: '5px'}}>
                   <Editor
-                    editorState={intro}
+                    editorState={details}
                     toolbarClassName="toolbarClassName"
                     wrapperClassName="wrapperClassName"
                     editorClassName="editorClassName"
                     onEditorStateChange={handleDetailsChange}
+                    editorStyle={{minHeight:'200px'}}
                   />
-                   
+                  </Paper>
+                  <Typography variant="h6" style={{marginTop: '30px'}}>Milestones</Typography>
+                  <Paper style={{padding: '5px'}}>
+                  {milestones.map((element, index) => (
+                      <>
+                      <Grid key={index} container justifyContent="center" alignItems="center" spacing={1}>
+                      <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                        <TextField
+                          margin="dense"
+                          id="milestone-id"
+                          variant="outlined"
+                          name="milestoneId"
+                          label="MilestoneId:"
+                          placeholder={index}
+                          value={index}
+                          onChange={e => handleMilestonesChange(index, e)}
+                          inputRef={register({
+                              required: false                              
+                          })}
+                        />
+                        </Grid>
+                        <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                        <TextField
+                          autoFocus
+                          fullWidth
+                          margin="dense"
+                          id="milestone-title"
+                          variant="outlined"
+                          name="milestone"
+                          label="Milestone:"
+                          placeholder="Milestone 1"
+                          value={element.milestone || ""}
+                          onChange={e => handleMilestonesChange(index, e)}
+                          InputProps={{
+                            endAdornment: <>
+                            <Tooltip TransitionComponent={Zoom} title="Short title of this milestone.">
+                                <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                            </Tooltip>
+                            </>
+                          }}
+                          inputRef={register({
+                              required: false                              
+                          })}
+                        />
+                        </Grid>
+                        <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                        <TextField
+                          autoFocus
+                          margin="dense"
+                          id="milestone-deadline"
+                          type = "date"
+                          name="deadline"
+                          label="Deadline:"
+                          value={element.deadline || ""}
+                          onChange={e => handleMilestonesChange(index, e)}
+                          InputLabelProps={{shrink: true,}}
+                          InputProps={{
+                            endAdornment: <>
+                            <Tooltip TransitionComponent={Zoom} title="Proposed deadline for completion of this milestone.">
+                                <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                            </Tooltip>
+                            </>
+                          }}
+                          inputRef={register({
+                              required: false                              
+                          })}
+                        />
+                        </Grid>
+                        <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                        <TextField
+                          margin="dense"
+                          id="payout-requested"
+                          variant="outlined"
+                          name="payout"
+                          label="Payout Requested"
+                          placeholder="10"
+                          value={element.payout || ""}
+                          onChange={e => handleMilestonesChange(index, e)}
+                          inputRef={register({
+                              required: false, 
+                          })}
+                          InputProps={{
+                            endAdornment: <><InputAdornment position="end">Ⓝ</InputAdornment>
+                            <Tooltip TransitionComponent={Zoom} title="Payout proposed in NEAR that will be paid out for completion of this milestone">
+                                <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                            </Tooltip>
+                            </>
+                          }}
+                        />
+                        </Grid>
+                        <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                        <TextField
+                          autoFocus
+                          fullWidth
+                          margin="dense"
+                          id="milestone-description"
+                          variant="outlined"
+                          name="briefDescription"
+                          label="Brief Description:"
+                          placeholder="Finish ...."
+                          value={element.briefDescription || ""}
+                          onChange={e => handleMilestonesChange(index, e)}
+                          InputProps={{
+                            endAdornment: <>
+                            <Tooltip TransitionComponent={Zoom} title="Short description of what will be finished by completing this milestone.">
+                                <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                            </Tooltip>
+                            </>
+                          }}
+                          inputRef={register({
+                              required: false                              
+                          })}
+                        />
+                        </Grid>
+                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                        {
+                        index ? 
+                          <Button className="button remove" onClick={() => removeMilestoneFields(index)}>Remove Milestone</Button> 
+                        : null
+                        }
+                        </Grid>
+                      </Grid>
+                        <hr></hr>
+                        </>
+                  ))}
+                  <div>
+                    <Button className="button add" type="button" onClick={() => addMilestoneFields()}>Add Milestone</Button>
+                  </div>
+                  </Paper>
                 </DialogContent>
                
               {!finished ? <LinearProgress className={classes.progress} style={{marginBottom: '25px' }}/> : (

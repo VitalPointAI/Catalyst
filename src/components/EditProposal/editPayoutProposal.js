@@ -275,7 +275,7 @@ export default function EditPayoutProposalForm(props) {
               
                   <Editor
                     name="detailsOfCompletion"
-                    editorState={intro}
+                    editorState={details}
                     toolbarClassName="toolbarClassName"
                     wrapperClassName="wrapperClassName"
                     editorClassName="editorClassName"

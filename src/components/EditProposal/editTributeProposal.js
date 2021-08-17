@@ -228,7 +228,7 @@ export default function EditTributeProposalForm(props) {
                   {errors.fundingProposalTitle && <p style={{color: 'red'}}>You must give your proposal a title.</p>}
               
                   <Editor
-                    editorState={intro}
+                    editorState={details}
                     toolbarClassName="toolbarClassName"
                     wrapperClassName="wrapperClassName"
                     editorClassName="editorClassName"

@@ -273,7 +273,7 @@ export default function EditConfigurationProposalForm(props) {
                 </TableContainer>
               
                 <Editor
-                  editorState={intro}
+                  editorState={details}
                   toolbarClassName="toolbarClassName"
                   wrapperClassName="wrapperClassName"
                   editorClassName="editorClassName"
