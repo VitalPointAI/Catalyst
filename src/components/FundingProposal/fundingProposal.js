@@ -109,7 +109,7 @@ export default function FundingProposal(props) {
       //if opportunity is same as one specified enter if
       if(communityOpportunities.opportunities[j].opportunityId == reference){
         //check if budget is greater than funding amount, else reject
-        if(funding <= communityOpportunities.opportunities[j].budget){
+        if(funding <= parseInt(communityOpportunities.opportunities[j].budget)){
           break; 
         }
         else{
