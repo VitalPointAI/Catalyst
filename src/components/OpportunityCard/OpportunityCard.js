@@ -122,7 +122,7 @@ export default function OpportunityCard(props) {
 
     useEffect(
         () => {
-        console.log("OPPID", opportunityId)
+        
         async function fetchData() {
           if(didRegistryContract && near){
             state.isUpdated
@@ -227,6 +227,7 @@ export default function OpportunityCard(props) {
           else{
             setDateValid(true)
           }
+
         }
         async function setTime(){
           let dateVar = Date.now()
@@ -246,7 +247,13 @@ export default function OpportunityCard(props) {
               }
             }
           }
+
+
           //Calculate time to deadline
+          if(dateVar > oldDateVar + 86399999){
+            setFormattedTime("0:0:0:0")
+          }
+          else{
           let distance = new Date(oldDateVar) - new Date(dateVar)
           let days = Math.floor(distance / (1000 * 60 * 60 * 24))
           let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
@@ -256,8 +263,11 @@ export default function OpportunityCard(props) {
             setFormattedTime(days + ":" + hours + ":" + minutes + ":" + seconds)
           }
         }
+        }
+        
         initializeTime()
         setInterval(setTime,1010);
+        let mounted = true 
         if(mounted){
         fetchData()
           .then((res) => {
