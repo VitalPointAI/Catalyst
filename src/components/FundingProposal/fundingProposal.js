@@ -80,9 +80,11 @@ export default function FundingProposal(props) {
     tokenName,
     depositToken,
     contractId,
-    reference
+    reference,
+    budget
   } = props
 
+  console.log('reference', reference)
   const handleClose = () => {
     handleFundingProposalClickState(false)
   };
@@ -100,33 +102,19 @@ export default function FundingProposal(props) {
   }
 
   const onSubmit = async (values) => {
-    let data = new Persona()
-    let communityOpportunities = await data.getOpportunities(contractId)
- 
-   
-    //iterate through list of opportunities
-    for(let j = 0; j < communityOpportunities.opportunities.length;j++){
-      //if opportunity is same as one specified enter if
-      if(communityOpportunities.opportunities[j].opportunityId == reference){
-        //check if budget is greater than funding amount, else reject
-        if(funding <= communityOpportunities.opportunities[j].budget){
-          break; 
-        }
-        else{
-          alert("Not enough funds in opportunity budget")
-          handleClose()
-          return; 
-        }
-      }
-    }
 
+    if(parseInt(funding) > parseInt(budget)){
+      alert("Not enough funds in opportunity budget")
+      handleClose()
+      return
+    }
+      
     event.preventDefault()
     setFinished(false)
     let value = 0 
    
     let references = []
-    references.push({'references': reference})
-    console.log("REFERENCES", references)
+    references.push({'keyName': 'reference', 'valueSetting': reference})
   
     try{
       await submitProposal(
@@ -138,6 +126,7 @@ export default function FundingProposal(props) {
         '0',
         '0',
         funding,
+        [''],
         references
         )
       } catch (err) {

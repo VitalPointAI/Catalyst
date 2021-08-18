@@ -93,7 +93,10 @@ export default function SponsorConfirmation(props) {
   const onSubmit = async (values) => {
     event.preventDefault()
     setFinished(false)
-    let finished
+
+    let proposal = await contract.getProposal({proposalId: proposalIdentifier})
+    console.log("FUNDINGPROPOSAL", proposal)
+return
     try{
       await sponsorProposal(contract, contractId, proposalIdentifier, depositToken, proposalDeposit)
     } catch (err) {

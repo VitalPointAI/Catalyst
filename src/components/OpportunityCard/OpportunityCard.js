@@ -107,7 +107,9 @@ export default function OpportunityCard(props) {
       developerSkillCount,
       developerSkillMatch,
       suitabilityScore,
-      passedContractId
+      passedContractId,
+      deadline,
+      budget
     } = props
 
     const {
@@ -203,21 +205,8 @@ export default function OpportunityCard(props) {
           let dateVar = Date.now()
           let oldDateVar 
           setCurrDate(dateVar) 
-
-          if(curDaoIdx){
-            let propResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
-            console.log('propResult', propResult)
-            if(propResult) {
-              let i = 0
-              while (i < propResult.opportunities.length){
-                if(propResult.opportunities[i].opportunityId == opportunityId){
-                    oldDateVar = Date.parse(propResult.opportunities[i].deadline)
-                    setOldDate(oldDateVar)
-                  }
-                i++
-              }
-            }
-          }
+          oldDateVar = Date.parse(deadline)
+          setOldDate(oldDateVar)
           //current date must be less than old date + one day in milliseconds to cover
           //day of deadline
           if(dateVar > oldDateVar + 86399999)
@@ -232,36 +221,30 @@ export default function OpportunityCard(props) {
           let dateVar = Date.now()
           let oldDateVar 
           setCurrDate(dateVar) 
-          if(curDaoIdx){
-            let propResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
-            console.log('propResult', propResult)
-            if(propResult) {
-              let i = 0
-              while (i < propResult.opportunities.length){
-                if(propResult.opportunities[i].opportunityId == opportunityId){
-                    oldDateVar = Date.parse(propResult.opportunities[i].deadline)
-                    setOldDate(oldDateVar)
-                  }
-                i++
-              }
+          oldDateVar = Date.parse(deadline)
+          setOldDate(oldDateVar)
+          //Calculate time to deadline
+          if(dateVar > oldDateVar + 86399999){
+            setFormattedTime("0:0:0:0")
+          }
+          else{
+            let distance = new Date(oldDateVar) - new Date(dateVar)
+            let days = Math.floor(distance / (1000 * 60 * 60 * 24))
+            let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+            let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
+            let seconds = Math.floor((distance % (1000 * 60)) / 1000)
+            if(days && hours && minutes && seconds){
+              setFormattedTime(days + ":" + hours + ":" + minutes + ":" + seconds)
             }
           }
-          //Calculate time to deadline
-          let distance = new Date(oldDateVar) - new Date(dateVar)
-          let days = Math.floor(distance / (1000 * 60 * 60 * 24))
-          let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-          let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
-          let seconds = Math.floor((distance % (1000 * 60)) / 1000)
-          if(days && hours && minutes && seconds){
-            setFormattedTime(days + ":" + hours + ":" + minutes + ":" + seconds)
-          }
         }
-        initializeTime()
-        setInterval(setTime,1010);
+        
+        let mounted = true
         if(mounted){
         fetchData()
           .then((res) => {
-          
+            initializeTime()
+            setInterval(setTime,1010)
           })
         return() => mounted = false
         }
@@ -467,6 +450,7 @@ export default function OpportunityCard(props) {
           tokenName={'Ⓝ'}
           accountId={accountId} 
           reference={opportunityId}
+          budget={budget}
           /> : null }
 
         {memberProposalClicked ? <MemberProposal
@@ -487,7 +471,8 @@ export default function OpportunityCard(props) {
           proposer={creator}
           handleUpdate={handleUpdate}
           accountId={accountId}
-          proposalId={opportunityId}
+          reference={opportunityId}
+          budget={budget}
           /> : null }
 
         {opportunityProposalDetailsClicked ? <OpportunityProposalDetails

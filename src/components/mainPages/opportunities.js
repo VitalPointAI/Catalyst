@@ -226,6 +226,8 @@ export default function Opportunities(props) {
                     developerSkillCount={fr.developerSkillCount}
                     developerSkillMatch={fr.developerSkillMatch}
                     suitabilityScore={fr.suitabilityScore}
+                    deadline={fr.opportunity.deadline}
+                    budget={fr.opportunity.budget}
                   />
                 )} else {
                   return null

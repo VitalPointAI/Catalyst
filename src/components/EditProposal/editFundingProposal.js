@@ -68,7 +68,7 @@ export default function EditFundingProposalForm(props) {
     // Funding Proposal Fields
     const [title, setTitle] = useState('')
     const [details, setDetails] = useState(EditorState.createEmpty())
-    const [milestones, setMilestones] = useState([{milestone: '', deadline: '', payout: '', briefDescription:''}])
+    const [milestones, setMilestones] = useState([{milestoneId: '', milestone: '', deadline: '', payout: '', briefDescription:''}])
 
     const { register, handleSubmit, watch, errors } = useForm()
 
@@ -274,7 +274,7 @@ export default function EditFundingProposalForm(props) {
                           variant="outlined"
                           name="milestoneId"
                           label="MilestoneId:"
-                          placeholder={index}
+                         
                           value={index}
                           onChange={e => handleMilestonesChange(index, e)}
                           inputRef={register({
@@ -284,7 +284,6 @@ export default function EditFundingProposalForm(props) {
                         </Grid>
                         <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                         <TextField
-                          autoFocus
                           fullWidth
                           margin="dense"
                           id="milestone-title"
@@ -308,7 +307,7 @@ export default function EditFundingProposalForm(props) {
                         </Grid>
                         <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                         <TextField
-                          autoFocus
+                          
                           margin="dense"
                           id="milestone-deadline"
                           type = "date"
@@ -336,7 +335,7 @@ export default function EditFundingProposalForm(props) {
                           variant="outlined"
                           name="payout"
                           label="Payout Requested"
-                          placeholder="10"
+                         
                           value={element.payout || ""}
                           onChange={e => handleMilestonesChange(index, e)}
                           inputRef={register({
@@ -353,7 +352,7 @@ export default function EditFundingProposalForm(props) {
                         </Grid>
                         <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                         <TextField
-                          autoFocus
+                          
                           fullWidth
                           margin="dense"
                           id="milestone-description"

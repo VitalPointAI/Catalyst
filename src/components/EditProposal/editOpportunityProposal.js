@@ -173,6 +173,7 @@ export default function EditOpportunityProposalForm(props) {
               }
            }
         }
+        let mounted = true
         if(mounted){
         fetchData()
           .then((res) => {

@@ -551,7 +551,7 @@ export async function submitProposal(
     sharesRequested,
     paymentRequested,
     configuration,
-    references = []) {
+    references) {
    
     const daoContract = await dao.initDaoContract(wallet.account(), contractId)
     const proposalId = await daoContract.getProposalsLength()
