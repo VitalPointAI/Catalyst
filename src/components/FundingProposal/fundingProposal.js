@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { submitProposal } from '../../state/near'
-
+import Persona from '@aluhning/get-personas-js'
 // Material UI components
 import Button from '@material-ui/core/Button'
 import TextField from '@material-ui/core/TextField'
@@ -79,8 +79,9 @@ export default function FundingProposal(props) {
     proposalDeposit,
     tokenName,
     depositToken,
-    reference,
-    contractId } = props
+    contractId,
+    reference
+  } = props
 
   const handleClose = () => {
     handleFundingProposalClickState(false)
@@ -99,12 +100,34 @@ export default function FundingProposal(props) {
   }
 
   const onSubmit = async (values) => {
+    let data = new Persona()
+    let communityOpportunities = await data.getOpportunities(contractId)
+ 
+   
+    //iterate through list of opportunities
+    for(let j = 0; j < communityOpportunities.opportunities.length;j++){
+      //if opportunity is same as one specified enter if
+      if(communityOpportunities.opportunities[j].opportunityId == reference){
+        //check if budget is greater than funding amount, else reject
+        if(funding <= communityOpportunities.opportunities[j].budget){
+          break; 
+        }
+        else{
+          alert("Not enough funds in opportunity budget")
+          handleClose()
+          return; 
+        }
+      }
+    }
+
     event.preventDefault()
     setFinished(false)
-
+    let value = 0 
+   
     let references = []
     references.push({'references': reference})
-    
+    console.log("REFERENCES", references)
+  
     try{
       await submitProposal(
         state.wallet,

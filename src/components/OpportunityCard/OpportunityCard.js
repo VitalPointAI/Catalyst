@@ -66,8 +66,6 @@ export default function OpportunityCard(props) {
     const [memberStatus, setMemberStatus] = useState()
     const [communityName, setCommunityName] = useState('')
     const [logo, setLogo] = useState(defaultImage)
-    const [budget, setBudget] = useState()
-    const [deadline, setDeadline] = useState()
     const [thisContractId, setThisContractId] = useState()
     const [memberProfileDisplayClicked, setMemberProfileDisplayClicked] = useState(false)
     const [editFundingProposalDetailsClicked, setEditFundingProposalDetailsClicked] = useState(false)
@@ -75,11 +73,12 @@ export default function OpportunityCard(props) {
     const [opportunityProposalDetailsClicked, setOpportunityProposalDetailsClicked] = useState(false)
     const [memberProposalClicked, setMemberProposalClicked] = useState(false)
     const [fundingProposalClicked, setFundingProposalClicked] = useState(false)
-
+    const [dateValid, setDateValid] = useState(false)
     const [anchorEl, setAnchorEl] = useState(null)
-
+    const [formattedTime, setFormattedTime] = useState('')
     const { state, dispatch, update } = useContext(appStore)
-
+    const [currDate, setCurrDate] = useState(0)
+    const [oldDate, setOldDate] = useState(0)
     const {
       didRegistryContract,
       near, 
@@ -123,9 +122,8 @@ export default function OpportunityCard(props) {
 
     useEffect(
         () => {
-         
+        console.log("OPPID", opportunityId)
         async function fetchData() {
-         
           if(didRegistryContract && near){
             state.isUpdated
             if(!contractId && passedContractId) {
@@ -145,7 +143,8 @@ export default function OpportunityCard(props) {
               setCurDaoIdx(thisCurDaoIdx)
             }
           }
-
+          
+          
           if(useContractId && near){
             let contract = await dao.initDaoContract(state.wallet.account(), useContractId)
             try {
@@ -154,7 +153,7 @@ export default function OpportunityCard(props) {
             } catch (err) {
               console.log('no proposal deposit yet')
             }  
-            
+           
             try {
               let thisMemberInfo = await contract.getMemberInfo({member: accountId})
           
@@ -197,17 +196,72 @@ export default function OpportunityCard(props) {
             daoResult.name ? setCommunityName(daoResult.name) : setCommunityName('')
             daoResult.logo ? setLogo(daoResult.logo) : setLogo(defaultImage)
           }
+          
+         
         }
-        
-        let mounted = true
-        if(mounted){
-          fetchData()
-              .then((res) => {
-                
-              })
-        return () => mounted = false
-        }
+        async function initializeTime(){
+          let dateVar = Date.now()
+          let oldDateVar 
+          setCurrDate(dateVar) 
 
+          if(curDaoIdx){
+            let propResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
+            console.log('propResult', propResult)
+            if(propResult) {
+              let i = 0
+              while (i < propResult.opportunities.length){
+                if(propResult.opportunities[i].opportunityId == opportunityId){
+                    oldDateVar = Date.parse(propResult.opportunities[i].deadline)
+                    setOldDate(oldDateVar)
+                  }
+                i++
+              }
+            }
+          }
+          //current date must be less than old date + one day in milliseconds to cover
+          //day of deadline
+          if(dateVar > oldDateVar + 86399999)
+          {
+            setDateValid(false)
+          }
+          else{
+            setDateValid(true)
+          }
+        }
+        async function setTime(){
+          let dateVar = Date.now()
+          let oldDateVar 
+          setCurrDate(dateVar) 
+          if(curDaoIdx){
+            let propResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
+            console.log('propResult', propResult)
+            if(propResult) {
+              let i = 0
+              while (i < propResult.opportunities.length){
+                if(propResult.opportunities[i].opportunityId == opportunityId){
+                    oldDateVar = Date.parse(propResult.opportunities[i].deadline)
+                    setOldDate(oldDateVar)
+                  }
+                i++
+              }
+            }
+          }
+          //Calculate time to deadline
+          let distance = new Date(oldDateVar) - new Date(dateVar)
+          let days = Math.floor(distance / (1000 * 60 * 60 * 24))
+          let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+          let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
+          let seconds = Math.floor((distance % (1000 * 60)) / 1000)
+          if(days && hours && minutes && seconds){
+            setFormattedTime(days + ":" + hours + ":" + minutes + ":" + seconds)
+          }
+        }
+        initializeTime()
+        setInterval(setTime,1010);
+        fetchData()
+          .then((res) => {
+          
+          })
     }, [avatar, status, name, state, near, contractId, isUpdated]
     )
     
@@ -318,6 +372,10 @@ export default function OpportunityCard(props) {
           <Typography variant="overline">Proposer:</Typography>
             <Chip avatar={<Avatar src={avatar} className={classes.small} onClick={handleMemberProfileDisplayClick}/>} label={name != '' ? name : creator}/>
           </Grid>
+          <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '10px'}}>
+          <Typography variant="overline">TIme Remaining: {formattedTime}</Typography>
+
+          </Grid>
           <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
             <Chip label={status == 'Passed' && opportunityStatus ? 'Active' : 'Inactive'} style={{marginRight: '10px'}}/>
             <Chip color="primary" label={category}/>
@@ -337,7 +395,7 @@ export default function OpportunityCard(props) {
                   icon={suitabilityScore > 75 ? <DoneIcon /> 
                     : suitabilityScore > 50 && suitabilityScore < 75 ? <HelpOutlineIcon />
                     : suitabilityScore < 50 ? <BlockIcon />
-                    : <BlockIcon />}
+                    : null}
                   variant="outlined"
                   align="center"
                 />
@@ -347,6 +405,7 @@ export default function OpportunityCard(props) {
           </CardContent>
           <CardActions>
           {status == 'Passed' ? 
+          dateValid ? (
             memberStatus ? (
             <>
            <Button 
@@ -363,9 +422,17 @@ export default function OpportunityCard(props) {
                   Join Community
                </Button>
                </>
-            )
-            
-            : null }
+            ) 
+          ) : (
+            <>
+            <Button 
+               color="primary" 
+               disabled>
+                Expired
+             </Button>
+             </>
+          ): null}
+          
             <Button 
               color="primary"
               align="right"
@@ -396,7 +463,7 @@ export default function OpportunityCard(props) {
           proposalDeposit={proposalDeposit}
           tokenName={'Ⓝ'}
           accountId={accountId} 
-         
+          reference={opportunityId}
           /> : null }
 
         {memberProposalClicked ? <MemberProposal
