@@ -126,7 +126,7 @@ export default function FundingProposal(props) {
    
     let references = []
     references.push({'references': reference})
-    console.log("REFERENCES", references)
+
   
     try{
       await submitProposal(
@@ -137,7 +137,8 @@ export default function FundingProposal(props) {
         '0',
         '0',
         '0',
-        funding,
+        funding, 
+        null,
         references
         )
       } catch (err) {

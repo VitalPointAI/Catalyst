@@ -141,8 +141,8 @@ export default function EditFundingProposalForm(props) {
         setOpen(false)
     }
 
-    const handleMilestonesChange = (i, e) => {
-      let newMilestone = [...mileStones]
+     const handleMilestonesChange = (i, e) => {
+       let newMilestone = [...milestones]
       newMilestone[i][e.target.milestone] = e.target.value
       setMilestones(newMilestone)
     }

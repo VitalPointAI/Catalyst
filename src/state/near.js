@@ -551,12 +551,16 @@ export async function submitProposal(
     sharesRequested,
     paymentRequested,
     configuration,
-    references = []) {
+    references) {
    
     const daoContract = await dao.initDaoContract(wallet.account(), contractId)
     const proposalId = await daoContract.getProposalsLength()
     const proposalDeposit = await daoContract.getProposalDeposit()
     const depositToken = await daoContract.getDepositToken()
+    const referenceId = [{'reference': references}]
+    
+   console.log("REFERENCE", referenceId)
+  // console.log("break", broken)
 
     // set trigger for to log new proposal
     let newProposal = get(NEW_PROPOSAL, [])

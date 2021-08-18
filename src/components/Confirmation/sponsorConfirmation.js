@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useContext } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { sponsorProposal } from '../../state/near'
-
+import { dao } from '../../utils/dao'
+import { appStore, onAppMount } from '../../state/app'
 // Material UI components
 import Button from '@material-ui/core/Button'
 import Dialog from '@material-ui/core/Dialog'
@@ -57,6 +58,7 @@ const useStyles = makeStyles((theme) => ({
   }));
 
 export default function SponsorConfirmation(props) {
+  const { state, dispatch, update } = useContext(appStore)
   const [open, setOpen] = useState(true)
   const [finished, setFinished] = useState(true)
   const [confirm, setConfirm] = useState(false)
@@ -93,9 +95,17 @@ export default function SponsorConfirmation(props) {
   const onSubmit = async (values) => {
     event.preventDefault()
     setFinished(false)
+   
+    const daoContract = await dao.initDaoContract(state.wallet.account(), contractId)
+    let proposal = await daoContract.getProposal({proposalId: proposalIdentifier})
+    console.log("FUNDINGPROPOSAL", proposal)
+    console.log()
+    return;
     let finished
     try{
       await sponsorProposal(contract, contractId, proposalIdentifier, depositToken, proposalDeposit)
+      // let propResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
+      // propResult['budget'] = parseInt(propResult['budget']) - parseInt(proposal['pR'])
     } catch (err) {
         console.log('problem sponsoring proposal', err)
         let split = err.message.split(': ')
