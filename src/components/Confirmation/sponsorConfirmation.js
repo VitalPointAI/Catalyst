@@ -95,8 +95,7 @@ export default function SponsorConfirmation(props) {
     setFinished(false)
 
     let proposal = await contract.getProposal({proposalId: proposalIdentifier})
-    console.log("FUNDINGPROPOSAL", proposal)
-return
+    
     try{
       await sponsorProposal(contract, contractId, proposalIdentifier, depositToken, proposalDeposit)
     } catch (err) {
