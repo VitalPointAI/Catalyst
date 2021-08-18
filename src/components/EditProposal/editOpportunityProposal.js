@@ -161,6 +161,7 @@ export default function EditOpportunityProposalForm(props) {
                     propResult.opportunities[i].projectName ? setProjectName(propResult.opportunities[i].projectName) : setProjectName('')
                     propResult.opportunities[i].status ? setStatus(propResult.opportunities[i].status) : setStatus(false)
                     propResult.opportunities[i].permission ? setPermission(propResult.opportunities[i].permission) : setPermission('')
+                    propResult.opportunities[i].deadline ? setDeadline(propResult.opportunities[i].deadline) : setDeadline('')
                     propResult.opportunities[i].familiarity ? setFamiliarity(propResult.opportunities[i].familiarity) : setFamiliarity('0')
                     propResult.opportunities[i].budget ? setBudget(propResult.opportunities[i].budget) : setBudget(''); 
                     propResult.opportunities[i].desiredSkillSet ? setDesiredSkillSet(propResult.opportunities[i].desiredSkillSet): setDesiredSkillSet({})
@@ -172,11 +173,13 @@ export default function EditOpportunityProposalForm(props) {
               }
            }
         }
-       
+        if(mounted){
         fetchData()
           .then((res) => {
             setLoaded(true)
           })
+        return () => mounted = false
+        }
     },[curPersonaIdx])
 
     function handleFileHash(hash) {
