@@ -258,10 +258,13 @@ export default function OpportunityCard(props) {
         }
         initializeTime()
         setInterval(setTime,1010);
+        if(mounted){
         fetchData()
           .then((res) => {
           
           })
+        return() => mounted = false
+        }
     }, [avatar, status, name, state, near, contractId, isUpdated]
     )
     
@@ -395,7 +398,7 @@ export default function OpportunityCard(props) {
                   icon={suitabilityScore > 75 ? <DoneIcon /> 
                     : suitabilityScore > 50 && suitabilityScore < 75 ? <HelpOutlineIcon />
                     : suitabilityScore < 50 ? <BlockIcon />
-                    : null}
+                    : }
                   variant="outlined"
                   align="center"
                 />
