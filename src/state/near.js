@@ -10,6 +10,7 @@ export const {
     FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT, DAO_FIRST_INIT, 
     CURRENT_DAO, REDIRECT, NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, OPPORTUNITY_REDIRECT, NEW_PROCESS, NEW_VOTE, 
     IPFS_PROVIDER, NEW_DONATION, NEW_EXIT, NEW_RAGE, NEW_DELEGATION, NEW_REVOCATION, COMMUNITY_DELETE, NEW_DELETE,
+    BUDGET_DEDUCTION,
     networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix, explorerUrl,
     contractName, didRegistryContractName, factoryContractName
 } = config
@@ -666,6 +667,11 @@ export async function sponsorProposal(daoContract, contractId, proposalId, depos
         let newSponsor = get(NEW_SPONSOR, [])
         newSponsor.push({contractId: contractId, proposalId: proposalId, new: true})
         set(NEW_SPONSOR, newSponsor)
+
+        // set trigger for budget deduction
+        let newDeduction = get(BUDGET_DEDUCTION, [])
+        newDeduction.push({contractId: contractId, proposalId: proposalId, new: true})
+        set(BUDGET_DEDUCTION, newDeduction)
 
         await daoContract.sponsorProposal({
             pI: proposalId,

@@ -479,7 +479,12 @@ export default function Dashboard(props) {
                                 }
                             }
                         }
+                        console.log('xr skill match', skillMatch)
+                        console.log('xrdeveloper skill match', developerSkillMatch)
+                        console.log('xr skillCount', skillCount)
+                        console.log('xr developer skill count', developerSkillCount)
                         let asuitabilityScore = parseInt(((skillMatch + developerSkillMatch)/(skillCount + developerSkillCount)*100).toFixed(0))
+                        console.log('xr asuitabilityscore', asuitabilityScore)
                         if (!asuitabilityScore){
                             asuitabilityScore = 0
                         }
@@ -489,9 +494,7 @@ export default function Dashboard(props) {
                         let status = getStatus(propFlags)
                         let data = new Persona()
                         let result = await data.getDao(allOpportunities[j].contractId)
-                        if(status == 'Passed' 
-                       // && parseInt(allOpportunities[j].opportunity.budget) > 0
-                        ){
+                        if(status == 'Passed'){
                             currentRecommendations.push({
                                 opportunity: allOpportunities[j],
                                 status: status,

@@ -224,9 +224,9 @@ export default function OpportunityProposalDetails(props) {
                       console.log('skillarray', skillArray)
                       setDesiredSkillSet(skillArray)
                     }
-                    if(propResult.opportunities[i].desiredDeveloperSkillS){
+                    if(propResult.opportunities[i].desiredDeveloperSkillSet){
                       let developerSkillSetArray = []
-                      developerSkillSetArray.push(propResult.opportunities[i].desiredDeveloperSkillS)
+                      developerSkillSetArray.push(propResult.opportunities[i].desiredDeveloperSkillSet)
                       setDesiredDeveloperSkillSet(developerSkillSetArray)
                     }
                     break
