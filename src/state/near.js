@@ -9,8 +9,8 @@ import { config } from './config'
 export const {
     FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT, DAO_FIRST_INIT, 
     CURRENT_DAO, REDIRECT, NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, OPPORTUNITY_REDIRECT, NEW_PROCESS, NEW_VOTE, 
-    IPFS_PROVIDER, NEW_DONATION, NEW_EXIT, NEW_RAGE, NEW_DELEGATION, NEW_REVOCATION, COMMUNITY_DELETE, NEW_DELETE,
-    networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix, explorerUrl,
+    IPFS_PROVIDER, NEW_DONATION, NEW_EXIT, NEW_RAGE, NEW_DELEGATION, NEW_REVOCATION, COMMUNITY_DELETE, NEW_DELETE, BUDGET_DEDUCTION, 
+    BUDGET_INCREASE, networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix, explorerUrl,
     contractName, didRegistryContractName, factoryContractName
 } = config
 
@@ -659,13 +659,30 @@ export async function submitProposal(
 }
 
 // Sponsor a DAO Proposal
-export async function sponsorProposal(daoContract, contractId, proposalId, depositToken, proposalDeposit) {
+export async function sponsorProposal(daoContract, contractId, proposalId, depositToken, proposalDeposit, curDaoIdx) {
 
     try {
         // set trigger for to log new proposal
         let newSponsor = get(NEW_SPONSOR, [])
         newSponsor.push({contractId: contractId, proposalId: proposalId, new: true})
         set(NEW_SPONSOR, newSponsor)
+        
+        let proposal = await daoContract.getProposal({proposalId: proposalId})
+        let opportunityId = proposal.referenceIds[0].valueSetting
+        let opportunitiesList = await curDaoIdx.get('opportunities', curDaoIdx.id)
+        let opportunity
+
+        for(let i = 0; i < opportunitiesList.opportunities.length;i++){
+          if(opportunitiesList.opportunities[i].opportunityId = opportunityId){
+            opportunity = opportunitiesList.opportunities[i]; 
+            opportunity['budget'] = parseInt(opportunity['budget']) - proposal.pR
+            opportunitiesList.opportunities[i] = opportunity
+          } 
+        }
+
+        let budgetDeduction = get(BUDGET_DEDUCTION, [])
+        budgetDeduction.push({opportunitiesList: opportunitiesList})
+        set(BUDGET_DEDUCTION, budgetDeduction)
 
         await daoContract.sponsorProposal({
             pI: proposalId,
@@ -673,7 +690,7 @@ export async function sponsorProposal(daoContract, contractId, proposalId, depos
             contractId: contractId
             }, GAS, parseNearAmount(proposalDeposit))
 
-
+       
     } catch (err) {
         console.log('sponsor proposal failed', err)
         return false
@@ -763,13 +780,34 @@ export async function revokeDelegatedVotes(wallet, contractId, delegator, receiv
 }
 
 // Process Queued Proposal
-export async function processProposal(daoContract, contractId, proposalId, proposalType) {
+export async function processProposal(daoContract, contractId, proposalId, proposalType, curDaoIdx) {
 
     try {
         // set trigger for to log new proposal
         let newProcess = get(NEW_PROCESS, [])
         newProcess.push({contractId: contractId, proposalId: proposalId, new: true, type: proposalType})
         set(NEW_PROCESS, newProcess)
+        
+        let proposal = await daoContract.getProposal({proposalId: proposalId})
+        let opportunitiesList
+
+        if(proposal.nV >= proposal.yV){
+            let opportunityId = proposal.referenceIds[0].valueSetting
+            let opportunity
+            opportunitiesList = await curDaoIdx.get('opportunities', curDaoIdx.id)
+      
+            for(let i = 0; i < opportunitiesList.opportunities.length;i++){
+                if(opportunitiesList.opportunities[i].opportunityId = opportunityId){
+                    opportunity = opportunitiesList.opportunities[i]; 
+                    opportunity['budget'] = parseInt(opportunity['budget']) + proposal.pR
+                    opportunitiesList.opportunities[i] = opportunity
+                } 
+            }
+        }
+        
+        let budgetIncrease = get(BUDGET_INCREASE, [])
+        budgetIncrease.push({opportunitiesList: opportunitiesList})
+        set(BUDGET_INCREASE, budgetIncrease)
 
         await daoContract.processProposal({
             pI: proposalId

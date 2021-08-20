@@ -29,7 +29,7 @@ import { dao } from '../../utils/dao'
 import { ceramic } from '../../utils/ceramic'
 
 import { NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE, NEW_DONATION, NEW_EXIT, 
-  NEW_DELEGATION, NEW_REVOCATION, COMMUNITY_DELETE, NEW_DELETE, hasKey } from '../../state/near'
+  NEW_DELEGATION, NEW_REVOCATION, COMMUNITY_DELETE, NEW_DELETE, BUDGET_DEDUCTION, BUDGET_INCREASE, hasKey } from '../../state/near'
 
 // Material UI imports
 import { makeStyles } from '@material-ui/core/styles'
@@ -371,7 +371,7 @@ export default function AppFramework(props) {
                     f++
                   }
                    
-                  // check for new proposals to process
+                  //check for new proposals to process
                   let newProcess = get(NEW_PROCESS, [])
               
                   let g = 0
@@ -385,7 +385,7 @@ export default function AppFramework(props) {
                         newProcess[g].type,
                         transactionHash
                         )
-                    
+                        
                       if (loggedProcess) {
                         // newProcess[g].new = false
                         // set(NEW_PROCESS, newProcess)
@@ -491,6 +491,24 @@ export default function AppFramework(props) {
                     l++
                   }
 
+                   // check for successful sponsor and deduct balanceFbud
+                   let budgetDeduction = get(BUDGET_DEDUCTION, [])
+                   if(budgetDeduction.length > 0){
+                     await thisCurDaoIdx.set('opportunities', budgetDeduction[0].opportunitiesList)
+                     let newPeriod = contract.getCurrentPeriod()
+                     setCurrentPeriod(newPeriod)
+                     setChange(!change)
+                   }
+                   del(BUDGET_DEDUCTION)
+
+                   let budgetIncrease = get(BUDGET_INCREASE, [])
+                   if(budgetIncrease.length > 0){
+                     await thisCurDaoIdx.set('opportunities', budgetIncrease[0].opportunitiesList)
+                     let newPeriod = contract.getCurrentPeriod()
+                     setCurrentPeriod(newPeriod)
+                     setChange(!change)
+                   }
+                   del(BUDGET_INCREASE)
                   // check for successfully added revoke delegation and log it
                   let newRevocation = get(NEW_REVOCATION, [])
               
