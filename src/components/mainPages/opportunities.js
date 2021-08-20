@@ -122,8 +122,11 @@ export default function Opportunities(props) {
                   
                     while (j < allOpportunities.length){
                         for (const [key, value] of Object.entries(allOpportunities[j].desiredDeveloperSkillSet)){
-                            if(value){
+                          console.log('xt key', key)
+                          console.log('xt value', value)  
+                          if(value){
                                 developerSkillCount++
+                                console.log('xt dev skill count', developerSkillCount)
                                 for (const [pkey, pvalue] of Object.entries(currentPersona.developerSkillSet)){
                                     if(pkey == key && pvalue == value){
                                         developerSkillMatch ++
@@ -141,6 +144,10 @@ export default function Opportunities(props) {
                                 }
                             }
                         }
+                        console.log('xr skill match', skillMatch)
+                        console.log('xrdeveloper skill match', developerSkillMatch)
+                        console.log('xr skillCount', skillCount)
+                        console.log('xr developer skill count', developerSkillCount)
                         let asuitabilityScore = ((skillMatch + developerSkillMatch)/(skillCount + developerSkillCount)*100).toFixed(0)
                         setSuitabilityScore(asuitabilityScore)
                         let thisContract = await dao.initDaoContract(state.wallet.account(), allOpportunities[j].contractId)
@@ -156,7 +163,7 @@ export default function Opportunities(props) {
           }
 
           fetchData()
-    }, [state, contractId]
+    }, [near]
     )
 
     const searchData = async (pattern) => {

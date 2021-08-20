@@ -684,6 +684,11 @@ export async function sponsorProposal(daoContract, contractId, proposalId, depos
         budgetDeduction.push({opportunitiesList: opportunitiesList})
         set(BUDGET_DEDUCTION, budgetDeduction)
 
+        // set trigger for budget deduction
+        let newDeduction = get(BUDGET_DEDUCTION, [])
+        newDeduction.push({contractId: contractId, proposalId: proposalId, new: true})
+        set(BUDGET_DEDUCTION, newDeduction)
+
         await daoContract.sponsorProposal({
             pI: proposalId,
             depositToken: depositToken,

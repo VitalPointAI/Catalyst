@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { Link } from 'react-router-dom'
+import PropTypes from 'prop-types'
 import { appStore, onAppMount } from '../../state/app'
 import { useParams } from 'react-router-dom'
 import * as nearAPI from 'near-api-js'
@@ -29,6 +30,11 @@ import { green, red } from '@material-ui/core/colors'
 import DoneIcon from '@material-ui/icons/Done'
 import HelpOutlineIcon from '@material-ui/icons/HelpOutline'
 import BlockIcon from '@material-ui/icons/Block'
+import LinearProgress from '@material-ui/core/LinearProgress'
+import Box from '@material-ui/core/Box'
+import Tooltip from '@material-ui/core/Tooltip'
+import Zoom from '@material-ui/core/Zoom'
+import InfoIcon from '@material-ui/icons/Info'
 
 const useStyles = makeStyles((theme) => ({
     pos: {
@@ -45,6 +51,66 @@ const useStyles = makeStyles((theme) => ({
       display: 'inherit'
     }
   }));
+
+  function LinearProgressWithLabel(props) {
+    console.log('props', props)
+    return (<>
+      <Typography variant="overline" align="center">Suitability Score</Typography>  
+      <Tooltip TransitionComponent={Zoom} title="The higher the score, the more skills you have that match the opportunity requirements.">
+        <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+      </Tooltip>
+     
+      <Box alignItems="center">
+        <Box maxWidth={75}>
+          <Typography variant="body2" color="textSecondary">
+          {`${props.value} % `}
+            {
+              props.value <= 75 ? (
+                <Tooltip TransitionComponent={Zoom} title="Go for it!">
+                  <DoneIcon fontSize="small" style={{marginRight:'10px', marginTop:'-3px'}} />
+                </Tooltip>
+              )
+              : props.value > 50 && props.value <= 74 ? (
+                <Tooltip TransitionComponent={Zoom} title="Doable with some learning.">
+                  <HelpOutlineIcon fontSize="small" style={{marginRight:'10px', marginTop:'-3px'}} />
+                </Tooltip>
+              )
+              : props.value <= 50 ? (
+                <Tooltip TransitionComponent={Zoom} title="Not Recommended.">
+                  <BlockIcon fontSize="small" style={{marginRight:'10px', marginTop:'-3px'}} />
+                </Tooltip>
+              )
+              : (
+                <Tooltip TransitionComponent={Zoom} title="Not Recommended.">
+                  <BlockIcon fontSize="small" style={{marginRight:'10px', marginTop:'-3px'}} />
+                </Tooltip>
+              )
+            }
+            </Typography>
+        </Box>
+      </Box>
+      <Box display="flex" alignItems="center">
+        <Box minWidth={35}>
+          <Typography variant="body2" color="textSecondary">0</Typography>
+        </Box>
+        <Box width="100%" mr={1}>
+          <LinearProgress variant="determinate" {...props} />
+        </Box>
+        <Box minWidth={35}>
+          <Typography variant="body2" color="textSecondary">100</Typography>
+        </Box>
+      </Box>
+      </>
+    )
+  }
+
+  LinearProgressWithLabel.propTypes = {
+    /**
+     * The value of the progress indicator for the determinate and buffer variants.
+     * Value between 0 and 100.
+     */
+    value: PropTypes.number.isRequired,
+  }
 
   const imageName = require('../../img/default-profile.png') // default no-image avatar
   const defaultImage = require('../../img/default_logo.png')
@@ -79,6 +145,8 @@ export default function OpportunityCard(props) {
     const { state, dispatch, update } = useContext(appStore)
     const [currDate, setCurrDate] = useState(0)
     const [oldDate, setOldDate] = useState(0)
+    const [progress, setProgress] = useState(0)
+
     const {
       didRegistryContract,
       near, 
@@ -115,6 +183,8 @@ export default function OpportunityCard(props) {
     const {
       contractId
     } = useParams()
+
+   
 
     const active = green[500]
     const inactive = red[500]
@@ -240,17 +310,32 @@ export default function OpportunityCard(props) {
         }
         
         let mounted = true
+       
         if(mounted){
         fetchData()
           .then((res) => {
             initializeTime()
             setInterval(setTime,1010)
+            const timer = setInterval(() => {
+              console.log('props suitability', parseInt(suitabilityScore))
+              console.log('props progress', progress)
+              let i = 0
+              while(progress <= parseInt(suitabilityScore)){
+               
+                setProgress(i)
+                i++
+              }
+              clearInterval(timer)
+            })
+             
           })
         return() => mounted = false
         }
     }, [avatar, status, name, state, near, contractId, isUpdated]
     )
     
+    
+
     function formatDate(timestamp) {
       let stringDate = timestamp.toString()
       let options = {year: 'numeric', month: 'long', day: 'numeric'}
@@ -322,7 +407,7 @@ export default function OpportunityCard(props) {
     function handleExpanded() {
       setAnchorEl(null)
     }
-
+  
 
     return(
         <>
@@ -376,15 +461,11 @@ export default function OpportunityCard(props) {
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
                 <Typography variant="h6" align="center">Base Reward</Typography>
                 <Typography variant="h6" align="center">{reward} Ⓝ</Typography><br></br>
-                <Chip
-                  label={`Suitability Score: ${suitabilityScore}%`}
-                  icon={suitabilityScore > 75 ? <DoneIcon /> 
-                    : suitabilityScore > 50 && suitabilityScore < 75 ? <HelpOutlineIcon />
-                    : suitabilityScore < 50 ? <BlockIcon />
-                    : <BlockIcon />}
-                  variant="outlined"
-                  align="center"
-                />
+                <div className={classes.root}>
+                  <LinearProgressWithLabel value={progress} />
+                </div>
+                
+                  
               </Grid>
               
             </Grid>
