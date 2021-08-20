@@ -247,7 +247,7 @@ export default function ProposalList(props) {
   async function handleProcessAction(proposalId, proposalType) {
     setProcessFinish(false)
     try{
-      await processProposal(contract, contractId, proposalId, proposalType) 
+      await processProposal(contract, contractId, proposalId, proposalType, curDaoIdx) 
     } catch (err) {
         console.log('problem processing proposal', err)
     }

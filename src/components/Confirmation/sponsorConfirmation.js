@@ -94,11 +94,11 @@ export default function SponsorConfirmation(props) {
     event.preventDefault()
     setFinished(false)
 
-    let proposal = await contract.getProposal({proposalId: proposalIdentifier})
-    
+  
     try{
-      await sponsorProposal(contract, contractId, proposalIdentifier, depositToken, proposalDeposit)
+      await sponsorProposal(contract, contractId, proposalIdentifier, depositToken, proposalDeposit, curDaoIdx)
     } catch (err) {
+
         console.log('problem sponsoring proposal', err)
         let split = err.message.split(': ')
         let split2 = split[1].split(",", 1)
