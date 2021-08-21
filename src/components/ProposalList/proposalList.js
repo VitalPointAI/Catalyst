@@ -186,10 +186,10 @@ export default function ProposalList(props) {
 
       
     }
-    
-    if(proposalEvents && proposalEvents.length > 0){
-      console.log('proposalEvents', proposalEvents)
-      let mounted = true
+    let mounted = true
+    // if(proposalEvents && proposalEvents.length > 0){
+    //   console.log('proposalEvents', proposalEvents)
+     
       if(mounted){
         fetchData()
             .then((res) => {
@@ -198,7 +198,7 @@ export default function ProposalList(props) {
       return () => mounted = false
       }
     
-    }
+   // }
 
   },[proposalEvents, allMemberInfo, currentPeriod])
 

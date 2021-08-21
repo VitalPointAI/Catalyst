@@ -193,7 +193,7 @@ export default function OpportunityCard(props) {
 
     useEffect(
         () => {
-        console.log("OPPID", opportunityId)
+       
         async function fetchData() {
           if(didRegistryContract && near){
             state.isUpdated
@@ -267,41 +267,26 @@ export default function OpportunityCard(props) {
             daoResult.name ? setCommunityName(daoResult.name) : setCommunityName('')
             daoResult.logo ? setLogo(daoResult.logo) : setLogo(defaultImage)
           }
-          
-         
+
         }
-        async function initializeTime(){
-          let dateVar = Date.now()
-          let oldDateVar 
-          setCurrDate(dateVar) 
-          oldDateVar = Date.parse(deadline)
-          setOldDate(oldDateVar)
-          //current date must be less than old date + one day in milliseconds to cover
-          //day of deadline
-          if(dateVar > oldDateVar + 86399999)
-          {
-            setDateValid(false)
-          }
-          else{
-            setDateValid(true)
-          }
-        }
+
         async function setTime(){
           let dateVar = Date.now()
           let oldDateVar 
-          setCurrDate(dateVar) 
           oldDateVar = Date.parse(deadline)
-          setOldDate(oldDateVar)
+       
           //Calculate time to deadline
           if(dateVar > oldDateVar + 86399999){
             setFormattedTime("0:0:0:0")
           }
           else{
+            setDateValid(true)
             let distance = new Date(oldDateVar) - new Date(dateVar)
             let days = Math.floor(distance / (1000 * 60 * 60 * 24))
             let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
             let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
             let seconds = Math.floor((distance % (1000 * 60)) / 1000)
+            
             if(days && hours && minutes && seconds){
               setFormattedTime(days + ":" + hours + ":" + minutes + ":" + seconds)
             }
@@ -313,7 +298,6 @@ export default function OpportunityCard(props) {
         if(mounted){
         fetchData()
           .then((res) => {
-            initializeTime()
             setInterval(setTime,1010)             
           })
         return() => mounted = false
