@@ -53,7 +53,6 @@ const useStyles = makeStyles((theme) => ({
   }));
 
   function LinearProgressWithLabel(props) {
-    console.log('props', props)
     return (<>
       <Typography variant="overline" align="center">Suitability Score</Typography>  
       <Tooltip TransitionComponent={Zoom} title="The higher the score, the more skills you have that match the opportunity requirements.">
@@ -65,7 +64,7 @@ const useStyles = makeStyles((theme) => ({
           <Typography variant="body2" color="textSecondary">
           {`${props.value} % `}
             {
-              props.value <= 75 ? (
+              props.value >= 75 ? (
                 <Tooltip TransitionComponent={Zoom} title="Go for it!">
                   <DoneIcon fontSize="small" style={{marginRight:'10px', marginTop:'-3px'}} />
                 </Tooltip>
@@ -315,25 +314,23 @@ export default function OpportunityCard(props) {
         fetchData()
           .then((res) => {
             initializeTime()
-            setInterval(setTime,1010)
-            const timer = setInterval(() => {
-              console.log('props suitability', parseInt(suitabilityScore))
-              console.log('props progress', progress)
-              let i = 0
-              while(progress <= parseInt(suitabilityScore)){
-               
-                setProgress(i)
-                i++
-              }
-              clearInterval(timer)
-            })
-             
+            setInterval(setTime,1010)             
           })
         return() => mounted = false
         }
     }, [avatar, status, name, state, near, contractId, isUpdated]
     )
     
+    useEffect(() => {
+      if(progress < parseInt(suitabilityScore)){
+        const timer = setInterval(() => {
+          setProgress((prevProgress) => (prevProgress < parseInt(suitabilityScore) ? prevProgress + 1 : prevProgress))
+        }, 25)
+        return () => {
+          clearInterval(timer)
+        }
+      }
+    }, [])
     
 
     function formatDate(timestamp) {

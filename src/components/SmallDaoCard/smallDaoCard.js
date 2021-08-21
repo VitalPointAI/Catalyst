@@ -108,7 +108,6 @@ export default function SmallDaoCard(props) {
            try{
             let contract = await dao.initDaoContract(state.wallet.account(), contractId)
             memberStatus = await contract.getMemberStatus({member: accountId})
-            console.log('daocard memberstatus', memberStatus)
             setaMemberStatus(memberStatus)
             memberStatus ? setMemberIcon(<CheckCircleIcon />) : setMemberIcon(<NotInterestedIcon />)
             let allMembers = await contract.getTotalMembers()
@@ -127,7 +126,6 @@ export default function SmallDaoCard(props) {
                  
            }
            
-           makeSearchDaos(result)
          }
         setFinished(false)
         }
@@ -142,7 +140,7 @@ export default function SmallDaoCard(props) {
       return () => mounted = false
       }
       
-  }, [makeSearchDaos, isUpdated]
+  }, [isUpdated]
   )
 
   function handleUpdate(property){

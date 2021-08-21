@@ -447,14 +447,13 @@ export default function Dashboard(props) {
                     // calculate a suitability percentage from skills required (true) (total skills possessed / total skills)
                     let j = 0
                    
-                  
                     while (j < allOpportunities.length){
-                        let developerPercentage = 0
+                      
                         let developerSkillCount = 0
                         let developerSkillMatch = 0
-                        let skillPercentage = 0
                         let skillCount = 0
                         let skillMatch = 0
+
                         for (const [key, value] of Object.entries(allOpportunities[j].desiredDeveloperSkillSet)){
                             if(value){
                                 developerSkillCount++
@@ -855,7 +854,7 @@ export default function Dashboard(props) {
                 <CommunityCount />
                 <Communities />
                 <MemberCommunityCount />
-                <MemberCommunities />
+                <MemberCommunities state={state}/>
             </Grid>
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '40px'}}>
                 

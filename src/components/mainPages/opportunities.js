@@ -105,7 +105,7 @@ export default function Opportunities(props) {
 
                     // 2. Retrieve current persona data
                     let currentPersona = await Persona.getPersona(accountId)
-                    console.log('all opp persona', currentPersona)
+                    console.log('xz all opp persona', currentPersona)
 
                     // 3. Initialize recommendations array
                     let currentRecommendations = []
@@ -113,20 +113,25 @@ export default function Opportunities(props) {
                     // 3. For each opportunity, compare opportunity skillset requirements to persona skillsets and add to recommendations array if the same
                     // calculate a suitability percentage from skills required (true) (total skills possessed / total skills)
                     let j = 0
-                    let developerPercentage = 0
-                    let developerSkillCount = 0
-                    let developerSkillMatch = 0
-                    let skillPercentage = 0
-                    let skillCount = 0
-                    let skillMatch = 0
+                    
+                    let developerSkillCount
+                    let developerSkillMatch
+                    let skillCount
+                    let skillMatch
                   
                     while (j < allOpportunities.length){
+                        //reset counters for each iteration through loop
+                        developerSkillCount = 0
+                        developerSkillMatch = 0
+                        skillCount = 0
+                        skillMatch = 0
+
                         for (const [key, value] of Object.entries(allOpportunities[j].desiredDeveloperSkillSet)){
-                          console.log('xt key', key)
-                          console.log('xt value', value)  
+                          console.log('xz dd key', key)
+                          console.log('xz dd value', value)  
                           if(value){
                                 developerSkillCount++
-                                console.log('xt dev skill count', developerSkillCount)
+                                console.log('xz dev skill count', developerSkillCount)
                                 for (const [pkey, pvalue] of Object.entries(currentPersona.developerSkillSet)){
                                     if(pkey == key && pvalue == value){
                                         developerSkillMatch ++
@@ -134,11 +139,18 @@ export default function Opportunities(props) {
                                 }
                             }
                         }
+                        console.log('xz allopps', allOpportunities)
                         for (const [key, value] of Object.entries(allOpportunities[j].desiredSkillSet)){
-                            if(value){
+                          console.log('xz s key', key)
+                          console.log('xz s value', value)    
+                          if(value){
                                 skillCount++
+                                console.log('xz skill count', skillCount)
                                 for (const [pkey, pvalue] of Object.entries(currentPersona.skillSet)){
-                                    if(pkey == key && pvalue == value){
+                                  console.log('xz key', pkey)
+                                  console.log('xz value', pvalue)    
+                                  if(pkey == key && pvalue == value){
+                                    console.log('xz match: ' + pkey + ':' + pvalue + ':' + key + ':' + value)
                                         skillMatch++
                                     }
                                 }
@@ -157,7 +169,7 @@ export default function Opportunities(props) {
                         j++
                     }
                     setRecommendations(currentRecommendations)
-                    console.log('recommendations', currentRecommendations)
+                    console.log('xz recommendations', currentRecommendations)
             }
 
           }
