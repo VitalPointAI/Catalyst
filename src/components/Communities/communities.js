@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app'
-import Fuse from 'fuse.js'
 import SmallDaoCard from '../SmallDaoCard/smallDaoCard'
 
 // Material UI components

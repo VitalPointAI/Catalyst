@@ -163,9 +163,25 @@ export default function Opportunities(props) {
                         let asuitabilityScore = ((skillMatch + developerSkillMatch)/(skillCount + developerSkillCount)*100).toFixed(0)
                         setSuitabilityScore(asuitabilityScore)
                         let thisContract = await dao.initDaoContract(state.wallet.account(), allOpportunities[j].contractId)
-                        let propFlags = await thisContract.getProposalFlags({pI: parseInt(allOpportunities[j].opportunityId)})
-                        let status = getStatus(propFlags)
-                        currentRecommendations.push({opportunity: allOpportunities[j], status: status, skillMatch: skillMatch, developerSkillMatch: developerSkillMatch, skillCount: skillCount, developerSkillCount: developerSkillCount, suitabilityScore: asuitabilityScore})
+                          // confirm proposal exists
+                        let exists
+                        try{
+                            let index = await thisContract.getProposalIndex({pI: parseInt(allOpportunities[j].opportunityId)})
+                            if (index != -1){
+                                exists = true
+                            } else {
+                                exists = false
+                            }
+                            console.log('opp exists', exists)
+                        } catch (err) {
+                            console.log('error getting proposal index', err)
+                            exists = false
+                        }
+                        if(exists){
+                          let propFlags = await thisContract.getProposalFlags({pI: parseInt(allOpportunities[j].opportunityId)})
+                          let status = getStatus(propFlags)
+                          currentRecommendations.push({opportunity: allOpportunities[j], status: status, skillMatch: skillMatch, developerSkillMatch: developerSkillMatch, skillCount: skillCount, developerSkillCount: developerSkillCount, suitabilityScore: asuitabilityScore})
+                         }
                         j++
                     }
                     setRecommendations(currentRecommendations)
@@ -173,8 +189,14 @@ export default function Opportunities(props) {
             }
 
           }
-
-          fetchData()
+          let mounted = true
+          if(mounted){
+            fetchData()
+            .then((res) => {
+                           
+            })
+          return() => mounted = false
+          }
     }, [near]
     )
 

@@ -81,15 +81,10 @@ export default function DaoCard(props) {
     const { 
       summoner,
       contractId,
-      link,
-      contract,
       makeSearchDaos
    } = props
  
    const {
-     near,
-     didRegistryContract,
-     appIdx, 
      accountId
    } = state
 
@@ -99,10 +94,11 @@ export default function DaoCard(props) {
       () => {
 
       async function fetchData() {
-        
-         if(contractId){
-           let result = await Dao.getDao(contractId)
+         let result = {}
+         
+         if(contractId ){
            let memberStatus
+    
            try{
             let contract = await dao.initDaoContract(state.wallet.account(), contractId)
             memberStatus = await contract.getMemberStatus({member: accountId})
@@ -112,6 +108,8 @@ export default function DaoCard(props) {
            } catch (err) {
              console.log('error retrieving member status', err)
            }
+           result = await Dao.getDao(contractId)
+           
            if(result){
                   result.name != '' ? setsName(result.name) : setsName('')
                   result.date ? setsDate(result.date) : setsDate('')
@@ -120,19 +118,30 @@ export default function DaoCard(props) {
                   result.category != '' ? setsCategory(result.category) : setsCategory('')
                   result.owner != '' ? setOwner(result.owner) : setOwner('')
                   result.status = memberStatus
-                 
+           } else {
+             setsName('')
+             setsDate('')
+             setsLogo(imageName)
+             setsPurpose('')
+             setsCategory('')
+             setOwner('')
            }
-           makeSearchDaos(result)
+  
          }
-        setFinished(false)
+        return result
       }
 
-      fetchData()
+      let mounted = true
+        if(mounted){
+        fetchData()
           .then((res) => {
             setFinished(true)
+            makeSearchDaos(res)
           })
+        return () => mounted = false
+        }
 
-  }, [makeSearchDaos, isUpdated]
+  }, [contractId]
   )
 
   function handleUpdate(property){
@@ -172,12 +181,6 @@ export default function DaoCard(props) {
   function handleExpandedDetails(){
     setAcnhorE2(null)
   }
-
-  // function formatDate(timestamp) {
-  //   let intDate = parseInt(timestamp)
-  //   let options = {year: 'numeric', month: 'long', day: 'numeric'}
-  //   return new Date(intDate).toLocaleString('en-US', options)
-  // }
   
   function formatDate(timestamp) {
     let stringDate = timestamp.toString()

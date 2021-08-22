@@ -349,7 +349,8 @@ export default function ProposalList(props) {
         let disabled
         let isDisabled = isVotingPeriod ? disabled = false : disabled = true       
 
-        if(status != 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled'){
+  //  if(status != 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled'){
+          if(status == 'Submitted'){
           allProposals.push([{
             blockTimeStamp: fr.proposalSubmission,
             date: makeTime(fr.proposalSubmission),
@@ -384,7 +385,8 @@ export default function ProposalList(props) {
           }])
         }
 
-        if(status == 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && (isVotingPeriod==true || isGracePeriod==true)){
+   //     if(status == 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && (isVotingPeriod==true || isGracePeriod==true)){
+        if(status == 'Sponsored' && (isVotingPeriod==true || isGracePeriod==true)){
           votingProposals.push([{
             blockTimeStamp: fr.proposalSubmission,
             date: makeTime(fr.proposalSubmission), 
@@ -419,8 +421,8 @@ export default function ProposalList(props) {
           }])
         }
 
-        if(status == 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && currentPeriod > parseInt(fr.gracePeriod) && !isVotingPeriod && !isGracePeriod){
-        
+    //    if(status == 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && currentPeriod > parseInt(fr.gracePeriod) && !isVotingPeriod && !isGracePeriod){
+          if(status == 'Awaiting Finalization' && currentPeriod > parseInt(fr.gracePeriod) && !isVotingPeriod && !isGracePeriod){
           queueProposals.push({
             blockTimeStamp: fr.proposalSubmission,
             date: makeTime(fr.proposalSubmission),
@@ -455,7 +457,8 @@ export default function ProposalList(props) {
           })
         }
 
-        if(status == 'Processed' || status != 'Cancelled' && (status =='Passed' || status == 'Not Passed')){
+       // if(status == 'Awaiting Finalization' || status != 'Cancelled' && (status =='Passed' || status == 'Not Passed')){
+          if(status == 'Passed' || status == 'Not Passed') {
           processedProposals.push([{
             blockTimeStamp: fr.proposalSubmission,
             date: makeTime(fr.proposalSubmission),

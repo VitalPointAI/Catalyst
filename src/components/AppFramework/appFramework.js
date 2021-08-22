@@ -128,7 +128,8 @@ export default function AppFramework(props) {
       didRegistryContract,
       near,
       accountId,
-      daoFactory
+      daoFactory,
+      currentDaosList
     } = state
     
     const {
@@ -230,9 +231,9 @@ export default function AppFramework(props) {
 
                   // *********CHECK FOR TRIGGERS AND EXECUTE*************
 
-                  // check for successfully added exit and log it
+                  // Step 1 in leaving community: check for successfully added exit and log it
                   let newExit = get(NEW_EXIT, [])
-              
+                                
                   let a = 0
                   while(a < newExit.length){
                     if(newExit[a].contractId==contractId && newExit[a].new == true){
@@ -244,8 +245,6 @@ export default function AppFramework(props) {
                         transactionHash)
                         
                       if (loggedExit) {
-                      //  newExit[a].new = false
-                      //  set(NEW_EXIT, newExit)
                         del(NEW_EXIT)
                         await renewProposals(thisCurDaoIdx, contract)
                       }
@@ -253,9 +252,39 @@ export default function AppFramework(props) {
                     a++
                   }
 
+                  // check for and action any community deletions
+                  let deletion = get(COMMUNITY_DELETE, [])
+                  
+                  let t = 0
+                  while(t < deletion.length){
+                    let aa = 0
+                    let stillExists = false
+                      while(aa < currentDaosList.length){
+                        if(currentDaosList[aa].contractId == deletion[t].contractId){
+                          stillExists = true
+                          break
+                        }
+                        aa++
+                      }
+                    if(!stillExists){
+                      del(COMMUNITY_DELETE)
+                      setChange(!change)
+                      break
+                    } else {
+                      if(deletion[t].contractId==contractId && deletion[t].new == true){
+                        let deleted = await deleteCommunity(
+                          daoFactory,
+                          contractId, 
+                          accountId
+                        )
+                      }
+                    }
+                    t++
+                  }
+
                   // check for successfully deleted community and log it then redirect to dashboard as contract account is gone
                   let newDelete = get(NEW_DELETE, [])
-                                
+                                                  
                   let u = 0
                   while(u < newDelete.length){
                     if(newDelete[u].contractId==contractId && newDelete[u].new == true){
@@ -266,8 +295,6 @@ export default function AppFramework(props) {
                         transactionHash)
                         
                       if (loggedDelete) {
-                        // newDelete[u].new = false
-                        // set(NEW_DELETE, newDelete)
                         del(NEW_DELETE)
                         setChange(!change)
                         window.location.assign('/')
@@ -276,27 +303,10 @@ export default function AppFramework(props) {
                     u++
                   }
 
-                  // check for and action any community deletions
-                  let deletion = get(COMMUNITY_DELETE, [])
-            
-                  let t = 0
-                  while(t < deletion.length){
-                    if(deletion[t].contractId==contractId && deletion[t].new == true){
-                      let deleted = await deleteCommunity(
-                        daoFactory,
-                        contractId, 
-                        accountId
-                      )
-                        
-                      if (deleted) {
-                        // deletion[t].true = false
-                        // set(COMMUNITY_DELETE, deletion)
-                        del(COMMUNITY_DELETE)
-                        setChange(!change)
-                      }
-                    }
-                    t++
-                  }
+                 
+                 
+
+                 
    
                   // check for first init to log summon and member events
                   let firstInit = get(DAO_FIRST_INIT, [])

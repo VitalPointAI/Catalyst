@@ -211,6 +211,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     try {
         let currentDaosLength = await daoFactory.getDaoListLength()
         console.log('currentdaolength', currentDaosLength)
+        
     
         while(t < currentDaosLength){
             if(currentDaosLength < interval){
@@ -218,6 +219,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
             }
             let newDaoList = await daoFactory.getDaoList({start: start, end: end})
             for(let i = 0; i < newDaoList.length; i++){
+                //verify DAO exists
                 currentDaosList.push(newDaoList[i])
             }
             start = end
@@ -226,13 +228,14 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
             } else {
             end = end + interval
             }
-            t++        
+            t++
+                  
         }
 
     } catch (err) {
         console.log('error creating currentDaosList', err)
     }
-
+    console.log('currentdaos', currentDaosList)
     // Set Current User Ceramic Client
 
     let curUserIdx
@@ -985,45 +988,49 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
         if(proposalEventRecord.events.length < contractProposals) {
             let i = 0
             while (i < contractProposals){
-                let proposal = await daoContract.getProposal({proposalId: i})
-               console.log('xproposal', proposal)
-                if(proposal) {
-                    let k = 0
-                    while (k < proposalEventRecord.events.length){
-                        if(proposalEventRecord.events[k] == (proposal.pI).toString()){
-                            exists = true
-                            break
-                        }
-                        k++
-                    }
-
-                    if(!exists){
-                        let indivProposalRecord = {
-                            proposalId: (proposal.pI).toString(),
-                            applicant: proposal.a,
-                            proposer: proposal.p,
-                            sponsor: proposal.s,
-                            sharesRequested: proposal.sR,
-                            lootRequested: proposal.lR,
-                            tributeOffered: proposal.tO,
-                            tributeToken: proposal.tT,
-                            paymentRequested: proposal.pR,
-                            paymentToken: proposal.pT,
-                            startingPeriod: proposal.sP,
-                            yesVote: proposal.yV,
-                            noVote: proposal.nV,
-                            flags: proposal.f,
-                            maxTotalSharesAndLootAtYesVote: proposal.mT,
-                            proposalSubmission: parseInt(proposal.pS),
-                            votingPeriod: proposal.vP,
-                            gracePeriod: proposal.gP,
-                            voteFinalized: parseInt(proposal.voteFinalized),
-                            configuration: proposal.configuration,
-                            referenceIds: proposal.referenceIds
+                try{
+                    let proposal = await daoContract.getProposal({proposalId: i})
+                    console.log('xproposal', proposal)
+                    if(proposal) {
+                        let k = 0
+                        while (k < proposalEventRecord.events.length){
+                            if(proposalEventRecord.events[k] == (proposal.pI).toString()){
+                                exists = true
+                                break
                             }
+                            k++
+                        }
+                        console.log('xsynch proposal', proposal)
+                        if(!exists){
+                            let indivProposalRecord = {
+                                proposalId: (proposal.pI).toString(),
+                                applicant: proposal.a,
+                                proposer: proposal.p,
+                                sponsor: proposal.s,
+                                sharesRequested: proposal.sR,
+                                lootRequested: proposal.lR,
+                                tributeOffered: proposal.tO,
+                                tributeToken: proposal.tT,
+                                paymentRequested: proposal.pR,
+                                paymentToken: proposal.pT,
+                                startingPeriod: proposal.sP,
+                                yesVote: proposal.yV,
+                                noVote: proposal.nV,
+                                flags: proposal.f,
+                                maxTotalSharesAndLootAtYesVote: proposal.mT,
+                                proposalSubmission: parseInt(proposal.pS),
+                                votingPeriod: proposal.vP,
+                                gracePeriod: proposal.gP,
+                                voteFinalized: parseInt(proposal.voteFinalized),
+                                configuration: proposal.configuration,
+                                referenceIds: proposal.referenceIds ? proposal.referenceIds : [{}]
+                                }
 
-                            proposalEventRecord.events.push(indivProposalRecord)
+                                proposalEventRecord.events.push(indivProposalRecord)
+                        }
                     }
+                } catch (err) {
+                    console.log('proposal does not exist', err)
                 }
             i++
             }
@@ -1068,7 +1075,7 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
                         gracePeriod: proposal.gP,
                         voteFinalized: parseInt(proposal.voteFinalized),
                         configuration: proposal.configuration,
-                        referenceIds: proposal.referenceIds
+                        referenceIds: proposal.referenceIds ? proposal.referenceIds : [{}]
                         }
 
                         proposalEventRecord.events.push(indivProposalRecord)
@@ -1097,7 +1104,6 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId)
         member = await daoContract.getMemberInfo({member: accountId})
         console.log('member here', member)
     } catch (err) {
-        
         console.log('current user does not appear to be a member', err)
     }
 
@@ -1362,49 +1368,52 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
 export async function logExitEvent(contractId, curDaoIdx, daoContract, accountId, transactionHash) {
     let memberLogged = false
     let member
+    let contractMember = false
     try {
         member = await daoContract.getMemberInfo({member: accountId})
-       
+        contractMember = true
+        // member still exists in contract, can't continue deleting from data stream
+        return false
     } catch (err) {
         console.log('no member exists', err)
-        memberLogged = true
-        return true
     }
    
-    // Retrieve Members
+    // Retrieve Members from data stream
     let memberEventRecord
     try {
         memberEventRecord = await curDaoIdx.get('members', curDaoIdx.id)
- 
     } catch (err) {
         console.log('no membereventrecords', err)
         memberLogged = true
-        return true
+        if(!contractMember && memberLogged) {
+            // there is no member in the contract and the member data stream is empty - we are done
+            return true
+        }
     }
 
-    if(member && member.length > 0 && memberEventRecord){
+    // at this point, no member in the contract, but are members in data stream - need to set member as inactive
+    if(memberEventRecord){
        
         // Update an existing member- set active to inactive indicating member has left
-        let exists = false
         let i = 0
         while (i < memberEventRecord.events.length){
-            if(memberEventRecord.events[i].delegateKey == member[0].delegateKey){
+            if(memberEventRecord.events[i].delegateKey == accountId){
                 let updatedMemberRecord = {
                     memberId: memberEventRecord.events[i].memberId,
                     contractId: contractId,
-                    delegateKey: member[0].delegateKey,
-                    shares: member[0].shares,
-                    delegatedShares: member[0].delegatedShares,
-                    receivedDelegations: member[0].receivedDelegations,
-                    loot: member[0].loot,
-                    existing: member[0].existing,
-                    highestIndexYesVote: member[0].highestIndexYesVote,
-                    roles: member[0].roles,
-                    reputation: member[0].reputation,
-                    jailed: member[0].jailed,
-                    joined: parseInt(member[0].joined),
-                    updated: parseInt(member[0].updated),
-                    active: member[0].active
+                    delegateKey: memberEventRecord.events[i].delegateKey,
+                    shares: memberEventRecord.events[i].shares,
+                    delegatedShares: memberEventRecord.events[i].delegatedShares,
+                    receivedDelegations: memberEventRecord.events[i].receivedDelegations,
+                    loot: memberEventRecord.events[i].loot,
+                    existing: memberEventRecord.events[i].existing,
+                    highestIndexYesVote: memberEventRecord.events[i].highestIndexYesVote,
+                    roles: memberEventRecord.events[i].roles,
+                    reputation: memberEventRecord.events[i].reputation,
+                    jailed: memberEventRecord.events[i].jailed,
+                    joined: parseInt(memberEventRecord.events[i].joined),
+                    updated: parseInt(Date.now()),
+                    active: false
                     }
 
                 memberEventRecord.events[i] = updatedMemberRecord
@@ -1988,7 +1997,7 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
             
         } else {
             if(member.length > 0 && memberExists){
-            // Update an existing member
+            // Update an existing member (could be a reactivation)
             let i = 0
             while (i < memberEventRecord.events.length){
                 if(memberEventRecord.events[i].delegateKey == member[0].delegateKey){
@@ -2534,23 +2543,40 @@ export const hasKey = async (key, accountId, near) => {
 }
 
 export function getStatus(flags) {
-    // flags [sponsored, processed, didPass, cancelled, whitelist, guildkick, member, commitment]
-    let status = ''
+    /* flags [
+        0: sponsored, 
+        1: processed, 
+        2: didPass, 
+        3: cancelled, 
+        4: whitelist, 
+        5: guildkick, 
+        6: member, 
+        7: commitment, 
+        8: opportunity, 
+        9: tribute, 
+        10: configuration, 
+        11: payout, 
+        12: communityRole, 
+        13: reputationFactor, 
+        14: assignRole
+    ]
+    */
+        let status = ''
     if(!flags[0] && !flags[1] && !flags[2] && !flags[3]) {
     status = 'Submitted'
-    }
+    } else
     if(flags[0] && !flags[1] && !flags[2] && !flags[3]) {
     status = 'Sponsored'
-    }
-    if(flags[0] && flags[1] && !flags[3]) {
-    status = 'Processed'
-    }
+    } else
+    if(flags[0] && !flags[1] && (flags[2] || !flags[2]) && !flags[3]) {
+    status = 'Awaiting Finalization'
+    } else
     if(flags[0] && flags[1] && flags[2] && !flags[3]) {
     status = 'Passed'
-    }
+    } else
     if(flags[0] && flags[1] && !flags[2] && !flags[3]) {
     status = 'Not Passed'
-    }
+    } else
     if(flags[3]) {
     status = 'Cancelled'
     }

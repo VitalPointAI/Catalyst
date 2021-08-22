@@ -139,6 +139,7 @@ export default function OpportunityCard(props) {
     const [memberProposalClicked, setMemberProposalClicked] = useState(false)
     const [fundingProposalClicked, setFundingProposalClicked] = useState(false)
     const [dateValid, setDateValid] = useState(false)
+    const [dateLoaded, setDateLoaded] = useState(false)
     const [anchorEl, setAnchorEl] = useState(null)
     const [formattedTime, setFormattedTime] = useState('')
     const { state, dispatch, update } = useContext(appStore)
@@ -271,6 +272,7 @@ export default function OpportunityCard(props) {
         }
 
         async function setTime(){
+          setDateLoaded(false)
           let dateVar = Date.now()
           let oldDateVar 
           oldDateVar = Date.parse(deadline)
@@ -290,6 +292,7 @@ export default function OpportunityCard(props) {
             if(days && hours && minutes && seconds){
               setFormattedTime(days + ":" + hours + ":" + minutes + ":" + seconds)
             }
+            setDateLoaded(true)
           }
         }
         
@@ -425,7 +428,10 @@ export default function OpportunityCard(props) {
             <Chip avatar={<Avatar src={avatar} className={classes.small} onClick={handleMemberProfileDisplayClick}/>} label={name != '' ? name : creator}/>
           </Grid>
           <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '10px'}}>
-          <Typography variant="overline">TIme Remaining: {formattedTime}</Typography>
+          <Typography variant="overline">TIme Remaining: {
+            dateLoaded ? formattedTime
+            : 'Calculating...'
+            }</Typography>
 
           </Grid>
           <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">

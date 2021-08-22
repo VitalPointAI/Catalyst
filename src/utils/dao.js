@@ -37,6 +37,7 @@ class DAO {
                 'getProposalsLength',
                 'getTotalMembers',
                 'getProposal',
+                'getProposalIndex',
                 'getDonation',
                 'getSummonTime',
                 'getDonationsLength',

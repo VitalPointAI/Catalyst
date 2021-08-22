@@ -20,7 +20,7 @@ import DialogContent from '@material-ui/core/DialogContent'
 import DialogContentText from '@material-ui/core/DialogContentText'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import LinearProgress from '@material-ui/core/LinearProgress'
-import Avatar from '@material-ui/core/Avatar'
+import Paper from '@material-ui/core/Paper'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import Divider from '@material-ui/core/Divider'
@@ -123,7 +123,7 @@ export default function EditTributeProposalForm(props) {
           .then((res) => {
             setLoaded(true)
           })
-    },[curDaoIdx])
+    },[])
 
     function handleFileHash(hash) {
       setAvatar(IPFS_PROVIDER + hash)
@@ -227,13 +227,16 @@ export default function EditTributeProposalForm(props) {
                   />
                   {errors.fundingProposalTitle && <p style={{color: 'red'}}>You must give your proposal a title.</p>}
               
+                  <Paper style={{padding: '5px'}}>
                   <Editor
                     editorState={details}
                     toolbarClassName="toolbarClassName"
                     wrapperClassName="wrapperClassName"
                     editorClassName="editorClassName"
                     onEditorStateChange={handleDetailsChange}
+                    editorStyle={{minHeight:'200px'}}
                   />
+                  </Paper>
                    
                 </DialogContent>
                

@@ -67,8 +67,6 @@ export default function ExploreDaos(props) {
 
     const { state, dispatch, update } = useContext(appStore)
 
-    let someDaos = []
-
     const {
       currentDaosList,
       accountId,
@@ -117,7 +115,14 @@ export default function ExploreDaos(props) {
                 }
             }
 
-            fetchData()
+        let mounted = true
+        if(mounted){
+        fetchData()
+          .then((res) => {
+         
+          })
+        return () => mounted = false
+        }
 
     }, [near, currentDaosList]
     )
@@ -133,6 +138,7 @@ export default function ExploreDaos(props) {
 
     const handleMembersOnlyChange = async (event) => {
         setMembersOnly(event.target.checked)
+        console.log('checked', event.target.checked)
         if(event.target.checked){
             let contract
             let memberDaos = []
@@ -158,17 +164,25 @@ export default function ExploreDaos(props) {
                 }
             i++
             }
-            console.log('memberdaos', memberDaos)
             setDaos(memberDaos)
-            handleUpdate()
         } else {
-           searchData()
+            let memberDaos = []
+            setDaos(memberDaos)
+            let i = 0
+            console.log('daos', daos)
+            let sortedDaos = _.sortBy(currentDaosList, 'created').reverse()
+            while (i < sortedDaos.length){
+                memberDaos.push(sortedDaos[i])
+                i++
+            }
+            setDaos(memberDaos)
         }
     }
 
     function makeSearchDaos(dao){
        let i = 0
         let exists
+        let someDaos = []
         if(dao != false){
             while(i < searchDaos.length){
                 if(searchDaos[i].contractId == dao.contractId){
@@ -180,7 +194,6 @@ export default function ExploreDaos(props) {
                 someDaos.push(dao)
                 setSearchDaos(someDaos)
             }
-            console.log('search daos', searchDaos)
         }
     }
 
@@ -194,7 +207,6 @@ export default function ExploreDaos(props) {
             setDaos(sortedDaos)
             return
         }
-        console.log('searchDaos', searchDaos)
         
         const fuse = new Fuse(searchDaos, {
             keys: ['category']
@@ -202,7 +214,6 @@ export default function ExploreDaos(props) {
         console.log('fuse', fuse)
 
         const result = fuse.search(pattern)
-        console.log('fuse result', result)
 
         const matches = []
         if (!result.length) {
@@ -211,7 +222,6 @@ export default function ExploreDaos(props) {
             result.forEach(({item}) => {
                 matches.push(item)
         })
-        console.log('matches', matches)
             setDaos(matches)
         }
     }

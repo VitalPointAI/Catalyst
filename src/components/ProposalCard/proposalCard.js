@@ -500,7 +500,7 @@ export default function ProposalCard(props) {
                 </Tooltip>
                 </>
               ) : null }
-            {status=='Processed' ? (<>
+            {status=='Passed' || status=='Not Passed' ? (<>
               <Tooltip title="See transaction on explorer.">
                 <a href={explorerUrl + '/transactions/' + processTransactionHash}>
                   <IconButton aria-label="delete" style={{float: 'left'}}>
@@ -579,7 +579,7 @@ export default function ProposalCard(props) {
                   </Tooltip>
                   </>
                 ) : null }
-              {status=='Processed' ? (<>
+              {status=='Passed' || status=='Not Passed' ? (<>
                 <Tooltip title="See transaction on explorer.">
                   <a href={explorerUrl + '/transactions/' + processTransactionHash}>
                     <IconButton aria-label="delete" style={{float: 'left'}}>
@@ -658,7 +658,7 @@ export default function ProposalCard(props) {
                   </Tooltip>
                   </>
                 ) : null }
-              {status=='Processed' ? (<>
+              {status=='Passed' || status=='Not Passed' ? (<>
                 <Tooltip title="See transaction on explorer.">
                   <a href={explorerUrl + '/transactions/' + processTransactionHash}>
                     <IconButton aria-label="delete" style={{float: 'left'}}>
@@ -737,7 +737,7 @@ export default function ProposalCard(props) {
                   </Tooltip>
                   </>
                 ) : null }
-              {status=='Processed' ? (<>
+              {status=='Passed' || status=='Not Passed' ? (<>
                 <Tooltip title="See transaction on explorer.">
                   <a href={explorerUrl + '/transactions/' + processTransactionHash}>
                     <IconButton aria-label="delete" style={{float: 'left'}}>
@@ -816,7 +816,7 @@ export default function ProposalCard(props) {
                   </Tooltip>
                   </>
                 ) : null }
-              {status=='Processed' ? (<>
+              {status=='Passed' || status=='Not Passed' ? (<>
                 <Tooltip title="See transaction on explorer.">
                   <a href={explorerUrl + '/transactions/' + processTransactionHash}>
                     <IconButton aria-label="delete" style={{float: 'left'}}>
@@ -895,7 +895,7 @@ export default function ProposalCard(props) {
                   </Tooltip>
                   </>
                 ) : null }
-              {status=='Processed' ? (<>
+              {status=='Passed' || status=='Not Passed' ? (<>
                 <Tooltip title="See transaction on explorer.">
                   <a href={explorerUrl + '/transactions/' + processTransactionHash}>
                     <IconButton aria-label="delete" style={{float: 'left'}}>
@@ -972,7 +972,7 @@ export default function ProposalCard(props) {
                   </Tooltip>
                   </>
                 ) : null }
-              {status=='Processed' ? (<>
+              {status=='Passed' || status=='Not Passed' ? (<>
                 <Tooltip title="See transaction on explorer.">
                   <a href={explorerUrl + '/transactions/' + processTransactionHash}>
                     <IconButton aria-label="delete" style={{float: 'left'}}>
@@ -1127,7 +1127,7 @@ export default function ProposalCard(props) {
                 </Grid>
               ) : null }
               
-              {status == 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && currentPeriod > gracePeriod && !isVotingPeriod && !isGracePeriod ? (
+              {status == 'Sponsored' && status != 'Awaiting Finalization' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && currentPeriod > gracePeriod && !isVotingPeriod && !isGracePeriod ? (
                 <>
                 <Grid container alignItems="center" justifyContent="space-between" spacing={1}>
                   <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="left" >

@@ -7,7 +7,7 @@ import "d3-time-format"
 import Persona from '@aluhning/get-personas-js'
 import { formatNearAmount } from 'near-api-js/lib/utils/format'
 import { dao } from '../../utils/dao'
-import { getStatus } from '../../state/near'
+import { getStatus, synchProposalEvent } from '../../state/near'
 import * as nearAPI from 'near-api-js'
 import { ceramic } from '../../utils/ceramic'
 import MemberProfile from '../MemberProfileDisplay/memberProfile'
@@ -416,6 +416,9 @@ export default function Dashboard(props) {
                                 console.log('error getting dao idx', err)
                             }
                             if(thisCurDaoIdx){
+                                let daoContract = await dao.initDaoContract(state.wallet.account(), currentDaosList[i].contractId)
+                                let synch = await synchProposalEvent(thisCurDaoIdx, daoContract)
+                                console.log('synch', synch)
                                 try{
                                     singleDaoOpportunity = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
                                     console.log('singledaoopp', singleDaoOpportunity)
@@ -478,35 +481,49 @@ export default function Dashboard(props) {
                                 }
                             }
                         }
-                        console.log('xr skill match', skillMatch)
-                        console.log('xrdeveloper skill match', developerSkillMatch)
-                        console.log('xr skillCount', skillCount)
-                        console.log('xr developer skill count', developerSkillCount)
+                       
                         let asuitabilityScore = parseInt(((skillMatch + developerSkillMatch)/(skillCount + developerSkillCount)*100).toFixed(0))
-                        console.log('xr asuitabilityscore', asuitabilityScore)
                         if (!asuitabilityScore){
                             asuitabilityScore = 0
                         }
                         setSuitabilityScore(asuitabilityScore)
                         let thisContract = await dao.initDaoContract(state.wallet.account(), allOpportunities[j].contractId)
-                        let propFlags = await thisContract.getProposalFlags({pI: parseInt(allOpportunities[j].opportunityId)})
-                        let status = getStatus(propFlags)
-                        let data = new Persona()
-                        let result = await data.getDao(allOpportunities[j].contractId)
-                        if(status == 'Passed'){
-                            currentRecommendations.push({
-                                opportunity: allOpportunities[j],
-                                status: status,
-                                communityLogo: result.logo,
-                                communityName: result.name,
-                                communityPurpose: result.purpose,
-                                baseReward: parseInt(allOpportunities[j].reward), 
-                                skillMatch: skillMatch, 
-                                developerSkillMatch: developerSkillMatch, 
-                                skillCount: skillCount, 
-                                developerSkillCount: developerSkillCount, 
-                                suitabilityScore: asuitabilityScore})
+                        let propFlags
+                        // confirm proposal exists
+                        let exists
+                        try{
+                            let index = await thisContract.getProposalIndex({pI: parseInt(allOpportunities[j].opportunityId)})
+                            if (index != -1){
+                                exists = true
+                            } else {
+                                exists = false
                             }
+                            console.log('opp exists', exists)
+                        } catch (err) {
+                            console.log('error getting proposal index', err)
+                            exists = false
+                        }
+                        if(exists){
+                            propFlags = await thisContract.getProposalFlags({pI: parseInt(allOpportunities[j].opportunityId)})
+                            
+                            let status = getStatus(propFlags)
+                            let data = new Persona()
+                            let result = await data.getDao(allOpportunities[j].contractId)
+                            if(status == 'Passed'){
+                                currentRecommendations.push({
+                                    opportunity: allOpportunities[j],
+                                    status: status,
+                                    communityLogo: result.logo,
+                                    communityName: result.name,
+                                    communityPurpose: result.purpose,
+                                    baseReward: parseInt(allOpportunities[j].reward), 
+                                    skillMatch: skillMatch, 
+                                    developerSkillMatch: developerSkillMatch, 
+                                    skillCount: skillCount, 
+                                    developerSkillCount: developerSkillCount, 
+                                    suitabilityScore: asuitabilityScore})
+                            }
+                        }
                         j++
                     }
                     
