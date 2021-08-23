@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app';
-import { cancelProposal, processProposal, submitVote, GAS, synchMember, getStatus } from '../../state/near'
+import { cancelProposal, 
+  processProposal, 
+  submitVote,
+  synchMember, 
+  getStatus,
+  getProposalType} from '../../state/near'
 import Fuse from 'fuse.js'
 import MemberCard from '../MemberCard/memberCard'
 import ProposalCard from '../ProposalCard/proposalCard'
@@ -261,37 +266,6 @@ export default function ProposalList(props) {
         console.log('problem with vote', err)
       }
   }
- 
-
-  function getProposalType(flags) {
-    // flags [sponsored, processed, didPass, cancelled, whitelist, guildkick, member, commitment, opportunity, tribute, configuration]
-    let type = ''
-    if(flags[4]) {
-    type = 'Whitelist'
-    }
-    if(flags[5]) {
-    type = 'GuildKick'
-    }
-    if(flags[6]) {
-    type = 'Member'
-    }
-    if(flags[7]) {
-      type = 'Commitment'
-    }
-    if(flags[8]) {
-      type = 'Opportunity'
-    }
-    if(flags[9]) {
-      type = 'Tribute'
-    }
-    if(flags[10]) {
-      type = 'Configuration'
-    }
-    if(!flags[4] && !flags[5] && !flags[6] &&!flags[7] &&!flags[8] &&!flags[9] &&!flags[10]) {
-    type = 'Payout'
-    }
-    return type
-  }
 
   function getVotingPeriod(startPeriod, votePeriod, isFinalized) {
     let votingPeriod = currentPeriod >= startPeriod && currentPeriod <= votePeriod && !isFinalized
@@ -342,10 +316,20 @@ export default function ProposalList(props) {
       requests.map((fr) => {
      console.log('requests fr', fr)
         status = getStatus(fr.flags)
+        
         proposalType = getProposalType(fr.flags)
         let isFinalized = fr.voteFinalized != 0 ? true : false
         let isVotingPeriod = getVotingPeriod(fr.startingPeriod, fr.votingPeriod, isFinalized)
+        console.log('is voting period', isVotingPeriod)
         let isGracePeriod = getGracePeriod(fr.votingPeriod, fr.gracePeriod, isFinalized)
+        console.log('is grace period', isGracePeriod)
+
+        if (status !== 'Passed' || status !== 'Not Passed'){
+          if (status == 'Sponsored' && currentPeriod > fr.gracePeriod && !isVotingPeriod && !isGracePeriod){
+            status = 'Awaiting Finalization'
+          }
+        }
+        
         let disabled
         let isDisabled = isVotingPeriod ? disabled = false : disabled = true       
 
@@ -422,8 +406,10 @@ export default function ProposalList(props) {
         }
 
     //    if(status == 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && currentPeriod > parseInt(fr.gracePeriod) && !isVotingPeriod && !isGracePeriod){
-          if(status == 'Awaiting Finalization' && currentPeriod > parseInt(fr.gracePeriod) && !isVotingPeriod && !isGracePeriod){
-          queueProposals.push({
+        console.log('qstatus', status)  
+        if(status == 'Awaiting Finalization'){
+          
+            queueProposals.push({
             blockTimeStamp: fr.proposalSubmission,
             date: makeTime(fr.proposalSubmission),
             applicant: fr.applicant, 

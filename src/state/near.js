@@ -507,38 +507,40 @@ export async function changeDao(wallet, contractId, periodDuration, votingPeriod
     return true
 }
 
-async function sendMessage(content, type, type2, data, curDaoIdx){
+async function sendMessage(content, data, curDaoIdx){
     let request = new XMLHttpRequest()
-    let hookArray = await ceramic.downloadKeysSecret(curDaoIdx, 'apiKeys')
+    try{
+        let hookArray = await ceramic.downloadKeysSecret(curDaoIdx, 'apiKeys')
   
-    if(hookArray && Object.keys(hookArray).length != 0){
-        let hook = hookArray[0].api
-       
+        if(hookArray && Object.keys(hookArray).length != 0){
+            let hook = hookArray[0].api
+            if((data.type == 'proposal' && hookArray[0].discordActivation == true && hookArray[0].proposalActivation == true)
+            || (data.type == "sponsor" && hookArray[0].discordActivation == true && hookArray[0].sponsorActivation == true)
+            || (data.type == "process" && hookArray[0].discordActivation == true && hookArray[0].passedProposalActivation == true))
+            {
+                request.open("POST", `${hook}`)
 
-        if((type2 == 'proposal' && hookArray[0].discordActivation == true && hookArray[0].proposalActivation == true)
-        || (type2 == "sponsor" && hookArray[0].discordActivation == true && hookArray[0].sponsorActivation == true)
-        || (type2 == "process" && hookArray[0].discordActivation == true && hookArray[0].passedProposalActivation == true))
-        {
-            request.open("POST", `${hook}`)
+                request.setRequestHeader('Content-type', 'application/json')
 
-            request.setRequestHeader('Content-type', 'application/json')
-
-                let embeddedData = {
-                author: {
-                        name: data.applicant,
-                        url: data.url
+                    let embeddedData = {
+                    author: {
+                            name: 'Check It Out!',
+                            url: data.url
+                        }
                     }
-                }
 
-                let params = {
-                    username: `${type}` + ' Manager',
-                    content: content,
-                    embeds: [embeddedData]
-                }
+                    let params = {
+                        username: `${data.botName}`,
+                        content: content,
+                        embeds: [embeddedData]
+                    }
 
-                request.send(JSON.stringify(params))
-                return true
+                    request.send(JSON.stringify(params))
+                    return true
+            }
         }
+    } catch (err) {
+        console.log('notification error ', err)
     }
     return false
 }
@@ -671,26 +673,30 @@ export async function sponsorProposal(daoContract, contractId, proposalId, depos
         set(NEW_SPONSOR, newSponsor)
         
         let proposal = await daoContract.getProposal({proposalId: proposalId})
-        let opportunityId = proposal.referenceIds[0].valueSetting
-        let opportunitiesList = await curDaoIdx.get('opportunities', curDaoIdx.id)
-        let opportunity
+        let type = getProposalType(proposal.f)
 
-        for(let i = 0; i < opportunitiesList.opportunities.length;i++){
-          if(opportunitiesList.opportunities[i].opportunityId = opportunityId){
-            opportunity = opportunitiesList.opportunities[i]; 
-            opportunity['budget'] = parseInt(opportunity['budget']) - proposal.pR
-            opportunitiesList.opportunities[i] = opportunity
-          } 
+        if(type == 'Commitment') {
+            let opportunityId = proposal.referenceIds[0].valueSetting
+            let opportunitiesList = await curDaoIdx.get('opportunities', curDaoIdx.id)
+            let opportunity
+        
+            for(let i = 0; i < opportunitiesList.opportunities.length;i++){
+                if(opportunitiesList.opportunities[i].opportunityId = opportunityId){
+                    opportunity = opportunitiesList.opportunities[i]; 
+                    opportunity['budget'] = parseInt(opportunity['budget']) - proposal.pR
+                    opportunitiesList.opportunities[i] = opportunity
+                } 
+            }
+
+            let budgetDeduction = get(BUDGET_DEDUCTION, [])
+            budgetDeduction.push({opportunitiesList: opportunitiesList})
+            set(BUDGET_DEDUCTION, budgetDeduction)
+
+            // set trigger for budget deduction
+            let newDeduction = get(BUDGET_DEDUCTION, [])
+            newDeduction.push({contractId: contractId, proposalId: proposalId, new: true})
+            set(BUDGET_DEDUCTION, newDeduction)
         }
-
-        let budgetDeduction = get(BUDGET_DEDUCTION, [])
-        budgetDeduction.push({opportunitiesList: opportunitiesList})
-        set(BUDGET_DEDUCTION, budgetDeduction)
-
-        // set trigger for budget deduction
-        let newDeduction = get(BUDGET_DEDUCTION, [])
-        newDeduction.push({contractId: contractId, proposalId: proposalId, new: true})
-        set(BUDGET_DEDUCTION, newDeduction)
 
         await daoContract.sponsorProposal({
             pI: proposalId,
@@ -794,28 +800,7 @@ export async function processProposal(daoContract, contractId, proposalId, propo
         // set trigger for to log new proposal
         let newProcess = get(NEW_PROCESS, [])
         newProcess.push({contractId: contractId, proposalId: proposalId, new: true, type: proposalType})
-        set(NEW_PROCESS, newProcess)
-        
-        let proposal = await daoContract.getProposal({proposalId: proposalId})
-        let opportunitiesList
-
-        if(proposal.nV >= proposal.yV){
-            let opportunityId = proposal.referenceIds[0].valueSetting
-            let opportunity
-            opportunitiesList = await curDaoIdx.get('opportunities', curDaoIdx.id)
-      
-            for(let i = 0; i < opportunitiesList.opportunities.length;i++){
-                if(opportunitiesList.opportunities[i].opportunityId = opportunityId){
-                    opportunity = opportunitiesList.opportunities[i]; 
-                    opportunity['budget'] = parseInt(opportunity['budget']) + proposal.pR
-                    opportunitiesList.opportunities[i] = opportunity
-                } 
-            }
-        }
-        
-        let budgetIncrease = get(BUDGET_INCREASE, [])
-        budgetIncrease.push({opportunitiesList: opportunitiesList})
-        set(BUDGET_INCREASE, budgetIncrease)
+        set(NEW_PROCESS, newProcess)        
 
         await daoContract.processProposal({
             pI: proposalId
@@ -982,8 +967,7 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
     if(!proposalEventRecord){
         proposalEventRecord = { events: [] }
     }
-    console.log('synch proposal events', proposalEventRecord.events)
-    console.log('synch proposal record events length', proposalEventRecord.events.length)
+  
     if(proposalEventRecord.events.length != contractProposals){
         if(proposalEventRecord.events.length < contractProposals) {
             let i = 0
@@ -1091,7 +1075,7 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
         }
     }
 
-    return true
+    return proposalEventRecord
 }
 
 // // Synch Current Member to Log
@@ -1108,20 +1092,27 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId)
     }
 
     let logMembers = await curDaoIdx.get('members', curDaoIdx.id)
-    console.log('logmembers', logMembers)
     if(!logMembers){
         logMembers = { events: [] }
     }
 
     let i = 0
+    let memberIndexesToDelete = []
     if(member && member.length > 0){
         // add processed members
         while(i < logMembers.events.length){
             if(logMembers.events[i].delegateKey == member[0].delegateKey){
                 exists = true
-                break
+                memberIndexesToDelete.push(i)
             }
             i++
+        }
+
+        // delete duplicate members from datastream leaving first one
+        let kk = 1
+        while(kk < memberIndexesToDelete.length){
+            logMembers.events.splice(kk, 1)
+            kk++
         }
 
         if(!exists){
@@ -1147,13 +1138,14 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId)
             }
         
             logMembers.events.push(indivMemberRecord)
-        
-            try {
-                await curDaoIdx.set('members', logMembers)
-            } catch (err) {
-                console.log('error adding new member', err)
-            }
         }
+
+        try {
+            await curDaoIdx.set('members', logMembers)
+        } catch (err) {
+            console.log('error adding new member', err)
+        }
+        
         return true
     }
     return true
@@ -1203,21 +1195,23 @@ export async function addDaoToList (appIdx, contractId, summoner, created, categ
 
 // Logs the initial member and summoning event when a DAO is created
 export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType, accountId, contribution, transactionHash) {
-
+    
     let summoner
     let periodDuration
     let votingPeriodLength
     let gracePeriodLength
     let proposalDeposit
     let dilutionBound
+    let voteThreshold
     let summonTime
+
     let logged = false
     let summonLogged = false
     let memberDataLogged = false
 
     try {
         let result = await daoContract.getInitSettings()
-        
+        console.log('result init', result)
         summoner = result[0][0]
         periodDuration = result[0][1]
         votingPeriodLength = result[0][2]
@@ -1227,17 +1221,16 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
         voteThreshold = result[0][6]
         summonTime = result[0][7]
     } catch (err) {
-        console.log('failure fetching init settings')
-        return false
+        console.log('loginitevent failure fetching init settings')
     }
 
     let totalMembers
     try {
         totalMembers = await daoContract.getTotalMembers()
+        console.log('totalMembers init', totalMembers)
         
     } catch (err) {
         console.log('no members', err)
-        return false
     }
 
     // Do not log if this is not the first member (>1 means the DAO was already initialized)
@@ -1284,14 +1277,12 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
 
       memberEventRecord.events.push(indivMemberEventRecord)
    
-
-      
       try{
       await curDaoIdx.set('members', memberEventRecord)
-      logged = true
+        logged = true
+        console.log('logged init', logged)
       } catch (err) {
           console.log('error logging new member', err)
-          logged = false
       }
 
         // Associated Member Data to Log
@@ -1354,10 +1345,12 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
         summonLogged = true
     } catch (err) {
         console.log('error logging summon event', err)
-        summonLogged = false
     }
-    
-    if(logged && summonLogged){
+    console.log('logged', logged)
+    console.log('summonLogged', summonLogged)
+    console.log('memberDataLogged', memberDataLogged)
+
+    if(logged && summonLogged && memberDataLogged){
         return true
     } else {
         return false
@@ -1368,12 +1361,15 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
 export async function logExitEvent(contractId, curDaoIdx, daoContract, accountId, transactionHash) {
     let memberLogged = false
     let member
-    let contractMember = false
+    let contractMemberRemoved = false
     try {
         member = await daoContract.getMemberInfo({member: accountId})
-        contractMember = true
+        console.log('ex member', member)
         // member still exists in contract, can't continue deleting from data stream
-        return false
+        if(member.length > 0){
+            return false
+        }
+        contractMemberRemoved = true
     } catch (err) {
         console.log('no member exists', err)
     }
@@ -1385,7 +1381,7 @@ export async function logExitEvent(contractId, curDaoIdx, daoContract, accountId
     } catch (err) {
         console.log('no membereventrecords', err)
         memberLogged = true
-        if(!contractMember && memberLogged) {
+        if(contractMemberRemoved && memberLogged) {
             // there is no member in the contract and the member data stream is empty - we are done
             return true
         }
@@ -1430,9 +1426,9 @@ export async function logExitEvent(contractId, curDaoIdx, daoContract, accountId
         }
     } else {
         // member doesn't exist so set to true so flag is updated, doesn't keep trying to log
-        memberLogged = true    
+        memberLogged = true  
     }
-    if(memberLogged){
+    if(memberLogged && contractMemberRemoved){
         return true
     } else {
         return false
@@ -1719,69 +1715,92 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
 
     if(logged && dataLogged){
         // Discord Integration
-        // 6 is member, 7 is funding, none is payout?
-        if(proposal.f[6]){
-            let data = {
-                applicant: proposal.a,
-                url: window.location.href
-            }
-            try {
-              
-                sendMessage('New member application received for ' + proposal.a, 'Member', 'proposal', data, curDaoIdx)
-            } catch (err) {
-                console.log('error sending notification', err)
-            }
-            
-        } 
-        else if(proposal.f[7]){
-            let data = {
-                applicant: proposal.a,
-                url: window.location.href
-            }
-            try{
-                
-                sendMessage(proposal.a + " has requested a funding commitment of " + proposal.pR + " NEAR", 'Funding',
-                'proposal', data, curDaoIdx)
-            } catch (err) {
-                console.log('error sending notification', err)
-            }
+        let data = {
+            botName: 'Proposal Manager',
+            type: 'proposal',
+            applicant: proposal.a,
+            url: window.location.href
         }
-        else if(proposal.f[10]){
-            let data = {
-                applicant: proposal.a,
-                url: window.location.href
-            }
-            try{
-               
-                sendMessage(proposal.a + " has requested a configuration change to " + proposal.configuration, data, curDaoIdx)
-            } catch (err) {
-                console.log('error sending notification', err)
-            }
-        }
-        else if(proposal.f[8]){
-            let data = {
-                applicant: proposal.a,
-                url: window.location.href
-            }
-            try{
-               
-                sendMessage(proposal.a + " has submitted an opportunity", "", data, curDaoIdx)
-            } catch (err) {
-                console.log('error sending notification', err)
-            }
-        }
-        else{
-            let data = {
-                applicant: proposal.a,
-                url: window.location.href
-            }
-            try {
-              
-                sendMessage(proposal.a + " has requested a payout of " + proposal.pR + " NEAR", 'Payout', 'proposal',
-                data, curDaoIdx)
-            } catch (err) {
-                console.log('error sending notification', err)
-            }
+        switch(proposalType){
+            case 'Whitelist':
+                try {
+                    sendMessage('A whitelist proposal was received.', data, curDaoIdx)
+                } catch (err) {
+                    console.log('error sending notification', err)
+                }
+                break
+            case 'Guildkick':
+                try {
+                    sendMessage('GuildKick proposal submitted for ' + proposal.a, data, curDaoIdx)
+                } catch (err) {
+                    console.log('error sending notification', err)
+                }
+                break
+            case 'Member':
+                try {
+                    sendMessage('Member proposal submitted for ' + proposal.a, data, curDaoIdx)
+                } catch (err) {
+                    console.log('error sending notification', err)
+                }
+                break
+            case 'Commitment':
+                try {
+                    sendMessage('Funding commitment proposal submitted for ' + proposal.a, data, curDaoIdx)
+                } catch (err) {
+                    console.log('error sending notification', err)
+                }
+                break
+            case 'Opportunity':
+                try {
+                    sendMessage('Opportunity proposal submitted by ' + proposal.p, data, curDaoIdx)
+                } catch (err) {
+                    console.log('error sending notification', err)
+                }
+                break
+            case 'Tribute':
+                try {
+                    sendMessage('Tribute proposal submitted for ' + proposal.a, data, curDaoIdx)
+                } catch (err) {
+                    console.log('error sending notification', err)
+                }
+                break
+            case 'Configuration':
+                try {
+                    sendMessage('Configuration proposal submitted by ' + proposal.p, data, curDaoIdx)
+                } catch (err) {
+                    console.log('error sending notification', err)
+                }
+                break
+            case 'Payout':
+                try {
+                    sendMessage('Payout proposal submitted for ' + proposal.a, data, curDaoIdx)
+                } catch (err) {
+                    console.log('error sending notification', err)
+                }
+                break
+            case 'CommunityRole':
+                try {
+                    sendMessage('Community role proposal submitted by ' + proposal.p, data, curDaoIdx)
+                } catch (err) {
+                    console.log('error sending notification', err)
+                }
+                break
+            case 'ReputationFactor':
+                try {
+                    sendMessage('Reputation factor proposal submitted by ' + proposal.p, data, curDaoIdx)
+                } catch (err) {
+                    console.log('error sending notification', err)
+                }
+                break
+            case 'AssignRole':
+                try {
+                    sendMessage('Role assignment proposal submitted for ' + proposal.a, data, curDaoIdx)
+                } catch (err) {
+                    console.log('error sending notification', err)
+                }
+                break
+            default:
+                return true
         }
         return true
     }
@@ -1797,6 +1816,7 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
     let memberLogged = false
     let proposalDataLogged = false
     let memberDataLogged = false
+    let budgetAdjusted = false
 
     let proposal = await daoContract.getProposal({proposalId: proposalId})   
 
@@ -1816,8 +1836,31 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
             proposalDataRecord = { data: [] }
         }
 
+        // Action Budget Adjustment if Required
+        let proposalStatus = getStatus(proposal.f)
 
-        // Update an existing proposal
+        if(proposalType == 'Commitment' && proposalStatus == 'Not Passed'){
+            
+            let opportunityId = proposal.referenceIds[0].valueSetting
+            let opportunitiesList = await curDaoIdx.get('opportunities', curDaoIdx.id)
+            
+            let i = 0
+        
+            while (i < opportunitiesList.opportunities.length){
+                if(opportunitiesList.opportunities[i].opportunityId = opportunityId){
+                    let opportunity = opportunitiesList.opportunities[i]
+                    opportunity['budget'] = parseInt(opportunity['budget']) + proposal.pR
+                    opportunitiesList.opportunities[i] = opportunity
+                    await thisCurDaoIdx.set('opportunities', opportunitiesList.opportunities[i])
+                    budgetAdjusted = true
+                    break
+                }
+                i++
+            }
+        }
+
+
+        // Update existing proposal
         let i = 0
         if(proposalRecords && proposalRecords.events.length > 0){
             while (i < proposalRecords.events.length){
@@ -2069,19 +2112,36 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
         } 
     }
   
-    if(processLogged && memberLogged && memberDataLogged && proposalDataLogged){
-        let data = {
-            applicant: proposal.a,
-            url: window.location.href
+    if(proposalType != 'Commitment'){
+        if(processLogged && memberLogged && memberDataLogged && proposalDataLogged){
+            let data = {
+                applicant: proposal.a,
+                url: window.location.href
+            }
+            try {
+                sendMessage(proposal.a+"'s Proposal "+proposalId + " has been processed", "Processing", "process", data, curDaoIdx)
+                return true
+            } catch (err) {
+                console.log('error sending notification', err)
+            }
+        } else {
+            return false
         }
-        try {
-            sendMessage(proposal.a+"'s Proposal "+proposalId + " has been processed", "Processing", "process", data, curDaoIdx)
-            return true
-        } catch (err) {
-            console.log('error sending notification', err)
+    } else if(proposalType == 'Commitment'){
+        if(processLogged && memberLogged && memberDataLogged && proposalDataLogged && budgetAdjusted){
+            let data = {
+                applicant: proposal.a,
+                url: window.location.href
+            }
+            try {
+                sendMessage(proposal.a+"'s Proposal "+proposalId + " has been processed", "Processing", "process", data, curDaoIdx)
+                return true
+            } catch (err) {
+                console.log('error sending notification', err)
+            }
+        } else {
+            return false
         }
-    } else {
-        return false
     }
 }
 
@@ -2217,8 +2277,10 @@ export async function logSponsorEvent (curDaoIdx, daoContract, contractId, propo
 
     let logged = false
     let sponsorDataLogged = false
+    let budgetAdjusted = false
 
     let proposal = await daoContract.getProposal({proposalId: parseInt(proposalId)})
+    let proposalType = getProposalType(proposal.f)
 
      // Log Proposal Data
      let proposalDataRecord = await curDaoIdx.get('proposalData', curDaoIdx.id)
@@ -2227,6 +2289,28 @@ export async function logSponsorEvent (curDaoIdx, daoContract, contractId, propo
      }
 
     if(proposal && curDaoIdx) {
+
+         // Action Budget Adjustment if Required
+         if(proposalType == 'Commitment'){
+             
+             let opportunityId = proposal.referenceIds[0].valueSetting
+             let opportunitiesList = await curDaoIdx.get('opportunities', curDaoIdx.id)
+             
+             let i = 0
+         
+             while (i < opportunitiesList.opportunities.length){
+                 if(opportunitiesList.opportunities[i].opportunityId = opportunityId){
+                     let opportunity = opportunitiesList.opportunities[i]
+                     opportunity['budget'] = parseInt(opportunity['budget']) - proposal.pR
+                     opportunitiesList.opportunities[i] = opportunity
+                     await thisCurDaoIdx.set('opportunities', opportunitiesList.opportunities[i])
+                     budgetAdjusted = true
+                     break
+                 }
+                 i++
+             }
+         }
+
         // Load existing proposal details
         let proposalRecords = await curDaoIdx.get('proposals', curDaoIdx.id)
 
@@ -2311,20 +2395,41 @@ export async function logSponsorEvent (curDaoIdx, daoContract, contractId, propo
         i++
         }
     }
-    if(logged  && sponsorDataLogged){
-        let data = {
-            applicant: proposal.a,
-            url: window.location.href
+    if(proposalType != 'Commitment'){
+        if(logged  && sponsorDataLogged){
+            let data = {
+                type: proposalType,
+                applicant: proposal.a,
+                url: window.location.href
+            }
+            try {
+                sendMessage(proposal.a + "'s proposal " + proposalId + " has been sponsored by " + proposal.s
+                , "Sponsorship", "sponsor", data, curDaoIdx)
+                return true
+            } catch (err) {
+                console.log('error sending notification', err)
+            }
+        } else {
+            return false
         }
-        try {
-            sendMessage(proposal.a + "'s proposal " + proposalId + " has been sponsored by " + proposal.s
-            , "Sponsorship", "sponsor", data, curDaoIdx)
-            return true
-        } catch (err) {
-            console.log('error sending notification', err)
+    } else if(proposalType == 'Commitment'){
+        if(logged  && sponsorDataLogged && budgetAdjusted){
+            let data = {
+                botName: 'Sponsorship',
+                type: proposalType,
+                applicant: proposal.a,
+                url: window.location.href
+            }
+            try {
+                sendMessage(proposal.a + "'s proposal " + proposalId + " has been sponsored by " + proposal.s
+                , botName, "sponsor", data, curDaoIdx)
+                return true
+            } catch (err) {
+                console.log('error sending notification', err)
+            }
+        } else {
+            return false
         }
-    } else {
-        return false
     }
 }
 
@@ -2543,7 +2648,7 @@ export const hasKey = async (key, accountId, near) => {
 }
 
 export function getStatus(flags) {
-    /* flags [
+   /* flags [
         0: sponsored, 
         1: processed, 
         2: didPass, 
@@ -2561,27 +2666,119 @@ export function getStatus(flags) {
         14: assignRole
     ]
     */
-        let status = ''
+    let status
+    
+    console.log('status flags', flags)
+        // switch(true){
+        //     case (flags[0] == false && flags[3] == false):
+        //         status = 'Submitted'
+                
+        //     case (flags[0] == true && flags[3] == false):
+        //         status = 'Sponsored'
+                
+        //     case (flags[0] == true && flags[1] == false && flags[3] == false):
+        //         status = 'Awaiting Finalization'
+                
+        //     case (flags[1] == true && flags[2] == true && flags[3] == false):
+        //         status = 'Passed'
+        //         break
+        //     case (flags[1] == true && flags[2] == false && flags[3] == false):
+        //         status = 'Not Passed'
+        //         break
+        //     case (flags[3] == true):
+        //         status = 'Cancelled'
+        //         break
+        //     default:
+        //         status = ''
+        // }
     if(!flags[0] && !flags[1] && !flags[2] && !flags[3]) {
-    status = 'Submitted'
+        status = 'Submitted'
     } else
-    if(flags[0] && !flags[1] && !flags[2] && !flags[3]) {
-    status = 'Sponsored'
+        if(flags[0] && !flags[1] && !flags[3]) {
+        status = 'Sponsored'
+    // } else
+    //     if(flags[0] && !flags[1] && (flags[2] || !flags[2]) && !flags[3]) {
+    //     status = 'Awaiting Finalization'
     } else
-    if(flags[0] && !flags[1] && (flags[2] || !flags[2]) && !flags[3]) {
-    status = 'Awaiting Finalization'
+        if(flags[0] && flags[1] && flags[2] && !flags[3]) {
+        status = 'Passed'
     } else
-    if(flags[0] && flags[1] && flags[2] && !flags[3]) {
-    status = 'Passed'
+        if(flags[0] && flags[1] && !flags[2] && !flags[3]) {
+        status = 'Not Passed'
     } else
-    if(flags[0] && flags[1] && !flags[2] && !flags[3]) {
-    status = 'Not Passed'
-    } else
-    if(flags[3]) {
-    status = 'Cancelled'
+        if(flags[3]) {
+        status = 'Cancelled'
     }
+    console.log('status status', status)
     return status
   }
+
+export function getProposalType(flags) {
+ /* flags [
+        0: sponsored, 
+        1: processed, 
+        2: didPass, 
+        3: cancelled, 
+        4: whitelist, 
+        5: guildkick, 
+        6: member, 
+        7: commitment, 
+        8: opportunity, 
+        9: tribute, 
+        10: configuration, 
+        11: payout, 
+        12: communityRole, 
+        13: reputationFactor, 
+        14: assignRole
+    ]
+    */
+    let type
+    let element
+    // start looking at 4th element as first three are different flags
+    for (let i = 4; i < flags.length; i++){
+        if(flags[i] == true){
+            element = i
+        }
+    }
+        switch(element){
+            case 4:
+                type = 'Whitelist'
+                break
+            case 5:
+                type = 'GuildKick'
+                break
+            case 6:
+                type = 'Member'
+                break
+            case 7:
+                type = 'Commitment'
+                break
+            case 8:
+                type = 'Opportunity'
+                break
+            case 9:
+                type = 'Tribute'
+                break
+            case 10:
+                type = 'Configuration'
+                break
+            case 11:
+                type = 'Payout'
+                break
+            case 12:
+                type = 'CommunityRole'
+                break
+            case 13:
+                type = 'ReputationFactor'
+                break
+            case 14:
+                type = 'AssignRole'
+                break
+            default:
+                type = ''
+        }
+    return type
+}
 
 export function generateId() {
     let buf = Math.random([0, 999999999])

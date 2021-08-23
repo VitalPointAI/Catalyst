@@ -22,6 +22,7 @@ import Avatar from '@material-ui/core/Avatar'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import Divider from '@material-ui/core/Divider'
+import Paper from '@material-ui/core/Paper'
 
 // CSS Styles
 import { CircularProgress } from '@material-ui/core';
@@ -210,13 +211,17 @@ export default function EditMemberProposalForm(props) {
                   </DialogContentText>
                   <div><Avatar src={avatar} /></div>
                   <Typography variant="h6">{name}</Typography>
+
+                  <Paper style={{padding: '5px'}}>
                   <Editor
                     editorState={intro}
                     toolbarClassName="toolbarClassName"
                     wrapperClassName="wrapperClassName"
                     editorClassName="editorClassName"
                     onEditorStateChange={handleIntroChange}
+                    editorStyle={{minHeight:'200px'}}
                   />
+                  </Paper>
                    
                 </DialogContent>
                

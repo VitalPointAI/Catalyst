@@ -22,6 +22,7 @@ import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import Divider from '@material-ui/core/Divider'
 import { CircularProgress } from '@material-ui/core'
+import Paper from '@material-ui/core/Paper'
 
 const useStyles = makeStyles((theme) => ({
     progress: {
@@ -272,15 +273,19 @@ export default function EditPayoutProposalForm(props) {
                     })}
                   />
                   {errors.milestoneId && <p style={{color: 'red'}}>You must provide the corresponding milestone Id.</p>}
-              
+                  
+                  <Paper style={{padding: '5px'}}>
                   <Editor
                     name="detailsOfCompletion"
-                    editorState={details}
+                    editorState={detailsOfCompletion}
                     toolbarClassName="toolbarClassName"
                     wrapperClassName="wrapperClassName"
                     editorClassName="editorClassName"
                     onEditorStateChange={handleDetailsOfCompletionChange}
+                    editorStyle={{minHeight:'200px'}}
                   />
+                  </Paper>
+                 
                   {errors.detailsOfCompletion && <p style={{color: 'red'}}>You must provide the details showing proof of project completion.</p>}
                    
                 </DialogContent>

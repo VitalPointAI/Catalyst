@@ -28,7 +28,7 @@ import TableContainer from '@material-ui/core/TableContainer'
 import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
 import Paper from '@material-ui/core/Paper'
-import { CircularProgress } from '@material-ui/core';
+import { CircularProgress } from '@material-ui/core'
 
 const useStyles = makeStyles((theme) => ({
     progress: {
@@ -272,13 +272,16 @@ export default function EditConfigurationProposalForm(props) {
                   </Table>
                 </TableContainer>
               
+                <Paper style={{padding: '5px'}}>
                 <Editor
                   editorState={details}
                   toolbarClassName="toolbarClassName"
                   wrapperClassName="wrapperClassName"
                   editorClassName="editorClassName"
                   onEditorStateChange={handleDetailsChange}
+                  editorStyle={{minHeight:'200px'}}
                 />
+                </Paper>
                    
                 </DialogContent>
                

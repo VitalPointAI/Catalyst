@@ -83,7 +83,7 @@ export default function AppFramework(props) {
     const [escrowBalanceChip, setEscrowBalanceChip] = useState()
     const [currentShare, setCurrentShare] = useState()
     const [nearPrice, setNearPrice] = useState()
-    const [change, setChange] = useState(false)
+   // const [change, setChange] = useState(false)
 
     const [tabValue, setTabValue] = useState('1')
     const [daoContract, setDaoContract] = useState()
@@ -109,6 +109,11 @@ export default function AppFramework(props) {
     const [initLoad, setInitLoad] = useState(false)
     const [started, setStarted] = useState(false)
     const [isUpdated, setIsUpdated] = useState(false)
+
+    const [timerStarted, setTimerStarted] = useState(false)
+    const [triggersActioned, setTriggersActioned] = useState(false)
+    const [restInitialized, setRestInitialized] = useState(false)
+    const [essentialsInitialized, setEssentialsInitialized] = useState(false)
     
     const classes = useStyles()
     
@@ -129,6 +134,7 @@ export default function AppFramework(props) {
       near,
       accountId,
       daoFactory,
+      wallet,
       currentDaosList
     } = state
     
@@ -141,36 +147,16 @@ export default function AppFramework(props) {
     useEffect(
       () => {
         let timer
-        async function refreshCurrentPeriod() {
-          try {
-            let contract = await dao.initDaoContract(state.wallet.account(), contractId)
-            let period = await contract.getCurrentPeriod()
-            setCurrentPeriod(period)
-          } catch (err) {
-            console.log('get period issue', err)
-          }
-        }
 
-        // async function period() {
-  
-          // //***********START PERIOD REFRESH TIMER */
-          
-          // if(contract && started==false){
-          //   timer = setTimeout(async function refreshCurrentPeriod() {
-          //     try {
-          //       let period = await contract.getCurrentPeriod()
-          //       setCurrentPeriod(period)
-          //     } catch (err) {
-          //       console.log('get period issue', err)
-          //     }
-          //     if(started == false){
-          //     timer = setTimeout(refreshCurrentPeriod, 20000)
-          //     console.log('timer starts')
-          //       setStarted(true)
-          //     }
-          //   }, 20000)
-          // }
-        // }
+        async function refreshCurrentPeriod() {
+            try {
+              let contract = await dao.initDaoContract(wallet.account(), contractId)
+              let period = await contract.getCurrentPeriod()
+              setCurrentPeriod(period)
+            } catch (err) {
+              console.log('get period issue', err)
+            }
+        }
   
         function stop() {
           if (timer) {
@@ -179,45 +165,43 @@ export default function AppFramework(props) {
           }
         }
 
-        // period()
-        // .then((res) => {
-          
-        // })
-        timer = setInterval(refreshCurrentPeriod, 2000)
-        console.log('timer started')
-        return () => {
-          console.log('timer stopped')
-          stop()
+        if(wallet && triggersActioned){
+          timer = setInterval(refreshCurrentPeriod, 2000)
+          setTimerStarted(true)
+          console.log('timer started')
+          return () => {
+            setTimerStarted(false)
+            console.log('timer stopped')
+            stop()
+          }
         }
-      }, [currentPeriod]
+      }, [wallet, currentPeriod, triggersActioned]
     )
+
     useEffect(
       () => {
        
-          async function fetchData() {
-            
-            let urlVariables = window.location.search
-            const urlParameters = new URLSearchParams(urlVariables)
-            let transactionHash = urlParameters.get('transactionHashes')
-            console.log('didregistrycontract', didRegistryContract)
-            console.log('near', near)
+          async function fetchEssentials() {
+           
             if(didRegistryContract && near){
 
               if(contractId){
-                let thisCurDaoIdx
+                let curDaoIdx
                 let daoAccount
                 let contract
                 try{
                   daoAccount = new nearAPI.Account(near.connection, contractId)
                 } catch (err) {
                   console.log('no account', err)
+                  return false
                 }
                
                 try{
-                  thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
-                  setCurDaoIdx(thisCurDaoIdx)
+                  curDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+                  setCurDaoIdx(curDaoIdx)
                 } catch (err) {
                   console.log('problem getting curdaoidx', err)
+                  return false
                 }
                 
                 try{
@@ -225,11 +209,30 @@ export default function AppFramework(props) {
                   setDaoContract(contract)
                 } catch (err) {
                   console.log('problem initializing dao contract', err)
+                  return false
                 }
+              }
+              return true
+            }
+          }
 
-                if(thisCurDaoIdx && contract){
+          fetchEssentials()
+          .then((res) => {
+            res ? setEssentialsInitialized(true) : setEssentialsInitialized(false)
+          })
 
-                  // *********CHECK FOR TRIGGERS AND EXECUTE*************
+        }, [state]
+    )
+
+    useEffect(
+      () => {
+        async function actionTriggers() {
+
+          let urlVariables = window.location.search
+          const urlParameters = new URLSearchParams(urlVariables)
+          let transactionHash = urlParameters.get('transactionHashes')
+
+            // *********CHECK FOR TRIGGERS AND EXECUTE*************
 
                   // Step 1 in leaving community: check for successfully added exit and log it
                   let newExit = get(NEW_EXIT, [])
@@ -239,47 +242,46 @@ export default function AppFramework(props) {
                     if(newExit[a].contractId==contractId && newExit[a].new == true){
                       let loggedExit = await logExitEvent(
                         contractId,
-                        thisCurDaoIdx, 
-                        contract,
+                        curDaoIdx, 
+                        daoContract,
                         newExit[a].account,
                         transactionHash)
                         
                       if (loggedExit) {
+                        console.log('first part done')
                         del(NEW_EXIT)
-                        await renewProposals(thisCurDaoIdx, contract)
+                        // check for and action any community deletions
+                        let deletion = get(COMMUNITY_DELETE, [])
+                        
+                        let t = 0
+                        while(t < deletion.length){
+                          let aa = 0
+                          let stillExists = false
+                            while(aa < currentDaosList.length){
+                              if(currentDaosList[aa].contractId == deletion[t].contractId){
+                                stillExists = true
+                                break
+                              }
+                              aa++
+                            }
+                          if(!stillExists){
+                            del(COMMUNITY_DELETE)
+                            await renewProposals(curDaoIdx, daoContract)
+                            break
+                          } else {
+                            if(deletion[t].contractId==contractId && deletion[t].new == true){
+                              let deleted = await deleteCommunity(
+                                daoFactory,
+                                contractId, 
+                                accountId
+                              )
+                            }
+                          }
+                          t++
+                        }
                       }
                     }
                     a++
-                  }
-
-                  // check for and action any community deletions
-                  let deletion = get(COMMUNITY_DELETE, [])
-                  
-                  let t = 0
-                  while(t < deletion.length){
-                    let aa = 0
-                    let stillExists = false
-                      while(aa < currentDaosList.length){
-                        if(currentDaosList[aa].contractId == deletion[t].contractId){
-                          stillExists = true
-                          break
-                        }
-                        aa++
-                      }
-                    if(!stillExists){
-                      del(COMMUNITY_DELETE)
-                      setChange(!change)
-                      break
-                    } else {
-                      if(deletion[t].contractId==contractId && deletion[t].new == true){
-                        let deleted = await deleteCommunity(
-                          daoFactory,
-                          contractId, 
-                          accountId
-                        )
-                      }
-                    }
-                    t++
                   }
 
                   // check for successfully deleted community and log it then redirect to dashboard as contract account is gone
@@ -296,38 +298,32 @@ export default function AppFramework(props) {
                         
                       if (loggedDelete) {
                         del(NEW_DELETE)
-                        setChange(!change)
+                        del(COMMUNITY_DELETE)
                         window.location.assign('/')
                       }
                     }
                     u++
                   }
 
-                 
-                 
-
-                 
-   
                   // check for first init to log summon and member events
                   let firstInit = get(DAO_FIRST_INIT, [])
         
                   let c = 0
                   while(c < firstInit.length){
                     if(firstInit[c].contractId==contractId && firstInit[c].init == true){
+                      console.log('here initd')
                       let logged = await logInitEvent(
                         contractId, 
-                        thisCurDaoIdx, 
-                        contract, 
+                        curDaoIdx, 
+                        daoContract, 
                         'Democracy', 
                         state.accountId,
                         firstInit[c].contribution,
                         transactionHash)
                         
                       if (logged) {
-                      //  firstInit[c].init = false
-                      //  set(DAO_FIRST_INIT, firstInit)
                         del(DAO_FIRST_INIT)
-                        setChange(!change)
+                        await renewProposals(curDaoIdx, daoContract)
                       }
                     }
                     c++
@@ -341,18 +337,16 @@ export default function AppFramework(props) {
                     if(newProposal[d].contractId==contractId && newProposal[d].new == true){
                       console.log('trans hash', transactionHash)
                       let loggedProposal = await logProposalEvent(
-                        thisCurDaoIdx, 
-                        contract, 
+                        curDaoIdx, 
+                        daoContract, 
                         newProposal[d].proposalId,
                         contractId,
                         transactionHash
                         )
                         
                       if (loggedProposal) {
-                      //  newProposal[d].new = false
-                      //  set(NEW_PROPOSAL, newProposal)
                         del(NEW_PROPOSAL)
-                        await renewProposals(thisCurDaoIdx, contract)
+                        await renewProposals(curDaoIdx, daoContract)
                       }
                     }
                     d++
@@ -365,17 +359,15 @@ export default function AppFramework(props) {
                   while(f < newSponsor.length){
                     if(newSponsor[f].contractId==contractId && newSponsor[f].new == true){
                       let loggedSponsor = await logSponsorEvent(
-                        thisCurDaoIdx, 
-                        contract,
+                        curDaoIdx, 
+                        daoContract,
                         contractId,
                         newSponsor[f].proposalId,
                         transactionHash)
                         
                       if (loggedSponsor) {
-                      //  newSponsor[f].new = false
-                      //  set(NEW_SPONSOR, newSponsor)
                       del(NEW_SPONSOR)
-                      await renewProposals(thisCurDaoIdx, contract)
+                      await renewProposals(curDaoIdx, daoContract)
                       }
                     }
                     f++
@@ -388,8 +380,8 @@ export default function AppFramework(props) {
                   while(g < newProcess.length){
                     if(newProcess[g].contractId==contractId && newProcess[g].new == true){
                       let loggedProcess = await logProcessEvent(
-                        thisCurDaoIdx, 
-                        contract,
+                        curDaoIdx, 
+                        daoContract,
                         contractId,
                         newProcess[g].proposalId,
                         newProcess[g].type,
@@ -397,10 +389,8 @@ export default function AppFramework(props) {
                         )
                         
                       if (loggedProcess) {
-                        // newProcess[g].new = false
-                        // set(NEW_PROCESS, newProcess)
                         del(NEW_PROCESS)
-                        await renewProposals(thisCurDaoIdx, contract)
+                        await renewProposals(curDaoIdx, daoContract)
                       }
                     }
                     g++
@@ -414,18 +404,16 @@ export default function AppFramework(props) {
                     if(newVotes[x].contractId==contractId && newVotes[x].new == true){
                       
                       let loggedVote = await logVoteEvent(
-                        thisCurDaoIdx,
+                        curDaoIdx,
                         contractId,
-                        contract, 
+                        daoContract, 
                         newVotes[x].proposalId,
                         accountId
                         )
                         
                       if (loggedVote) {
-                      //  newVotes[x].new = false
-                      //  set(NEW_VOTE, newVotes)
                         del(NEW_VOTE)
-                        await renewProposals(thisCurDaoIdx, contract)
+                        await renewProposals(curDaoIdx, daoContract)
                       }
                     }
                     x++
@@ -437,17 +425,15 @@ export default function AppFramework(props) {
                   while(h < newCancel.length){
                     if(newCancel[h].contractId==contractId && newCancel[h].new == true){
                       let loggedCancel = await logCancelEvent(
-                        thisCurDaoIdx, 
-                        contract,
+                        curDaoIdx, 
+                        daoContract,
                         contractId,
                         newCancel[h].proposalId,
                         transactionHash)
                         
                       if (loggedCancel) {
-                      //  newCancel[h].new = false
-                      //  set(NEW_CANCEL, newCancel)
                         del(NEW_CANCEL)
-                        await renewProposals(thisCurDaoIdx, contract)
+                        await renewProposals(curDaoIdx, daoContract)
                       }
                     }
                     h++
@@ -460,16 +446,15 @@ export default function AppFramework(props) {
                   while(y < newDonation.length){
                     if(newDonation[y].contractId==contractId && newDonation[y].new == true){
                       let loggedDonation = await logDonationEvent(
-                        thisCurDaoIdx, 
-                        contract,
+                        curDaoIdx, 
+                        daoContract,
                         newDonation[y].donationId,
                         newDonation[y].contractId,
                         transactionHash)
                         
                       if (loggedDonation) {
-                      //  newDonation[y].new = false
-                      //  set(NEW_DONATION, newDonation)
                         del(NEW_DONATION)
+                        await renewProposals(curDaoIdx, daoContract)
                       }
                     }
                     y++
@@ -483,42 +468,39 @@ export default function AppFramework(props) {
                     if(newDelegation[l].contractId==contractId && newDelegation[l].new == true){
                       let loggedDelegation = await logDelegationEvent(
                         contractId,
-                        thisCurDaoIdx, 
-                        contract,
+                        curDaoIdx, 
+                        daoContract,
                         newDelegation[l].delegator,
                         newDelegation[l].receiver,
                         transactionHash)
                         
                       if (loggedDelegation) {
-                      //  newDelegation[l].new = false
-                      //  set(NEW_DELEGATION, newDelegation)
                         del(NEW_DELEGATION)
-                        let newPeriod = contract.getCurrentPeriod()
-                        setCurrentPeriod(newPeriod)
-                        setChange(!change)
+                        await renewProposals(curDaoIdx, daoContract)
                       }
                     }
                     l++
                   }
 
-                   // check for successful sponsor and deduct balanceFbud
-                   let budgetDeduction = get(BUDGET_DEDUCTION, [])
-                   if(budgetDeduction.length > 0){
-                     await thisCurDaoIdx.set('opportunities', budgetDeduction[0].opportunitiesList)
-                     let newPeriod = contract.getCurrentPeriod()
-                     setCurrentPeriod(newPeriod)
-                     setChange(!change)
-                   }
-                   del(BUDGET_DEDUCTION)
+                  //  // check for successful sponsor and deduct balanceFbud
+                  //  let budgetDeduction = get(BUDGET_DEDUCTION, [])
+                  //  if(budgetDeduction.length > 0){
+                  //    await curDaoIdx.set('opportunities', budgetDeduction[0].opportunitiesList)
+                  //    let newPeriod = contract.getCurrentPeriod()
+                  //    setCurrentPeriod(newPeriod)
+                  //    setChange(!change)
+                  //  }
+                  //  del(BUDGET_DEDUCTION)
 
-                   let budgetIncrease = get(BUDGET_INCREASE, [])
-                   if(budgetIncrease.length > 0){
-                     await thisCurDaoIdx.set('opportunities', budgetIncrease[0].opportunitiesList)
-                     let newPeriod = contract.getCurrentPeriod()
-                     setCurrentPeriod(newPeriod)
-                     setChange(!change)
-                   }
-                   del(BUDGET_INCREASE)
+                  //  let budgetIncrease = get(BUDGET_INCREASE, [])
+                  //  if(budgetIncrease.length > 0){
+                  //    await curDaoIdx.set('opportunities', budgetIncrease[0].opportunitiesList)
+                  //    let newPeriod = contract.getCurrentPeriod()
+                  //    setCurrentPeriod(newPeriod)
+                  //    setChange(!change)
+                  //  }
+                  //  del(BUDGET_INCREASE)
+
                   // check for successfully added revoke delegation and log it
                   let newRevocation = get(NEW_REVOCATION, [])
               
@@ -527,51 +509,91 @@ export default function AppFramework(props) {
                     if(newRevocation[m].contractId==contractId && newRevocation[m].new == true){
                       let loggedRevocation = await logDelegationEvent(
                         contractId,
-                        thisCurDaoIdx, 
-                        contract,
+                        curDaoIdx, 
+                        daoContract,
                         newRevocation[m].delegator,
                         newRevocation[m].receiver,
                         transactionHash)
                         
                       if (loggedRevocation) {
-                        // newRevocation[m].new = false
-                        // set(NEW_REVOCATION, newRevocation)
                         del(NEW_REVOCATION)
-                        let newPeriod = contract.getCurrentPeriod()
-                        setCurrentPeriod(newPeriod)
-                        setChange(!change)
+                        await renewProposals(curDaoIdx, daoContract)
                       }
                     }
                     m++
                   }
+                
+                return true
+        }
+
+        if(essentialsInitialized){
+          actionTriggers()
+          .then((res) => {
+            res ? setTriggersActioned(true) : setTriggersActioned(false)
+          })
+        }
+
+      }, [essentialsInitialized]
+    )
+
+    useEffect(
+      () => {
+       
+          async function fetchData() {
+
+              // if(contractId){
+              //   let curDaoIdx
+              //   let daoAccount
+              //   let contract
+              //   try{
+              //     daoAccount = new nearAPI.Account(near.connection, contractId)
+              //   } catch (err) {
+              //     console.log('no account', err)
+              //   }
+               
+              //   try{
+              //     curDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+              //     setCurDaoIdx(curDaoIdx)
+              //   } catch (err) {
+              //     console.log('problem getting curdaoidx', err)
+              //   }
+                
+              //   try{
+              //     contract = await dao.initDaoContract(state.wallet.account(), contractId)
+              //     setDaoContract(contract)
+              //   } catch (err) {
+              //     console.log('problem initializing dao contract', err)
+              //   }
+
+              //   if(curDaoIdx && contract){
+
+                
 
                   //************SYNCH PROPOSALS AND CONTRACT AND MEMBERS */
-                    
-                  try {
-                    let synched = await synchProposalEvent(thisCurDaoIdx, contract)
-                    if(synched){
-                      let proposals = await thisCurDaoIdx.get('proposals', thisCurDaoIdx.id)
-                      setAllProposals(proposals.events)
+                  
+                    try {
+                      let synched = await synchProposalEvent(curDaoIdx, daoContract)
+                      setAllProposals(synched.events)
+                    } catch (err) {
+                      console.log('no proposals yet', err)
                     }
-                  } catch (err) {
-                    console.log('no proposals yet', err)
-                  }
 
-                  try {
-                    let synched = await synchMember(thisCurDaoIdx, contract, contractId, accountId)
-                    
-                    if(synched){
-                      let members = await thisCurDaoIdx.get('members', thisCurDaoIdx.id)
-                      setAllMemberInfo(members.events)
+                    try {
+                      let synched = await synchMember(curDaoIdx, daoContract, contractId, accountId)
+                      
+                      if(synched){
+                        let members = await curDaoIdx.get('members', curDaoIdx.id)
+                        setAllMemberInfo(members.events)
+                      }
+                    } catch (err) {
+                      console.log('no members yet', err)
                     }
-                  } catch (err) {
-                    console.log('no members yet', err)
-                  }
+                  
 
                   //************ LOAD COMMUNITY SETTINGS AND INFORMATION */
                      
                   try{
-                    let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
+                    let result = await curDaoIdx.get('daoProfile', curDaoIdx.id)
                     if(result){
                       result.name ? setName(result.name) : setName('')
                       result.date ? setDate(result.date) : setDate('')
@@ -583,18 +605,17 @@ export default function AppFramework(props) {
                     console.log('problem retrieving DAO profile')
                   }
 
-                    
-                  let init = await contract.getInit()
+                  let init = await daoContract.getInit()
                   setInitialized(init)
                   setInitLoad(true)
 
-                  if(initialized){
+                  if(init){
                       let thisMemberInfo
                       let thisMemberStatus
                       
                       try {
-                        thisMemberInfo = await contract.getMemberInfo({member: accountId})
-                        thisMemberStatus = await contract.getMemberStatus({member: accountId})
+                        thisMemberInfo = await daoContract.getMemberInfo({member: accountId})
+                        thisMemberStatus = await daoContract.getMemberStatus({member: accountId})
                       
                         setMemberInfo(thisMemberInfo)
                         if(thisMemberStatus && thisMemberInfo[0].active){
@@ -607,21 +628,21 @@ export default function AppFramework(props) {
                       }
           
                       try {
-                        let owner = await contract.getSummoner()
+                        let owner = await daoContract.getSummoner()
                         setSummoner(owner)
                       } catch (err) {
                         console.log('no summoner yet')
                       }
           
                       try {
-                        let shares = await contract.getTotalShares()
+                        let shares = await daoContract.getTotalShares()
                         setTotalShares(shares)
                       } catch (err) {
                         console.log('no total shares yet')
                       }
           
                       try {
-                        let token = await contract.getDepositToken()
+                        let token = await daoContract.getDepositToken()
                         setDepositToken(token)
                         setTokenName(token)
                       } catch (err) {
@@ -629,7 +650,7 @@ export default function AppFramework(props) {
                       }
                           
                       try {
-                        let deposit = await contract.getProposalDeposit()
+                        let deposit = await daoContract.getProposalDeposit()
                         setProposalDeposit(deposit)
                         update('', { proposalDeposit: deposit })
                       } catch (err) {
@@ -637,7 +658,7 @@ export default function AppFramework(props) {
                       }
 
                       try {
-                        let thisCurrentShare = await contract.getCurrentShare({member: accountId})
+                        let thisCurrentShare = await daoContract.getCurrentShare({member: accountId})
                         setCurrentShare(thisCurrentShare)
                         setFairShareLabel('Current Share: ' + thisCurrentShare + 'Ⓝ')
                       } catch (err) {
@@ -645,7 +666,7 @@ export default function AppFramework(props) {
                       }
           
                       try {
-                        let duration = await contract.getPeriodDuration()
+                        let duration = await daoContract.getPeriodDuration()
                         setPeriodDuration(duration)
                       } catch (err) {
                         console.log('no period duration yet')
@@ -654,7 +675,7 @@ export default function AppFramework(props) {
                       let ebalance
                       let escrowRow
                       try {
-                        ebalance = await contract.getEscrowTokenBalances()
+                        ebalance = await daoContract.getEscrowTokenBalances()
                         setEscrowBalance(ebalance)
 
                         if(ebalance) {
@@ -672,7 +693,7 @@ export default function AppFramework(props) {
                       let gbalance
                       let guildRow
                       try {
-                        gbalance = await contract.getGuildTokenBalances()
+                        gbalance = await daoContract.getGuildTokenBalances()
                         setGuildBalance(gbalance)
 
                         if(gbalance) {
@@ -699,7 +720,7 @@ export default function AppFramework(props) {
                       
                       if(currentPeriod == undefined || currentPeriod == 0){
                         try {
-                          let period = await contract.getCurrentPeriod()
+                          let period = await daoContract.getCurrentPeriod()
                             setCurrentPeriod(period)
                         } catch (err) {
                           console.log('get period issue', err)
@@ -707,24 +728,22 @@ export default function AppFramework(props) {
                       }
                   }
                 }
-              } 
-            }  
-          }
-      
-     
+              
+      //      }  
+       //   }
       
       let mounted = true
-      if(mounted){
+      if(mounted && essentialsInitialized){
         fetchData()
         .then((res) => {
-             
+             setRestInitialized(true)
         })
 
         return () => {
           mounted = false
         } 
       }
-}, [initialized, didRegistryContract, near, change, currentPeriod]
+}, [essentialsInitialized]
     )
 
     function handleTabValueState(value) {
@@ -732,13 +751,9 @@ export default function AppFramework(props) {
     }
 
     async function renewProposals(curDaoIdx, contract){
-      let proposals
       try {
         let synched = await synchProposalEvent(curDaoIdx, contract)
-        if(synched){
-            proposals = await curDaoIdx.get('proposals', curDaoIdx.id)
-          setAllProposals(proposals.events)
-        }
+        setAllProposals(synched.events)
       } catch (err) {
         console.log('no proposals yet', err)
       }

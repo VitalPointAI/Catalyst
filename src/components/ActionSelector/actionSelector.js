@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react'
+import React, { useState, useContext, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 
@@ -86,6 +86,7 @@ export default function ActionSelector(props) {
   const [leaveClicked, setLeaveClicked] = useState(false)
   const [whiteListClicked, setWhiteListClicked] = useState(false)
   const [guildKickClicked, setGuildKickClicked] = useState(false)
+  const [loaded, setLoaded] = useState(false)
   
 
   const { state, dispatch, update } = useContext(appStore);
@@ -110,6 +111,14 @@ export default function ActionSelector(props) {
   const {
     contractId
   } = useParams()
+
+  useEffect(
+    () => {
+      if(memberStatus){
+        setLoaded(true)
+      }
+    }, []
+  )
 
   const handleDonationProposalClick = () => {
     handleExpanded()
@@ -219,7 +228,7 @@ export default function ActionSelector(props) {
 
   return (
     <>
-    {!memberStatus ? (
+    {loaded && !memberStatus ? (
     <Button
     style={{marginRight: 5}}
     aria-controls="fade-menu"

@@ -40,10 +40,10 @@ import RedditIcon from '@material-ui/icons/Reddit'
 import TwitterIcon from '@material-ui/icons/Twitter'
 import { InputAdornment } from '@material-ui/core'
 import { CircularProgress } from '@material-ui/core'
-import { QueryBuilder } from '@material-ui/icons'
-import { truncate } from 'fs'
 
 const axios = require('axios').default
+
+const Airtable = require('airtable')
 
 const useStyles = makeStyles((theme) => ({
     progress: {
@@ -110,6 +110,7 @@ export default function EditPersonaForm(props) {
     const [skill, setSkill] = useState([])
     const [familiarity, setFamiliarity] = useState('0')
     const [airtableClicked, setAirtableClicked] = useState(false)
+    const [airtableData, setAirtableData] = useState(false)
     const { register, handleSubmit, watch, errors } = useForm()
     const [otherSkills, setOtherSkills] = useState([])
     
@@ -143,6 +144,8 @@ export default function EditPersonaForm(props) {
     } = props
     
     const classes = useStyles()
+
+    let base 
 
     useEffect(() => {
         async function fetchData() {
@@ -182,6 +185,25 @@ export default function EditPersonaForm(props) {
                   webDevelopment: false,
                   })
               }
+
+              let accessVariables = await axios.get('https://vpbackend-apim.azure-api.net/airtable')    
+              base = new Airtable({apiKey: accessVariables.data.airtableKey}).base(accessVariables.data.contributorBase)
+              
+              base(accessVariables.data.contributorTable).select({
+                pageSize: 20, 
+                view: "Grid view"
+              }).eachPage(function page(records, fetchNextPage) {
+                
+                records.forEach(function(record) {
+                  try{
+                    if(record.get('NEAR Wallet Address') == state.accountId){
+                      setAirtableData(true)
+                    }
+                  } catch (err) {
+                    console.log('error checking account against airtable', err)
+                  }
+                })
+              })
            }
         }
        
@@ -258,11 +280,6 @@ export default function EditPersonaForm(props) {
     const handleAirtableClick = async function(){
       if(airtableClicked == false)
       {
-       
-        let accessVariables = await axios.get('https://vpbackend-apim.azure-api.net/airtable')
-        let Airtable = require('airtable');
-        let base = new Airtable({apiKey: accessVariables.data.airtableKey}).base(accessVariables.data.contributorBase);
-
         base(accessVariables.data.contributorTable).select({
             pageSize: 20, 
             view: "Grid view"
@@ -686,6 +703,7 @@ export default function EditPersonaForm(props) {
                          
                         </AccordionDetails>
                       </Accordion>
+                  {airtableData ?
                   <Grid container spacing={1} justifyContent="space-between">  
                     <Grid item xs={7} sm={7} md={7} lg={7} xl={7}>
                       <Typography style={{marginTop: 5}}> 
@@ -697,7 +715,7 @@ export default function EditPersonaForm(props) {
                         Import Data from Airtable
                       </Button>
                     </Grid>
-                  </Grid>
+                  </Grid> : null }
                   </div>
               
                   

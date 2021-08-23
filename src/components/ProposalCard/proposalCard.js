@@ -216,16 +216,18 @@ export default function ProposalCard(props) {
 
           async function fetchData() {
          
-            // Get Applicant Persona Information
-            let thisCurPersonaIdx
-           
+            // Get Persona Information           
             if(applicant){
               const thisPersona = new Persona()
+
+              // Applicant
               let result = await thisPersona.getPersona(applicant)
                   if(result){
                     result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
                     result.name ? setApplicantName(result.name) : setApplicantName('')
                   }
+              
+              // Proposer
               let resultb = await thisPersona.getPersona(proposer)
               if(resultb){
                 resultb.avatar ? setProposerAvatar(resultb.avatar) : setProposerAvatar(imageName)
@@ -233,8 +235,6 @@ export default function ProposalCard(props) {
               }
              }
             
-            
-
             // Set Existing Member Proposal Data       
             if(curDaoIdx){
               let propResult = await curDaoIdx.get('memberProposalDetails', curDaoIdx.id)
@@ -1127,7 +1127,7 @@ export default function ProposalCard(props) {
                 </Grid>
               ) : null }
               
-              {status == 'Sponsored' && status != 'Awaiting Finalization' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && currentPeriod > gracePeriod && !isVotingPeriod && !isGracePeriod ? (
+              {(status == 'Sponsored' || status == 'Awaiting Finalization') ? (
                 <>
                 <Grid container alignItems="center" justifyContent="space-between" spacing={1}>
                   <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="left" >
@@ -1151,7 +1151,7 @@ export default function ProposalCard(props) {
                   </Grid>
                 </Grid>
                 
-                <Grid container alignItems="center" justifyContent="space-evenly" spacing={1}>
+                <Grid container alignItems="center" justifyContent="center" spacing={1}>
                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
                   {nextToFinalize == requestId ?
                     <Button

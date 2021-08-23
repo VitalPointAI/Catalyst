@@ -38,6 +38,7 @@ import FormHelperText from '@material-ui/core/FormHelperText'
 import Checkbox from '@material-ui/core/Checkbox'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import Rating from '@material-ui/lab/Rating'
+import Paper from '@material-ui/core/Paper'
 
 // CSS Styles
 import { CircularProgress } from '@material-ui/core';
@@ -237,7 +238,7 @@ export default function EditOpportunityProposalForm(props) {
       }
     }
 
-    const handleEditorStateChange = (editorState) => {
+    const handleDetailsChange = (editorState) => {
       setDetails(editorState)
     }
 
@@ -523,13 +524,16 @@ export default function EditOpportunityProposalForm(props) {
                   </AccordionDetails>
               </Accordion>
                   <Typography variant="h6">Opportunity Details</Typography>
+                  <Paper style={{padding: '5px'}}>
                   <Editor
                     editorState={details}
                     toolbarClassName="toolbarClassName"
                     wrapperClassName="wrapperClassName"
                     editorClassName="editorClassName"
-                    onEditorStateChange={handleEditorStateChange}
+                    onEditorStateChange={handleDetailsChange}
+                    editorStyle={{minHeight:'200px'}}
                   />
+                  </Paper>
 
               
                 </DialogContent>
