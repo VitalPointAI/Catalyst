@@ -127,8 +127,7 @@ export default function Opportunities(props) {
                         skillMatch = 0
 
                         for (const [key, value] of Object.entries(allOpportunities[j].desiredDeveloperSkillSet)){
-                          console.log('xz dd key', key)
-                          console.log('xz dd value', value)  
+                         
                           if(value){
                                 developerSkillCount++
                                 console.log('xz dev skill count', developerSkillCount)
@@ -141,41 +140,32 @@ export default function Opportunities(props) {
                         }
                         console.log('xz allopps', allOpportunities)
                         for (const [key, value] of Object.entries(allOpportunities[j].desiredSkillSet)){
-                          console.log('xz s key', key)
-                          console.log('xz s value', value)    
+                            
                           if(value){
                                 skillCount++
-                                console.log('xz skill count', skillCount)
                                 for (const [pkey, pvalue] of Object.entries(currentPersona.skillSet)){
-                                  console.log('xz key', pkey)
-                                  console.log('xz value', pvalue)    
                                   if(pkey == key && pvalue == value){
-                                    console.log('xz match: ' + pkey + ':' + pvalue + ':' + key + ':' + value)
                                         skillMatch++
                                     }
                                 }
                             }
                         }
-                        console.log('xr skill match', skillMatch)
-                        console.log('xrdeveloper skill match', developerSkillMatch)
-                        console.log('xr skillCount', skillCount)
-                        console.log('xr developer skill count', developerSkillCount)
+                      
                         let asuitabilityScore = ((skillMatch + developerSkillMatch)/(skillCount + developerSkillCount)*100).toFixed(0)
                         setSuitabilityScore(asuitabilityScore)
                         let thisContract = await dao.initDaoContract(state.wallet.account(), allOpportunities[j].contractId)
                           // confirm proposal exists
                         let exists
                         try{
-                          console.log('test all opps', allOpportunities)
-                          let testProposal = await thisContract.getProposal({pI: 0})
-                          console.log('test proposal', testProposal) 
+          
+                          
                           let index = await thisContract.getProposalIndex({pI: parseInt(allOpportunities[j].opportunityId)})
                             if (index != -1){
                                 exists = true
                             } else {
                                 exists = false
                             }
-                            console.log('opp exists', exists)
+                          
                         } catch (err) {
                             console.log('error getting proposal index', err)
                             exists = false

@@ -172,6 +172,8 @@ export default function ProposalCard(props) {
 
     const [nextToFinalize, setNextToFinalize] = useState()
 
+    const [daoContract, setDaoContract] = useState()
+
     const [anchorEl, setAnchorEl] = useState(null)
     
     const { state, dispatch, update } = useContext(appStore)
@@ -324,6 +326,7 @@ export default function ProposalCard(props) {
               let daoContract = await dao.initDaoContract(wallet.account(), contractId)
               let members = await daoContract.getTotalMembers()
               setTotalMembers(members)
+              setDaoContract(daoContract)
             }
 
             if(queueList && queueList.length > 0){
@@ -1127,7 +1130,7 @@ export default function ProposalCard(props) {
                 </Grid>
               ) : null }
               
-              {(status == 'Sponsored' || status == 'Awaiting Finalization') ? (
+              {(status == 'Awaiting Finalization') ? (
                 <>
                 <Grid container alignItems="center" justifyContent="space-between" spacing={1}>
                   <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="left" >
@@ -1295,6 +1298,8 @@ export default function ProposalCard(props) {
           handleUpdate={handleUpdate}
           accountId={accountId}
           proposalId={requestId}
+          contract={daoContract}
+          funding={funding}
           /> : null }
 
         {editTributeProposalDetailsClicked ? <EditTributeProposalForm

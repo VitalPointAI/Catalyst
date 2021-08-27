@@ -522,6 +522,30 @@ export default function AppFramework(props) {
                     }
                     m++
                   }
+
+                  //************SYNCH PROPOSALS AND CONTRACT AND MEMBERS */
+                  // has to occur after all triggers so everything is logged
+                  // otherwise will erase transaction hashes as they aren't
+                  // retrievable from the contract
+                  
+                  try {
+                    let synched = await synchProposalEvent(curDaoIdx, daoContract)
+                    setAllProposals(synched.events)
+                  } catch (err) {
+                    console.log('no proposals yet', err)
+                  }
+
+                  try {
+                    let synched = await synchMember(curDaoIdx, daoContract, contractId, accountId)
+                    
+                    if(synched){
+                      let members = await curDaoIdx.get('members', curDaoIdx.id)
+                      setAllMemberInfo(members.events)
+                    }
+                  } catch (err) {
+                    console.log('no members yet', err)
+                  }
+                
                 
                 return true
         }
@@ -568,27 +592,6 @@ export default function AppFramework(props) {
               //   if(curDaoIdx && contract){
 
                 
-
-                  //************SYNCH PROPOSALS AND CONTRACT AND MEMBERS */
-                  
-                    try {
-                      let synched = await synchProposalEvent(curDaoIdx, daoContract)
-                      setAllProposals(synched.events)
-                    } catch (err) {
-                      console.log('no proposals yet', err)
-                    }
-
-                    try {
-                      let synched = await synchMember(curDaoIdx, daoContract, contractId, accountId)
-                      
-                      if(synched){
-                        let members = await curDaoIdx.get('members', curDaoIdx.id)
-                        setAllMemberInfo(members.events)
-                      }
-                    } catch (err) {
-                      console.log('no members yet', err)
-                    }
-                  
 
                   //************ LOAD COMMUNITY SETTINGS AND INFORMATION */
                      

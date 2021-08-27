@@ -162,7 +162,7 @@ export default function ProposalList(props) {
           i++
       }
       currentPeriod
-      
+      console.log('original proposal events', proposalEvents)
       let newLists = await resolveStatus(proposalEvents)
       console.log('newlists', newLists)
       setProposalList(newLists.allProposals)
@@ -311,12 +311,25 @@ export default function ProposalList(props) {
     let votingProposals = []
     let queueProposals = []
     let processedProposals = []
+
+    let streamProposals = await curDaoIdx.get('proposals', curDaoIdx.id)
+    console.log('streamProposals', streamProposals)
     
     if (requests.length > 0) {
       requests.map((fr) => {
      console.log('requests fr', fr)
         status = getStatus(fr.flags)
-        
+
+        let i = 0
+        let currentStreamProposal
+        while (i < streamProposals.events.length){
+          if (streamProposals.events[i].proposalId == fr.proposalId){
+            currentStreamProposal = streamProposals.events[i]
+            break
+          }
+        i++
+        }
+        console.log('current stream proposal', currentStreamProposal)
         proposalType = getProposalType(fr.flags)
         let isFinalized = fr.voteFinalized != 0 ? true : false
         let isVotingPeriod = getVotingPeriod(fr.startingPeriod, fr.votingPeriod, isFinalized)
@@ -362,10 +375,10 @@ export default function ProposalList(props) {
             voted: fr.voted,
             vote: fr.vote,
             configuration: fr.configuration,
-            submitTransactionHash: fr.submitTransactionHash,
-            cancelTransactionHash: fr.cancelTransactionHash,
-            processTransactionHash: fr.processTransactionHash,
-            sponsorTransactionHash: fr.sponsorTransactionHash
+            submitTransactionHash: currentStreamProposal.submitTransactionHash,
+            cancelTransactionHash: currentStreamProposal.cancelTransactionHash,
+            processTransactionHash: currentStreamProposal.processTransactionHash,
+            sponsorTransactionHash: currentStreamProposal.sponsorTransactionHash
           }])
         }
 
@@ -398,10 +411,10 @@ export default function ProposalList(props) {
             voted: fr.voted,
             vote: fr.vote,
             configuration: fr.configuration,
-            submitTransactionHash: fr.submitTransactionHash,
-            cancelTransactionHash: fr.cancelTransactionHash,
-            processTransactionHash: fr.processTransactionHash,
-            sponsorTransactionHash: fr.sponsorTransactionHash
+            submitTransactionHash: currentStreamProposal.submitTransactionHash,
+            cancelTransactionHash: currentStreamProposal.cancelTransactionHash,
+            processTransactionHash: currentStreamProposal.processTransactionHash,
+            sponsorTransactionHash: currentStreamProposal.sponsorTransactionHash
           }])
         }
 
@@ -436,10 +449,10 @@ export default function ProposalList(props) {
             voted: fr.voted,
             vote: fr.vote,
             configuration: fr.configuration,
-            submitTransactionHash: fr.submitTransactionHash,
-            cancelTransactionHash: fr.cancelTransactionHash,
-            processTransactionHash: fr.processTransactionHash,
-            sponsorTransactionHash: fr.sponsorTransactionHash
+            submitTransactionHash: currentStreamProposal.submitTransactionHash,
+            cancelTransactionHash: currentStreamProposal.cancelTransactionHash,
+            processTransactionHash: currentStreamProposal.processTransactionHash,
+            sponsorTransactionHash: currentStreamProposal.sponsorTransactionHash
           })
         }
 
@@ -472,10 +485,10 @@ export default function ProposalList(props) {
             voted: fr.voted,
             vote: fr.vote,
             configuration: fr.configuration,
-            submitTransactionHash: fr.submitTransactionHash,
-            cancelTransactionHash: fr.cancelTransactionHash,
-            processTransactionHash: fr.processTransactionHash,
-            sponsorTransactionHash: fr.sponsorTransactionHash
+            submitTransactionHash: currentStreamProposal.submitTransactionHash,
+            cancelTransactionHash: currentStreamProposal.cancelTransactionHash,
+            processTransactionHash: currentStreamProposal.processTransactionHash,
+            sponsorTransactionHash: currentStreamProposal.sponsorTransactionHash
           }])
         }
       }) 

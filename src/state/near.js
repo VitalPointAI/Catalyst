@@ -946,9 +946,7 @@ export async function cancelProposal(daoContract, contractId, proposalId, loot =
 
 // Synch Proposals
 export async function synchProposalEvent(curDaoIdx, daoContract) {
-
     let exists = false
-
     let contractProposals
     let proposalEventRecord
     try{
@@ -960,6 +958,7 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
 
     try{
         proposalEventRecord = await curDaoIdx.get('proposals', curDaoIdx.id)
+        console.log('proposal event record', proposalEventRecord)
     } catch (err) {
         console.log('problem retreiving proposal events', err)
     }
@@ -975,10 +974,11 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
                 try{
                     let proposal = await daoContract.getProposal({proposalId: i})
                     console.log('xproposal', proposal)
-                    if(proposal) {
+                    if(proposal) { 
                         let k = 0
                         while (k < proposalEventRecord.events.length){
-                            if(proposalEventRecord.events[k] == (proposal.pI).toString()){
+                            exists = false
+                            if(parseInt(proposalEventRecord.events[k].proposalId) == proposal.pI){
                                 exists = true
                                 break
                             }
@@ -1011,6 +1011,7 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
                                 }
 
                                 proposalEventRecord.events.push(indivProposalRecord)
+                        console.log('prop record event x', proposalEventRecord)
                         }
                     }
                 } catch (err) {
@@ -1027,8 +1028,10 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
         } else 
         if(proposalEventRecord.events.length > contractProposals){
             proposalEventRecord = { events: [] }
+            console.log('proposalevent record empty', proposalEventRecord)
             try {
-                await curDaoIdx.set('proposals', proposalEventRecord)
+                let emptied = await curDaoIdx.set('proposals', proposalEventRecord)
+                console.log('emptied', emptied)
             } catch (err) {
                 console.log('error emptying proposals', err)
             }
@@ -1063,6 +1066,7 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
                         }
 
                         proposalEventRecord.events.push(indivProposalRecord)
+                        console.log('iteration proposalEventRecord', proposalEventRecord)
                 }
             i++
             }
@@ -1606,12 +1610,11 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
     console.log('trans hash', transactionHash)
     let logged = false
     let dataLogged = false
-
+    let proposalType
     let proposal
     try{
         proposal = await daoContract.getProposal({proposalId: parseInt(proposalId)})
         console.log('near proposal', proposal)
-
     } catch (err) {
         console.log('error retrieving proposal for this id', err)
 
@@ -1664,15 +1667,21 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
             gracePeriod: proposal.gP,
             voteFinalized: parseInt(proposal.voteFinalized),
             submitTransactionHash: transactionHash,
+            processTransactionHash: '',
+            cancelTransactionHash: '',
+            sponsorTransactionHash: '',         
             configuration: proposal.configuration,
             referenceIds: proposal.referenceIds
             }
+
+            console.log('indivproposalrecord', indivProposalRecord)
 
             proposalEventRecord.events.push(indivProposalRecord)
          
 
             try {
-                await curDaoIdx.set('proposals', proposalEventRecord)
+                let set = await curDaoIdx.set('proposals', proposalEventRecord)
+                console.log('set', set)
                 logged = true
             } catch (err) {
                 console.log('error logging proposal', err)
@@ -1712,7 +1721,7 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
                 console.log('error logging proposal data', err)
             }
     }
-
+    
     if(logged && dataLogged){
         // Discord Integration
         let data = {
@@ -1721,6 +1730,8 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
             applicant: proposal.a,
             url: window.location.href
         }
+        proposalType = getProposalType(proposal.f)
+       
         switch(proposalType){
             case 'Whitelist':
                 try {
@@ -2482,7 +2493,7 @@ export async function logCancelEvent (curDaoIdx, daoContract, contractId, propos
                     cancelTransactionHash: transactionHash,
                     submitTransactionHash: proposalRecords.events[i].submitTransactionHash,
                     processTransactionHash: proposalRecords.events[i].processTransactionHash,
-                    sponsorTransactionHash: transactionHash
+                    sponsorTransactionHash: proposalRecords.events[i].sponsorTransactionHash
                     }
             
                 proposalRecords.events[i] = updatedProposalRecord
