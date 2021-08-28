@@ -73,7 +73,7 @@ export default function GuildKickProposal(props) {
 
   async function handleCancelAction(proposalIdentifier) {
     let finished = await daoContract.cancelProposal({
-        pI: proposalIdentifier
+        proposalId: proposalIdentifier
         }, GAS, utils.format.parseNearAmount((parseInt(proposalDeposit)).toString()))
     try{
       
@@ -94,16 +94,7 @@ export default function GuildKickProposal(props) {
                     proposalDeposit: proposalDeposit,
                     depositToken: depositToken
                     }, GAS, utils.format.parseNearAmount((parseInt(proposalDeposit)).toString()))
-      try {
-        let recorded = await proposalEvent.recordEvent(
-          finished.pI, finished.a, finished.p, finished.s, finished.sR, finished.lR, finished.tO, finished.tT, finished.pR, finished.pT, 
-          finished.sP, finished.yV, finished.nV, finished.f, finished.mT, finished.pS, finished.vP, finished.gP, finished.voteFinalized)
-          console.log('recorded', recorded)
-          
-        } catch (err) {
-          console.log('error storing guild kick log', err)
-          await handleCancelAction(finished.pI)
-        }
+      
     } catch (err) {
       console.log('There was a problem adding the guild kick proposal.', err)
       

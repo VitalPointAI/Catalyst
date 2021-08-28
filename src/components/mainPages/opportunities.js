@@ -159,7 +159,7 @@ export default function Opportunities(props) {
                         try{
           
                           
-                          let index = await thisContract.getProposalIndex({pI: parseInt(allOpportunities[j].opportunityId)})
+                          let index = await thisContract.getProposalIndex({proposalId: parseInt(allOpportunities[j].opportunityId)})
                             if (index != -1){
                                 exists = true
                             } else {
@@ -171,7 +171,7 @@ export default function Opportunities(props) {
                             exists = false
                         }
                         if(exists){
-                          let propFlags = await thisContract.getProposalFlags({pI: parseInt(allOpportunities[j].opportunityId)})
+                          let propFlags = await thisContract.getProposalFlags({proposalId: parseInt(allOpportunities[j].opportunityId)})
                           let status = getStatus(propFlags)
                           currentRecommendations.push({opportunity: allOpportunities[j], status: status, skillMatch: skillMatch, developerSkillMatch: developerSkillMatch, skillCount: skillCount, developerSkillCount: developerSkillCount, suitabilityScore: asuitabilityScore})
                          }

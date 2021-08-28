@@ -576,11 +576,11 @@ export async function submitProposal(
             set(OPPORTUNITY_REDIRECT, {action: true, contractId: contractId})
 
             await daoContract.submitMemberProposal({
-                a: applicant,
-                sR: sharesRequested,
-                lR: loot,
-                tO: tribute,
-                tT: depositToken,
+                applicant: applicant,
+                sharesRequested: sharesRequested,
+                lootRequested: loot,
+                tributeOffered: tribute,
+                tributeToken: depositToken,
                 roleNames: ['member'],
                 contractId: contractId
                 }, GAS, parseNearAmount(((parseInt(tribute) + parseInt(loot) + parseInt(proposalDeposit)).toString())))
@@ -592,10 +592,10 @@ export async function submitProposal(
         case 'Tribute':
             try{
             await daoContract.submitTributeProposal({
-                a: applicant,
-                sR: sharesRequested,
-                tO: tribute,
-                tT: depositToken,
+                applicant: applicant,
+                sharesRequested: sharesRequested,
+                tributeOffered: tribute,
+                tributeToken: depositToken,
                 contractId: contractId
                 }, GAS, parseNearAmount(((parseInt(tribute) + parseInt(proposalDeposit)).toString())))
             } catch (err) {
@@ -646,9 +646,9 @@ export async function submitProposal(
         case 'Payout':
             try{
                 await daoContract.submitPayoutProposal({
-                    a: applicant,
-                    pR: paymentRequested,
-                    pT: depositToken,
+                    applicant: applicant,
+                    paymentRequested: paymentRequested,
+                    paymentToken: depositToken,
                     referenceIds: references,
                     contractId: contractId
                     }, GAS, parseNearAmount(proposalDeposit))
@@ -673,7 +673,7 @@ export async function sponsorProposal(daoContract, contractId, proposalId, depos
         set(NEW_SPONSOR, newSponsor)
         
         let proposal = await daoContract.getProposal({proposalId: proposalId})
-        let type = getProposalType(proposal.f)
+        let type = getProposalType(proposal.flags)
 
         if(type == 'Commitment') {
             let opportunityId = proposal.referenceIds[0].valueSetting
@@ -683,7 +683,7 @@ export async function sponsorProposal(daoContract, contractId, proposalId, depos
             for(let i = 0; i < opportunitiesList.opportunities.length;i++){
                 if(opportunitiesList.opportunities[i].opportunityId = opportunityId){
                     opportunity = opportunitiesList.opportunities[i]; 
-                    opportunity['budget'] = parseInt(opportunity['budget']) - proposal.pR
+                    opportunity['budget'] = parseInt(opportunity['budget']) - proposal.paymentRequested
                     opportunitiesList.opportunities[i] = opportunity
                 } 
             }
@@ -699,7 +699,7 @@ export async function sponsorProposal(daoContract, contractId, proposalId, depos
         }
 
         await daoContract.sponsorProposal({
-            pI: proposalId,
+            proposalId: proposalId,
             depositToken: depositToken,
             contractId: contractId
             }, GAS, parseNearAmount(proposalDeposit))
@@ -803,7 +803,7 @@ export async function processProposal(daoContract, contractId, proposalId, propo
         set(NEW_PROCESS, newProcess)        
 
         await daoContract.processProposal({
-            pI: proposalId
+            proposalId: proposalId
             }, GAS)
 
     } catch (err) {
@@ -823,7 +823,7 @@ export async function submitVote(daoContract, contractId, proposalId, vote) {
         set(NEW_VOTE, newVote)
 
         await daoContract.submitVote({
-            pI: proposalId,
+            proposalId: proposalId,
             vote: vote
             }, GAS)
 
@@ -932,7 +932,7 @@ export async function cancelProposal(daoContract, contractId, proposalId, loot =
         set(NEW_CANCEL, newCancel)
 
         await daoContract.cancelProposal({
-            pI: proposalId,
+            proposalId: proposalId,
             tribute: tribute,
             loot: loot
             }, GAS)
@@ -978,7 +978,7 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
                         let k = 0
                         while (k < proposalEventRecord.events.length){
                             exists = false
-                            if(parseInt(proposalEventRecord.events[k].proposalId) == proposal.pI){
+                            if(parseInt(proposalEventRecord.events[k].proposalId) == proposal.proposalId){
                                 exists = true
                                 break
                             }
@@ -987,24 +987,24 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
                         console.log('xsynch proposal', proposal)
                         if(!exists){
                             let indivProposalRecord = {
-                                proposalId: (proposal.pI).toString(),
-                                applicant: proposal.a,
-                                proposer: proposal.p,
-                                sponsor: proposal.s,
-                                sharesRequested: proposal.sR,
-                                lootRequested: proposal.lR,
-                                tributeOffered: proposal.tO,
-                                tributeToken: proposal.tT,
-                                paymentRequested: proposal.pR,
-                                paymentToken: proposal.pT,
-                                startingPeriod: proposal.sP,
-                                yesVote: proposal.yV,
-                                noVote: proposal.nV,
-                                flags: proposal.f,
-                                maxTotalSharesAndLootAtYesVote: proposal.mT,
-                                proposalSubmission: parseInt(proposal.pS),
-                                votingPeriod: proposal.vP,
-                                gracePeriod: proposal.gP,
+                                proposalId: (proposal.proposalId).toString(),
+                                applicant: proposal.applicant,
+                                proposer: proposal.proposer,
+                                sponsor: proposal.sponsor,
+                                sharesRequested: proposal.sharesRequested,
+                                lootRequested: proposal.lootRequested,
+                                tributeOffered: proposal.tributeOffered,
+                                tributeToken: proposal.tributeToken,
+                                paymentRequested: proposal.paymentRequested,
+                                paymentToken: proposal.paymentToken,
+                                startingPeriod: proposal.startingPeriod,
+                                yesVote: proposal.yesVotes,
+                                noVote: proposal.noVotes,
+                                flags: proposal.flags,
+                                maxTotalSharesAndLootAtYesVote: proposal.maxTotalSharesAndLootAtYesVote,
+                                proposalSubmission: parseInt(proposal.proposalSubmitted),
+                                votingPeriod: proposal.votingPeriod,
+                                gracePeriod: proposalgracePeriod,
                                 voteFinalized: parseInt(proposal.voteFinalized),
                                 configuration: proposal.configuration,
                                 referenceIds: proposal.referenceIds ? proposal.referenceIds : [{}]
@@ -1042,24 +1042,24 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
                 if(proposal) {
                     
                     let indivProposalRecord = {
-                        proposalId: (proposal.pI).toString(),
-                        applicant: proposal.a,
-                        proposer: proposal.p,
-                        sponsor: proposal.s,
-                        sharesRequested: proposal.sR,
-                        lootRequested: proposal.lR,
-                        tributeOffered: proposal.tO,
-                        tributeToken: proposal.tT,
-                        paymentRequested: proposal.pR,
-                        paymentToken: proposal.pT,
-                        startingPeriod: proposal.sP,
-                        yesVote: proposal.yV,
-                        noVote: proposal.nV,
-                        flags: proposal.f,
-                        maxTotalSharesAndLootAtYesVote: proposal.mT,
-                        proposalSubmission: parseInt(proposal.pS),
-                        votingPeriod: proposal.vP,
-                        gracePeriod: proposal.gP,
+                        proposalId: (proposal.proposalId).toString(),
+                        applicant: proposal.applicant,
+                        proposer: proposal.proposer,
+                        sponsor: proposal.sponsor,
+                        sharesRequested: proposal.sharesRequested,
+                        lootRequested: proposal.lootRequested,
+                        tributeOffered: proposal.tributeOffered,
+                        tributeToken: proposal.tributeToken,
+                        paymentRequested: proposal.paymentRequested,
+                        paymentToken: proposal.paymentToken,
+                        startingPeriod: proposal.startingPeriod,
+                        yesVote: proposal.yesVotes,
+                        noVote: proposal.noVotes,
+                        flags: proposal.flags,
+                        maxTotalSharesAndLootAtYesVote: proposal.maxTotalSharesAndLootAtYesVote,
+                        proposalSubmission: parseInt(proposal.proposalSubmitted),
+                        votingPeriod: proposal.votingPeriod,
+                        gracePeriod: proposal.gracePeriod,
                         voteFinalized: parseInt(proposal.voteFinalized),
                         configuration: proposal.configuration,
                         referenceIds: proposal.referenceIds ? proposal.referenceIds : [{}]
@@ -1647,24 +1647,24 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
         
         // Individual Proposal Event
         let indivProposalRecord = {
-            proposalId: (proposal.pI).toString(),
-            applicant: proposal.a,
-            proposer: proposal.p,
-            sponsor: proposal.s,
-            sharesRequested: proposal.sR,
-            lootRequested: proposal.lR,
-            tributeOffered: proposal.tO,
-            tributeToken: proposal.tT,
-            paymentRequested: proposal.pR,
-            paymentToken: proposal.pT,
-            startingPeriod: proposal.sP,
-            yesVote: proposal.yV,
-            noVote: proposal.nV,
-            flags: proposal.f,
-            maxTotalSharesAndLootAtYesVote: proposal.mT,
-            proposalSubmission: parseInt(proposal.pS),
-            votingPeriod: proposal.vP,
-            gracePeriod: proposal.gP,
+            proposalId: (proposal.proposalId).toString(),
+            applicant: proposal.applicant,
+            proposer: proposal.proposer,
+            sponsor: proposal.sponsor,
+            sharesRequested: proposal.sharesRequested,
+            lootRequested: proposal.lootRequested,
+            tributeOffered: proposal.tributeOffered,
+            tributeToken: proposal.tributeToken,
+            paymentRequested: proposal.paymentRequested,
+            paymentToken: proposal.paymentToken,
+            startingPeriod: proposal.startingPeriod,
+            yesVote: proposal.yesVotes,
+            noVote: proposal.noVotes,
+            flags: proposal.flags,
+            maxTotalSharesAndLootAtYesVote: proposal.maxTotalSharesAndLootAtYesVote,
+            proposalSubmission: parseInt(proposal.proposalSubmitted),
+            votingPeriod: proposal.votingPeriod,
+            gracePeriod: proposal.gracePeriod,
             voteFinalized: parseInt(proposal.voteFinalized),
             submitTransactionHash: transactionHash,
             processTransactionHash: '',
@@ -1692,16 +1692,16 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
             let dataObject = {
                 proposalId: proposalId,
                 transactionHash: transactionHash,
-                proposalAdded: parseInt(proposal.pS),
-                proposer: proposal.p,
-                applicant: proposal.a,
-                sharesRequested: proposal.sR,
-                lootRequested: proposal.lR,
-                tributeOffered: proposal.tO,
-                tributeToken: proposal.tT,
-                paymentRequested: proposal.pR,
-                paymentToken: proposal.pT,
-                proposalType: proposal.f, //will need to derive type from the flags array in any queries,
+                proposalAdded: parseInt(proposal.proposalSubmitted),
+                proposer: proposal.proposer,
+                applicant: proposal.applicant,
+                sharesRequested: proposal.sharesRequested,
+                lootRequested: proposal.lootRequested,
+                tributeOffered: proposal.tributeOffered,
+                tributeToken: proposal.tributeToken,
+                paymentRequested: proposal.paymentRequested,
+                paymentToken: proposal.paymentToken,
+                proposalType: proposal.flags, //will need to derive type from the flags array in any queries,
                 updated: Date.now()
             }
 
@@ -1727,10 +1727,10 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
         let data = {
             botName: 'Proposal Manager',
             type: 'proposal',
-            applicant: proposal.a,
+            applicant: proposal.applicant,
             url: window.location.href
         }
-        proposalType = getProposalType(proposal.f)
+        proposalType = getProposalType(proposal.flags)
        
         switch(proposalType){
             case 'Whitelist':
@@ -1742,70 +1742,70 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
                 break
             case 'Guildkick':
                 try {
-                    sendMessage('GuildKick proposal submitted for ' + proposal.a, data, curDaoIdx)
+                    sendMessage('GuildKick proposal submitted for ' + proposal.applicant, data, curDaoIdx)
                 } catch (err) {
                     console.log('error sending notification', err)
                 }
                 break
             case 'Member':
                 try {
-                    sendMessage('Member proposal submitted for ' + proposal.a, data, curDaoIdx)
+                    sendMessage('Member proposal submitted for ' + proposal.applicant, data, curDaoIdx)
                 } catch (err) {
                     console.log('error sending notification', err)
                 }
                 break
             case 'Commitment':
                 try {
-                    sendMessage('Funding commitment proposal submitted for ' + proposal.a, data, curDaoIdx)
+                    sendMessage('Funding commitment proposal submitted for ' + proposal.applicant, data, curDaoIdx)
                 } catch (err) {
                     console.log('error sending notification', err)
                 }
                 break
             case 'Opportunity':
                 try {
-                    sendMessage('Opportunity proposal submitted by ' + proposal.p, data, curDaoIdx)
+                    sendMessage('Opportunity proposal submitted by ' + proposal.proposer, data, curDaoIdx)
                 } catch (err) {
                     console.log('error sending notification', err)
                 }
                 break
             case 'Tribute':
                 try {
-                    sendMessage('Tribute proposal submitted for ' + proposal.a, data, curDaoIdx)
+                    sendMessage('Tribute proposal submitted for ' + proposal.applicant, data, curDaoIdx)
                 } catch (err) {
                     console.log('error sending notification', err)
                 }
                 break
             case 'Configuration':
                 try {
-                    sendMessage('Configuration proposal submitted by ' + proposal.p, data, curDaoIdx)
+                    sendMessage('Configuration proposal submitted by ' + proposal.proposer, data, curDaoIdx)
                 } catch (err) {
                     console.log('error sending notification', err)
                 }
                 break
             case 'Payout':
                 try {
-                    sendMessage('Payout proposal submitted for ' + proposal.a, data, curDaoIdx)
+                    sendMessage('Payout proposal submitted for ' + proposal.applicant, data, curDaoIdx)
                 } catch (err) {
                     console.log('error sending notification', err)
                 }
                 break
             case 'CommunityRole':
                 try {
-                    sendMessage('Community role proposal submitted by ' + proposal.p, data, curDaoIdx)
+                    sendMessage('Community role proposal submitted by ' + proposal.proposer, data, curDaoIdx)
                 } catch (err) {
                     console.log('error sending notification', err)
                 }
                 break
             case 'ReputationFactor':
                 try {
-                    sendMessage('Reputation factor proposal submitted by ' + proposal.p, data, curDaoIdx)
+                    sendMessage('Reputation factor proposal submitted by ' + proposal.proposer, data, curDaoIdx)
                 } catch (err) {
                     console.log('error sending notification', err)
                 }
                 break
             case 'AssignRole':
                 try {
-                    sendMessage('Role assignment proposal submitted for ' + proposal.a, data, curDaoIdx)
+                    sendMessage('Role assignment proposal submitted for ' + proposal.applicant, data, curDaoIdx)
                 } catch (err) {
                     console.log('error sending notification', err)
                 }
@@ -1848,7 +1848,7 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
         }
 
         // Action Budget Adjustment if Required
-        let proposalStatus = getStatus(proposal.f)
+        let proposalStatus = getStatus(proposal.flags)
 
         if(proposalType == 'Commitment' && proposalStatus == 'Not Passed'){
             
@@ -1860,7 +1860,7 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
             while (i < opportunitiesList.opportunities.length){
                 if(opportunitiesList.opportunities[i].opportunityId = opportunityId){
                     let opportunity = opportunitiesList.opportunities[i]
-                    opportunity['budget'] = parseInt(opportunity['budget']) + proposal.pR
+                    opportunity['budget'] = parseInt(opportunity['budget']) + proposal.paymentRequested
                     opportunitiesList.opportunities[i] = opportunity
                     await thisCurDaoIdx.set('opportunities', opportunitiesList.opportunities[i])
                     budgetAdjusted = true
@@ -1875,26 +1875,26 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
         let i = 0
         if(proposalRecords && proposalRecords.events.length > 0){
             while (i < proposalRecords.events.length){
-                if(proposalRecords.events[i].proposalId == (proposal.pI).toString()){
+                if(proposalRecords.events[i].proposalId == (proposal.proposalId).toString()){
                     let updatedProposalRecord = {
-                        proposalId: (proposal.pI).toString(),
-                        applicant: proposal.a,
-                        proposer: proposal.p,
-                        sponsor: proposal.s,
-                        sharesRequested: proposal.sR,
-                        lootRequested: proposal.lR,
-                        tributeOffered: proposal.tO,
-                        tributeToken: proposal.tT,
-                        paymentRequested: proposal.pR,
-                        paymentToken: proposal.pT,
-                        startingPeriod: proposal.sP,
-                        yesVote: proposal.yV,
-                        noVote: proposal.nV,
-                        flags: proposal.f,
-                        maxTotalSharesAndLootAtYesVote: proposal.mT,
-                        proposalSubmission: parseInt(proposal.pS),
-                        votingPeriod: proposal.vP,
-                        gracePeriod: proposal.gP,
+                        proposalId: (proposal.proposalId).toString(),
+                        applicant: proposal.applicant,
+                        proposer: proposal.proposer,
+                        sponsor: proposal.sponsor,
+                        sharesRequested: proposal.sharesRequested,
+                        lootRequested: proposal.lootRequested,
+                        tributeOffered: proposal.tributeOffered,
+                        tributeToken: proposal.tributeToken,
+                        paymentRequested: proposal.paymentRequested,
+                        paymentToken: proposal.paymentToken,
+                        startingPeriod: proposal.startingPeriod,
+                        yesVote: proposal.yesVotes,
+                        noVote: proposal.noVotes,
+                        flags: proposal.flags,
+                        maxTotalSharesAndLootAtYesVote: proposal.maxTotalSharesAndLootAtYesVote,
+                        proposalSubmission: parseInt(proposal.proposalSubmitted),
+                        votingPeriod: proposal.votingPeriod,
+                        gracePeriod: proposal.gracePeriod,
                         voteFinalized: parseInt(proposal.voteFinalized),
                         configuration: proposal.configuration,
                         referenceIds: proposal.referenceIds,
@@ -1916,21 +1916,21 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                     // Associated Proposal Data to Log
 
                     let dataObject = {
-                        proposalId: (proposal.pI).toString(),
+                        proposalId: (proposal.proposalId).toString(),
                         processTime: Date.now(),
                         transactionHash: transactionHash,
-                        proposalAdded: parseInt(proposal.pS),
-                        proposer: proposal.p,
-                        applicant: proposal.a,
-                        sharesRequested: proposal.sR,
-                        lootRequested: proposal.lR,
-                        tributeOffered: proposal.tO,
-                        tributeToken: proposal.tT,
-                        paymentRequested: proposal.pR,
-                        yesVote: proposal.yV,
-                        noVote: proposal.nV,
-                        paymentToken: proposal.pT,
-                        proposalType: proposal.f, //will need to derive type from the flags array in any queries
+                        proposalAdded: parseInt(proposal.proposalSubmitted),
+                        proposer: proposal.proposer,
+                        applicant: proposal.applicant,
+                        sharesRequested: proposal.sharesRequested,
+                        lootRequested: proposal.lootRequested,
+                        tributeOffered: proposal.tributeOffered,
+                        tributeToken: proposal.tributeToken,
+                        paymentRequested: proposal.paymentRequested,
+                        yesVote: proposal.yesVotes,
+                        noVote: proposal.noVotes,
+                        paymentToken: proposal.paymentToken,
+                        proposalType: proposal.flags, //will need to derive type from the flags array in any queries
                         updated: Date.now()
                     }
 
@@ -1958,7 +1958,7 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
     
     if(proposalType == 'Member' || proposalType == 'Tribute'){
 
-        let member = await daoContract.getMemberInfo({member: proposal.a})
+        let member = await daoContract.getMemberInfo({member: proposal.applicant})
     
         let memberId = generateId()
        
@@ -2028,8 +2028,8 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                 delegatedShares: member[0].delegatedShares,
                 receivedDelegations: member[0].receivedDelegations,
                 loot: member[0].loot,
-                proposer: proposal.p,
-                applicant: proposal.a
+                proposer: proposal.proposer,
+                applicant: proposal.applicant
             }
 
             let individualDataRecord = {
@@ -2093,8 +2093,8 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                         delegatedShares: member[0].delegatedShares,
                         receivedDelegations: member[0].receivedDelegations,
                         loot: member[0].loot,
-                        proposer: proposal.p,
-                        applicant: proposal.a,
+                        proposer: proposal.proposer,
+                        applicant: proposal.applicant,
                         active: member[0].active,
                         changeTime: parseInt(member[0].updated)
                     }
@@ -2126,11 +2126,11 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
     if(proposalType != 'Commitment'){
         if(processLogged && memberLogged && memberDataLogged && proposalDataLogged){
             let data = {
-                applicant: proposal.a,
+                applicant: proposal.applicant,
                 url: window.location.href
             }
             try {
-                sendMessage(proposal.a+"'s Proposal "+proposalId + " has been processed", "Processing", "process", data, curDaoIdx)
+                sendMessage(proposal.applicant+"'s Proposal "+proposalId + " has been processed", "Processing", "process", data, curDaoIdx)
                 return true
             } catch (err) {
                 console.log('error sending notification', err)
@@ -2141,11 +2141,11 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
     } else if(proposalType == 'Commitment'){
         if(processLogged && memberLogged && memberDataLogged && proposalDataLogged && budgetAdjusted){
             let data = {
-                applicant: proposal.a,
+                applicant: proposal.applicant,
                 url: window.location.href
             }
             try {
-                sendMessage(proposal.a+"'s Proposal "+proposalId + " has been processed", "Processing", "process", data, curDaoIdx)
+                sendMessage(proposal.applicant+"'s Proposal "+proposalId + " has been processed", "Processing", "process", data, curDaoIdx)
                 return true
             } catch (err) {
                 console.log('error sending notification', err)
@@ -2183,26 +2183,26 @@ export async function logVoteEvent(curDaoIdx, contractId, daoContract, proposalI
         let exists
         let i = 0
         while (i < proposalRecords.events.length){
-            if(proposalRecords.events[i].proposalId == (proposal.pI).toString()){
+            if(proposalRecords.events[i].proposalId == (proposal.proposalId).toString()){
                 let updatedProposalRecord = {
-                    proposalId: (proposal.pI).toString(),
-                    applicant: proposal.a,
-                    proposer: proposal.p,
-                    sponsor: proposal.s,
-                    sharesRequested: proposal.sR,
-                    lootRequested: proposal.lR,
-                    tributeOffered: proposal.tO,
-                    tributeToken: proposal.tT,
-                    paymentRequested: proposal.pR,
-                    paymentToken: proposal.pT,
-                    startingPeriod: proposal.sP,
-                    yesVote: proposal.yV,
-                    noVote: proposal.nV,
-                    flags: proposal.f,
-                    maxTotalSharesAndLootAtYesVote: proposal.mT,
-                    proposalSubmission: parseInt(proposal.pS),
-                    votingPeriod: proposal.vP,
-                    gracePeriod: proposal.gP,
+                    proposalId: (proposal.proposalId).toString(),
+                    applicant: proposal.applicant,
+                    proposer: proposal.proposer,
+                    sponsor: proposal.sponsor,
+                    sharesRequested: proposal.sharesRequested,
+                    lootRequested: proposal.lootRequested,
+                    tributeOffered: proposal.tributeOffered,
+                    tributeToken: proposal.tributeToken,
+                    paymentRequested: proposal.paymentRequested,
+                    paymentToken: proposal.paymentToken,
+                    startingPeriod: proposal.startingPeriod,
+                    yesVote: proposal.yesVotes,
+                    noVote: proposal.noVotes,
+                    flags: proposal.flags,
+                    maxTotalSharesAndLootAtYesVote: proposal.maxTotalSharesAndLootAtYesVote,
+                    proposalSubmission: parseInt(proposal.proposalSubmitted),
+                    votingPeriod: proposal.votingPeriod,
+                    gracePeriod: proposal.gracePeriod,
                     voteFinalized: parseInt(proposal.voteFinalized),
                     configuration: proposal.configuration,
                     referenceIds: proposal.referenceIds,
@@ -2291,7 +2291,7 @@ export async function logSponsorEvent (curDaoIdx, daoContract, contractId, propo
     let budgetAdjusted = false
 
     let proposal = await daoContract.getProposal({proposalId: parseInt(proposalId)})
-    let proposalType = getProposalType(proposal.f)
+    let proposalType = getProposalType(proposal.flags)
 
      // Log Proposal Data
      let proposalDataRecord = await curDaoIdx.get('proposalData', curDaoIdx.id)
@@ -2312,7 +2312,7 @@ export async function logSponsorEvent (curDaoIdx, daoContract, contractId, propo
              while (i < opportunitiesList.opportunities.length){
                  if(opportunitiesList.opportunities[i].opportunityId = opportunityId){
                      let opportunity = opportunitiesList.opportunities[i]
-                     opportunity['budget'] = parseInt(opportunity['budget']) - proposal.pR
+                     opportunity['budget'] = parseInt(opportunity['budget']) - proposal.paymentRequested
                      opportunitiesList.opportunities[i] = opportunity
                      await thisCurDaoIdx.set('opportunities', opportunitiesList.opportunities[i])
                      budgetAdjusted = true
@@ -2331,24 +2331,24 @@ export async function logSponsorEvent (curDaoIdx, daoContract, contractId, propo
         while (i < proposalRecords.events.length){
         if(proposalRecords.events[i].proposalId == proposalId){
             let updatedProposalRecord = {
-                proposalId: (proposal.pI).toString(),
-                applicant: proposal.a,
-                proposer: proposal.p,
-                sponsor: proposal.s,
-                sharesRequested: proposal.sR,
-                lootRequested: proposal.lR,
-                tributeOffered: proposal.tO,
-                tributeToken: proposal.tT,
-                paymentRequested: proposal.pR,
-                paymentToken: proposal.pT,
-                startingPeriod: proposal.sP,
-                yesVote: proposal.yV,
-                noVote: proposal.nV,
-                flags: proposal.f,
-                maxTotalSharesAndLootAtYesVote: proposal.mT,
-                proposalSubmission: parseInt(proposal.pS),
-                votingPeriod: proposal.vP,
-                gracePeriod: proposal.gP,
+                proposalId: (proposal.proposalId).toString(),
+                applicant: proposal.applicant,
+                proposer: proposal.proposer,
+                sponsor: proposal.sponsor,
+                sharesRequested: proposal.sharesRequested,
+                lootRequested: proposal.lootRequested,
+                tributeOffered: proposal.tributeOffered,
+                tributeToken: proposal.tributeToken,
+                paymentRequested: proposal.paymentRequested,
+                paymentToken: proposal.paymentToken,
+                startingPeriod: proposal.startingPeriod,
+                yesVote: proposal.yesVotes,
+                noVote: proposal.noVotes,
+                flags: proposal.flags,
+                maxTotalSharesAndLootAtYesVote: proposal.maxTotalSharesAndLootAtYesVote,
+                proposalSubmission: parseInt(proposal.proposalSubmitted),
+                votingPeriod: proposal.votingPeriod,
+                gracePeriod: proposal.gracePeriod,
                 voteFinalized: parseInt(proposal.voteFinalized),
                 configuration: proposal.configuration,
                 referenceIds: proposal.referenceIds,
@@ -2370,21 +2370,21 @@ export async function logSponsorEvent (curDaoIdx, daoContract, contractId, propo
              // Associated Proposal Data to Log
 
              let dataObject = {
-                proposalId: (proposal.pI).toString(),
+                proposalId: (proposal.proposalId).toString(),
                 sponsorTime: Date.now(),
                 transactionHash: transactionHash,
-                proposalAdded: parseInt(proposal.pS),
-                proposer: proposal.p,
-                applicant: proposal.a,
-                sharesRequested: proposal.sR,
-                lootRequested: proposal.lR,
-                tributeOffered: proposal.tO,
-                tributeToken: proposal.tT,
-                paymentRequested: proposal.pR,
-                yesVote: proposal.yV,
-                noVote: proposal.nV,
-                paymentToken: proposal.pT,
-                proposalType: proposal.f, //will need to derive type from the flags array in any queries
+                proposalAdded: parseInt(proposal.proposalSubmitted),
+                proposer: proposal.proposer,
+                applicant: proposal.applicant,
+                sharesRequested: proposal.sharesRequested,
+                lootRequested: proposal.lootRequested,
+                tributeOffered: proposal.tributeOffered,
+                tributeToken: proposal.tributeToken,
+                paymentRequested: proposal.paymentRequested,
+                yesVote: proposal.yesVotes,
+                noVote: proposal.noVotes,
+                paymentToken: proposal.paymentToken,
+                proposalType: proposal.flags, //will need to derive type from the flags array in any queries
                 updated: Date.now()
             }
 
@@ -2410,11 +2410,11 @@ export async function logSponsorEvent (curDaoIdx, daoContract, contractId, propo
         if(logged  && sponsorDataLogged){
             let data = {
                 type: proposalType,
-                applicant: proposal.a,
+                applicant: proposal.applicant,
                 url: window.location.href
             }
             try {
-                sendMessage(proposal.a + "'s proposal " + proposalId + " has been sponsored by " + proposal.s
+                sendMessage(proposal.applicant + "'s proposal " + proposalId + " has been sponsored by " + proposal.sponsor
                 , "Sponsorship", "sponsor", data, curDaoIdx)
                 return true
             } catch (err) {
@@ -2428,11 +2428,11 @@ export async function logSponsorEvent (curDaoIdx, daoContract, contractId, propo
             let data = {
                 botName: 'Sponsorship',
                 type: proposalType,
-                applicant: proposal.a,
+                applicant: proposal.applicant,
                 url: window.location.href
             }
             try {
-                sendMessage(proposal.a + "'s proposal " + proposalId + " has been sponsored by " + proposal.s
+                sendMessage(proposal.applicant + "'s proposal " + proposalId + " has been sponsored by " + proposal.sponsor
                 , botName, "sponsor", data, curDaoIdx)
                 return true
             } catch (err) {
@@ -2469,24 +2469,24 @@ export async function logCancelEvent (curDaoIdx, daoContract, contractId, propos
             if(proposalRecords.events[i].proposalId == proposalId){
               
                 let updatedProposalRecord = {
-                    proposalId: (proposal.pI).toString(),
-                    applicant: proposal.a,
-                    proposer: proposal.p,
-                    sponsor: proposal.s,
-                    sharesRequested: proposal.sR,
-                    lootRequested: proposal.lR,
-                    tributeOffered: proposal.tO,
-                    tributeToken: proposal.tT,
-                    paymentRequested: proposal.pR,
-                    paymentToken: proposal.pT,
-                    startingPeriod: proposal.sP,
-                    yesVote: proposal.yV,
-                    noVote: proposal.nV,
-                    flags: proposal.f,
-                    maxTotalSharesAndLootAtYesVote: proposal.mT,
-                    proposalSubmission: parseInt(proposal.pS),
-                    votingPeriod: proposal.vP,
-                    gracePeriod: proposal.gP,
+                    proposalId: (proposal.proposalId).toString(),
+                    applicant: proposal.applicant,
+                    proposer: proposal.proposer,
+                    sponsor: proposal.sponsor,
+                    sharesRequested: proposal.sharesRequested,
+                    lootRequested: proposal.lootRequested,
+                    tributeOffered: proposal.tributeOffered,
+                    tributeToken: proposal.tributeToken,
+                    paymentRequested: proposal.paymentRequested,
+                    paymentToken: proposal.paymentToken,
+                    startingPeriod: proposal.startingPeriod,
+                    yesVote: proposal.yesVotes,
+                    noVote: proposal.noVotes,
+                    flags: proposal.flags,
+                    maxTotalSharesAndLootAtYesVote: proposal.maxTotalSharesAndLootAtYesVote,
+                    proposalSubmission: parseInt(proposal.proposalSubmitted),
+                    votingPeriod: proposal.votingPeriod,
+                    gracePeriod: proposal.gracePeriod,
                     voteFinalized: parseInt(proposal.voteFinalized),
                     configuration: proposal.configuration,
                     referenceIds: proposal.referenceIds,
@@ -2508,21 +2508,21 @@ export async function logCancelEvent (curDaoIdx, daoContract, contractId, propos
                 // Associated Proposal Data to Log
 
              let dataObject = {
-                proposalId: (proposal.pI).toString(),
+                proposalId: (proposal.proposalId).toString(),
                 sponsorTime: Date.now(),
                 transactionHash: transactionHash,
-                proposalAdded: parseInt(proposal.pS),
-                proposer: proposal.p,
-                applicant: proposal.a,
-                sharesRequested: proposal.sR,
-                lootRequested: proposal.lR,
-                tributeOffered: proposal.tO,
-                tributeToken: proposal.tT,
-                paymentRequested: proposal.pR,
-                yesVote: proposal.yV,
-                noVote: proposal.nV,
-                paymentToken: proposal.pT,
-                proposalType: proposal.f, //will need to derive type from the flags array in any queries
+                proposalAdded: parseInt(proposal.proposalSubmitted),
+                proposer: proposal.proposer,
+                applicant: proposal.applicant,
+                sharesRequested: proposal.sharesRequested,
+                lootRequested: proposal.lootRequested,
+                tributeOffered: proposal.tributeOffered,
+                tributeToken: proposal.tributeToken,
+                paymentRequested: proposal.paymentRequested,
+                yesVote: proposal.yesVotes,
+                noVote: proposal.noVotes,
+                paymentToken: proposal.paymentToken,
+                proposalType: proposal.flags, //will need to derive type from the flags array in any queries
                 updated: Date.now()
             }
 

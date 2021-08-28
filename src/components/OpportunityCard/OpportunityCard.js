@@ -245,7 +245,7 @@ export default function OpportunityCard(props) {
           if(wallet && opportunityId){
             const daoContract = await dao.initDaoContract(wallet.account(), useContractId)
             let proposal = await daoContract.getProposal({proposalId: parseInt(opportunityId)})
-            let thisStatus = getStatus(proposal.f)
+            let thisStatus = getStatus(proposal.flags)
             setStatus(thisStatus)
           }
 

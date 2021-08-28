@@ -32,8 +32,6 @@ import Tooltip from '@material-ui/core/Tooltip'
 import Zoom from '@material-ui/core/Zoom'
 import InfoIcon from '@material-ui/icons/Info'
 import Paper from '@material-ui/core/Paper'
-import { NONAME } from 'dns';
-import { setMaxListeners } from 'process';
 
 const useStyles = makeStyles((theme) => ({
     progress: {
@@ -113,19 +111,19 @@ export default function EditFundingProposalForm(props) {
                   }
            }
 
-           // Set Existing Proposal Data       
+           // Set Existing Proposal Data
+           let thisLeft      
            if(curDaoIdx && contract && proposalId){
-              // let proposal = await contract.getProposal({proposalId: proposalId})
-              // setRequested(parseInt(proposal.pR))
-              // setLeft(parseInt(proposal.pR))
             
               let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
               
               if(propResult) {
                 let i = 0
+                console.log('propresult', propResult)
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == proposalId){
                     propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
+                    propResult.proposals[i].milestones ? setMilestones(propResult.proposals[i].milestones) : setMilestones([{milestoneId: ''}])
                     if (propResult.proposals[i].details){
                       let contentBlock = htmlToDraft(propResult.proposals[i].details)
                       if (contentBlock){
@@ -140,9 +138,37 @@ export default function EditFundingProposalForm(props) {
                   }
                   i++
                 }
+
+                let j = 0
+                let totalProgrammed = 0
+               
+                while(j < milestones.length){
+                  console.log('xy milestones', milestones)
+              
+                  if(isNaN(milestones[j][`payout${j}`])){
+                    totalProgrammed = 0
+                  }
+          
+                  if(!isNaN(milestones[j][`payout${j}`])){
+                    totalProgrammed = totalProgrammed + milestones[j][`payout${j}`]
+                    console.log('xy totalprogrammed notnan', totalProgrammed)
+                   
+                  }
+          
+                  setPlanned(totalProgrammed)
+                  thisLeft = requested - totalProgrammed
+                  console.log('xy this left not nan', thisLeft)
+                  setLeft(thisLeft)
+                 
+                  j++
+                }
               }
            }
-          
+           if(thisLeft == 0){
+            setDisabled(false)
+          } else {
+            setDisabled(true)
+          }
         }
        
         fetchData()
@@ -164,6 +190,7 @@ export default function EditFundingProposalForm(props) {
       console.log('zi', i)
       console.log('ze', e)
       let newMilestone = [...milestones]
+      console.log('zi new milestones', newMilestone)
       newMilestone[i]['milestoneId'] = i
       if(e.target.name == [`payout${i}`]){
         newMilestone[i][e.target.name] = parseInt(e.target.value)
@@ -396,7 +423,7 @@ export default function EditFundingProposalForm(props) {
                   <Typography variant="h6" style={{marginTop: '30px'}}>Milestones</Typography>
                   <Paper style={{padding: '5px'}}>
                   <Typography variant="body1">You've requested {requested} Ⓝ.  The total amount of all milestones must equal the amount requested.</Typography>
-                  {milestones.map((element, index) => (
+                  {milestones && milestones.map((element, index) => (
                   
                       <React.Fragment key={index}>
                       <Grid container justifyContent="space-between" alignItems="flex-end" spacing={1}>

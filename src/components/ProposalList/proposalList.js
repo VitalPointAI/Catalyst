@@ -279,7 +279,7 @@ export default function ProposalList(props) {
 
   async function getUserVote(proposalIdentifier) {
     
-    let result = await contract.getMemberProposalVote({memberAddress: accountId, pI: parseInt(proposalIdentifier)})
+    let result = await contract.getMemberProposalVote({memberAddress: accountId, proposalId: parseInt(proposalIdentifier)})
     return result
   }
 

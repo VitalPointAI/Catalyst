@@ -167,7 +167,7 @@ export default function OpportunityProposalDetails(props) {
               console.log('useContractId', contractId)
               const daoContract = await dao.initDaoContract(wallet.account(), contractId)
               let proposal = await daoContract.getProposal({proposalId: parseInt(opportunityId)})
-              let thisStatus = getStatus(proposal.f)
+              let thisStatus = getStatus(proposal.flags)
               setProposalStatus(thisStatus)
 
               try {

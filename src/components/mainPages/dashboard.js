@@ -492,7 +492,7 @@ export default function Dashboard(props) {
                         // confirm proposal exists
                         let exists
                         try{
-                            let index = await thisContract.getProposalIndex({pI: parseInt(allOpportunities[j].opportunityId)})
+                            let index = await thisContract.getProposalIndex({proposalId: parseInt(allOpportunities[j].opportunityId)})
                             if (index != -1){
                                 exists = true
                             } else {
@@ -504,7 +504,7 @@ export default function Dashboard(props) {
                             exists = false
                         }
                         if(exists){
-                            propFlags = await thisContract.getProposalFlags({pI: parseInt(allOpportunities[j].opportunityId)})
+                            propFlags = await thisContract.getProposalFlags({proposalId: parseInt(allOpportunities[j].opportunityId)})
                             
                             let status = getStatus(propFlags)
                             let data = new Persona()
