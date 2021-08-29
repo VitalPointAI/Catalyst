@@ -1142,7 +1142,8 @@ function typeFilter(item){
       
       </TabPanel>
       <TabPanel value="2" className={classes.root}>
-      <FormControl component="fieldset" style={{float:'left'}}>
+      <Grid container spacing={1} justifyContent="flex-start" alignItems="center">
+      <FormControl component="fieldset" >
           <FormLabel component="legend">Filter Proposals</FormLabel>
           <FormGroup>
             <FormControlLabel
@@ -1197,6 +1198,7 @@ function typeFilter(item){
           <FormHelperText>Choose the proposal types you want.</FormHelperText>
         </FormControl>
         {Proposals}
+        </Grid>
       </TabPanel>
       <TabPanel value="3" className={classes.root}>
         {Votes}
