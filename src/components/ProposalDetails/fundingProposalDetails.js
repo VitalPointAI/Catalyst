@@ -91,6 +91,8 @@ export default function FundingProposalDetails(props) {
     const [proposerAvatar, setProposerAvatar] = useState()
     const [proposerName, setProposerName] = useState()
 
+    const [milestonePayouts, setMilestonePayouts] = useState([])
+
     // const [proposalStatus, setProposalStatus] = useState()
   
     const [isUpdated, setIsUpdated] = useState(false)
@@ -152,7 +154,7 @@ export default function FundingProposalDetails(props) {
             }
 
             // Set Existing Proposal Data       
-            if(curDaoIdx){
+            if(curDaoIdx && contract){
               let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
               console.log('propresult', propResult)
               if(propResult) {
@@ -168,7 +170,28 @@ export default function FundingProposalDetails(props) {
                   i++
                 }
               }
+            
+              let oppResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
+              console.log('oppresult', oppResult)
+              let confirmedMilestonePayouts = []
+              let t = 0
+              while (t < oppResult.proposals.length){
+                let z = 0
+                while(z < oppResult.proposals[t].referenceIds.length-1){                 
+                  if(oppResult.proposals[t].referenceIds[0].keyName == 'proposal' && oppResult.proposals[t].referenceIds[0].valueSetting == proposalId ){
+                    let currentProposal = await contract.getProposal({proposalId: parseInt(proposalId)})
+                    let status = getStatus(currentProposal.flags)                    
+                    if (status == 'Passed'){
+                      confirmedMilestonePayouts.push(oppResult.proposals[t].referenceIds[1].valueSetting)
+                      setMilestonePayouts(confirmedMilestonePayouts)                     
+                    }
+                  }
+                z++
+                }
+              t++
+              }
             }
+            
 
             // Set Existing Proposal Comments      
             if(curDaoIdx){
@@ -215,6 +238,15 @@ export default function FundingProposalDetails(props) {
     if(milestones && milestones.length > 0){
       Milestones = milestones.map((element, index) => {
         console.log('element', element)
+        let i = 0
+        let paid
+        while (i < milestonePayouts.length){
+          if (element.milestoneId == parseInt(milestonePayouts[i])){
+            paid = true
+            break
+          }
+          i++
+        }
         return (
           <MilestoneCard 
             key={element.milestoneId}
@@ -226,6 +258,7 @@ export default function FundingProposalDetails(props) {
             proposalId={proposalId}
             proposalStatus={proposalStatus}
             applicant={applicant}
+            paid={paid}
           />
         )
       })

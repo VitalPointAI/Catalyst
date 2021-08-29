@@ -66,7 +66,8 @@ export default function MilestoneCard(props) {
       description,
       proposalId,
       proposalStatus,
-      applicant
+      applicant,
+      paid
     } = props
 
     const {
@@ -133,10 +134,12 @@ export default function MilestoneCard(props) {
             <Grid item xs={1} sm={1} md={1} lg={1} xl={1} align="left">
               <Typography variant="body2" align="center">{payout} Ⓝ</Typography>
             </Grid>
-            <Grid item xs={2} sm={2} md={2} lg={2} xl={2} align="left">
-              {proposalStatus == 'Passed' && accountId == applicant ? (
+            <Grid item xs={2} sm={2} md={2} lg={2} xl={2} align="center">
+            {paid ? <Typography variant="overline">Paid</Typography> :
+              proposalStatus == 'Passed' && accountId == applicant ? (
                 <Button onClick={handlePayoutProposalClick} variant="contained" color="primary">Request Payout</Button>
-              ) : null }
+              ) : null
+            }
             </Grid>
           </Grid>
         </Card>

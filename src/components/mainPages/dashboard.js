@@ -77,6 +77,11 @@ const useStyles = makeStyles((theme) => ({
     selectEmpty: {
         marginTop: theme.spacing(2),
     },
+    imageLogo: {
+        backgroundSize: 'contain', 
+        padding: '10px',
+        height: '60px'
+    },
     paper: {
         width: '100%',
         marginBottom: theme.spacing(2),
@@ -913,11 +918,10 @@ export default function Dashboard(props) {
                                 }
                                 placement="right-start"
                             >      
-                                <Avatar 
-                                    src={row.communityLogo} 
-                                    variant="square"
-                                />
+                                
+                                <img src={row.communityLogo} className={classes.imageLogo} />
                             </HtmlTooltip> 
+                            
                         </a>
                         </TableCell>
                         <TableCell style={{padding:'inherit'}}>

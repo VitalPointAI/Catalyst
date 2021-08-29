@@ -44,6 +44,9 @@ const useStyles = makeStyles((theme) => ({
       margin: 'auto',
       maxWidth: '250px'
     },
+    logoImage: {
+      width: '140px'
+    },
     avatar: {
       backgroundColor: red[500],
     },
@@ -142,6 +145,11 @@ export default function OpportunityCard(props) {
     const [dateLoaded, setDateLoaded] = useState(false)
     const [anchorEl, setAnchorEl] = useState(null)
     const [formattedTime, setFormattedTime] = useState('')
+    const [days, setDays] = useState(0)
+    const [hours, setHours] = useState(0)
+    const [minutes, setMinutes] = useState(0)
+    const [seconds, setSeconds] = useState(0)
+
     const { state, dispatch, update } = useContext(appStore)
     const [currDate, setCurrDate] = useState(0)
     const [oldDate, setOldDate] = useState(0)
@@ -290,7 +298,11 @@ export default function OpportunityCard(props) {
             let seconds = Math.floor((distance % (1000 * 60)) / 1000)
             
             if(days && hours && minutes && seconds){
-              setFormattedTime(days + ":" + hours + ":" + minutes + ":" + seconds)
+              setDays(days)
+              setHours(hours)
+              setMinutes(minutes)
+              setSeconds(seconds)
+              //setFormattedTime(days + ":" + hours + ":" + minutes + ":" + seconds)
             }
             setDateLoaded(true)
           }
@@ -398,16 +410,13 @@ export default function OpportunityCard(props) {
    
         <Card raised={true} className={classes.card}>
           <Grid container alignItems="center" justifyContent="center" spacing={1} style={{padding: '5px'}}>
-            <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
+            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
               <Link to={`/dao/${thisContractId}`}>
-                <Avatar variant="square" src={logo} />
+                <img src={logo} className={classes.logoImage} /><br></br>
+                {logo ? null : <Typography variant="h6">{communityName ? communityName : contractId}</Typography>}
               </Link>
             </Grid>
-            <Grid item xs={12} sm={12} md={9} lg={9} xl={9}>
-              <Link to={`/dao/${thisContractId}`}>
-                <Typography variant="body1">{communityName ? communityName : thisContractId}</Typography>
-              </Link>
-            </Grid>
+           
           </Grid>
           <CardHeader
           title={
@@ -428,8 +437,8 @@ export default function OpportunityCard(props) {
             <Chip avatar={<Avatar src={avatar} className={classes.small} onClick={handleMemberProfileDisplayClick}/>} label={name != '' ? name : creator}/>
           </Grid>
           <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '10px'}}>
-          <Typography variant="overline">TIme Remaining: {
-            dateLoaded ? formattedTime
+          <Typography variant="subtitle2">Time Remaining: {
+            dateLoaded ? days+'d:'+hours+'h:'+minutes+'m:'+seconds
             : 'Calculating...'
             }</Typography>
 
@@ -541,6 +550,7 @@ export default function OpportunityCard(props) {
           accountId={accountId}
           reference={opportunityId}
           budget={budget}
+          opportunityTitle={title}
           /> : null }
 
         {opportunityProposalDetailsClicked ? <OpportunityProposalDetails

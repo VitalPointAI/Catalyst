@@ -205,7 +205,7 @@ export default function SmallDaoCard(props) {
                 <div style={{width: '100%', 
                 height: '50px',
                 backgroundImage: `url(${slogo})`, 
-                backgroundSize: '180px auto', 
+                backgroundSize: 'contain', 
                 backgroundPosition: 'center', 
                 backgroundRepeat: 'no-repeat',
                 backgroundOrigin: 'content-box'
