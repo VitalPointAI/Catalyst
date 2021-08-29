@@ -3,7 +3,9 @@ import { appStore, onAppMount } from '../../state/app'
 import { makeStyles } from '@material-ui/core/styles'
 import CommentForm from '../common/Comment/commentForm'
 import CommentDetails from '../common/Comment/commentDetails'
+import MilestoneCard from '../MilestoneCard/MilestoneCard'
 import Persona from '@aluhning/get-personas-js'
+import { getStatus, formatDate } from '../../state/near'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -22,6 +24,8 @@ import Typography from '@material-ui/core/Typography'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import Chip from '@material-ui/core/Chip'
 import Divider from '@material-ui/core/Divider'
+import Card from '@material-ui/core/Card'
+import Paper from '@material-ui/core/Paper'
 
 // CSS Styles
 
@@ -34,6 +38,16 @@ const useStyles = makeStyles((theme) => ({
     },
     card: {
       margin: 'auto',
+      width: '100%',
+      marginBottom: '10px'
+    },
+    detailsCard: {
+      margin: 'auto',
+      width: '100%',
+      minWidth: '100%',
+      marginBottom: '10px',
+      marginTop: '10px',
+      padding: '5px'
     },
     progress: {
         display: 'flex',
@@ -68,8 +82,16 @@ export default function FundingProposalDetails(props) {
 
     const [title, setTitle] = useState()
     const [details, setDetails] = useState()
-    const [avatar, setAvatar] = useState()
-    const [name, setName] = useState()
+    const [milestones, setMilestones] = useState([{}])
+    const [created, setCreated] = useState()
+    
+    const [applicantAvatar, setApplicantAvatar] = useState()
+    const [applicantName, setApplicantName] = useState()
+
+    const [proposerAvatar, setProposerAvatar] = useState()
+    const [proposerName, setProposerName] = useState()
+
+    // const [proposalStatus, setProposalStatus] = useState()
   
     const [isUpdated, setIsUpdated] = useState(false)
     const [proposalComments, setProposalComments] = useState([])
@@ -81,7 +103,8 @@ export default function FundingProposalDetails(props) {
 
     const {
       accountId,
-      curUserIdx
+      curUserIdx, 
+      wallet
     } = state
 
     const {
@@ -92,8 +115,13 @@ export default function FundingProposalDetails(props) {
         curPersonaIdx,
         applicant,
         proposer,
-        contract
+        contract,
+        contractId,
+        sponsor,
+        proposalStatus
     } = props
+
+    const thisPersona = new Persona()
 
     useEffect(
         () => {
@@ -102,28 +130,39 @@ export default function FundingProposalDetails(props) {
           async function fetchData() {
          
             // Get Applicant Persona Information
+            if(proposer){                    
+              
+              let result = await thisPersona.getPersona(proposer)
+                  if(result){
+                    result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
+                    result.name ? setProposerName(result.name) : setProposerName(proposer)
+                  } else {
+                    setProposerAvatar(imageName)
+                    setProposerName(proposer)
+                  } 
+            }
            
             if(applicant){                           
                
-                  const thisPersona = new Persona()
                   let result = await thisPersona.getPersona(applicant)
                       if(result){
-                        result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-                        result.name ? setName(result.name) : setName('')
+                        result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
+                        result.name ? setApplicantName(result.name) : setApplicantName('')
                       }
             }
-            
 
             // Set Existing Proposal Data       
             if(curDaoIdx){
               let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
-         
+              console.log('propresult', propResult)
               if(propResult) {
                 let i = 0
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == proposalId){
                     propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
                     propResult.proposals[i].details ? setDetails(propResult.proposals[i].details) : setDetails('')
+                    propResult.proposals[i].milestones ? setMilestones(propResult.proposals[i].milestones) : setMilestones([{}])
+                    propResult.proposals[i].submitDate ? setCreated(propResult.proposals[i].submitDate) : setCreated()
                     break
                   }
                   i++
@@ -160,7 +199,7 @@ export default function FundingProposalDetails(props) {
               setFinished(true)
             })
           
-    }, [applicant, avatar, title, details, name, isUpdated]
+    }, [applicant, applicantAvatar, proposerAvatar, title, created, details, applicantName, proposerName, isUpdated]
     )
 
     const handleClose = () => {
@@ -171,6 +210,27 @@ export default function FundingProposalDetails(props) {
     function handleUpdate(property){
       setIsUpdated(property)
     }
+
+    let Milestones
+    if(milestones && milestones.length > 0){
+      Milestones = milestones.map((element, index) => {
+        console.log('element', element)
+        return (
+          <MilestoneCard 
+            key={element.milestoneId}
+            id={element.milestoneId}
+            name={element[`milestone${element.milestoneId}`]}
+            deadline={element[`deadline${element.milestoneId}`]}
+            payout={element[`payout${element.milestoneId}`]}
+            description={element[`briefDescription${element.milestoneId}`]}
+            proposalId={proposalId}
+            proposalStatus={proposalStatus}
+            applicant={applicant}
+          />
+        )
+      })
+    }
+      
 
     let Comments
     console.log('proposalComments', proposalComments)
@@ -207,19 +267,59 @@ export default function FundingProposalDetails(props) {
                   <DialogContentText style={{marginBottom: 10}}>
                   This proposal has no details yet.
                   </DialogContentText>) : (<>
-                    <Grid container spacing={1}>
-                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                            
-                        </Grid>
-                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12} className={classes.centered}>
-                            <Typography variant="h4">{title}</Typography>
-                           
-                            <Avatar src={avatar}/><Typography variant="h5">{proposer}</Typography>
-                        </Grid>
-                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                            <div dangerouslySetInnerHTML={{ __html: details}}></div>
-                        </Grid>
+                  <Grid container alignItems="flex-start" justifyContent="space-between" style={{marginBottom: '30px'}}>
+                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
+                       <Typography variant="h4">{title}</Typography>
                     </Grid>
+                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
+                      <Typography variant="overline">Proposer:</Typography>
+                      <Chip avatar={<Avatar src={proposerAvatar} className={classes.small}  />} label={proposerName != '' ? proposerName : proposer}/>
+                      <Typography variant="overline" style={{marginLeft:'10px'}}>Proposed: {created ? formatDate(created) : null}</Typography>
+                    </Grid>
+                   
+                    {status == 'Sponsored' ? (
+                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{marginBottom: '30px'}}>
+                      <Typography variant="overline" color="textSecondary">{sponsor ? 'Sponsor:' + sponsor : null}</Typography>
+                    </Grid>
+                    ) : null }
+                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                      <Card className={classes.detailsCard}>
+                      <div dangerouslySetInnerHTML={{ __html: details }} />
+                      </Card>
+                      
+                    </Grid>
+                  </Grid>
+                    <Grid container spacing={1} style={{width: '100%'}}>
+                    <Typography variant="h6" style={{marginBottom: '10px'}}>Completion Plan</Typography>
+                      <Paper >
+                      <Grid container justifyContent="flex-start" alignItems="center" spacing={1}>
+                        <Grid item xs={1} sm={1} md={1} lg={1} xl={1} align="center">
+                          <Typography variant="body2">Id</Typography>
+                        </Grid>
+                        <Grid item xs={3} sm={3} md={3} lg={3} xl={3} align="left" >
+                          <Typography variant="body2">Milestone</Typography>
+                        </Grid>
+                        <Grid item xs={3} sm={3} md={3} lg={3} xl={3} align="left" >
+                          <Typography variant="body2">Description</Typography>
+                        </Grid>
+                        <Grid item xs={2} sm={2} md={2} lg={2} xl={2} align="left" >
+                          <Typography variant="body2">Est Completion</Typography>
+                        </Grid>
+                        <Grid item xs={1} sm={1} md={1} lg={1} xl={1} align="left">
+                          <Typography variant="body2" align="center">Payout</Typography>
+                        </Grid>
+                        <Grid item xs={2} sm={2} md={2} lg={2} xl={2} align="left">
+                         
+                        </Grid>
+                      </Grid>
+                    
+
+                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                            {Milestones}
+                        </Grid>
+                        </Paper>
+                    </Grid>
+                  
                     </>)}
                 </DialogContent>
               <DialogActions>

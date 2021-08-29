@@ -29,7 +29,7 @@ import { dao } from '../../utils/dao'
 import { ceramic } from '../../utils/ceramic'
 
 import { NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE, NEW_DONATION, NEW_EXIT, 
-  NEW_DELEGATION, NEW_REVOCATION, COMMUNITY_DELETE, NEW_DELETE, BUDGET_DEDUCTION, BUDGET_INCREASE, hasKey } from '../../state/near'
+  NEW_DELEGATION, NEW_REVOCATION, COMMUNITY_DELETE, NEW_DELETE, hasKey } from '../../state/near'
 
 // Material UI imports
 import { makeStyles } from '@material-ui/core/styles'
@@ -335,18 +335,21 @@ export default function AppFramework(props) {
                   let d = 0
                   while(d < newProposal.length){
                     if(newProposal[d].contractId==contractId && newProposal[d].new == true){
-                      console.log('trans hash', transactionHash)
-                      let loggedProposal = await logProposalEvent(
-                        curDaoIdx, 
-                        daoContract, 
-                        newProposal[d].proposalId,
-                        contractId,
-                        transactionHash
-                        )
-                        
-                      if (loggedProposal) {
+                      if(!transactionHash){
                         del(NEW_PROPOSAL)
-                        await renewProposals(curDaoIdx, daoContract)
+                      } else {
+                        let loggedProposal = await logProposalEvent(
+                          curDaoIdx, 
+                          daoContract, 
+                          newProposal[d].proposalId,
+                          contractId,
+                          transactionHash
+                          )
+                          
+                        if (loggedProposal) {
+                          del(NEW_PROPOSAL)
+                          await renewProposals(curDaoIdx, daoContract)
+                        }
                       }
                     }
                     d++
@@ -358,16 +361,20 @@ export default function AppFramework(props) {
                   let f = 0
                   while(f < newSponsor.length){
                     if(newSponsor[f].contractId==contractId && newSponsor[f].new == true){
-                      let loggedSponsor = await logSponsorEvent(
-                        curDaoIdx, 
-                        daoContract,
-                        contractId,
-                        newSponsor[f].proposalId,
-                        transactionHash)
-                        
-                      if (loggedSponsor) {
-                      del(NEW_SPONSOR)
-                      await renewProposals(curDaoIdx, daoContract)
+                      if(!transactionHash){
+                        del(NEW_SPONSOR)
+                      } else {
+                        let loggedSponsor = await logSponsorEvent(
+                          curDaoIdx, 
+                          daoContract,
+                          contractId,
+                          newSponsor[f].proposalId,
+                          transactionHash)
+                          
+                        if (loggedSponsor) {
+                        del(NEW_SPONSOR)
+                        await renewProposals(curDaoIdx, daoContract)
+                        }
                       }
                     }
                     f++
@@ -481,25 +488,6 @@ export default function AppFramework(props) {
                     }
                     l++
                   }
-
-                  //  // check for successful sponsor and deduct balanceFbud
-                  //  let budgetDeduction = get(BUDGET_DEDUCTION, [])
-                  //  if(budgetDeduction.length > 0){
-                  //    await curDaoIdx.set('opportunities', budgetDeduction[0].opportunitiesList)
-                  //    let newPeriod = contract.getCurrentPeriod()
-                  //    setCurrentPeriod(newPeriod)
-                  //    setChange(!change)
-                  //  }
-                  //  del(BUDGET_DEDUCTION)
-
-                  //  let budgetIncrease = get(BUDGET_INCREASE, [])
-                  //  if(budgetIncrease.length > 0){
-                  //    await curDaoIdx.set('opportunities', budgetIncrease[0].opportunitiesList)
-                  //    let newPeriod = contract.getCurrentPeriod()
-                  //    setCurrentPeriod(newPeriod)
-                  //    setChange(!change)
-                  //  }
-                  //  del(BUDGET_INCREASE)
 
                   // check for successfully added revoke delegation and log it
                   let newRevocation = get(NEW_REVOCATION, [])
@@ -648,6 +636,8 @@ export default function AppFramework(props) {
                         let token = await daoContract.getDepositToken()
                         setDepositToken(token)
                         setTokenName(token)
+                        update('', { tokenName: token})
+                        update('', { depositToken: token})
                       } catch (err) {
                         console.log('no deposit token yet')
                       }

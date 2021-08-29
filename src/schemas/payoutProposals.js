@@ -18,16 +18,10 @@ export const payoutProposalDetailsSchema = {
         "proposalId": {
           type: 'string',
         },
-        "referencedFundingProposalId": {
-          type: 'string',
-        },
-        "milestoneId": {
-          type: 'string',
-        },
         "title": {
           type: 'string',
         },
-        "detailsOfCompletion": {
+        "details": {
           type: 'string',
         },
         "proposer": {
@@ -39,6 +33,9 @@ export const payoutProposalDetailsSchema = {
         },
         "published": {
           type: 'boolean'
+        },
+        "milestone": {
+          type: 'array'
         },
         "referenceIds": {
           type: 'array'

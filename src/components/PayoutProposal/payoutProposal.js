@@ -80,8 +80,11 @@ export default function PayoutProposal(props) {
     tokenName,
     depositToken,
     reference,
-    contractId } = props
+    contractId,
+    milestonePayout
+     } = props
 
+console.log('reference', reference)
   const handleClose = () => {
     handlePayoutProposalClickState(false)
   };
@@ -103,7 +106,18 @@ export default function PayoutProposal(props) {
     setFinished(false)
 
     let references = []
-    references.push({'references': reference})
+    if(Object.keys(reference).length > 0 ){
+      for(const[key, value] of Object.entries(reference)){
+        references.push({
+          'keyName': key,
+          'valueSetting': value.toString()
+        })
+      }
+    }
+
+
+    let actualPayout
+    milestonePayout ? actualPayout = milestonePayout : actualPayout = payout
 
     try{
       await submitProposal(
@@ -114,7 +128,8 @@ export default function PayoutProposal(props) {
         '0',
         '0',
         '0',
-        payout,
+        actualPayout.toString(),
+        [''],
         references
         )
       } catch (err) {
@@ -146,6 +161,7 @@ export default function PayoutProposal(props) {
             {errors.payoutProposalApplicant && <p style={{color: 'red'}}>You must provide a valid NEAR account.</p>}
           </div>
           <div>
+          {!milestonePayout ? (
             <TextField
               margin="dense"
               id="payout-proposal-funds-requested"
@@ -153,7 +169,7 @@ export default function PayoutProposal(props) {
               name="payout"
               label="Payout Requested"
               placeholder="e.g. 100000"
-              value={payout}
+              value={milestonePayout ? milestonePayout : payout}
               onChange={handlePayoutChange}
               inputRef={register({
                   required: true,
@@ -167,11 +183,15 @@ export default function PayoutProposal(props) {
                 </>
               }}
             />
+          ) : (<>
+            <Typography variant="h6">Payout Requested: {milestonePayout} {tokenName}</Typography>
+            <Typography variant="body1">For proposal: {reference.proposal}, milestone: {reference.milestone}</Typography>
+          </>)}
           </div>
         <Card>
         <CardContent>
           <WarningIcon fontSize='large' className={classes.warning} />
-          <Typography variant="body1">You are requesting that <b>{applicant}</b> receive {payout} Ⓝ. After submitting
+          <Typography variant="body1">You are requesting that <b>{applicant}</b> receive {milestonePayout ? milestonePayout : payout} Ⓝ. After submitting
           this proposal, you must provide enough supporting detail and proof of work to help other members evaluate the work done and decide whether to approve your proposal or not.</Typography>
           <Grid container className={classes.confirmation} spacing={1}>
             <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
@@ -192,10 +212,10 @@ export default function PayoutProposal(props) {
                   <Typography variant="body2"><u>Proposal passes:</u></Typography>
                     <ul style={{paddingInlineStart:'10px', paddingInlineEnd:'10px'}}>
                       <li>
-                        <Typography variant="body2">Applicant receives {payout} Ⓝ.</Typography>
+                        <Typography variant="body2">Applicant receives {milestonePayout ? milestonePayout : payout} Ⓝ.</Typography>
                       </li>
                       <li>
-                        <Typography variant="body2">Community escrow fund will decrease by {payout} Ⓝ.</Typography>
+                        <Typography variant="body2">Community escrow fund will decrease by {milestonePayout ? milestonePayout : payout} Ⓝ.</Typography>
                       </li>
                       <li>
                         <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you</Typography>

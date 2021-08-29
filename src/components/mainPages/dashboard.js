@@ -7,7 +7,7 @@ import "d3-time-format"
 import Persona from '@aluhning/get-personas-js'
 import { formatNearAmount } from 'near-api-js/lib/utils/format'
 import { dao } from '../../utils/dao'
-import { getStatus, synchProposalEvent } from '../../state/near'
+import { getStatus, synchProposalEvent, generateId, formatDateString } from '../../state/near'
 import * as nearAPI from 'near-api-js'
 import { ceramic } from '../../utils/ceramic'
 import MemberProfile from '../MemberProfileDisplay/memberProfile'
@@ -242,34 +242,34 @@ export default function Dashboard(props) {
                         while (j < memData.data.length){
                             console.log('datatype', memData.data[j].dataType)
                             if(memData.data[j].dataType =='newSummoner') {
-                                console.log('formatteddate', formatDate(memData.data[j].data.summonTime))
+                                console.log('formatteddate', formatDateString(memData.data[j].data.summonTime))
                                 newMemberDataFrame.push({
                                     type: 'Summon',
-                                    joined: formatDate(memData.data[j].data.summonTime), 
+                                    joined: formatDateString(memData.data[j].data.summonTime), 
                                     number: 1
                                 })
                                 activityDataFrame.push({
                                     type: 'Summon',
-                                    timeStamp: formatDate(memData.data[j].data.summonTime), 
+                                    timeStamp: formatDateString(memData.data[j].data.summonTime), 
                                     number: 1
                                 })
                             }
                             if(memData.data[j].dataType == 'newMember'){
                                 newMemberDataFrame.push({
                                     type: 'New Member',
-                                    joined: formatDate(memData.data[j].data.joined), 
+                                    joined: formatDateString(memData.data[j].data.joined), 
                                     number: 1
                                 })
                                 activityDataFrame.push({
                                     type: 'New Member',
-                                    timeStamp: formatDate(memData.data[j].data.joined), 
+                                    timeStamp: formatDateString(memData.data[j].data.joined), 
                                     number: 1
                                 })
                             }
                             if(memData.data[j].dataType == 'changeMember'){
                                 activityDataFrame.push({
                                     type: 'Update Member',
-                                    timeStamp: formatDate(memData.data[j].data.changeTime), 
+                                    timeStamp: formatDateString(memData.data[j].data.changeTime), 
                                     number: 1
                                 })
                             }
@@ -296,7 +296,7 @@ export default function Dashboard(props) {
                                 passed++
                                 activityDataFrame.push({
                                     type: 'Proposal Passed',
-                                    timeStamp: formatDate(propData.data[k].data.processTime), 
+                                    timeStamp: formatDateString(propData.data[k].data.processTime), 
                                     number: 1
                                 })
                             }
@@ -305,7 +305,7 @@ export default function Dashboard(props) {
                                 notPassed++
                                 activityDataFrame.push({
                                     type: 'Proposal Failed',
-                                    timeStamp: formatDate(propData.data[k].data.processTime), 
+                                    timeStamp: formatDateString(propData.data[k].data.processTime), 
                                     number: 1
                                 })
                             }
@@ -314,7 +314,7 @@ export default function Dashboard(props) {
                                 inProgress++
                                 activityDataFrame.push({
                                     type: 'Proposal Sponsored',
-                                    timeStamp: formatDate(propData.data[k].data.sponsorTime), 
+                                    timeStamp: formatDateString(propData.data[k].data.sponsorTime), 
                                     number: 1
                                 })
                             }
@@ -562,12 +562,6 @@ export default function Dashboard(props) {
 
     function handleUpdate() {
         setIsUpdated(!isUpdated)
-    }
-
-    function formatDate(timestamp) {
-        let stringDate = timestamp.toString()
-        let options = {year: 'numeric', month: 'long', day: 'numeric'}
-        return new Date(parseInt(stringDate.slice(0,13))).toLocaleString('en-US', options)  
     }
 
     const handleOpportunityProposalDetailsClick = (proposer, opportunityId, rowContractId) => {
@@ -905,7 +899,8 @@ export default function Dashboard(props) {
                 .map((row, index) => {
                   console.log('row', row)
                   console.log('index', index)
-                    return (<React.Fragment key={row.opportunity.title}>
+                  let id = generateId()
+                    return (<React.Fragment key={id}>
                         <TableRow key={row.opportunity.title}>
                         <TableCell component="th" scope="row" padding="none" >
                         <a href={`/dao/${row.opportunity.contractId}`}> 

@@ -59,7 +59,9 @@ const useStyles = makeStyles((theme) => ({
       marginTop: '10px',
       maxWidth: '250px',
       minWidth: '250px',
-      position: 'relative'
+      height: '400px',
+      position: 'relative',
+      margin: 'auto'
     },
     cardAction: {
       display: 'block'
@@ -195,6 +197,7 @@ export default function ProposalCard(props) {
 
     const { applicant, created, noVotes, yesVotes, proposalType, proposer, requestId, tribute, vote, loot, shares, status, funding,
         isVotingPeriod, isGracePeriod, voted, gracePeriod, votingPeriod, currentPeriod, periodDuration, cancelFinish, sponsor, done, configuration,
+        referenceIds,
         cancelTransactionHash,
         submitTransactionHash,
         processTransactionHash,
@@ -209,7 +212,8 @@ export default function ProposalCard(props) {
         memberStatus,
         contract,
         summoner,
-        queueList
+        queueList,
+        guildBalance
     } = props
 
     useEffect(
@@ -345,7 +349,7 @@ export default function ProposalCard(props) {
           return () => mounted = false
           }
           
-    }, [isUpdated, queueList, curDaoIdx]
+    }, [isUpdated, queueList, guildBalance, curDaoIdx]
     )
 
     function handleUpdate(property){
@@ -928,7 +932,7 @@ export default function ProposalCard(props) {
                 <Button 
                  color="primary"
                  style={{fontWeight: '800', fontSize: '110%', lineHeight: '1.1em'}}
-                 onClick={handleFundingProposalDetailsClick}
+                 onClick={handlePayoutProposalDetailsClick}
                 >
                  {payoutTitle ? payoutTitle.replace(/(<([^>]+)>)/gi, ""): 'No Details Yet.'}
                 </Button>
@@ -1078,7 +1082,8 @@ export default function ProposalCard(props) {
             <div className={classes.bottom}>
               <Divider className={classes.divider}/>
               {status == 'Submitted' ? <Typography variant="subtitle2" display="block" align="center">Awaiting Sponsor</Typography> : null}
-            </div>
+              {status != 'Passed' && status != 'Sponsored' && status != 'Not Passed' && parseInt(funding) > parseInt(guildBalance[0].balance) ? <Typography variant="subtitle2" display="block" align="center" style={{backgroundColor: 'red', color: 'white', padding: '2px', marginTop:'3px'}}>Funds Required</Typography> : null}
+              </div>
 
               {status == 'Sponsored' && isVotingPeriod && !isGracePeriod ? (
                
@@ -1201,23 +1206,41 @@ export default function ProposalCard(props) {
 
                 <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
                 {totalMembers != 1 ?
-                  (accountId != proposer && accountId != applicant) && status=='Submitted' && memberStatus == true && detailsExist == true ? 
-                <><Button 
-                    color="primary" 
-                    onClick={detailsExist ? (e) => handleSponsorConfirmationClick(requestId, proposalType, funding) :<p>Details Required</p>}
-                  >
-                  Sponsor
-                  </Button>
-                </> : null
+                  
+                  (accountId != proposer && accountId != applicant) 
+                  && status=='Submitted' 
+                  && memberStatus == true 
+                  && detailsExist == true
+                  && (parseInt(funding) < parseInt(guildBalance[0].balance))
+                    ? 
+                    (
+                      <><Button 
+                          color="primary" 
+                          onClick={detailsExist ? (e) => handleSponsorConfirmationClick(requestId, proposalType, funding) :<p>Details Required</p>}
+                        >
+                        Sponsor
+                        </Button>
+                      </>
+                    ) 
+                    : null
                 :
-                accountId == summoner && status=='Submitted' && memberStatus == true && detailsExist == true ? 
-                <><Button 
-                    color="primary" 
-                    onClick={detailsExist ? (e) => handleSponsorConfirmationClick(requestId, proposalType, funding) : <p>Details required</p>}
-                  >
-                  Sponsor
-                  </Button>
-                </> : null }
+                  accountId == summoner 
+                  && status=='Submitted' 
+                  && memberStatus == true 
+                  && detailsExist == true
+                  && (parseInt(funding) < parseInt(guildBalance[0].balance))
+                  ? 
+                    (  
+                      <><Button 
+                          color="primary" 
+                          onClick={detailsExist ? (e) => handleSponsorConfirmationClick(requestId, proposalType, funding) : <p>Details required</p>}
+                        >
+                        Sponsor
+                        </Button>
+                      </>
+                    ) 
+                  : null
+                }
                 </Grid>
 
               <Grid item xs={8} sm={8} md={8} lg={8} xl={8} align="right">
@@ -1300,6 +1323,7 @@ export default function ProposalCard(props) {
           proposalId={requestId}
           contract={daoContract}
           funding={funding}
+          referenceIds={referenceIds}
           /> : null }
 
         {editTributeProposalDetailsClicked ? <EditTributeProposalForm
@@ -1337,6 +1361,10 @@ export default function ProposalCard(props) {
           handleUpdate={handleUpdate}
           accountId={accountId}
           proposalId={requestId}
+          contract={daoContract}
+          funding={funding}
+          referenceIds={referenceIds}
+          proposalStatus={status}
           /> : null }
 
         {editOpportunityProposalDetailsClicked ? <EditOpportunityProposalForm
@@ -1371,6 +1399,8 @@ export default function ProposalCard(props) {
           applicant={applicant}
           handleUpdate={handleUpdate}
           proposalId={requestId}
+          proposalStatus={status}
+          sponsor={sponsor}
           /> : null }
 
         {tributeProposalDetailsClicked ? <TributeProposalDetails
@@ -1403,6 +1433,8 @@ export default function ProposalCard(props) {
           applicant={applicant}
           handleUpdate={handleUpdate}
           proposalId={requestId}
+          proposalStatus={status}
+          sponsor={sponsor}
           /> : null }
 
         {opportunityProposalDetailsClicked ? <OpportunityProposalDetails

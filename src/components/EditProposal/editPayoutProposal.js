@@ -8,6 +8,8 @@ import { Editor } from "react-draft-wysiwyg"
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
 import draftToHtml from 'draftjs-to-html'
 import htmlToDraft from 'html-to-draftjs'
+import Persona from '@aluhning/get-personas-js'
+import MilestoneCard from '../MilestoneCard/MilestoneCard'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -55,19 +57,13 @@ export default function EditPayoutProposalForm(props) {
      const [date, setDate] = useState('')
      const [name, setName] = useState('')
      const [avatar, setAvatar] = useState(imageName)
-     const [shortBio, setShortBio] = useState('')
- 
-     // Funding Proposal Fields
-     const [title, setTitle] = useState('')
-     const [details, setDetails] = useState(EditorState.createEmpty())
- 
+     const [shortBio, setShortBio] = useState('') 
 
     // Payout Proposal Fields
-    const [payoutTitle, setPayoutTitle] = useState('')
+    const [title, setTitle] = useState('')
     const [refFundingId, setRefFundingId] = useState('')
-    const [milestoneId, setMilestoneId] = useState('')
-    const [detailsOfCompletion, setDetailsOfCompletion] = useState(EditorState.createEmpty())
-
+    const [milestones, setMilestones] = useState([{}])
+    const [details, setDetails] = useState(EditorState.createEmpty())
 
     const { register, handleSubmit, watch, errors } = useForm()
 
@@ -77,9 +73,11 @@ export default function EditPayoutProposalForm(props) {
         applicant,
         proposer,
         curDaoIdx,
-        curPersonaIdx,
-        fundingProposalId,
         proposalId,
+        contract,
+        funding, 
+        referenceIds,
+        proposalStatus,
     } = props
     
     const classes = useStyles()
@@ -89,44 +87,98 @@ export default function EditPayoutProposalForm(props) {
           setLoaded(false)
            
             // Set Existing Persona Data      
-            if(curPersonaIdx){
-              let result = await curPersonaIdx.get('profile', curPersonaIdx.id)
-              console.log('result edit', result)
-              if(result) {
-                result.date ? setDate(result.date) : setDate('')
-                result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-                result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
-                result.name ? setName(result.name) : setName('')
-              }
+            if(applicant){
+              const thisPersona = new Persona()
+              let result = await thisPersona.getPersona(applicant)
+                  if(result){
+                    result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
+                    result.name ? setName(result.name) : setName('')
+                    result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
+                    result.date ? setDate(result.date) : setDate('')
+                  }
            }
 
-           // Set Existing Payout Proposal Data       
-           if(curDaoIdx){
-              let propResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
-              console.log('propResult', propResult)
-              if(propResult) {
-                let i = 0
-                while (i < propResult.proposals.length){
-                  if(propResult.proposals[i].proposalId == proposalId){
-                    propResult.proposals[i].title ? setPayoutTitle(propResult.proposals[i].title) : setPayoutTitle('')
-                    propResult.proposals[i].milestoneId ? setMilestoneId(propResult.proposals[i].milestoneId) : setMilestoneId('')
-                    propResult.proposals[i].referencedFundingProposalId ? setRefFundingId(propResult.proposals[i].referencedFundingProposalId) : setRefFundingId('')
-                    if (propResult.proposals[i].detailsOfCompletion){
-                      let contentBlock = htmlToDraft(propResult.proposals[i].detailsOfCompletion)
-                      if (contentBlock){
-                        const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks)
-                        const editorState = EditorState.createWithContent(contentState)
-                        setDetailsOfCompletion(editorState)
-                      }
-                      } else {
-                        setDetailsOfCompletion(EditorState.createEmpty())
-                      }
-                     break
-                  }
-                  i++
+            // Set Existing Payout Proposal Data  
+           if(curDaoIdx && contract && proposalId){
+            console.log('here pp')
+            let propResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
+            console.log('pp here propResult', propResult)
+            
+            if(propResult) {
+             
+              let i = 0
+              console.log('propresult', propResult)
+              while (i < propResult.proposals.length){
+                if(propResult.proposals[i].proposalId == proposalId){
+                  propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
+                  propResult.proposals[i].milestones ? setMilestones(propResult.proposals[i].milestones) : setMilestones([{milestoneId: ''}])
+                  if (propResult.proposals[i].details){
+                    let contentBlock = htmlToDraft(propResult.proposals[i].details)
+                    if (contentBlock){
+                      const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks)
+                      const editorState = EditorState.createWithContent(contentState)
+                      setDetails(editorState)
+                    }
+                    } else {
+                      setDetails(EditorState.createEmpty())
+                    }
+                  break
                 }
+              i++
               }
-           }
+            }
+            
+            // set title to funding commitment title if it exists
+            if(referenceIds){
+              let oppResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
+              console.log('oppresult', oppResult)
+              let proposal
+              let interimMilestones = []
+              let milestone
+              let thisMilestoneId
+              let t = 0
+              while (t < referenceIds.length){
+                  if(referenceIds[t].keyName == 'proposal'){
+                    let k = 0
+                    while(k < oppResult.proposals.length){
+                      if(oppResult.proposals[k].proposalId == referenceIds[t].valueSetting){
+                        interimMilestones = oppResult.proposals[k].milestones        
+                        proposal = true                          
+                        break
+                      }
+                    k++
+                    }
+                  
+                  if(proposal){
+                    let newT = 0
+                    while(newT < referenceIds.length){
+                      if(referenceIds[newT].keyName =='milestone'){                      
+                        let m = 0
+                        while(m < interimMilestones.length){
+                            if(interimMilestones[m].milestoneId == referenceIds[newT].valueSetting){
+                            setTitle(interimMilestones[m]['milestone'+m])
+                            let newMilestone = []
+                            newMilestone.push(interimMilestones[m])
+                            console.log('newmilestone', newMilestone)
+                            setMilestones(newMilestone)
+                            milestone = true                      
+                            break
+                          }
+                        }
+                        m++
+                      }
+                      newT++
+                    }
+                  }
+                }
+
+                if(proposal && milestone){
+                  break
+                }
+              t++
+              }
+            }
+          }
         }
        
         fetchData()
@@ -135,21 +187,14 @@ export default function EditPayoutProposalForm(props) {
           })
     },[])
 
+
     const handleClose = () => {
         handleEditPayoutProposalDetailsClickState(false)
         setOpen(false)
     }
 
-    const handlePayoutTitleChange = (event) => {
-        setPayoutTitle(event.target.value)
-    }
-
-    const handleMilestoneIdChange = (event) => {
-      setMilestoneId(event.target.value)
-    }
-
-    const handleReferencedFundingProposalIdChange = (event) => {
-      setRefFundingId(event.target.value)
+    const handleTitleChange = (event) => {
+        setTitle(event.target.value)
     }
 
     function formatDate(timestamp) {
@@ -158,8 +203,29 @@ export default function EditPayoutProposalForm(props) {
       return new Date(intDate).toLocaleString('en-US', options)
     }
 
-    const handleDetailsOfCompletionChange = (editorState) => {
-      setDetailsOfCompletion(editorState)
+    const handleDetailsChange = (editorState) => {
+      setDetails(editorState)
+    }
+
+    let Milestones
+    if(milestones && milestones.length > 0){
+      console.log('milestones', milestones)
+      Milestones = milestones.map((element, index) => {
+        console.log('element', element)
+        return (
+          <MilestoneCard 
+            key={element.milestoneId}
+            id={element.milestoneId}
+            name={element[`milestone${element.milestoneId}`]}
+            deadline={element[`deadline${element.milestoneId}`]}
+            payout={element[`payout${element.milestoneId}`]}
+            description={element[`briefDescription${element.milestoneId}`]}
+            proposalId={proposalId}
+            proposalStatus={proposalStatus}
+            applicant={applicant}
+          />
+        )
+      })
     }
 
     const onSubmit = async (values) => {
@@ -175,16 +241,20 @@ export default function EditPayoutProposalForm(props) {
       if(!detailRecords){
         detailRecords = { proposals: [] }
       }
+      let references = []
+      if(referenceIds){
+        references = referenceIds
+      }
      
       let proposalRecord = {
           proposalId: proposalId.toString(),
-          referencedFundingProposalId: refFundingId,
-          milestoneId: milestoneId,
-          title: payoutTitle,
-          detailsOfCompletion: draftToHtml(convertToRaw(detailsOfCompletion.getCurrentContent())),
+          milestone: milestones,
+          title: title,
+          details: draftToHtml(convertToRaw(details.getCurrentContent())),
           proposer: proposer,
           submitDate: now,
-          published: true
+          published: true,
+          referenceIds: references
       }
 
       // Update existing records
@@ -221,11 +291,10 @@ export default function EditPayoutProposalForm(props) {
             { loaded ? (<>
               <DialogTitle id="form-dialog-title">Payout Proposal Details</DialogTitle>
               <DialogContent>
-                  <DialogContentText style={{marginBottom: 10}}>
-                  Please provide details of completion of milestone for referenced funded project id:
+                 
+                  {milestones && milestones.length > 0 ? Milestones : null}
                   
-                  </DialogContentText>
-                  
+                  {title == '' ? (
                   <TextField
                       autoFocus
                       margin="dense"
@@ -234,59 +303,28 @@ export default function EditPayoutProposalForm(props) {
                       name="payoutProposalTitle"
                       label="Payout Proposal Title"
                       placeholder="Payout Request for Milestone # of Commitment #"
-                      value={payoutTitle}
-                      onChange={handlePayoutTitleChange}
+                      value={title}
+                      onChange={handleTitleChange}
                       inputRef={register({
                           required: true                              
                       })}
                   />
+                  ) : null }
                   {errors.payoutProposalTitle && <p style={{color: 'red'}}>You must provide a payout proposal title.</p>}
-
-                  <TextField
-                    autoFocus
-                    margin="dense"
-                    id="payout-proposal-fundingId"
-                    variant="outlined"
-                    name="referencedFundingId"
-                    label="Referenced Funding Commitment ID"
-                    placeholder="enter funding commitment id"
-                    value={refFundingId}
-                    onChange={handleReferencedFundingProposalIdChange}
-                    inputRef={register({
-                        required: true                              
-                    })}
-                  />
-                  {errors.referencedFundingId && <p style={{color: 'red'}}>You must provide the funding commitment id.</p>}
-
-                  <TextField
-                    autoFocus
-                    margin="dense"
-                    id="payout-proposal-milestoneId"
-                    variant="outlined"
-                    name="milestoneId"
-                    label="Milestone ID"
-                    placeholder="enter milestone Id of funding commitment"
-                    value={milestoneId}
-                    onChange={handleMilestoneIdChange}
-                    inputRef={register({
-                        required: true                              
-                    })}
-                  />
-                  {errors.milestoneId && <p style={{color: 'red'}}>You must provide the corresponding milestone Id.</p>}
-                  
+                 
+                  <Typography variant="h6">Please provide proof of work completion:</Typography>
                   <Paper style={{padding: '5px'}}>
                   <Editor
-                    name="detailsOfCompletion"
-                    editorState={detailsOfCompletion}
+                    name="details"
+                    editorState={details}
                     toolbarClassName="toolbarClassName"
                     wrapperClassName="wrapperClassName"
                     editorClassName="editorClassName"
-                    onEditorStateChange={handleDetailsOfCompletionChange}
+                    onEditorStateChange={handleDetailsChange}
                     editorStyle={{minHeight:'200px'}}
                   />
                   </Paper>
-                 
-                  {errors.detailsOfCompletion && <p style={{color: 'red'}}>You must provide the details showing proof of project completion.</p>}
+                  {errors.details && <p style={{color: 'red'}}>You must provide the details showing proof of project completion.</p>}
                    
                 </DialogContent>
                

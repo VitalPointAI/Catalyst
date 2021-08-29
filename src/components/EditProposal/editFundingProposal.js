@@ -91,7 +91,8 @@ export default function EditFundingProposalForm(props) {
         curDaoIdx,
         proposalId,
         contract,
-        funding
+        funding, 
+        referenceIds
     } = props
     
     const classes = useStyles()
@@ -116,6 +117,7 @@ export default function EditFundingProposalForm(props) {
            if(curDaoIdx && contract && proposalId){
             
               let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
+
               
               if(propResult) {
                 let i = 0
@@ -135,6 +137,35 @@ export default function EditFundingProposalForm(props) {
                         setDetails(EditorState.createEmpty())
                       }
                     break
+                  } else {
+                    // set title to opportunity title if it exists
+                    if(referenceIds){
+                      for(const [key, value] of Object.entries(referenceIds)){
+                        console.log('opp value', value)
+                        if(value['valueSetting']!=''){
+                          let oppResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
+                          console.log('oppresult', oppResult)
+                          let k = 0
+                          while(k < oppResult.opportunities.length){
+                            if(oppResult.opportunities[k].opportunityId == value['valueSetting']){
+                              setTitle(oppResult.opportunities[k].title)
+                              if (oppResult.opportunities[k].details){
+                                let contentBlock = htmlToDraft(oppResult.opportunities[k].details)
+                                if (contentBlock){
+                                  const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks)
+                                  const editorState = EditorState.createWithContent(contentState)
+                                  setDetails(editorState)
+                                }
+                                } else {
+                                  setDetails(EditorState.createEmpty())
+                                }
+                              break
+                            }
+                            k++
+                          }
+                        }
+                      }
+                    }
                   }
                   i++
                 }

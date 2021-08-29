@@ -28,6 +28,12 @@ import HowToVoteIcon from '@material-ui/icons/HowToVote'
 import QueueIcon from '@material-ui/icons/Queue'
 import AssignmentTurnedInIcon from '@material-ui/icons/AssignmentTurnedIn'
 import Grid from '@material-ui/core/Grid'
+import FormLabel from '@material-ui/core/FormLabel';
+import FormControl from '@material-ui/core/FormControl';
+import FormGroup from '@material-ui/core/FormGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import Switch from '@material-ui/core/Switch';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -35,7 +41,7 @@ const useStyles = makeStyles((theme) => ({
     flexWrap: 'wrap',
     justifyContent: 'space-around',
     backgroundColor: theme.palette.background.paper,
-    marginBottom: '5px'
+    marginBottom: '5px',
   },
   bottom: {
     marginBottom: '20px'
@@ -86,7 +92,20 @@ export default function ProposalList(props) {
   const [sponsorProposalType, setSponsorProposalType] = useState()
   const [paymentRequested, setPaymentRequested] = useState()
   const [membersArray, setMembersArray] = useState([])
-  
+
+  const [onlyFundingCommitmentProposals, setOnlyFundingCommitmentProposals] = useState(true)
+  const [onlyPayoutProposals, setOnlyPayoutProposals] = useState(true)
+  const [onlyMemberProposals, setOnlyMemberProposals] = useState(true)
+  const [onlyOpportunityProposals, setOnlyOpportunityProposals] = useState(true)
+  const [onlyWhiteListProposals, setOnlyWhiteListProposals] = useState(true)
+  const [onlyGuildKickProposals, setOnlyGuildKickProposals] = useState(true)
+  const [onlyTributeProposals, setOnlyTributeProposals] = useState(true)
+  const [onlyConfigurationProposals, setOnlyConfigurationProposals] = useState(true)
+  const [onlyReputationFactorProposals, setOnlyReputationFactorProposals] = useState(true)
+  const [onlyAssignRoleProposals, setOnlyAssignRoleProposals] = useState(true)
+  const [onlyCommunityRoleProposals, setOnlyCommunityRoleProposals] = useState(true)
+  const [onlyYourProposals, setOnlyYourProposals] = useState(false)
+
   const classes = useStyles()
   const theme = useTheme()
   const matches = useMediaQuery('(max-width:500px)')
@@ -113,6 +132,7 @@ export default function ProposalList(props) {
     isUpdated,
     totalShares,
     currentMemberInfo,
+    guildBalance,
 
     tabValue,
     handleTabValueState,
@@ -213,6 +233,54 @@ export default function ProposalList(props) {
 
   function handleExpanded() {
     setExpanded(!expanded)
+  }
+
+  const handleOnlyMemberProposalChange = (event) => {
+    setOnlyMemberProposals(event.target.checked)
+  }
+
+  const handleOnlyFundingCommitmentProposalChange = (event) => {
+    setOnlyFundingCommitmentProposals(event.target.checked)
+  }
+
+  const handleOnlyPayoutProposalChange = (event) => {
+    setOnlyPayoutProposals(event.target.checked)
+  }
+
+  const handleOnlyConfigurationProposalChange = (event) => {
+    setOnlyConfigurationProposals(event.target.checked)
+  }
+
+  const handleOnlyTributeProposalChange = (event) => {
+    setOnlyTributeProposals(event.target.checked)
+  }
+
+  const handleOnlyCommunityRoleProposalChange = (event) => {
+    setOnlyCommunityRoleProposals(event.target.checked)
+  }
+
+  const handleOnlyAssignRoleProposalChange = (event) => {
+    setOnlyAssignRoleProposals(event.target.checked)
+  }
+
+  const handleOnlyWhitelistProposalChange = (event) => {
+    setOnlyWhiteListProposals(event.target.checked)
+  }
+
+  const handleOnlyGuildKickProposalChange = (event) => {
+    setOnlyGuildKickProposals(event.target.checked)
+  }
+
+  const handleOnlyReputationFactorProposalChange = (event) => {
+    setOnlyReputationFactorProposals(event.target.checked)
+  }
+
+  const handleOnlyOpportunityProposalChange = (event) => {
+    setOnlyOpportunityProposals(event.target.checked)
+  }
+
+  const handleOnlyYourProposalChange = (event) => {
+    setOnlyYourProposals(event.target.checked)
   }
 
   const handleSponsorConfirmationClick = (requestId, proposalType, funding) => {
@@ -374,6 +442,7 @@ export default function ProposalList(props) {
             disabled: isDisabled,
             voted: fr.voted,
             vote: fr.vote,
+            referenceIds: fr.referenceIds,
             configuration: fr.configuration,
             submitTransactionHash: currentStreamProposal.submitTransactionHash,
             cancelTransactionHash: currentStreamProposal.cancelTransactionHash,
@@ -410,6 +479,7 @@ export default function ProposalList(props) {
             disabled: isDisabled,
             voted: fr.voted,
             vote: fr.vote,
+            referenceIds: fr.referenceIds,
             configuration: fr.configuration,
             submitTransactionHash: currentStreamProposal.submitTransactionHash,
             cancelTransactionHash: currentStreamProposal.cancelTransactionHash,
@@ -448,6 +518,7 @@ export default function ProposalList(props) {
             disabled: isDisabled,
             voted: fr.voted,
             vote: fr.vote,
+            referenceIds: fr.referenceIds,
             configuration: fr.configuration,
             submitTransactionHash: currentStreamProposal.submitTransactionHash,
             cancelTransactionHash: currentStreamProposal.cancelTransactionHash,
@@ -484,6 +555,7 @@ export default function ProposalList(props) {
             disabled: isDisabled,
             voted: fr.voted,
             vote: fr.vote,
+            referenceIds: fr.referenceIds,
             configuration: fr.configuration,
             submitTransactionHash: currentStreamProposal.submitTransactionHash,
             cancelTransactionHash: currentStreamProposal.cancelTransactionHash,
@@ -552,7 +624,7 @@ export default function ProposalList(props) {
   let Proposals
   if (proposalList && proposalList.length > 0 && tabValue == '2') {
   
-    Proposals = proposalList.map((fr) => {
+    Proposals = proposalList.filter(typeFilter).reverse().map((fr) => {
       return (
         <ProposalCard
           curDaoIdx={curDaoIdx}
@@ -574,6 +646,7 @@ export default function ProposalList(props) {
           funding={fr[0].funding}
           loot={fr[0].loot}
           status={fr[0].status}
+          referenceIds={fr[0].referenceIds}
           submitTransactionHash={fr[0].submitTransactionHash}
           cancelTransactionHash={fr[0].cancelTransactionHash}
           processTransactionHash={fr[0].processTransactionHash}
@@ -589,6 +662,7 @@ export default function ProposalList(props) {
           handleCancelAction={handleCancelAction}
           summoner={summoner}
           contract={contract}
+          guildBalance={guildBalance}
         />
       )
     })
@@ -620,6 +694,7 @@ export default function ProposalList(props) {
           voted={fr[0].voted}
           gracePeriod={fr[0].gracePeriod}
           votingPeriod={fr[0].votingPeriod}
+          referenceIds={fr[0].referenceIds}
           currentPeriod={currentPeriod}
           periodDuration={periodDuration}
           submitTransactionHash={fr[0].submitTransactionHash}
@@ -635,7 +710,8 @@ export default function ProposalList(props) {
           handleVotingAction={handleVotingAction}
           handleRageQuitClick={handleRageQuitClick}
           summoner={summoner} 
-          contract={contract}
+          contract={contract} 
+          guildBalance={guildBalance}
         />
       )
     })
@@ -665,19 +741,19 @@ export default function ProposalList(props) {
           startingPeriod={fr.startingPeriod}
           currentPeriod={currentPeriod}
           gracePeriod={fr.gracePeriod}
+          referenceIds={fr.referenceIds}
           submitTransactionHash={fr.submitTransactionHash}
           cancelTransactionHash={fr.cancelTransactionHash}
           processTransactionHash={fr.processTransactionHash}
           sponsorTransactionHash={fr.sponsorTransactionHash}
           handleProcessAction={handleProcessAction}
           configuration={fr.configuration}
-          // handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
-          // handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
           summoner={summoner}
           queueList={queueList}
           contract={contract}
+          guildBalance={guildBalance}
         />
       )
     })
@@ -705,26 +781,109 @@ export default function ProposalList(props) {
           status={fr[0].status}
           startingPeriod={fr[0].startingPeriod}
           configuration={fr[0].configuration}
+          referenceIds={fr[0].referenceIds}
           submitTransactionHash={fr[0].submitTransactionHash}
           cancelTransactionHash={fr[0].cancelTransactionHash}
           processTransactionHash={fr[0].processTransactionHash}
           sponsorTransactionHash={fr[0].sponsorTransactionHash}
           handleProcessAction={handleProcessAction}
-          // handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
-          // handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
           summoner={summoner}
-          contract={contract}
+          contract={contract} 
+          guildBalance={guildBalance}
         />
       )
     })
   }
 }
 
+function typeFilter(item){
+  console.log('item', item)
+  let result
+  if(onlyYourProposals){
+    switch(true){       
+      case item[0].proposalType == 'Member' && onlyMemberProposals && item[0].applicant == accountId:
+          return true
+        
+      case item[0].proposalType == 'Payout' && onlyPayoutProposals && item[0].applicant == accountId:
+          return true
+        
+      case item[0].proposalType == 'Commitment' && onlyFundingCommitmentProposals && item[0].applicant == accountId:
+          return true
+        
+      case item[0].proposalType == 'Opportunity' && onlyOpportunityProposals && item[0].applicant == accountId:
+        return true
+        
+      case item[0].proposalType == 'Tribute' && onlyTributeProposals && item[0].applicant == accountId:
+        return true
+      
+      case item[0].proposalType == 'Whitelist' && onlyWhiteListProposals && item[0].applicant == accountId:
+        return true
+        
+      case item[0].proposalType == 'GuildKick' && onlyGuildKickProposals && item[0].applicant == accountId:
+        return true
+    
+      case item[0].proposalType == 'CommunityRole' && onlyCommunityRoleProposals && item[0].applicant == accountId:
+        return true
+        
+      case item[0].proposalType == 'AssignRole' && onlyAssignRoleProposals && item[0].applicant == accountId:
+        return true
+       
+      case item[0].proposalType == 'ReputationFactor' && onlyReputationFactorProposals && item[0].applicant == accountId:
+        return true
+      
+      case item[0].proposalType == 'Configuration' && onlyConfigurationProposals && item[0].applicant == accountId:
+        return true
+
+      default:
+        break
+    }
+  } else {
+    switch(true){       
+      case item[0].proposalType == 'Member' && onlyMemberProposals:
+          return true
+        
+      case item[0].proposalType == 'Payout' && onlyPayoutProposals:
+          return true
+        
+      case item[0].proposalType == 'Commitment' && onlyFundingCommitmentProposals:
+          return true
+        
+      case item[0].proposalType == 'Opportunity' && onlyOpportunityProposals:
+        return true
+        
+      case item[0].proposalType == 'Tribute' && onlyTributeProposals:
+        return true
+      
+      case item[0].proposalType == 'Whitelist' && onlyWhiteListProposals:
+        return true
+        
+      case item[0].proposalType == 'GuildKick' && onlyGuildKickProposals:
+        return true
+    
+      case item[0].proposalType == 'CommunityRole' && onlyCommunityRoleProposals:
+        return true
+        
+      case item[0].proposalType == 'AssignRole' && onlyAssignRoleProposals:
+        return true
+       
+      case item[0].proposalType == 'ReputationFactor' && onlyReputationFactorProposals:
+        return true
+      
+      case item[0].proposalType == 'Configuration' && onlyConfigurationProposals:
+        return true
+
+      default:
+        break
+    }
+  }
+}
+
   let Processed
   if (processedList && processedList.length > 0 && tabValue == '5') {
-    Processed = processedList.map((fr) => {
+    Processed = processedList.filter(typeFilter).map((fr) => {
+     
       return (
         <ProposalCard  
           curDaoIdx={curDaoIdx}
@@ -743,17 +902,16 @@ export default function ProposalList(props) {
           loot={fr[0].loot}
           status={fr[0].status}
           configuration={fr[0].configuration}
+          referenceIds={fr[0].referenceIds}
           submitTransactionHash={fr[0].submitTransactionHash}
           cancelTransactionHash={fr[0].cancelTransactionHash}
           processTransactionHash={fr[0].processTransactionHash}
           sponsorTransactionHash={fr[0].sponsorTransactionHash}
-        
-          // handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
-          // handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
           summoner={summoner}
           contract={contract}
+          guildBalance={guildBalance}
         />
       )
     })
@@ -984,6 +1142,60 @@ export default function ProposalList(props) {
       
       </TabPanel>
       <TabPanel value="2" className={classes.root}>
+      <FormControl component="fieldset" style={{float:'left'}}>
+          <FormLabel component="legend">Filter Proposals</FormLabel>
+          <FormGroup>
+            <FormControlLabel
+              control={<Switch checked={onlyYourProposals} onChange={handleOnlyYourProposalChange} name="onlyYourProposals" />}
+              label="Only Your Proposals"
+            />
+            <FormControlLabel
+              control={<Switch checked={onlyMemberProposals} onChange={handleOnlyMemberProposalChange} name="onlyMemberProposals" />}
+              label="Members"
+            />
+            <FormControlLabel
+              control={<Switch checked={onlyFundingCommitmentProposals} onChange={handleOnlyFundingCommitmentProposalChange} name="onlyFundingCommitmentProposals" />}
+              label="Funding Commitments"
+            />
+            <FormControlLabel
+              control={<Switch checked={onlyPayoutProposals} onChange={handleOnlyPayoutProposalChange} name="onlyPayoutProposals" />}
+              label="Payouts"
+            />
+            <FormControlLabel
+              control={<Switch checked={onlyOpportunityProposals} onChange={handleOnlyOpportunityProposalChange} name="onlyOpportunityProposals" />}
+              label="Opportunities"
+            />
+            <FormControlLabel
+              control={<Switch checked={onlyConfigurationProposals} onChange={handleOnlyConfigurationProposalChange} name="onlyConfigurationProposals" />}
+              label="Configuration"
+            />
+            <FormControlLabel
+              control={<Switch checked={onlyTributeProposals} onChange={handleOnlyTributeProposalChange} name="onlyTributeProposals" />}
+              label="Tribute"
+            />
+            <FormControlLabel
+              control={<Switch checked={onlyCommunityRoleProposals} onChange={handleOnlyCommunityRoleProposalChange} name="onlyCommunityRoleProposals" />}
+              label="Community Role"
+            />
+            <FormControlLabel
+              control={<Switch checked={onlyAssignRoleProposals} onChange={handleOnlyAssignRoleProposalChange} name="onlyAssignRoleProposals" />}
+              label="Assign Role"
+            />
+            <FormControlLabel
+              control={<Switch checked={onlyReputationFactorProposals} onChange={handleOnlyReputationFactorProposalChange} name="onlyReputationFactorProposals" />}
+              label="Reputation Factor"
+            />
+            <FormControlLabel
+              control={<Switch checked={onlyWhiteListProposals} onChange={handleOnlyWhitelistProposalChange} name="onlyWhiteListProposals" />}
+              label="Whitelist"
+            />
+            <FormControlLabel
+              control={<Switch checked={onlyGuildKickProposals} onChange={handleOnlyGuildKickProposalChange} name="onlyGuildKickProposals" />}
+              label="GuildKick"
+            />
+          </FormGroup>
+          <FormHelperText>Choose the proposal types you want.</FormHelperText>
+        </FormControl>
         {Proposals}
       </TabPanel>
       <TabPanel value="3" className={classes.root}>
@@ -993,7 +1205,63 @@ export default function ProposalList(props) {
         {Queued}
       </TabPanel>
       <TabPanel value="5" className={classes.root}>
+      <Grid container spacing={1} justifyContent="flex-start" alignItems="center">
+        <FormControl component="fieldset">
+          <FormLabel component="legend">Filter Proposals</FormLabel>
+          <FormGroup>
+            <FormControlLabel
+              control={<Switch checked={onlyYourProposals} onChange={handleOnlyYourProposalChange} name="onlyYourProposals" />}
+              label="Only Your Proposals"
+            />
+            <FormControlLabel
+              control={<Switch checked={onlyMemberProposals} onChange={handleOnlyMemberProposalChange} name="onlyMemberProposals" />}
+              label="Members"
+            />
+            <FormControlLabel
+              control={<Switch checked={onlyFundingCommitmentProposals} onChange={handleOnlyFundingCommitmentProposalChange} name="onlyFundingCommitmentProposals" />}
+              label="Funding Commitments"
+            />
+            <FormControlLabel
+              control={<Switch checked={onlyPayoutProposals} onChange={handleOnlyPayoutProposalChange} name="onlyPayoutProposals" />}
+              label="Payouts"
+            />
+            <FormControlLabel
+              control={<Switch checked={onlyOpportunityProposals} onChange={handleOnlyOpportunityProposalChange} name="onlyOpportunityProposals" />}
+              label="Opportunities"
+            />
+            <FormControlLabel
+              control={<Switch checked={onlyConfigurationProposals} onChange={handleOnlyConfigurationProposalChange} name="onlyConfigurationProposals" />}
+              label="Configuration"
+            />
+            <FormControlLabel
+              control={<Switch checked={onlyTributeProposals} onChange={handleOnlyTributeProposalChange} name="onlyTributeProposals" />}
+              label="Tribute"
+            />
+            <FormControlLabel
+              control={<Switch checked={onlyCommunityRoleProposals} onChange={handleOnlyCommunityRoleProposalChange} name="onlyCommunityRoleProposals" />}
+              label="Community Role"
+            />
+            <FormControlLabel
+              control={<Switch checked={onlyAssignRoleProposals} onChange={handleOnlyAssignRoleProposalChange} name="onlyAssignRoleProposals" />}
+              label="Assign Role"
+            />
+            <FormControlLabel
+              control={<Switch checked={onlyReputationFactorProposals} onChange={handleOnlyReputationFactorProposalChange} name="onlyReputationFactorProposals" />}
+              label="Reputation Factor"
+            />
+            <FormControlLabel
+              control={<Switch checked={onlyWhiteListProposals} onChange={handleOnlyWhitelistProposalChange} name="onlyWhiteListProposals" />}
+              label="Whitelist"
+            />
+            <FormControlLabel
+              control={<Switch checked={onlyGuildKickProposals} onChange={handleOnlyGuildKickProposalChange} name="onlyGuildKickProposals" />}
+              label="GuildKick"
+            />
+          </FormGroup>
+          <FormHelperText>Choose the proposal types you want.</FormHelperText>
+        </FormControl>
         {Processed}
+        </Grid>
       </TabPanel>
     </TabContext>
 

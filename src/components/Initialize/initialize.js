@@ -337,7 +337,10 @@ export default function Initialize(props) {
             <CardContent>
               <Grid container className={classes.confirmation} spacing={1}>
          
-              Placeholder for video
+              <Typography variant="body1">These are the initial settings that determine various parameters that define how your community functions.
+              Check the info icon for more information about each setting. Less the initial contribution, all can be changed so don't worry about marketing 
+              a mistake now.
+              </Typography>
 
                
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{textAlign: 'center', marginTop: '50px'}}>
