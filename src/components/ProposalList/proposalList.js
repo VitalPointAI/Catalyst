@@ -7,7 +7,7 @@ import ProposalCard from '../ProposalCard/proposalCard'
 import SponsorConfirmation from '../Confirmation/sponsorConfirmation'
 import RageQuit from '../RageQuit/rageQuit'
 import SearchBar from '../../components/common/SearchBar/search'
-
+import { Steps, Hints } from "intro.js-react";
 // Material UI Components
 import { makeStyles, useTheme, withStyles } from '@material-ui/core/styles'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
@@ -81,7 +81,16 @@ export default function ProposalList(props) {
   const [sponsorProposalType, setSponsorProposalType] = useState()
   const [paymentRequested, setPaymentRequested] = useState()
   const [membersArray, setMembersArray] = useState([])
-  
+  const [stepsEnabled, setStepsEnabled] = useState(false)
+  const [options, setOptions] = useState( {
+    doneLabel: 'Finish',                                
+    showButtons: true,
+    overlayOpacity: 0.5,
+    scrollTo: 'element',
+    skipLabel: "Skip",
+    showProgress: true
+
+  })
   const classes = useStyles()
   const theme = useTheme()
   const matches = useMediaQuery('(max-width:500px)')
@@ -96,6 +105,8 @@ export default function ProposalList(props) {
   } = state
 
   const {
+    returnFunction, 
+    enable, 
     proposalEvents,
     memberStatus,
     curDaoIdx,
@@ -134,6 +145,7 @@ export default function ProposalList(props) {
   } = props
 
   useEffect(() => {
+    setStepsEnabled(enable)
 
     if(allMemberInfo){
       setMemberCount(allMemberInfo.length)
@@ -200,7 +212,7 @@ export default function ProposalList(props) {
     
    // }
 
-  },[proposalEvents, allMemberInfo, currentPeriod])
+  },[proposalEvents, allMemberInfo, currentPeriod, enable])
 
   const handleTabChange = (event, newValue) => {
       handleTabValueState(newValue);
@@ -519,10 +531,12 @@ export default function ProposalList(props) {
 
   let Members
 
+  
   if (allMemberInfo && allMemberInfo.length > 0 && tabValue == '1') {
     Members = allMemberInfo.map((fr, i) => {
      
       return (
+        
         <MemberCard 
           key={fr.memberId}
           accountId={accountId}
@@ -810,9 +824,60 @@ export default function ProposalList(props) {
        
     }
   }
-    
+  function onStepsExit(){
+    setStepsEnabled(false)
+    returnFunction('propList')
+    handleTabChange(null, '1')
+  }
+
+  let steps=[
+    {
+      element: '.members',
+      intro: 'This tab is where you can view the members of a community, sorted by order of their voting pwoer.'
+    },
+    {
+      element: '.proposals',
+      intro: 'This tab is where new proposals go, and where you can find and edit the details of the proposals you create.'
+    },
+    {
+      element: '.voting',
+      intro: 'This tab is where members of the community vote on proposals after discussion on them has been completed.'
+    },
+    {
+      element: '.finalization',
+      intro: 'Here users finalize proposals to record them on the NEAR blockchain. You may finalize your own proposals.'
+    },
+    {
+      element: '.processed',    
+      intro: 'Here is the final destination of all proposals once they have been appvoed or rejected.'
+    },
+  ]
+
+  function handleStepsChange(index){
+    if(index==1){
+      handleTabChange(null, '2')
+    }
+    else if(index==2){
+      handleTabChange(null, '3')
+    }
+    else if(index==3){ 
+      handleTabChange(null, '4')
+    }
+    else if(index==4){
+      handleTabChange(null, '5')
+    }
+  }
+
   return (
     <>
+    <Steps 
+      enabled={stepsEnabled}
+      steps={steps}
+      options={options}
+      initialStep={0}
+      onExit = {()=>onStepsExit()}
+      onChange = {(index)=>handleStepsChange(index)}  
+    / >
     <Paper square className={classes.root}>
     {!matches ? (
       <Tabs
@@ -828,6 +893,7 @@ export default function ProposalList(props) {
      
         
         <Tab 
+          className='members'
           icon={     
             <StyledBadge badgeContent={memberCount} color="primary">
               <PeopleAltIcon fontSize='large'/>
@@ -837,6 +903,7 @@ export default function ProposalList(props) {
           value="1"
         />
         <Tab 
+          className='proposals'
           icon={
             <StyledBadge badgeContent={proposalCount} color="primary">
               <ListAltIcon fontSize='large'/>
@@ -846,6 +913,7 @@ export default function ProposalList(props) {
           value="2"
         />
         <Tab 
+          className='voting'
           icon={
             <StyledBadge badgeContent={voteCount} color="primary">
               <HowToVoteIcon fontSize='large'/>
@@ -855,6 +923,7 @@ export default function ProposalList(props) {
           value="3"
         />
         <Tab 
+          className='finalization'
           icon={
             <StyledBadge badgeContent={queueCount} color="primary">
               <QueueIcon fontSize='large'/>
@@ -864,6 +933,7 @@ export default function ProposalList(props) {
           value="4"
         />
         <Tab
+          className='processed'
           icon={
             <StyledBadge badgeContent={processedCount} color="primary">
               <AssignmentTurnedInIcon fontSize='large'/>

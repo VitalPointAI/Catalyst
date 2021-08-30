@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react'
+import React, { useEffect, useState, useContext, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import { appStore, onAppMount } from '../../state/app'
@@ -17,6 +17,10 @@ import CommunityCount from '../CommunityCount/communityCount'
 import PersonaCount from '../PersonaCount/personaCount'
 import MemberCommunityCount from '../MemberCommunityCount/memberCommunityCount'
 import MemberCommunities from '../MemberCommunities/memberCommunities'
+import { get, set, del } from '../../utils/storage'
+import { DASHBOARD_ARRIVAL, DASHBOARD_DEPARTURE } from '../../state/near'
+import { Steps, Hints } from "intro.js-react";
+
 
 // Material UI
 import { lighten, makeStyles, withStyles } from '@material-ui/core/styles'
@@ -50,6 +54,9 @@ import LinearProgress from '@material-ui/core/LinearProgress'
 import Button from '@material-ui/core/Button'
 
 import './dashboard.css'
+import "intro.js/introjs.css";
+
+
 
 const axios = require('axios').default
 
@@ -156,26 +163,38 @@ export default function Dashboard(props) {
     const [proposer, setProposer] = useState()
     const [rowContractId, setRowContractId] = useState()
     const [curDaoIdx, setCurDaoIdx] = useState()
+    const [options, setOptions] = useState( {
+        doneLabel: 'Next',
+        showButtons: true,
+        overlayOpacity: 0.5,
+        scrollTo: 'element',
+        skipLabel: "Skip",
+        showProgress: true
 
+    })
     const [order, setOrder] = useState('desc')
     const [orderBy, setOrderBy] = useState('suitability')
     const [selected, setSelected] = useState([])
     const [page, setPage] = useState(0)
     const [rowsPerPage, setRowsPerPage] = useState(5)
+    //use this to toggle steps if flag is set
+    const [stepsEnabled, setStepsEnabled] = useState(false)
+    
+
 
     const [anchorEl, setAnchorEl] = useState(null)
 
     const classes = useStyles()
 
     const { state, dispatch, update } = useContext(appStore)
-
+   
     const matches = useMediaQuery('(max-width:500px)')
 
     let communities = []
     let newMemberDataFrame = []
     let proposalDataFrame = []
     let activityDataFrame = []
-
+    
     const {
       accountId,
       currentDaosList,
@@ -187,7 +206,16 @@ export default function Dashboard(props) {
     
     useEffect(
         () => {
+            let newVisit = get(DASHBOARD_ARRIVAL, [])
+            if(!newVisit[0]){
+                setStepsEnabled(true)
+                newVisit.push({status: 'true'})
+                set(DASHBOARD_ARRIVAL, newVisit)
+            }
+           
             
+            
+         //   update('dashboardOpenCommand', {command: true})
             if(currentDaosList.length > 0){
                 let i = 0
                 console.log('here i')
@@ -605,7 +633,9 @@ export default function Dashboard(props) {
         ? (a, b) => descendingComparator(a, b, orderBy)
         : (a, b) => -descendingComparator(a, b, orderBy);
     }
-      
+    function onStepsExit(){
+        setStepsEnabled(false)
+    }
     function stableSort(array, comparator) {
         console.log('array', array)
     const stabilizedThis = array.map((el, index) => [el, index]);
@@ -630,7 +660,33 @@ export default function Dashboard(props) {
         { id: 'budget', numeric: true, disablePadding: false, label: 'Remaining Budget' }
 
     ]
-
+    let steps = [
+        {
+            intro: "Welcome to the Catalyst Dashboard!",
+        },
+        {
+            element: ".profile",
+            intro: "This is where your persona details reside. We'll fill out those details later",
+            position: "right"
+        },
+        {
+            element: ".communities",
+            intro: "When you join or create communities, they will appear here!",
+            position: "left"
+        },
+        {
+            element: ".opportunities",
+            intro: "And here you can find opportunities you can apply for!",
+            position: "top"
+        },
+        {
+            element: ".analytics",
+            intro: "The dashboard also includes a tab to view community analytics!"
+        },
+        {
+            intro: 'Marks final element'
+        }
+    ]
     function EnhancedTableHead(props) {
         const { classes, onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } = props
         const createSortHandler = (property) => (event) => {
@@ -849,31 +905,57 @@ export default function Dashboard(props) {
           svg.append("g")
             .call(d3.axisLeft(y).tickFormat(d3.format('d')).tickValues(data.map((d) => {return d.number})))
         }
-
+   
+    function handleLastStep(){
+        setStepsEnabled(false)
+        let finishedVisit = get(DASHBOARD_DEPARTURE, [])
+            if(!finishedVisit[0]){
+                finishedVisit.push({status: 'true'})
+                set(DASHBOARD_DEPARTURE, finishedVisit)
+            }
+    }
     return (
         <>
-        <div className={classes.root}>
+        <Steps 
+            enabled={stepsEnabled}
+            steps={steps}
+            initialStep={0}
+            onAfterChange = {(nextStepIndex) => {
+                if(nextStepIndex===4){
+                    handleTabChange(null, "2")
+                }
+                if(nextStepIndex===5){
+                    handleTabChange(null, "1")
+                    handleLastStep(); 
+                }
+            }}
+            onExit={() => onStepsExit()}
+            options={options}
+        />
         
+        <div className={classes.root}>
         <TabContext value={value}>
+            <div className="dashboard">
             <AppBar position="static">
             <TabList onChange={handleTabChange} aria-label="dashboard tabs" centered>
                 <Tab label="Dashboard" value="1" />
-                <Tab label="Analytics" value="2" />
+                <Tab className="analytics" label="Analytics" value="2" />
             </TabList>
             </AppBar>
+            </div>
             <TabPanel value="1">
             <Grid container justifyContent="center" alignItems="flex-start" spacing={1} >
-            <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
+            <Grid className='profile' item xs={12} sm={12} md={4} lg={4} xl={4}>
                 <PersonaCount />
                 <MemberProfile member={accountId} />
             </Grid>
-            <Grid item xs={12} sm={12} md={8} lg={8} xl={8} align="center">
+            <Grid className="communities" item xs={12} sm={12} md={8} lg={8} xl={8} align="center">
                 <CommunityCount />
                 <Communities />
                 <MemberCommunityCount />
                 <MemberCommunities state={state}/>
             </Grid>
-            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '40px'}}>
+            <Grid className="opportunities" item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '40px'}}>
                 
                 <Typography variant="h4">Opportunities for You</Typography>
                 <Typography variant="body1" style={{marginBottom: '10px'}}>The higher the suitability score, the more closely the opportunity matches your skillset</Typography>
@@ -1090,7 +1172,7 @@ export default function Dashboard(props) {
        
         </div>
 
-       
+
        
         </>
     )
