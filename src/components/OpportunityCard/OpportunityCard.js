@@ -279,41 +279,40 @@ export default function OpportunityCard(props) {
 
         }
 
-        async function setTime(){
-          setDateLoaded(false)
-          let dateVar = Date.now()
-          let oldDateVar 
-          oldDateVar = Date.parse(deadline)
-       
-          //Calculate time to deadline
-          if(dateVar > oldDateVar + 86399999){
-            setFormattedTime("0:0:0:0")
-          }
-          else{
-            setDateValid(true)
-            let distance = new Date(oldDateVar) - new Date(dateVar)
-            let days = Math.floor(distance / (1000 * 60 * 60 * 24))
-            let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-            let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
-            let seconds = Math.floor((distance % (1000 * 60)) / 1000)
-            
-            if(days && hours && minutes && seconds){
-              setDays(days)
-              setHours(hours)
-              setMinutes(minutes)
-              setSeconds(seconds)
-              //setFormattedTime(days + ":" + hours + ":" + minutes + ":" + seconds)
-            }
-            setDateLoaded(true)
-          }
-        }
-        
         let mounted = true
        
         if(mounted){
         fetchData()
           .then((res) => {
-            setInterval(setTime,1010)             
+            let timer = setInterval(function() {
+              setDateLoaded(false)
+              let splitDate = deadline.split("-")
+              let countDownDate = new Date(splitDate[0], splitDate[1]-1, splitDate[2]).getTime()
+    
+              let now = new Date().getTime()
+              let distance = countDownDate - now
+              if(distance > 0){
+                let thisDays = Math.floor(distance / (1000 * 60 * 60 * 24))
+                let thisHours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 *60 * 60))
+                let thisMinutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
+                let thisSeconds = Math.floor((distance % (1000 * 60)) / 1000)
+                if(thisDays && thisHours && thisMinutes && thisSeconds){
+                  setDays(thisDays)
+                  setHours(thisHours)
+                  setMinutes(thisMinutes)
+                  setSeconds(thisSeconds)
+                  setDateValid(true)
+                }
+              } else {
+                setDays(0)
+                setHours(0)
+                setMinutes(0)
+                setSeconds(0)
+                setDateValid(false)
+                clearInterval(timer)
+              }
+              setDateLoaded(true)
+            }, 1000)         
           })
         return() => mounted = false
         }
