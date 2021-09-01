@@ -48,8 +48,12 @@ if (process.env.REACT_APP_ENV === 'prod') {
         nodeUrl: 'https://rpc.mainnet.near.org',
         walletUrl: 'https://wallet.near.org',
         nameSuffix: '.near',
+        factorySuffix: '.dao.cdao.near',
         contractName: 'near',
         didRegistryContractName: 'did.near',
+        factoryContractName: 'dao.cdao.near',
+        APP_OWNER_ACCOUNT: 'cdao.near',
+        CERAMIC_API_URL: 'https://ceramic-node.vitalpointai.com',
     }
 }
 
