@@ -12,8 +12,10 @@ import OpportunityProposal from '../OpportunityProposal/opportunityProposal'
 import Donation from '../Donation/donation'
 import Invite from '../Invite/invite'
 import Leave from '../Leave/leave'
+import { Steps, Hints } from "intro.js-react";
 
 // Material UI Components
+import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import { withStyles } from '@material-ui/core/styles'
 import Button from '@material-ui/core/Button'
@@ -29,6 +31,8 @@ import EnhancedEncryptionIcon from '@material-ui/icons/EnhancedEncryption'
 import ExitToAppIcon from '@material-ui/icons/ExitToApp'
 import AddAlertIcon from '@material-ui/icons/AddAlert'
 import MoneyIcon from '@material-ui/icons/Money'
+import { EmailIcon } from 'react-share'
+import { SportsTennisRounded } from '@material-ui/icons'
 
 
 
@@ -77,7 +81,7 @@ export default function ActionSelector(props) {
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = useState(null);
   const [memberProposalClicked, setMemberProposalClicked] = useState(false)
-  const [inviteClicked, setInviteClicked] = useState(false); 
+  const [inviteClicked, setInviteClicked] = useState(false);
   const [fundingProposalClicked, setFundingProposalClicked] = useState(false)
   const [tributeProposalClicked, setTributeProposalClicked] = useState(false)
   const [payoutProposalClicked, setPayoutProposalClicked] = useState(false)
@@ -86,12 +90,39 @@ export default function ActionSelector(props) {
   const [leaveClicked, setLeaveClicked] = useState(false)
   const [whiteListClicked, setWhiteListClicked] = useState(false)
   const [guildKickClicked, setGuildKickClicked] = useState(false)
+  const [stepsEnabled, setStepsEnabled] = useState(false)
+  const [options, setOptions] = useState({
+    doneLabel: 'Next',                                
+    showButtons: true,
+    overlayOpacity: 0.5,
+    scrollTo: 'element',
+    skipLabel: "Skip",
+    showProgress: true
+})
+
   const [loaded, setLoaded] = useState(false)
   
-
   const { state, dispatch, update } = useContext(appStore);
-  
-  const { 
+ 
+  let steps = [
+    { 
+      element: '.proposalList',
+      intro: <>
+             <Typography>Clicking this button will display a list of proposals that you can submit.</Typography>
+             <br />
+             <Typography>If you are not a member of this community, you can click the join button, and submit a member proposal to gain access to all proposals types.</Typography>
+             <br />
+             <Typography>For more information about the various proposal types, you can find them (here)</Typography>
+            </>
+    }, {
+      element: '.invite',
+      intro: <Typography>Here you can invite your friends to join a community on a variety of social media platforms.</Typography>
+    }                       
+]
+
+  const {
+    enable,
+    returnFunction, 
     handleProposalEventChange,
     handleGuildBalanceChanges,
     handleEscrowBalanceChanges,
@@ -174,8 +205,16 @@ export default function ActionSelector(props) {
     handleOpportunityProposalClickState(true)
   }
 
-  const  handleInvite = () => {
-    handleInviteClickState(true); 
+  useEffect(
+    () =>
+      {
+        setStepsEnabled(enable);
+      }
+      , [enable]
+  )
+
+  const handleInvite = () => {
+    handleInviteClickState(true);
   }
 
   function handleDonationProposalClickState(property) {
@@ -225,9 +264,36 @@ export default function ActionSelector(props) {
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   }
-
+  function onStepsExit() {
+    setStepsEnabled(false)
+    returnFunction('actionSelect') 
+  }
   return (
     <>
+
+      <Steps
+        steps={steps}
+        initialStep={0}
+        onExit={() => onStepsExit()}
+        enabled={stepsEnabled}
+        options={options}/>
+
+      {!memberStatus ? (
+        <Button
+     
+          style={{ marginRight: 5 }}
+          aria-controls="fade-menu"
+          aria-haspopup="true"
+          variant="contained"
+          color="primary"
+          onClick={handleMemberProposalClick}
+        >
+          Join
+        </Button>
+      ) : null}
+      <Button
+        className='proposalList'
+
     {loaded && !memberStatus ? (
     <Button
     style={{marginRight: 5}}
@@ -241,6 +307,7 @@ export default function ActionSelector(props) {
     </Button>
     ) : null }
     <Button
+
         aria-controls="fade-menu"
         aria-haspopup="true"
         variant="contained"
@@ -250,7 +317,8 @@ export default function ActionSelector(props) {
         Submit Proposals
       </Button>
       <Button
-        style={{marginLeft: 5}}
+        className='invite'
+        style={{ marginLeft: 5 }}
         aria-controls="fade-menu"
         aria-haspopup="true"
         variant="contained"
@@ -260,13 +328,13 @@ export default function ActionSelector(props) {
         Invite
       </Button>
       {memberStatus ? (
-      <StyledMenu
-        id="customized-menu"
-        anchorEl={anchorEl}
-        keepMounted
-        open={Boolean(anchorEl)}
-        onClose={handleExpanded}
-      >
+        <StyledMenu
+          id="customized-menu"
+          anchorEl={anchorEl}
+          keepMounted
+          open={Boolean(anchorEl)}
+          onClose={handleExpanded}
+        >
           <StyledMenuItem button onClick={handleMemberProposalClick}>
             <ListItemIcon>
               <EmojiPeopleIcon fontSize="small" />
@@ -280,11 +348,11 @@ export default function ActionSelector(props) {
             <ListItemText primary="Donation (no Votes)" />
           </StyledMenuItem>
           <StyledMenuItem button onClick={handleTributeProposalClick}>
-          <ListItemIcon>
-            <HowToVoteIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Tribute (add Voting Shares)" />
-        </StyledMenuItem>
+            <ListItemIcon>
+              <HowToVoteIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Tribute (add Voting Shares)" />
+          </StyledMenuItem>
           <StyledMenuItem button onClick={handleOpportunityProposalClick}>
             <ListItemIcon>
               <AddAlertIcon fontSize="small" />
@@ -298,32 +366,32 @@ export default function ActionSelector(props) {
             <ListItemText primary="Funding Commitment" />
           </StyledMenuItem>
           <StyledMenuItem button onClick={handlePayoutProposalClick}>
-          <ListItemIcon>
-            <MonetizationOnIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Payout" />
-        </StyledMenuItem>
+            <ListItemIcon>
+              <MonetizationOnIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Payout" />
+          </StyledMenuItem>
           <StyledMenuItem button onClick={handleGuildKickClick}>
             <ListItemIcon>
               <RemoveCircleIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText primary="Remove Member" />
           </StyledMenuItem>
-        <StyledMenuItem button onClick={handleLeaveClick}>
-          <ListItemIcon>
-            <ExitToAppIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="Leave Community" />
-        </StyledMenuItem>
-      </StyledMenu>
+          <StyledMenuItem button onClick={handleLeaveClick}>
+            <ListItemIcon>
+              <ExitToAppIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Leave Community" />
+          </StyledMenuItem>
+        </StyledMenu>
       ) : (
         <StyledMenu
-        id="customized-menu"
-        anchorEl={anchorEl}
-        keepMounted
-        open={Boolean(anchorEl)}
-        onClose={handleExpanded}
-      >
+          id="customized-menu"
+          anchorEl={anchorEl}
+          keepMounted
+          open={Boolean(anchorEl)}
+          onClose={handleExpanded}
+        >
           <StyledMenuItem button onClick={handleMemberProposalClick}>
             <ListItemIcon>
               <EmojiPeopleIcon fontSize="small" />
@@ -338,52 +406,52 @@ export default function ActionSelector(props) {
           </StyledMenuItem>
         </StyledMenu>
       )}
-    
-    
-  
+
+
+
 
       {whiteListClicked ? <WhiteListProposal
-      contract={contract}
-      handleProposalEventChange={handleProposalEventChange}
-      handleWhiteListClickState={handleWhiteListClickState}
-      didsContract={didsContract}
-      idx={idx}
-      handleTabValueState={handleTabValueState}/> : null }
+        contract={contract}
+        handleProposalEventChange={handleProposalEventChange}
+        handleWhiteListClickState={handleWhiteListClickState}
+        didsContract={didsContract}
+        idx={idx}
+        handleTabValueState={handleTabValueState} /> : null}
 
       {guildKickClicked ? <GuildKickProposal
-      contract={contract}
-      handleProposalEventChange={handleProposalEventChange}
-      handleGuildKickClickState={handleGuildKickClickState}
-      handleGuildBalanceChanges={handleGuildBalanceChanges}
-      handleEscrowBalanceChanges={handleEscrowBalanceChanges}
-      depositToken={depositToken}
-      proposalDeposit={proposalDeposit}
-      daoContract={daoContract}
-      didsContract={didsContract}
-      idx={idx}
-      handleTabValueState={handleTabValueState}/> : null }
- 
-      {inviteClicked ? <Invite 
-      handleInviteClickState={handleInviteClickState}
-      />: null}
+        contract={contract}
+        handleProposalEventChange={handleProposalEventChange}
+        handleGuildKickClickState={handleGuildKickClickState}
+        handleGuildBalanceChanges={handleGuildBalanceChanges}
+        handleEscrowBalanceChanges={handleEscrowBalanceChanges}
+        depositToken={depositToken}
+        proposalDeposit={proposalDeposit}
+        daoContract={daoContract}
+        didsContract={didsContract}
+        idx={idx}
+        handleTabValueState={handleTabValueState} /> : null}
 
-      {leaveClicked ? <Leave 
+      {inviteClicked ? <Invite
+        handleInviteClickState={handleInviteClickState}
+      /> : null}
+
+      {leaveClicked ? <Leave
         state={state}
         fairShare={fairShare}
         contractId={contractId}
         daoContract={daoContract}
         handleLeaveClickState={handleLeaveClickState}
-        />: null}
+      /> : null}
 
       {fundingProposalClicked ? <FundingProposal
-      contractId={contractId}
-      handleFundingProposalClickState={handleFundingProposalClickState}
-      state={state}
-      depositToken={depositToken}
-      proposalDeposit={proposalDeposit}
-      tokenName={tokenName}
-      accountId={accountId} 
-      /> : null }
+        contractId={contractId}
+        handleFundingProposalClickState={handleFundingProposalClickState}
+        state={state}
+        depositToken={depositToken}
+        proposalDeposit={proposalDeposit}
+        tokenName={tokenName}
+        accountId={accountId}
+      /> : null}
 
       {tributeProposalClicked ? <TributeProposal
         contractId={contractId}
@@ -392,53 +460,53 @@ export default function ActionSelector(props) {
         depositToken={depositToken}
         proposalDeposit={proposalDeposit}
         tokenName={tokenName}
-        accountId={accountId} 
-      
-        /> : null }
-  
+        accountId={accountId}
+
+      /> : null}
+
 
       {opportunityProposalClicked ? <OpportunityProposal
-      contractId={contractId}
-      handleOpportunityProposalClickState={handleOpportunityProposalClickState}
-      state={state}
-      depositToken={depositToken}
-      proposalDeposit={proposalDeposit}
-      tokenName={tokenName}
-      accountId={accountId} 
-    
-      /> : null }
+        contractId={contractId}
+        handleOpportunityProposalClickState={handleOpportunityProposalClickState}
+        state={state}
+        depositToken={depositToken}
+        proposalDeposit={proposalDeposit}
+        tokenName={tokenName}
+        accountId={accountId}
+
+      /> : null}
 
       {memberProposalClicked ? <MemberProposal
-      contractId={contractId}
-      state={state}
-      proposalDeposit={proposalDeposit}
-      depositToken={depositToken}
-      handleMemberProposalClickState={handleMemberProposalClickState} 
-      accountId={accountId} 
-     
+        contractId={contractId}
+        state={state}
+        proposalDeposit={proposalDeposit}
+        depositToken={depositToken}
+        handleMemberProposalClickState={handleMemberProposalClickState}
+        accountId={accountId}
 
-      /> : null }
+
+      /> : null}
 
       {donationProposalClicked ? <Donation
         contractId={contractId}
         state={state}
         proposalDeposit={proposalDeposit}
         depositToken={depositToken}
-        handleDonationProposalClickState={handleDonationProposalClickState} 
-        accountId={accountId} 
-       
-      /> : null }
-  
+        handleDonationProposalClickState={handleDonationProposalClickState}
+        accountId={accountId}
+
+      /> : null}
+
       {payoutProposalClicked ? <PayoutProposal
         contractId={contractId}
         state={state}
         proposalDeposit={proposalDeposit}
         depositToken={depositToken}
         tokenName={tokenName}
-        handlePayoutProposalClickState={handlePayoutProposalClickState} 
-        accountId={accountId} 
-  
-        /> : null }
+        handlePayoutProposalClickState={handlePayoutProposalClickState}
+        accountId={accountId}
+
+      /> : null}
     </>
   );
 }

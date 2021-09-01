@@ -1,9 +1,11 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect} from 'react'
 import { Link } from 'react-router-dom'
+import { get, set, del } from '../../utils/storage'
+import { Steps, Hints } from "intro.js-react";
 import clsx from 'clsx'
 import AddPersonaForm from '../AddPersona/addPersona'
 import AddDaoForm from '../CreateDAO/addDao'
-
+import { DASHBOARD_DEPARTURE } from '../../state/near'
 // Material UI
 import { makeStyles } from '@material-ui/core/styles'
 import Drawer from '@material-ui/core/Drawer'
@@ -52,11 +54,18 @@ export default function LeftSideDrawer(props) {
 
 const classes = useStyles()
 const matches = useMediaQuery('(max-width:500px)')
-
+const [options, setOptions] = useState({
+  doneLabel: 'Continue!',
+  showButtons: true,
+  overlayOpacity: 0.5,
+  scrollTo: 'element',
+  skipLabel: "Skip",
+  showProgress: true
+})
 const [anchorEl, setAnchorEl] = useState(null);
 const [addPersonaClicked, setAddPersonaClicked] = useState(false)
 const [addDaoClicked, setAddDaoClicked] = useState(false)
-
+const [stepsEnabled, setStepsEnabled] = useState(false)
 const [drawerState, setDrawerState] = useState({
     top: false,
     left: false,
@@ -66,8 +75,66 @@ const [drawerState, setDrawerState] = useState({
 
 const {
     state,
-   
 } = props
+const steps = [
+  {
+    element: '.toolbar',
+    intro: <Typography>This is the toolbar, and is where you can access all of the pages on Catalyst, along with some important actions.</Typography>
+  },
+  {
+    element: '.managePersona',
+    intro: <Typography>Here is the portal to the ‘My Personas’ page mentioned earlier, where you can edit your current Persona details, or any others created from this account.</Typography>,
+    position: "right"
+  },
+  {
+    element: '.createPersona',
+    intro: <Typography>This function will bring you through the flow of creating a new Persona</Typography>,
+    position: "right"
+  },
+  {
+    element: '.myCommunities',
+    intro: <Typography>Here you will find all of the communities that you have created for easy access.</Typography>,
+    position: 'right'
+  },
+  {
+    element: '.exploreCommunities',
+    intro: <Typography>This page lets you explore, search, and visit all of the communities on Catalyst.</Typography>,
+    position: 'right'
+  },
+  {
+    element: '.createCommunity',
+    intro:<> 
+            <Typography>If you want to establish a new community on Catalyst, this is the button for you. </Typography>
+            <br />
+            <Typography> Here you can follow the instructions to create a community of your own.</Typography>,
+          </>,
+    position: 'right'
+  },
+  {
+    intro: <Typography>That’s all for now. With that you’re ready to explore! </Typography>,
+    position: "top"
+  }
+] 
+useEffect(
+  () => {
+
+
+    let intervalController = setInterval(checkDash, 500)
+    function checkDash(){
+      let newVisit = get(DASHBOARD_DEPARTURE, [])
+      if(newVisit[0]){
+         
+          if(newVisit[0].status=="true" && !newVisit[1]){
+          setStepsEnabled(true)
+          setDrawerState({ ...drawerState, ['left']: true})
+          newVisit.push({arrived: 'true'})
+          set(DASHBOARD_DEPARTURE, newVisit)
+        }
+        clearInterval(intervalController)
+      }
+    }
+  }
+)
 
 const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -98,7 +165,10 @@ if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) 
 
 setDrawerState({ ...drawerState, [anchor]: open });
 }
-
+function onStepsExit(){
+  setStepsEnabled(false)
+  setDrawerState({ ...drawerState, ['left']: false})
+}
 const list = (anchor) => (
 <div
     className={clsx(classes.list, {
@@ -110,7 +180,14 @@ const list = (anchor) => (
 >
 {!matches ? (
   <>
-    
+    <Steps 
+      enabled= {stepsEnabled}
+      steps={steps}
+      initialStep={0}
+      onExit={()=>{onStepsExit()}}
+      options={options}
+    />
+    <div className='toolbar'>
     <List>
       <Link to='/'>
         <ListItem button key={1}>
@@ -123,12 +200,12 @@ const list = (anchor) => (
     <Typography variant='h6'>Personas</Typography>
     <List>
       <Link to='/personas'>
-        <ListItem button key={2}>
+        <ListItem className='managePersona' button key={2}>
           <ListItemIcon><Avatar src={imageName} className={classes.small}/></ListItemIcon>
           <ListItemText primary='My Personas'/>
         </ListItem>
       </Link>
-      <ListItem button key={3} onClick={(e) => addPersonaClick(e)}>
+      <ListItem className='createPersona' button key={3} onClick={(e) => addPersonaClick(e)}>
         <ListItemIcon><AddBoxIcon /></ListItemIcon>
         <ListItemText primary='Create Persona'/>
       </ListItem>
@@ -137,24 +214,25 @@ const list = (anchor) => (
     <Typography variant='h6'>Communities</Typography>
     <List>
       <Link to='/daos'>
-        <ListItem button key={4}>
+        <ListItem className='myCommunities' button key={4}>
           <ListItemIcon><GroupIcon /></ListItemIcon>
           <ListItemText primary='My Communities'/>
         </ListItem>
       </Link>
       
     <Link to='/explore'>
-      <ListItem button key={5}>
+      <ListItem className='exploreCommunities' button key={5}>
         <ListItemIcon><ExploreIcon /></ListItemIcon>
         <ListItemText primary='Explore Communities'/>
       </ListItem>
     </Link>
-    <ListItem button key={6} onClick={(e) => addDaoClick(e)}>
+    <ListItem className='createCommunity' button key={6} onClick={(e) => addDaoClick(e)}>
         <ListItemIcon><AddBoxIcon /></ListItemIcon>
         <ListItemText primary='Create Community'/>
       </ListItem>
     </List>
     <Divider />
+    </div>
   </>
   ) :
     state.wallet.signedIn ? (

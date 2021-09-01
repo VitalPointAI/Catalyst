@@ -43,7 +43,8 @@ import CircularProgress from '@material-ui/core/CircularProgress'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
 import Card from '@material-ui/core/Card'
 import LinearProgress from '@material-ui/core/LinearProgress'
-
+import { COMMUNITY_ARRIVAL } from '../../state/near'
+import { Steps, Hints } from "intro.js-react";
 const axios = require('axios').default
 
 const useStyles = makeStyles((theme) => ({
@@ -109,14 +110,16 @@ export default function AppFramework(props) {
     const [initLoad, setInitLoad] = useState(false)
     const [started, setStarted] = useState(false)
     const [isUpdated, setIsUpdated] = useState(false)
-
+    const [stepsEnabled, setStepsEnabled] = useState(false)
+    const [appbarStepsEnabled, setAppbarStepsEnabled] = useState(false)
+    const [tabTutorialEnabled, setTabTutorialEnabled] = useState(false)
     const [timerStarted, setTimerStarted] = useState(false)
     const [triggersActioned, setTriggersActioned] = useState(false)
     const [restInitialized, setRestInitialized] = useState(false)
     const [essentialsInitialized, setEssentialsInitialized] = useState(false)
     
     const classes = useStyles()
-    
+
     const {
       tributeToken,
       tributeOffer,
@@ -144,8 +147,24 @@ export default function AppFramework(props) {
 
     const matches = useMediaQuery('(max-width:500px)')
 
+    let steps=[{
+      intro:
+      <> 
+      <Typography>Welcome to the Community Page! Here you can join the community, create, and vote on proposals.</Typography>
+      <br/>
+      <Typography>You can also find community specific opportunities by visitng the communities opportunity page.</Typography>
+      </>
+    }]
+
     useEffect(
       () => {
+
+        let newVisit = get(COMMUNITY_ARRIVAL, [])
+        if(!newVisit[0]){
+          setStepsEnabled(true)
+          newVisit.push({status: 'true'})
+          set(COMMUNITY_ARRIVAL, newVisit)
+        }
         let timer
 
         async function refreshCurrentPeriod() {
@@ -231,6 +250,7 @@ export default function AppFramework(props) {
           let urlVariables = window.location.search
           const urlParameters = new URLSearchParams(urlVariables)
           let transactionHash = urlParameters.get('transactionHashes')
+
 
             // *********CHECK FOR TRIGGERS AND EXECUTE*************
 
@@ -779,9 +799,35 @@ export default function AppFramework(props) {
     function handleUpdate(property){
       setIsUpdated(property)
     }
-    
+    const options = {
+      doneLabel: 'Next',
+      showButtons: true,
+      overlayOpacity: 0.5,
+      scrollTo: 'element',
+      skipLabel: "Skip",
+      showProgress: true
+    }
+
+    function onStepsExit(){
+      setStepsEnabled(false)
+      setAppbarStepsEnabled(true)
+    }
+
+    function handleReturn(proposalIdentifier){
+      if(proposalIdentifier == 'actionSelect'){
+        setTabTutorialEnabled(true)
+        setAppbarStepsEnabled(false)
+      }
+      else if(proposalIdentifier=='propList'){
+        console.log("DID IT")
+        setTabTutorialEnabled(false)
+      }
+    }
+
+
     return (
       <>
+          
             <div className={classes.root}>
             <Header state={state} />
             <Grid container style={{padding:'20px'}}>
@@ -792,15 +838,24 @@ export default function AppFramework(props) {
             </div> :
             initialized == 'done' ? (
               <>
+                <Steps
+            enabled={stepsEnabled}
+            initialStep={0}
+            onExit={()=>onStepsExit()}
+            steps={steps}
+            options={options}
+            />
               {matches ? (<>
                 <Grid container justifyContent="space-evenly" alignItems="center" style={{marginBottom:'15px'}} spacing={0}>
                   <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" style={{marginBottom: '15px'}}>                    
                     <Chip variant="outlined" label="Member" icon={memberIcon} />
                     <Chip variant="outlined" label={sharesLabel}  />
-                    <Chip variant="outlined" label={fairShareLabel}  />
+                    <Chip variant="ou tlined" label={fairShareLabel}  />
                   </Grid>
                   <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
                     <ActionSelector 
+                      enable={appbarStepsEnabled}
+                      returnFunction={handleReturn}
                       handleProposalEventChange={handleProposalEventChange}
                       handleEscrowBalanceChanges={handleEscrowBalanceChanges}
                       handleGuildBalanceChanges={handleGuildBalanceChanges}
@@ -826,7 +881,9 @@ export default function AppFramework(props) {
             <Grid container justifyContent="space-evenly" alignItems="center" style={{marginBottom:'15px'}} spacing={0}>
               <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
               <div style={{marginLeft: '10px'}}>
-                <ActionSelector 
+                <ActionSelector
+                  enable={appbarStepsEnabled} 
+                  returnFunction={handleReturn}
                   handleProposalEventChange={handleProposalEventChange}
                   handleEscrowBalanceChanges={handleEscrowBalanceChanges}
                   handleGuildBalanceChanges={handleGuildBalanceChanges}
@@ -889,6 +946,8 @@ export default function AppFramework(props) {
           <Grid container justifyContent="space-evenly" alignItems="center" spacing={1} >
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
               <ProposalList
+                returnFunction={handleReturn}
+                enable={tabTutorialEnabled}
                 contractId={contractId}
                 curDaoIdx={curDaoIdx}
                 proposalEvents={allProposals}

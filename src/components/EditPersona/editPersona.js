@@ -8,6 +8,7 @@ import { IPFS_PROVIDER } from '../../utils/ceramic'
 import { config } from '../../state/config'
 
 // Material UI components
+import InfoIcon from '@material-ui/icons/Info'
 import Button from '@material-ui/core/Button'
 import TextField from '@material-ui/core/TextField'
 import Dialog from '@material-ui/core/Dialog'
@@ -40,6 +41,8 @@ import RedditIcon from '@material-ui/icons/Reddit'
 import TwitterIcon from '@material-ui/icons/Twitter'
 import { InputAdornment } from '@material-ui/core'
 import { CircularProgress } from '@material-ui/core'
+import Zoom from '@material-ui/core/Zoom'
+import Tooltip from '@material-ui/core/Tooltip'
 
 const axios = require('axios').default
 
@@ -426,6 +429,9 @@ export default function EditPersonaForm(props) {
                         id="panel1bh-header"
                       >
                       General Information
+                      <Tooltip TransitionComponent={Zoom} title="Here you can add information to let people, and communities know some basic information about yourself.">
+                             <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                      </Tooltip>
                       </AccordionSummary>
                         <AccordionDetails>
                           <Grid container spacing={2}>
@@ -509,7 +515,10 @@ export default function EditPersonaForm(props) {
                             aria-controls="panel1bh-content"
                             id="panel1bh-header"
                           >
-                          Skills and Competencies
+                          Skills and Competencies                        
+                          <Tooltip TransitionComponent={Zoom} title="Skills allow us to assign appropriate suitability scores for opportunities">
+                                <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                          </Tooltip>
                           </AccordionSummary>
                             <AccordionDetails>
                               <Grid container spacing={2}>
@@ -602,6 +611,9 @@ export default function EditPersonaForm(props) {
                         id="panel1bh-header"
                       >
                       Accounts and Notifications
+                      <Tooltip TransitionComponent={Zoom} title="Here you can add some of your social media handles if you would like fellow Catalyst users to be able to find or contact you elsewhere.">
+                        <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                      </Tooltip>
                       </AccordionSummary>
                         <AccordionDetails>
                           <Grid container spacing={2}>

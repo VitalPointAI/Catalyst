@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import PersonaCard from '../PersonaCard/personaCard'
-
+import { get, set, del } from '../../utils/storage'
+import { Steps, Hints } from "intro.js-react";
+import { PERSONAS_ARRIVAL} from '../../state/near'
 const getLink = (accountId, key, wallet, owner) => `?accountId=${accountId}&key=${key}&from=${wallet.getAccountId()}&owner=${owner}`
 
 // Material UI
@@ -43,10 +45,27 @@ export const PersonaPage = ({ state, update, dispatch }) => {
     const [editPersonaClicked, setEditPersonaClicked] = useState(false)
     const [countOfClaims, setCountOfClaims] = useState()
     const [countOfLinks, setCountOfLinks] = useState()
-
+    const [stepsEnabled, setStepsEnabled] = useState(false)
+    const [options, setOptions] = useState({
+        doneLabel: 'Continue!',
+        showButtons: true,
+        overlayOpacity: 0.5,
+        scrollTo: 'element',
+        skipLabel: "Skip",
+        showProgress: true,
+        disableInteraction: true
+    })
+    function onStepsExit(){
+        setStepsEnabled(false)
+    }
     useEffect(
         () => {
- 
+        let newVisit = get(PERSONAS_ARRIVAL, [])
+        if(!newVisit[0]){
+            newVisit.push({status: true})
+            set(PERSONAS_ARRIVAL, newVisit)
+            setStepsEnabled(true) 
+        }
         async function fetchData() {
             setLoaded(false)
             let i = 0
@@ -81,19 +100,51 @@ export const PersonaPage = ({ state, update, dispatch }) => {
 
 
     function handleEditPersonaClick(property){
-        setEditPersonaClicked(property)
+        setStepsEnabled(false)
+        setEditPersonaClicked(property) 
     }
 
+    const steps = [
+        { 
+            intro: <Typography> Welcome to your Personas page! </Typography>
+        },
+        {   element: '.reservation', 
+            intro:<> 
+                    <Typography>Here, you can find the Personas that you have reserved.</Typography>
+                    <br/>
+                    <Typography>To begin using Personas in this section, you simply need to press the ‘claim’ button that appears with them.</Typography>
+                   </>,
+            position: "right"
+        },
+        {   
+            element: '.claimed',
+            intro: <Typography>And here you can see, and edit the details of all of the Personas you have claimed, including the one that you are currently logged into.</Typography>,
+            position: "Left"
+        },
+        {
+            element: '.edit',
+            intro: <Typography>Select the edit icon to fill out your details.</Typography>,
+            position: "Left"
+        }
+    ]
     return (
  
         <>
+        <Steps 
+            enabled={stepsEnabled}
+            onExit={()=>{onStepsExit()}}
+            steps={steps}
+            options={options}
+            initialStep={0}
+        />
         <div className={classes.root}>
         <Grid container alignItems="flex-start" justifyContent="center" spacing={1} >
             {countOfLinks > 0 ? 
-                (<> <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
+                (<> <Grid className="reservation" item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
+                    
                     <Paper className={classes.paper}>
                         <Typography variant="h5" style={{marginBottom: '20px'}}>Reserved Personas</Typography>
-                    <Grid container alignItems="flex-start" justifyContent="center" spacing={0} style={{padding: '20px'}}>
+                    <Grid  ontainer alignItems="flex-start" justifyContent="center" spacing={0} style={{padding: '20px'}}>
                         {links.filter(person => person.owner == accountId).map(({ key, keyStored, accountId, owner }) =>
                             <PersonaCard
                                 key={keyStored}
@@ -108,24 +159,25 @@ export const PersonaPage = ({ state, update, dispatch }) => {
                     </Paper>
                     </Grid>
                 </>)
-                :  <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
+                :  <Grid className='reservation' item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
                 <Paper className={classes.paper}>
                     <Typography variant="h5" style={{marginBottom: '20px'}}>Reserved Personas</Typography>
                     <Typography variant="overline">No Personas Reserved for Claiming.</Typography>
                 </Paper>
                 </Grid>
-             
+                
             }
       
        
             { countOfClaims > 0 ? 
                 (<>
-                    <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" >
+                    <Grid className='claimed' item xs={12} sm={12} md={6} lg={6} xl={6} align="center" >
                     <Paper className={classes.paper}>
                         <Typography variant="h5" style={{marginBottom: '20px'}}>Claimed Personas</Typography>
-                        <Grid container alignItems="center" justifyContent="center" spacing={0} style={{padding: '20px'}}>
+                        <Grid className='edit' container alignItems="center" justifyContent="center" spacing={0} style={{padding: '20px'}}>
                             {claimed.filter(person => (person.owner == accountId || person.accountId == accountId)).map(({ keyStored, accountId, owner }) =>
-                                <PersonaCard
+                                <PersonaCard 
+                                    className='edit'
                                     key={keyStored}
                                     accountId={accountId}
                                     owner={owner}

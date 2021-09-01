@@ -12,11 +12,12 @@ import ProposalCard from '../ProposalCard/proposalCard'
 import SponsorConfirmation from '../Confirmation/sponsorConfirmation'
 import RageQuit from '../RageQuit/rageQuit'
 import SearchBar from '../../components/common/SearchBar/search'
-
+import { Steps, Hints } from "intro.js-react";
 // Material UI Components
 import { makeStyles, useTheme, withStyles } from '@material-ui/core/styles'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
 import Tabs from '@material-ui/core/Tabs'
+import Typography from '@material-ui/core/Typography'
 import TabContext from '@material-ui/lab/TabContext'
 import Tab from '@material-ui/core/Tab'
 import TabPanel from '@material-ui/lab/TabPanel'
@@ -92,7 +93,15 @@ export default function ProposalList(props) {
   const [sponsorProposalType, setSponsorProposalType] = useState()
   const [paymentRequested, setPaymentRequested] = useState()
   const [membersArray, setMembersArray] = useState([])
-
+  const [stepsEnabled, setStepsEnabled] = useState(false)
+  const [options, setOptions] = useState( {
+    doneLabel: 'Finish',                                
+    showButtons: true,
+    overlayOpacity: 0.5,
+    scrollTo: 'element',
+    skipLabel: "Skip",
+    showProgress: true
+  })
   const [onlyFundingCommitmentProposals, setOnlyFundingCommitmentProposals] = useState(true)
   const [onlyPayoutProposals, setOnlyPayoutProposals] = useState(true)
   const [onlyMemberProposals, setOnlyMemberProposals] = useState(true)
@@ -105,7 +114,6 @@ export default function ProposalList(props) {
   const [onlyAssignRoleProposals, setOnlyAssignRoleProposals] = useState(true)
   const [onlyCommunityRoleProposals, setOnlyCommunityRoleProposals] = useState(true)
   const [onlyYourProposals, setOnlyYourProposals] = useState(false)
-
   const classes = useStyles()
   const theme = useTheme()
   const matches = useMediaQuery('(max-width:500px)')
@@ -120,6 +128,8 @@ export default function ProposalList(props) {
   } = state
 
   const {
+    returnFunction, 
+    enable, 
     proposalEvents,
     memberStatus,
     curDaoIdx,
@@ -159,6 +169,7 @@ export default function ProposalList(props) {
   } = props
 
   useEffect(() => {
+    setStepsEnabled(enable)
 
     if(allMemberInfo){
       setMemberCount(allMemberInfo.length)
@@ -225,7 +236,7 @@ export default function ProposalList(props) {
     
    // }
 
-  },[proposalEvents, allMemberInfo, currentPeriod])
+  },[proposalEvents, allMemberInfo, currentPeriod, enable])
 
   const handleTabChange = (event, newValue) => {
       handleTabValueState(newValue);
@@ -590,10 +601,12 @@ export default function ProposalList(props) {
 
   let Members
 
+  
   if (allMemberInfo && allMemberInfo.length > 0 && tabValue == '1') {
     Members = allMemberInfo.map((fr, i) => {
      
       return (
+        
         <MemberCard 
           key={fr.memberId}
           accountId={accountId}
@@ -967,9 +980,80 @@ function typeFilter(item){
        
     }
   }
-    
+  function onStepsExit(){
+    setStepsEnabled(false)
+    returnFunction('propList')
+    handleTabChange(null, '1')
+  }
+
+  let steps=[
+    {
+      element: '.members',
+      intro: <>
+             <Typography>The community page is split into several tabs. The first of which is this one: the members tab.</Typography>
+            <br/>
+             <Typography>Here you can find all the members in a community, sorted by their respective voting shares. Clicking on any member’s card will reveal their Persona details.</Typography>
+            </>,
+      position:'top'
+    },
+    {
+      element: '.proposals',
+      intro:<> 
+            <Typography>The proposals tab is where all new proposals end up. Here you can add details to your proposals, and engage in discussion.</Typography>
+            <br/>
+            <Typography>Members can also sponsor proposals here to move them into voting. </Typography>
+            </>,
+      position:'top'
+    },
+    {
+      element: '.voting',
+      intro: <>
+             <Typography>Once sponsored, proposals move to this tab.</Typography>
+             <br/>
+             <Typography>Here, community members can vote on the proposals to pass or fail.</Typography>
+             </>,
+      position:'top'
+    },
+    {
+      element: '.finalization',
+      intro: <Typography>Here proposals will sit as they wait for a user to click ‘Finalize,’ which records it on the NEAR blockchain.</Typography>,
+      position:'bottom'
+    },
+    {
+      element: '.processed',    
+      intro: <Typography>This is the final destination of all proposals. Whether they pass or fail, proposals which have completed voting and finalization will appear under this tab. </Typography>,
+      position:'bottom'
+    },
+    {
+      intro: <Typography>You can find more information about the proposal life cycle <a href=''>here</a></Typography>
+    }
+  ]
+
+  function handleStepsChange(index){
+    if(index==1){
+      handleTabChange(null, '2')
+    }
+    else if(index==2){
+      handleTabChange(null, '3')
+    }
+    else if(index==3){ 
+      handleTabChange(null, '4')
+    }
+    else if(index==4){
+      handleTabChange(null, '5')
+    }
+  }
+
   return (
     <>
+    <Steps 
+      enabled={stepsEnabled}
+      steps={steps}
+      options={options}
+      initialStep={0}
+      onExit = {()=>onStepsExit()}
+      onChange = {(index)=>handleStepsChange(index)}  
+    / >
     <Paper square className={classes.root}>
     {!matches ? (
       <Tabs
@@ -985,6 +1069,7 @@ function typeFilter(item){
      
         
         <Tab 
+          className='members'
           icon={     
             <StyledBadge badgeContent={memberCount} color="primary">
               <PeopleAltIcon fontSize='large'/>
@@ -994,6 +1079,7 @@ function typeFilter(item){
           value="1"
         />
         <Tab 
+          className='proposals'
           icon={
             <StyledBadge badgeContent={proposalCount} color="primary">
               <ListAltIcon fontSize='large'/>
@@ -1003,6 +1089,7 @@ function typeFilter(item){
           value="2"
         />
         <Tab 
+          className='voting'
           icon={
             <StyledBadge badgeContent={voteCount} color="primary">
               <HowToVoteIcon fontSize='large'/>
@@ -1012,6 +1099,7 @@ function typeFilter(item){
           value="3"
         />
         <Tab 
+          className='finalization'
           icon={
             <StyledBadge badgeContent={queueCount} color="primary">
               <QueueIcon fontSize='large'/>
@@ -1021,6 +1109,7 @@ function typeFilter(item){
           value="4"
         />
         <Tab
+          className='processed'
           icon={
             <StyledBadge badgeContent={processedCount} color="primary">
               <AssignmentTurnedInIcon fontSize='large'/>
