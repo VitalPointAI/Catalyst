@@ -79,35 +79,39 @@ const {
 const steps = [
   {
     element: '.toolbar',
-    intro: 'This is the toolbar, and is how you will navigate Catalyst'
+    intro: <Typography>This is the toolbar, and is where you can access all of the pages on Catalyst, along with some important actions.</Typography>
   },
   {
     element: '.managePersona',
-    intro: "The page let's you view and edit the details of your current Persona, and Persona's you have created with this account",
+    intro: <Typography>Here is the portal to the ‘My Personas’ page mentioned earlier, where you can edit your current Persona details, or any others created from this account.</Typography>,
     position: "right"
   },
   {
     element: '.createPersona',
-    intro: 'Here you can create a new Persona!',
+    intro: <Typography>This function will bring you through the flow of creating a new Persona</Typography>,
     position: "right"
   },
   {
     element: '.myCommunities',
-    intro: 'Here you can view the communities you created.',
+    intro: <Typography>Here you will find all of the communities that you have created for easy access.</Typography>,
     position: 'right'
   },
   {
     element: '.exploreCommunities',
-    intro: 'The explore communities page allows you to browse through all communities on Catalyst!',
+    intro: <Typography>This page lets you explore, search, and visit all of the communities on Catalyst.</Typography>,
     position: 'right'
   },
   {
     element: '.createCommunity',
-    intro: 'The create community will take you through the process of creating a new community',
+    intro:<> 
+            <Typography>If you want to establish a new community on Catalyst, this is the button for you. </Typography>
+            <br />
+            <Typography> Here you can follow the instructions to create a community of your own.</Typography>,
+          </>,
     position: 'right'
   },
   {
-    intro: "Now you're ready to start exploring!",
+    intro: <Typography>That’s all for now. With that you’re ready to explore! </Typography>,
     position: "top"
   }
 ] 

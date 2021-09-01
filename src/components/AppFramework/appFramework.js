@@ -143,7 +143,12 @@ export default function AppFramework(props) {
     const matches = useMediaQuery('(max-width:500px)')
 
     let steps=[{
-      intro: "Welcome to the community page"
+      intro:
+      <> 
+      <Typography>Welcome to the Community Page! Here you can join the community, create, and vote on proposals.</Typography>
+      <br/>
+      <Typography>You can also find community specific opportunities by visitng the communities opportunity page.</Typography>
+      </>
     }]
 
     useEffect(

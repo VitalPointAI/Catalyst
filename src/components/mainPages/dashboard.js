@@ -53,6 +53,7 @@ import TabPanel from '@material-ui/lab/TabPanel'
 import LinearProgress from '@material-ui/core/LinearProgress'
 import Button from '@material-ui/core/Button'
 
+
 import './dashboard.css'
 import "intro.js/introjs.css";
 
@@ -662,26 +663,42 @@ export default function Dashboard(props) {
     ]
     let steps = [
         {
-            intro: "Welcome to the Catalyst Dashboard!",
+            intro: <Typography>Welcome to Catalyst! This is the dashboard, click Next to walk through some of our features, or Skip if you already know what you’re doing.</Typography>,
         },
         {
             element: ".profile",
-            intro: "This is where your persona details reside. We'll fill out those details later",
+            intro:<> 
+                <Typography>The dashboard displays your persona data here. Since you’re new, you won’t see much yet, but you can fill out your details on the ‘My Personas’ page.</Typography>
+                <br/>
+                <Typography>To learn more about what Personas are, you can click <a href='https://vitalpoint.ai/docs-catalyst-personas/'>here</a></Typography>
+                </>,
             position: "right"
         },
         {
             element: ".communities",
-            intro: "When you join or create communities, they will appear here!",
+            intro: <>
+            <Typography>Here you can see the communities you’ve made, or joined.</Typography>
+            <br />
+            <Typography>Communities can be created through the ‘Create Community’ tool, or joined through visiting their Community Page, and creating a member proposal.</Typography>
+            <br />
+            <Typography>You can find more information about communities on our <a href=''>docs</a></Typography>
+            </>,
             position: "left"
         },
         {
             element: ".opportunities",
-            intro: "And here you can find opportunities you can apply for!",
+            intro:<>
+                <Typography>Here is a list of opportunities posted by communities on Catalyst</Typography>
+                <br />
+                <Typography> These are similar to bounties that you can apply to complete, and are sorted by your suitability for them, which is based on the skills that you’ll provide in your Persona details.</Typography>
+                <br />
+                <Typography>More infromation about opportunities can be found <a href=''>here</a></Typography>
+                </>,
             position: "top"
         },
         {
             element: ".analytics",
-            intro: "The dashboard also includes a tab to view community analytics!"
+            intro: <Typography>The dashboard’s second tab is reserved for analytics of your communities, so you can view their performance by a variety of metrics.</Typography>
         },
         {
             intro: 'Marks final element'

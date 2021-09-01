@@ -15,6 +15,7 @@ import Leave from '../Leave/leave'
 import { Steps, Hints } from "intro.js-react";
 
 // Material UI Components
+import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import { withStyles } from '@material-ui/core/styles'
 import Button from '@material-ui/core/Button'
@@ -104,10 +105,16 @@ export default function ActionSelector(props) {
   let steps = [
     { 
       element: '.proposalList',
-      intro: 'This button will provide you a list of proposals that you can submit within the community. Members have more options than non-members. Read here for more information about the types of proposals.'
+      intro: <>
+             <Typography>Clicking this button will display a list of proposals that you can submit.</Typography>
+             <br />
+             <Typography>If you are not a member of this community, you can click the join button, and submit a member proposal to gain access to all proposals types.</Typography>
+             <br />
+             <Typography>For more information about the various proposal types, you can find them (here)</Typography>
+            </>
     }, {
       element: '.invite',
-      intro: 'This button will allow to invite you friends to this community'
+      intro: <Typography>Here you can invite your friends to join a community on a variety of social media platforms.</Typography>
     }                       
   ]
   const {

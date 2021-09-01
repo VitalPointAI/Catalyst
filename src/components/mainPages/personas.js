@@ -106,20 +106,24 @@ export const PersonaPage = ({ state, update, dispatch }) => {
 
     const steps = [
         { 
-            intro: "Welcome to the personas page" 
+            intro: <Typography> Welcome to your Personas page! </Typography>
         },
         {   element: '.reservation', 
-            intro: "Here you can see the Personas that you have reserved, but have yet to claim",
+            intro:<> 
+                    <Typography>Here, you can find the Personas that you have reserved.</Typography>
+                    <br/>
+                    <Typography>To begin using Personas in this section, you simply need to press the ‘claim’ button that appears with them.</Typography>
+                   </>,
             position: "right"
         },
         {   
             element: '.claimed',
-            intro: "And here you can see, and edit the details of your claimed Personas",
+            intro: <Typography>And here you can see, and edit the details of all of the Personas you have claimed, including the one that you are currently logged into.</Typography>,
             position: "Left"
         },
         {
             element: '.edit',
-            intro: "Click the edit icon, and let people know who you are!",
+            intro: <Typography>Select the edit icon to fill out your details.</Typography>,
             position: "Left"
         }
     ]

@@ -4,9 +4,11 @@ import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import FileUpload from '../IPFSupload/ipfsUpload'
 import { flexClass } from '../../App'
+import { IPFS_PROVIDER } from '../../utils/ceramic' 
 import { config } from '../../state/config'
 
 // Material UI components
+import InfoIcon from '@material-ui/icons/Info'
 import Button from '@material-ui/core/Button'
 import TextField from '@material-ui/core/TextField'
 import Dialog from '@material-ui/core/Dialog'
@@ -39,13 +41,12 @@ import RedditIcon from '@material-ui/icons/Reddit'
 import TwitterIcon from '@material-ui/icons/Twitter'
 import { InputAdornment } from '@material-ui/core'
 import { CircularProgress } from '@material-ui/core'
-import { QueryBuilder } from '@material-ui/icons'
-import { truncate, truncateSync } from 'fs'
-import {get, set, del } from '../../utils/storage'
-import {Steps, Hints } from "intro.js-react";
-
+import Zoom from '@material-ui/core/Zoom'
+import Tooltip from '@material-ui/core/Tooltip'
 
 const axios = require('axios').default
+
+const Airtable = require('airtable')
 
 const useStyles = makeStyles((theme) => ({
     progress: {
@@ -87,10 +88,9 @@ const imageName = require('../../img/default-profile.png') // default no-image a
 const discordIcon = require('../../img/discord-icon.png')
 
 export const {
-  FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT, DAO_FIRST_INIT, 
-  CURRENT_DAO, REDIRECT, NEW_PROPOSAL, NEW_SPONSOR, D_DEPARTURE, PERSONAS_ARRIVAL, EDIT_ARRIVAL, IPFS_PRONEW_CANCEL, KEY_REDIRECT, OPPORTUNITY_REDIRECT, NEW_PROCESS, NEW_VOTE, DASHBOARD_ARRIVAL,
-  DASHBOARVIDER, NEW_DONATION, NEW_EXIT, NEW_RAGE, NEW_DELEGATION, NEW_REVOCATION, COMMUNITY_DELETE, NEW_DELETE, BUDGET_DEDUCTION, 
-  BUDGET_INCREASE, networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix, explorerUrl,
+  FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT, DAO_FIRST_INIT, CURRENT_DAO, REDIRECT,
+  NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, OPPORTUNITY_REDIRECT, NEW_PROCESS, NEW_VOTE, NEW_DONATION, NEW_EXIT, NEW_RAGE, NEW_DELEGATION, NEW_REVOCATION,
+  networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix, explorerUrl,
   contractName, didRegistryContractName, factoryContractName
 } = config
 
@@ -113,17 +113,10 @@ export default function EditPersonaForm(props) {
     const [skill, setSkill] = useState([])
     const [familiarity, setFamiliarity] = useState('0')
     const [airtableClicked, setAirtableClicked] = useState(false)
+    const [airtableData, setAirtableData] = useState(false)
     const { register, handleSubmit, watch, errors } = useForm()
     const [otherSkills, setOtherSkills] = useState([])
-    const [options, setOptions] = useState({
-      doneLabel: 'FInish',
-      showButtons: true,
-      overlayOpacity: 0.5,
-      scrollTo: 'element',
-      skipLabel: "Skip",
-      showProgress: true
-    })
-    const [generalExpanded, setGeneralExpanded] = useState(false)
+    
     const { state, dispatch, update } = useContext(appStore)
     const countries = ["Afghanistan","Albania","Algeria","Andorra","Angola","Anguilla","Antigua & Barbuda","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bermuda","Bhutan","Bolivia","Bosnia & Herzegovina","Botswana","Brazil","British Virgin Islands","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Cayman Islands","Chad","Chile","China","Colombia","Congo","Cook Islands","Costa Rica","Cote D Ivoire","Croatia","Cruise Ship","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Estonia","Ethiopia","Falkland Islands","Faroe Islands","Fiji","Finland","France","French Polynesia","French West Indies","Gabon","Gambia","Georgia","Germany","Ghana","Gibraltar","Greece","Greenland","Grenada","Guam","Guatemala","Guernsey","Guinea","Guinea Bissau","Guyana","Haiti","Honduras","Hong Kong","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Isle of Man","Israel","Italy","Jamaica","Japan","Jersey","Jordan","Kazakhstan","Kenya","Kuwait","Kyrgyz Republic","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Macau","Macedonia","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Mauritania","Mauritius","Mexico","Moldova","Monaco","Mongolia","Montenegro","Montserrat","Morocco","Mozambique","Namibia","Nepal","Netherlands","Netherlands Antilles","New Caledonia","New Zealand","Nicaragua","Niger","Nigeria","Norway","Oman","Pakistan","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Puerto Rico","Qatar","Reunion","Romania","Russia","Rwanda","Saint Pierre & Miquelon","Samoa","San Marino","Satellite","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","South Africa","South Korea","Spain","Sri Lanka","St Kitts & Nevis","St Lucia","St Vincent","St. Lucia","Sudan","Suriname","Swaziland","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor L'Este","Togo","Tonga","Trinidad & Tobago","Tunisia","Turkey","Turkmenistan","Turks & Caicos","Uganda","Ukraine","United Arab Emirates","United Kingdom","Uruguay","Uzbekistan","Venezuela","Vietnam","Virgin Islands (US)","Yemen","Zambia","Zimbabwe"];
     const languages = ['Abkhazian','Afar','Afrikaans','Akan','Albanian','Amharic','Arabic','Aragonese','Armenian','Assamese','Avaric','Avestan','Aymara','Azerbaijani','Bambara','Bashkir','Basque','Belarusian','Bengali','Bihari languages','Bislama','Bosnian','Breton','Bulgarian','Burmese','Catalan, Valencian','Central Khmer','Chamorro','Chechen','Chichewa, Chewa, Nyanja','Chinese','Church Slavonic, Old Bulgarian, Old Church Slavonic','Chuvash','Cornish','Corsican','Cree','Croatian','Czech','Danish','Divehi, Dhivehi, Maldivian','Dutch, Flemish','Dzongkha','English','Esperanto','Estonian','Ewe','Faroese','Fijian','Finnish','French','Fulah','Gaelic, Scottish Gaelic','Galician','Ganda', 'Georgian','German','Gikuyu, Kikuyu','Greek (Modern)','Greenlandic, Kalaallisut','Guarani','Gujarati','Haitian, Haitian Creole','Hausa','Hebrew','Herero','Hindi','Hiri Motu','Hungarian','Icelandic','Ido','Igbo','Indonesian','Interlingua (International Auxiliary Language Association)','Interlingue','Inuktitut','Inupiaq','Irish','Italian','Japanese','Javanese','Kannada','Kanuri','Kashmiri','Kazakh','Kinyarwanda','Komi','Kongo','Korean','Kwanyama, Kuanyama','Kurdish','Kyrgyz','Lao','Latin','Latvian','Letzeburgesch, Luxembourgish','Limburgish, Limburgan, Limburger','Lingala','Lithuanian','Luba-Katanga','Macedonian','Malagasy','Malay','Malayalam','Maltese','Manx','Maori','Marathi','Marshallese','Moldovan, Moldavian, Romanian','Mongolian','Nauru','Navajo, Navaho','Northern Ndebele','Ndonga','Nepali','Northern Sami','Norwegian','Norwegian Bokmål','Norwegian Nynorsk','Nuosu, Sichuan Yi','Occitan (post 1500)','Ojibwa','Oriya','Oromo','Ossetian, Ossetic','Pali','Panjabi, Punjabi','Pashto, Pushto','Persian','Polish','Portuguese','Quechua','Romansh','Rundi','Russian','Samoan','Sango','Sanskrit','Sardinian','Serbian','Shona','Sindhi','Sinhala, Sinhalese','Slovak','Slovenian','Somali','Sotho, Southern','South Ndebele','Spanish, Castilian','Sundanese','Swahili','Swati','Swedish','Tagalog','Tahitian','Tajik','Tamil','Tatar','Telugu','Thai','Tibetan','Tigrinya','Tonga (Tonga Islands)','Tsonga','Tswana','Turkish','Turkmen','Twi','Uighur, Uyghur','Ukrainian','Urdu','Uzbek','Venda','Vietnamese','Volap_k','Walloon','Welsh','Western Frisian','Wolof','Xhosa','Yiddish','Yoruba','Zhuang, Chuang','Zulu' ]
@@ -136,7 +129,7 @@ export default function EditPersonaForm(props) {
       socialMedia: false,
       marketing: false,
       translation: false,
-    })                                                                                                                 
+    })
     const [developerSkillSet, setDeveloperSkillSet] = useState({
       rust: false,
       assemblyScript: false,
@@ -145,44 +138,19 @@ export default function EditPersonaForm(props) {
       solidity: false,
       webDevelopment: false,
     })
-    const[socialsExpanded, setSocialsExpanded] = useState(false)
-    const[skillsExpanded, setSkillsExpanded] = useState(false)
-    const[stepsEnabled, setStepsEnabled] = useState(false)
+  
     const {
         handleUpdate,
         handleEditPersonaClickState,
         accountId,
         curPersonaIdx
     } = props
-
-    const steps=[
-      {
-        element: ".avatar",
-        intro: "you can upload an avatar for your persona here"
-      },
-      {
-        element: '.general',
-        intro: 'Here you can add some info to let people about who you are'
-      },
-      {
-        element: '.skills',
-        intro: 'Selecting your skills here will allow Catalyst to assess your suitability for Opportunities, and reccomend Opportunities you are fit for.'
-      },
-      {
-        element: '.social',
-        intro: 'You can also add some social handles to let people find you elsewhere.'
-      }    
-    ]
-    const classes = useStyles()
     
-    useEffect(() => {
-        let newVisit = get(EDIT_ARRIVAL, [])
-        if(!newVisit[0]){
-          setStepsEnabled(true)
-          newVisit.push({status: 'true'})
-          set(EDIT_ARRIVAL, newVisit) 
-        }
+    const classes = useStyles()
 
+    let base 
+
+    useEffect(() => {
         async function fetchData() {
           setLoaded(false)
            // Set Card Persona Idx       
@@ -220,6 +188,25 @@ export default function EditPersonaForm(props) {
                   webDevelopment: false,
                   })
               }
+
+              let accessVariables = await axios.get('https://vpbackend-apim.azure-api.net/airtable')    
+              base = new Airtable({apiKey: accessVariables.data.airtableKey}).base(accessVariables.data.contributorBase)
+              
+              base(accessVariables.data.contributorTable).select({
+                pageSize: 20, 
+                view: "Grid view"
+              }).eachPage(function page(records, fetchNextPage) {
+                
+                records.forEach(function(record) {
+                  try{
+                    if(record.get('NEAR Wallet Address') == state.accountId){
+                      setAirtableData(true)
+                    }
+                  } catch (err) {
+                    console.log('error checking account against airtable', err)
+                  }
+                })
+              })
            }
         }
        
@@ -228,17 +215,7 @@ export default function EditPersonaForm(props) {
             setLoaded(true)
           })
     },[])
-    function handleStepsBeforeChange(index){
-      if(index === 2){
-        setGeneralExpanded(false)
-      }
-      else if(index ===3){
-        setSkillsExpanded(false)
-      }
-      else if(index === 4){
-        setSocialsExpanded(false)
-      }
-    }
+
     function handleFileHash(hash) {
       setAvatar(IPFS_PROVIDER + hash)
     }
@@ -306,11 +283,6 @@ export default function EditPersonaForm(props) {
     const handleAirtableClick = async function(){
       if(airtableClicked == false)
       {
-       
-        let accessVariables = await axios.get('https://vpbackend-apim.azure-api.net/airtable')
-        let Airtable = require('airtable');
-        let base = new Airtable({apiKey: accessVariables.data.airtableKey}).base(accessVariables.data.contributorBase);
-
         base(accessVariables.data.contributorTable).select({
             pageSize: 20, 
             view: "Grid view"
@@ -429,48 +401,20 @@ export default function EditPersonaForm(props) {
       setOpen(false)
       handleClose()
     }
-    function onStepsExit(){
-      setStepsEnabled(false)
-    }
-    function handleGeneralClick(){
-      if(generalExpanded == true){
-        setGeneralExpanded(false)
-      }
-      else if(generalExpanded==false){
-        setGeneralExpanded(true)
-      }
-    }
+    
         return (
+           
             <div>
-            
+       
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             { loaded ? (<>
-              <Steps
-            initialStep={0} 
-            steps={steps}
-            enabled={stepsEnabled}
-            options={options}
-            onStart={()=>{
-             setGeneralExpanded(true);
-             setSkillsExpanded(true);
-             setSocialsExpanded(true);
-             }
-            }
-         
-            onBeforeChange={(index)=>handleStepsBeforeChange(index)}
-            onExit={()=> {
-              onStepsExit() 
-              handleStepsBeforeChange(4)
-              }
-            }
-            />
               <DialogTitle id="form-dialog-title">Profile Data</DialogTitle>
               <DialogContent>
                   <DialogContentText style={{marginBottom: 10}}>
                   Provide as much detail as you'd like.
                   </DialogContentText>
                   <div>
-                    <Grid className='avatar' container spacing={1} style={{marginBottom: '5px'}}>
+                    <Grid container spacing={1} style={{marginBottom: '5px'}}>
                       <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
                           <Avatar src={avatar} className={classes.large} />
                       </Grid>
@@ -478,15 +422,16 @@ export default function EditPersonaForm(props) {
                         <FileUpload handleFileHash={handleFileHash}/>
                       </Grid>
                     </Grid>
-                    
-                    <Accordion className="general" expanded={generalExpanded}>
-                      <AccordionSummary 
-                        onClick={()=>{generalExpanded ? setGeneralExpanded(false): setGeneralExpanded(true)}}
+                    <Accordion>
+                      <AccordionSummary
                         expandIcon={<ExpandMoreIcon />}
                         aria-controls="panel1bh-content"
                         id="panel1bh-header"
                       >
                       General Information
+                      <Tooltip TransitionComponent={Zoom} title="Here you can add information to let people, and communities know some basic information about yourself.">
+                             <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                      </Tooltip>
                       </AccordionSummary>
                         <AccordionDetails>
                           <Grid container spacing={2}>
@@ -564,14 +509,16 @@ export default function EditPersonaForm(props) {
                             </Grid>
                           </AccordionDetails>
                         </Accordion>
-                        <Accordion expanded={skillsExpanded} className='skills'>
+                        <Accordion>
                           <AccordionSummary
-                             onClick={()=>{skillsExpanded ? setSkillsExpanded(false): setSkillsExpanded(true)}}                         
                             expandIcon={<ExpandMoreIcon />}
                             aria-controls="panel1bh-content"
                             id="panel1bh-header"
                           >
-                          Skills and Competencies
+                          Skills and Competencies                        
+                          <Tooltip TransitionComponent={Zoom} title="Skills allow us to assign appropriate suitability scores for opportunities">
+                                <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                          </Tooltip>
                           </AccordionSummary>
                             <AccordionDetails>
                               <Grid container spacing={2}>
@@ -657,15 +604,16 @@ export default function EditPersonaForm(props) {
                             </Grid>
                           </AccordionDetails>
                       </Accordion>
-                      
-                      <Accordion className='social' expanded={socialsExpanded}>
+                      <Accordion>
                       <AccordionSummary
-                        onClick={() => {socialsExpanded ? setSocialsExpanded(false): setSocialsExpanded(true)}}
                         expandIcon={<ExpandMoreIcon />}
                         aria-controls="panel1bh-content"
                         id="panel1bh-header"
                       >
                       Accounts and Notifications
+                      <Tooltip TransitionComponent={Zoom} title="Here you can add some of your social media handles if you would like fellow Catalyst users to be able to find or contact you elsewhere.">
+                        <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                      </Tooltip>
                       </AccordionSummary>
                         <AccordionDetails>
                           <Grid container spacing={2}>
@@ -767,6 +715,7 @@ export default function EditPersonaForm(props) {
                          
                         </AccordionDetails>
                       </Accordion>
+                  {airtableData ?
                   <Grid container spacing={1} justifyContent="space-between">  
                     <Grid item xs={7} sm={7} md={7} lg={7} xl={7}>
                       <Typography style={{marginTop: 5}}> 
@@ -778,7 +727,7 @@ export default function EditPersonaForm(props) {
                         Import Data from Airtable
                       </Button>
                     </Grid>
-                  </Grid>
+                  </Grid> : null }
                   </div>
               
                   
