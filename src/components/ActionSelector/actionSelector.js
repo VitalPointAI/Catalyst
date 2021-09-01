@@ -78,8 +78,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function ActionSelector(props) {
-  const classes = useStyles();
-  const [anchorEl, setAnchorEl] = useState(null);
+  const classes = useStyles()
+  const [anchorEl, setAnchorEl] = useState(null)
   const [memberProposalClicked, setMemberProposalClicked] = useState(false)
   const [inviteClicked, setInviteClicked] = useState(false);
   const [fundingProposalClicked, setFundingProposalClicked] = useState(false)
@@ -264,23 +264,25 @@ export default function ActionSelector(props) {
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   }
+
   function onStepsExit() {
     setStepsEnabled(false)
     returnFunction('actionSelect') 
   }
+
   return (
     <>
-
       <Steps
         steps={steps}
         initialStep={0}
         onExit={() => onStepsExit()}
         enabled={stepsEnabled}
-        options={options}/>
+        options={options}
+      />
 
-      {!memberStatus ? (
+      {loaded && !memberStatus ? (
         <Button
-     
+          className='proposalList'
           style={{ marginRight: 5 }}
           aria-controls="fade-menu"
           aria-haspopup="true"
@@ -291,23 +293,8 @@ export default function ActionSelector(props) {
           Join
         </Button>
       ) : null}
+
       <Button
-        className='proposalList'
-
-    {loaded && !memberStatus ? (
-    <Button
-    style={{marginRight: 5}}
-    aria-controls="fade-menu"
-    aria-haspopup="true"
-    variant="contained"
-    color="primary"
-    onClick={handleMemberProposalClick}
-    >
-      Join
-    </Button>
-    ) : null }
-    <Button
-
         aria-controls="fade-menu"
         aria-haspopup="true"
         variant="contained"
@@ -316,6 +303,7 @@ export default function ActionSelector(props) {
       >
         Submit Proposals
       </Button>
+
       <Button
         className='invite'
         style={{ marginLeft: 5 }}
@@ -327,6 +315,7 @@ export default function ActionSelector(props) {
       >
         Invite
       </Button>
+
       {memberStatus ? (
         <StyledMenu
           id="customized-menu"
@@ -508,5 +497,5 @@ export default function ActionSelector(props) {
 
       /> : null}
     </>
-  );
+  )
 }
