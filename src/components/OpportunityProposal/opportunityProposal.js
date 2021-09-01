@@ -62,6 +62,7 @@ export default function OpportunityProposal(props) {
   const [open, setOpen] = useState(true)
   const [finished, setFinished] = useState(true)
   const [confirm, setConfirm] = useState(false)
+  const [budget, setBudget] = useState()
 
   const classes = useStyles()
 
@@ -86,7 +87,7 @@ export default function OpportunityProposal(props) {
   const onSubmit = async (values) => {
     event.preventDefault()
     setFinished(false)
-
+    
     try{
       await submitProposal(
         state.wallet,

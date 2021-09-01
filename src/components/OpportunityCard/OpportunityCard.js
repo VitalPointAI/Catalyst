@@ -44,6 +44,9 @@ const useStyles = makeStyles((theme) => ({
       margin: 'auto',
       maxWidth: '250px'
     },
+    logoImage: {
+      width: '140px'
+    },
     avatar: {
       backgroundColor: red[500],
     },
@@ -142,6 +145,11 @@ export default function OpportunityCard(props) {
     const [dateLoaded, setDateLoaded] = useState(false)
     const [anchorEl, setAnchorEl] = useState(null)
     const [formattedTime, setFormattedTime] = useState('')
+    const [days, setDays] = useState(0)
+    const [hours, setHours] = useState(0)
+    const [minutes, setMinutes] = useState(0)
+    const [seconds, setSeconds] = useState(0)
+
     const { state, dispatch, update } = useContext(appStore)
     const [currDate, setCurrDate] = useState(0)
     const [oldDate, setOldDate] = useState(0)
@@ -245,7 +253,7 @@ export default function OpportunityCard(props) {
           if(wallet && opportunityId){
             const daoContract = await dao.initDaoContract(wallet.account(), useContractId)
             let proposal = await daoContract.getProposal({proposalId: parseInt(opportunityId)})
-            let thisStatus = getStatus(proposal.f)
+            let thisStatus = getStatus(proposal.flags)
             setStatus(thisStatus)
           }
 
@@ -271,37 +279,40 @@ export default function OpportunityCard(props) {
 
         }
 
-        async function setTime(){
-          setDateLoaded(false)
-          let dateVar = Date.now()
-          let oldDateVar 
-          oldDateVar = Date.parse(deadline)
-       
-          //Calculate time to deadline
-          if(dateVar > oldDateVar + 86399999){
-            setFormattedTime("0:0:0:0")
-          }
-          else{
-            setDateValid(true)
-            let distance = new Date(oldDateVar) - new Date(dateVar)
-            let days = Math.floor(distance / (1000 * 60 * 60 * 24))
-            let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-            let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
-            let seconds = Math.floor((distance % (1000 * 60)) / 1000)
-            
-            if(days && hours && minutes && seconds){
-              setFormattedTime(days + ":" + hours + ":" + minutes + ":" + seconds)
-            }
-            setDateLoaded(true)
-          }
-        }
-        
         let mounted = true
        
         if(mounted){
         fetchData()
           .then((res) => {
-            setInterval(setTime,1010)             
+            let timer = setInterval(function() {
+              setDateLoaded(false)
+              let splitDate = deadline.split("-")
+              let countDownDate = new Date(splitDate[0], splitDate[1]-1, splitDate[2]).getTime()
+    
+              let now = new Date().getTime()
+              let distance = countDownDate - now
+              if(distance > 0){
+                let thisDays = Math.floor(distance / (1000 * 60 * 60 * 24))
+                let thisHours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 *60 * 60))
+                let thisMinutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
+                let thisSeconds = Math.floor((distance % (1000 * 60)) / 1000)
+                if(thisDays && thisHours && thisMinutes && thisSeconds){
+                  setDays(thisDays)
+                  setHours(thisHours)
+                  setMinutes(thisMinutes)
+                  setSeconds(thisSeconds)
+                  setDateValid(true)
+                }
+              } else {
+                setDays(0)
+                setHours(0)
+                setMinutes(0)
+                setSeconds(0)
+                setDateValid(false)
+                clearInterval(timer)
+              }
+              setDateLoaded(true)
+            }, 1000)         
           })
         return() => mounted = false
         }
@@ -398,16 +409,13 @@ export default function OpportunityCard(props) {
    
         <Card raised={true} className={classes.card}>
           <Grid container alignItems="center" justifyContent="center" spacing={1} style={{padding: '5px'}}>
-            <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
+            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
               <Link to={`/dao/${thisContractId}`}>
-                <Avatar variant="square" src={logo} />
+                <img src={logo} className={classes.logoImage} /><br></br>
+                {logo ? null : <Typography variant="h6">{communityName ? communityName : contractId}</Typography>}
               </Link>
             </Grid>
-            <Grid item xs={12} sm={12} md={9} lg={9} xl={9}>
-              <Link to={`/dao/${thisContractId}`}>
-                <Typography variant="body1">{communityName ? communityName : thisContractId}</Typography>
-              </Link>
-            </Grid>
+           
           </Grid>
           <CardHeader
           title={
@@ -428,8 +436,8 @@ export default function OpportunityCard(props) {
             <Chip avatar={<Avatar src={avatar} className={classes.small} onClick={handleMemberProfileDisplayClick}/>} label={name != '' ? name : creator}/>
           </Grid>
           <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '10px'}}>
-          <Typography variant="overline">TIme Remaining: {
-            dateLoaded ? formattedTime
+          <Typography variant="subtitle2">Time Remaining: {
+            dateLoaded ? days+'d:'+hours+'h:'+minutes+'m:'+seconds
             : 'Calculating...'
             }</Typography>
 
@@ -541,6 +549,7 @@ export default function OpportunityCard(props) {
           accountId={accountId}
           reference={opportunityId}
           budget={budget}
+          opportunityTitle={title}
           /> : null }
 
         {opportunityProposalDetailsClicked ? <OpportunityProposalDetails

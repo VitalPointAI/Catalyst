@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { flexClass } from '../../App'
-import { IPFS_PROVIDER } from '../../utils/ceramic'
+import { contractName, IPFS_PROVIDER } from '../../utils/ceramic'
 import Persona from '@aluhning/get-personas-js'
 import { EditorState, convertFromRaw, convertToRaw, ContentState } from 'draft-js'
 import { Editor } from "react-draft-wysiwyg"
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
 import draftToHtml from 'draftjs-to-html'
 import htmlToDraft from 'html-to-draftjs'
+import { generateId } from '../../state/near'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -44,6 +45,9 @@ const useStyles = makeStyles((theme) => ({
         height: theme.spacing(7),
         textAlign: 'center'
     },
+    id: {
+      display: 'none'
+    },
     waiting: {
       minWidth: '100%',
       minHeight: '100%',
@@ -68,8 +72,15 @@ export default function EditFundingProposalForm(props) {
     // Funding Proposal Fields
     const [title, setTitle] = useState('')
     const [details, setDetails] = useState(EditorState.createEmpty())
-    const [milestones, setMilestones] = useState([{milestoneId: '', milestone: '', deadline: '', payout: '', briefDescription:''}])
-
+    const [milestones, setMilestones] = useState([{milestoneId: ''}])
+    const [requested, setRequested] = useState(props.funding)
+    const [left, setLeft] = useState(props.funding)
+    const [planned, setPlanned] = useState(0)
+    const [disabled, setDisabled] = useState(true)
+    const [addDisabled, setAddDisabled] = useState(true)
+    const [errorM, setErrorM] = useState(false)
+    const [message, setMessage] = useState(false)
+    const [max, setMax] = useState(props.funding)
     const { register, handleSubmit, watch, errors } = useForm()
 
     const {
@@ -79,13 +90,15 @@ export default function EditFundingProposalForm(props) {
         proposer,
         curDaoIdx,
         proposalId,
+        contract,
+        funding, 
+        referenceIds
     } = props
     
     const classes = useStyles()
 
     useEffect(() => {
         async function fetchData() {
-          setLoaded(false)
            
             // Set Existing Persona Data      
             if(applicant){
@@ -99,15 +112,20 @@ export default function EditFundingProposalForm(props) {
                   }
            }
 
-           // Set Existing Proposal Data       
-           if(curDaoIdx){
+           // Set Existing Proposal Data
+           let thisLeft      
+           if(curDaoIdx && contract && proposalId){
+            
               let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
-              console.log('propResult', propResult)
+
+              
               if(propResult) {
                 let i = 0
+                console.log('propresult', propResult)
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == proposalId){
                     propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
+                    propResult.proposals[i].milestones ? setMilestones(propResult.proposals[i].milestones) : setMilestones([{milestoneId: ''}])
                     if (propResult.proposals[i].details){
                       let contentBlock = htmlToDraft(propResult.proposals[i].details)
                       if (contentBlock){
@@ -119,11 +137,69 @@ export default function EditFundingProposalForm(props) {
                         setDetails(EditorState.createEmpty())
                       }
                     break
+                  } else {
+                    // set title to opportunity title if it exists
+                    if(referenceIds){
+                      for(const [key, value] of Object.entries(referenceIds)){
+                        console.log('opp value', value)
+                        if(value['valueSetting']!=''){
+                          let oppResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
+                          console.log('oppresult', oppResult)
+                          let k = 0
+                          while(k < oppResult.opportunities.length){
+                            if(oppResult.opportunities[k].opportunityId == value['valueSetting']){
+                              setTitle(oppResult.opportunities[k].title)
+                              if (oppResult.opportunities[k].details){
+                                let contentBlock = htmlToDraft(oppResult.opportunities[k].details)
+                                if (contentBlock){
+                                  const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks)
+                                  const editorState = EditorState.createWithContent(contentState)
+                                  setDetails(editorState)
+                                }
+                                } else {
+                                  setDetails(EditorState.createEmpty())
+                                }
+                              break
+                            }
+                            k++
+                          }
+                        }
+                      }
+                    }
                   }
                   i++
                 }
+
+                let j = 0
+                let totalProgrammed = 0
+               
+                while(j < milestones.length){
+                  console.log('xy milestones', milestones)
+              
+                  if(isNaN(milestones[j][`payout${j}`])){
+                    totalProgrammed = 0
+                  }
+          
+                  if(!isNaN(milestones[j][`payout${j}`])){
+                    totalProgrammed = totalProgrammed + milestones[j][`payout${j}`]
+                    console.log('xy totalprogrammed notnan', totalProgrammed)
+                   
+                  }
+          
+                  setPlanned(totalProgrammed)
+                  thisLeft = requested - totalProgrammed
+                  console.log('xy this left not nan', thisLeft)
+                  setLeft(thisLeft)
+                 
+                  j++
+                }
               }
            }
+           if(thisLeft == 0){
+            setDisabled(false)
+          } else {
+            setDisabled(true)
+          }
         }
        
         fetchData()
@@ -142,19 +218,129 @@ export default function EditFundingProposalForm(props) {
     }
 
     const handleMilestonesChange = (i, e) => {
-      let newMilestone = [...mileStones]
-      newMilestone[i][e.target.milestone] = e.target.value
+      console.log('zi', i)
+      console.log('ze', e)
+      let newMilestone = [...milestones]
+      console.log('zi new milestones', newMilestone)
+      newMilestone[i]['milestoneId'] = i
+      if(e.target.name == [`payout${i}`]){
+        newMilestone[i][e.target.name] = parseInt(e.target.value)
+      } else {
+        newMilestone[i][e.target.name] = e.target.value
+      }
+      console.log('newmilestonet', newMilestone[i])
       setMilestones(newMilestone)
+   
+      setAddDisabled(true)
+      setDisabled(true)
+      let thisLeft
+      if(milestones.length == 1)  {
+        thisLeft = requested
+        setMax(thisLeft)
+      } else {
+        thisLeft = left
+        setMax(thisLeft)
+      }
+
+      if(newMilestone[i][`payout${i}`] && newMilestone[i][`milestone${i}`] && newMilestone[i][`deadline${i}`] && newMilestone[i][`briefDescription${i}`]){
+        if(
+          newMilestone[i][`payout${i}`] != 0 &&
+          newMilestone[i][`milestone${i}`]!='' &&
+          newMilestone[i][`deadline${i}`]!='' &&
+          newMilestone[i][`briefDescription${i}`]!='' &&
+          (newMilestone[i][`payout${i}`] < requested ||
+          newMilestone[i][`payout${i}`] < thisLeft ||
+          thisLeft != 0)
+        ) {
+          setAddDisabled(false)
+        }
+      }
+
+      if(!newMilestone[i]){
+        setAddDisabled(true)
+      }
+       
     }
+
 
     const addMilestoneFields = () => {
-      setMilestones([...milestones, {milestoneId: '', milestone: '', deadline: '', payout: '', briefDescription:''}])
+     
+      setAddDisabled(true)
+      let i = 0
+      let totalProgrammed = 0
+      let thisLeft
+      while(i < milestones.length){
+        console.log('xy milestones', milestones)
+    
+        if(isNaN(milestones[i][`payout${i}`])){
+          totalProgrammed = 0
+        }
+
+        if(!isNaN(milestones[i][`payout${i}`])){
+          totalProgrammed = totalProgrammed + milestones[i][`payout${i}`]
+          console.log('xy totalprogrammed notnan', totalProgrammed)
+         
+        }
+
+        setPlanned(totalProgrammed)
+        thisLeft = requested - totalProgrammed
+        console.log('xy this left not nan', thisLeft)
+        setLeft(thisLeft)
+
+        if(totalProgrammed == requested){
+          setDisabled(false)
+        }
+        i++
+      }
+      if(thisLeft == 0){
+        return (
+          <Typography variant='body1'>You have planned all the funds you requested.</Typography>
+        )
+       
+      }
+     
+      setMilestones([...milestones, {milestoneId: ''}])
     }
 
-    const removeMilestoneFields = (i) => {
+    const removeMilestoneFields = (j) => {
+      let thisLeft
       let newMilestones = [...milestones]
-      newMilestones.splice(i, 1)
+      newMilestones.splice(j, 1)
       setMilestones(newMilestones)
+
+      let i = 0
+      let totalProgrammed = 0
+
+      while(i < newMilestones.length){
+        console.log('xy newMilestones', newMilestones)
+    
+        if(isNaN(newMilestones[i][`payout${i}`])){
+          totalProgrammed = 0
+        }
+
+        if(!isNaN(newMilestones[i][`payout${i}`])){
+          totalProgrammed = totalProgrammed + newMilestones[i][`payout${i}`]
+          console.log('xy totalprogrammed notnan', totalProgrammed)
+         
+        }
+
+        setPlanned(totalProgrammed)
+        thisLeft = requested - totalProgrammed
+        console.log('xy this left not nan', thisLeft)
+        setLeft(thisLeft)
+
+        if(totalProgrammed == requested){
+          setDisabled(false)
+        }
+        i++
+      }
+
+      if(
+          thisLeft != 0
+        ) {
+          setAddDisabled(false)
+        }
+      
     }
 
     const handleTitleChange = (event) => {
@@ -192,6 +378,7 @@ export default function EditFundingProposalForm(props) {
           details: draftToHtml(convertToRaw(details.getCurrentContent())),
           proposer: proposer,
           submitDate: now,
+          milestones: milestones,
           published: true
       }
 
@@ -228,7 +415,7 @@ export default function EditFundingProposalForm(props) {
             <div>
        
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-            { loaded ? (<>
+            { loaded ? (<div>
               <DialogTitle id="form-dialog-title">Funding Commitment Proposal Details</DialogTitle>
               <DialogContent>
                   <DialogContentText style={{marginBottom: 10}}>
@@ -247,11 +434,13 @@ export default function EditFundingProposalForm(props) {
                       value={title}
                       onChange={handleTitleChange}
                       inputRef={register({
-                          required: true                              
+                        required: true                              
                       })}
                   />
-                  {errors.fundingProposalTitle && <p style={{color: 'red'}}>You must give your proposal a title.</p>}
-                  <Typography variant="h6" style={{marginTop: '30px'}}>Proposal Details</Typography>
+                  {errors.fundingProposalTitle && <p style={{color: 'red', fontSize:'80%'}}>You must give your proposal a title.</p>}
+        
+              
+                      <Typography variant="h6" style={{marginTop: '30px'}}>Proposal Details</Typography>
                   <Paper style={{padding: '5px'}}>
                   <Editor
                     editorState={details}
@@ -264,91 +453,111 @@ export default function EditFundingProposalForm(props) {
                   </Paper>
                   <Typography variant="h6" style={{marginTop: '30px'}}>Milestones</Typography>
                   <Paper style={{padding: '5px'}}>
-                  {milestones.map((element, index) => (
-                      <>
-                      <Grid key={index} container justifyContent="center" alignItems="center" spacing={1}>
+                  <Typography variant="body1">You've requested {requested} Ⓝ.  The total amount of all milestones must equal the amount requested.</Typography>
+                  {milestones && milestones.map((element, index) => (
+                  
+                      <React.Fragment key={index}>
+                      <Grid container justifyContent="space-between" alignItems="flex-end" spacing={1}>
                       <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                      
                         <TextField
                           margin="dense"
+                          className={classes.id}
                           id="milestone-id"
                           variant="outlined"
                           name="milestoneId"
                           label="MilestoneId:"
-                         
                           value={index}
                           onChange={e => handleMilestonesChange(index, e)}
                           inputRef={register({
-                              required: false                              
+                              required: true                              
                           })}
                         />
                         </Grid>
                         <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                         <TextField
                           fullWidth
+                          required
                           margin="dense"
                           id="milestone-title"
                           variant="outlined"
-                          name="milestone"
-                          label="Milestone:"
-                          placeholder="Milestone 1"
-                          value={element.milestone || ""}
+                          name={`milestone${index}`}
+                          label="Milestone Name"
+                          placeholder="Milestone"
+                          value={element[`milestone${index}`] || ""}
                           onChange={e => handleMilestonesChange(index, e)}
                           InputProps={{
-                            endAdornment: <>
+                            endAdornment: <div>
                             <Tooltip TransitionComponent={Zoom} title="Short title of this milestone.">
                                 <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
                             </Tooltip>
-                            </>
+                            </div>
                           }}
                           inputRef={register({
-                              required: false                              
+                            required: true                              
                           })}
-                        />
+                          />
+                          {errors[`milestone${index}`] && <p style={{color: 'red', fontSize:'80%'}}>You must name your milestone.</p>}
+            
                         </Grid>
-                        <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                        <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
                         <TextField
                           
                           margin="dense"
                           id="milestone-deadline"
                           type = "date"
-                          name="deadline"
-                          label="Deadline:"
-                          value={element.deadline || ""}
+                          name={`deadline${index}`}
+                          required
+                          label="Estimated Completion:"
+                          value={element[`deadline${index}`] || ""}
                           onChange={e => handleMilestonesChange(index, e)}
                           InputLabelProps={{shrink: true,}}
                           InputProps={{
-                            endAdornment: <>
+                            endAdornment: <div>
                             <Tooltip TransitionComponent={Zoom} title="Proposed deadline for completion of this milestone.">
                                 <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
                             </Tooltip>
-                            </>
+                            </div>
                           }}
                           inputRef={register({
-                              required: false                              
+                            required: true                              
                           })}
-                        />
+                          />
+                          {errors[`deadline${index}`] && <p style={{color: 'red', fontSize:'80%'}}>Provide est completion date.</p>}
+            
+                       
                         </Grid>
                         <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                        <Typography variant="overline">{left} Ⓝ left to plan work for.</Typography>
                         <TextField
                           margin="dense"
+                          fullWidth
                           id="payout-requested"
                           variant="outlined"
-                          name="payout"
-                          label="Payout Requested"
+                          type="number"
+                          name={`payout${index}`}
+                          label="Planned Payout"
                          
-                          value={element.payout || ""}
+                          value={element[`payout${index}`] || ''}
                           onChange={e => handleMilestonesChange(index, e)}
-                          inputRef={register({
-                              required: false, 
-                          })}
-                          InputProps={{
-                            endAdornment: <><InputAdornment position="end">Ⓝ</InputAdornment>
+                          
+                          InputProps={{ 
+                            inputProps: {
+                              required: true, 
+                              min: 0,
+                              max: max
+                            },
+                            endAdornment: <div><InputAdornment position="end">Ⓝ</InputAdornment>
                             <Tooltip TransitionComponent={Zoom} title="Payout proposed in NEAR that will be paid out for completion of this milestone">
                                 <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
                             </Tooltip>
-                            </>
+                            </div>
                           }}
-                        />
+                         
+                          />
+                          {errors[`payout${index}`] && <p style={{color: 'red', fontSize:'80%'}}>Provide planned payout amount.</p>}
+            
+                   
                         </Grid>
                         <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                         <TextField
@@ -357,56 +566,58 @@ export default function EditFundingProposalForm(props) {
                           margin="dense"
                           id="milestone-description"
                           variant="outlined"
-                          name="briefDescription"
+                          name={`briefDescription${index}`}
                           label="Brief Description:"
+                          required
                           placeholder="Finish ...."
-                          value={element.briefDescription || ""}
+                          value={element[`briefDescription${index}`] || ""}
                           onChange={e => handleMilestonesChange(index, e)}
                           InputProps={{
-                            endAdornment: <>
+                            endAdornment: <div>
                             <Tooltip TransitionComponent={Zoom} title="Short description of what will be finished by completing this milestone.">
                                 <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
                             </Tooltip>
-                            </>
+                            </div>
                           }}
-                          inputRef={register({
-                              required: false                              
-                          })}
-                        />
+                          />
+                          {errors[`briefDescription${index}`] && <p style={{color: 'red', fontSize:'80%'}}>Provide milestone description.</p>}
+            
+                        
                         </Grid>
                         <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                         {
                         index ? 
-                          <Button className="button remove" onClick={() => removeMilestoneFields(index)}>Remove Milestone</Button> 
+                          <Button key={element.name} className="button remove" onClick={() => removeMilestoneFields(index)}>Remove Milestone</Button> 
                         : null
                         }
                         </Grid>
                       </Grid>
                         <hr></hr>
-                        </>
+                        </React.Fragment>
                   ))}
                   <div>
-                    <Button className="button add" type="button" onClick={() => addMilestoneFields()}>Add Milestone</Button>
+                    <Button className="button add" type="button" disabled={addDisabled} onClick={() => addMilestoneFields()}>Add Milestone</Button>
                   </div>
                   </Paper>
                 </DialogContent>
                
               {!finished ? <LinearProgress className={classes.progress} style={{marginBottom: '25px' }}/> : (
               <DialogActions>
-              <Button onClick={handleSubmit(onSubmit)} color="primary" type="submit">
-                  Submit Details
-                </Button>
+              <Button onClick={handleSubmit(onSubmit)} disabled={disabled} color="primary" type="submit" >
+                Submit Details
+              </Button>
+              
                 <Button onClick={handleClose} color="primary">
                   Cancel
                 </Button>
               </DialogActions>)}
-              <Divider style={{marginBottom: 10}}/>
               
-              </>) : <><div className={classes.waiting}><div class={flexClass}><CircularProgress/></div><Grid container spacing={1} alignItems="center" justifyContent="center" >
+              
+              </div>) : <div className={classes.waiting}><div class={flexClass}><CircularProgress/></div><Grid container spacing={1} alignItems="center" justifyContent="center" >
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                 <Typography variant="h5" align="center">Loading Proposal Data</Typography>
               </Grid>
-              </Grid></div></> }
+              </Grid></div> }
             </Dialog>
            
           </div>

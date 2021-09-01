@@ -52,17 +52,22 @@ const useStyles = makeStyles((theme) => ({
         marginTop: 0,
     },
     divider: {
-      marginTop: '5px',
+      marginTop: '-55px',
       marginBottom: '10px'
     },
     card: {
       marginTop: '10px',
       maxWidth: '250px',
       minWidth: '250px',
-      position: 'relative'
+      height: '430px',
+      position: 'relative',
+      margin: 'auto'
     },
     cardAction: {
-      display: 'block'
+      display: 'block',
+      margin: 0,
+      padding: 0,
+      
     },
     votes: {
       paddingLeft: 0,
@@ -74,8 +79,8 @@ const useStyles = makeStyles((theme) => ({
     bottom: {
       paddingTop: '20px',
       position: 'absolute',
-      bottom: '50px',
-      left: '70px'
+      bottom: '60px',
+     
     },
     bottom2: {
       position: 'absolute',
@@ -88,13 +93,20 @@ const useStyles = makeStyles((theme) => ({
       height: theme.spacing(3),
       float: 'left'
     },
+    infoBox: {
+      textAlign: 'center',
+      width: '100%',
+      marginTop: '-20px',
+      padding: '5px'
+    },
     large: {
       width: theme.spacing(7),
       height: theme.spacing(7),
       float: 'left'
     },
     greenButton: {
-      backgroundColor: '#43a047'
+      backgroundColor: '#43a047',
+      marginLeft: '-20px'
     }
   }));
 
@@ -172,6 +184,8 @@ export default function ProposalCard(props) {
 
     const [nextToFinalize, setNextToFinalize] = useState()
 
+    const [daoContract, setDaoContract] = useState()
+
     const [anchorEl, setAnchorEl] = useState(null)
     
     const { state, dispatch, update } = useContext(appStore)
@@ -193,6 +207,7 @@ export default function ProposalCard(props) {
 
     const { applicant, created, noVotes, yesVotes, proposalType, proposer, requestId, tribute, vote, loot, shares, status, funding,
         isVotingPeriod, isGracePeriod, voted, gracePeriod, votingPeriod, currentPeriod, periodDuration, cancelFinish, sponsor, done, configuration,
+        referenceIds,
         cancelTransactionHash,
         submitTransactionHash,
         processTransactionHash,
@@ -207,7 +222,8 @@ export default function ProposalCard(props) {
         memberStatus,
         contract,
         summoner,
-        queueList
+        queueList,
+        guildBalance
     } = props
 
     useEffect(
@@ -216,24 +232,44 @@ export default function ProposalCard(props) {
 
           async function fetchData() {
          
-            // Get Applicant Persona Information
-            let thisCurPersonaIdx
-           
+            // Get Persona Information           
             if(applicant){
               const thisPersona = new Persona()
+
+              // Applicant
               let result = await thisPersona.getPersona(applicant)
                   if(result){
                     result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
                     result.name ? setApplicantName(result.name) : setApplicantName('')
                   }
+              
+              // Proposer
               let resultb = await thisPersona.getPersona(proposer)
               if(resultb){
                 resultb.avatar ? setProposerAvatar(resultb.avatar) : setProposerAvatar(imageName)
                 resultb.name ? setProposerName(resultb.name) : setProposerName('')
               }
              }
-            
-            
+
+             // Check for reference titles first
+              // set title to opportunity title if it exists
+              if(referenceIds){
+              for(const [key, value] of Object.entries(referenceIds)){
+                console.log('opp value', value)
+                if(value['valueSetting']!=''){
+                  let oppResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
+                  console.log('oppresult', oppResult)
+                  let k = 0
+                  while(k < oppResult.opportunities.length){
+                    if(oppResult.opportunities[k].opportunityId == value['valueSetting']){
+                      setTitle(oppResult.opportunities[k].title)
+                      break
+                    }
+                    k++
+                  }
+                }
+              }
+            }
 
             // Set Existing Member Proposal Data       
             if(curDaoIdx){
@@ -254,6 +290,7 @@ export default function ProposalCard(props) {
             
             // Set Existing Funding Proposal Data       
             if(curDaoIdx){
+             
               let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
          
               if(propResult) {
@@ -266,7 +303,7 @@ export default function ProposalCard(props) {
                   }
                   i++
                 }
-              }
+              } 
             }
 
             // Set Existing Tribute Proposal Data       
@@ -324,6 +361,7 @@ export default function ProposalCard(props) {
               let daoContract = await dao.initDaoContract(wallet.account(), contractId)
               let members = await daoContract.getTotalMembers()
               setTotalMembers(members)
+              setDaoContract(daoContract)
             }
 
             if(queueList && queueList.length > 0){
@@ -342,7 +380,7 @@ export default function ProposalCard(props) {
           return () => mounted = false
           }
           
-    }, [isUpdated, queueList, curDaoIdx]
+    }, [isUpdated, queueList, guildBalance, curDaoIdx]
     )
 
     function handleUpdate(property){
@@ -925,7 +963,7 @@ export default function ProposalCard(props) {
                 <Button 
                  color="primary"
                  style={{fontWeight: '800', fontSize: '110%', lineHeight: '1.1em'}}
-                 onClick={handleFundingProposalDetailsClick}
+                 onClick={handlePayoutProposalDetailsClick}
                 >
                  {payoutTitle ? payoutTitle.replace(/(<([^>]+)>)/gi, ""): 'No Details Yet.'}
                 </Button>
@@ -1036,11 +1074,11 @@ export default function ProposalCard(props) {
             ) : null}
 
             {proposalType == 'Commitment' ? (
-              <Grid container alignItems="center" justifyContent="space-evenly" style={{marginTop: '-20px', marginBottom:'20px'}}>
+              <Grid container alignItems="center" justifyContent="space-evenly" style={{marginTop: '-20px'}}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                  
                 </Grid>    
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '40px'}}>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
                   <Typography variant="overline" align="center" style={{marginBottom: '10px'}}>Funding Requested</Typography><br></br>
                   <Typography variant="overline" align="center">{`${funding} Ⓝ`}</Typography>
                 </Grid>
@@ -1049,7 +1087,7 @@ export default function ProposalCard(props) {
 
             {proposalType == 'Tribute' ? (
               <Grid container alignItems="center" justifyContent="space-evenly" style={{marginBottom:'5px'}}>
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-20px', marginBottom:'40px'}}>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-20px'}}>
                   <Typography variant="overline">Shares: {shares}</Typography><br></br>
                   <Typography variant="overline">{`Tribute: ${tribute} Ⓝ`}</Typography>
                 </Grid>
@@ -1057,11 +1095,11 @@ export default function ProposalCard(props) {
             ) : null }
 
             {proposalType == 'Payout' ? (
-              <Grid container alignItems="center" justifyContent="space-evenly" style={{marginTop: '-20px', marginBottom:'20px'}}>
+              <Grid container alignItems="center" justifyContent="space-evenly" style={{marginTop: '-20px'}}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                  
                 </Grid>    
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '40px'}}>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
                   <Typography variant="overline" align="center" style={{marginBottom: '10px'}}>Payout Requested</Typography><br></br>
                   <Typography variant="overline" align="center">{`${funding} Ⓝ`}</Typography>
                 </Grid>
@@ -1072,10 +1110,12 @@ export default function ProposalCard(props) {
            
             </CardContent>
             <CardActions className={classes.cardAction}>
-            <div className={classes.bottom}>
-              <Divider className={classes.divider}/>
+           
+             
+              <div className={classes.infoBox}>
               {status == 'Submitted' ? <Typography variant="subtitle2" display="block" align="center">Awaiting Sponsor</Typography> : null}
-            </div>
+              {status != 'Passed' && status != 'Sponsored' && status != 'Not Passed' && parseInt(funding) > parseInt(guildBalance[0].balance) ? <Typography variant="subtitle2" display="block" align="center" style={{backgroundColor: 'red', color: 'white', padding: '2px', marginTop:'3px'}}>Funds Required</Typography> : null}
+              </div>
 
               {status == 'Sponsored' && isVotingPeriod && !isGracePeriod ? (
                
@@ -1127,8 +1167,7 @@ export default function ProposalCard(props) {
                 </Grid>
               ) : null }
               
-              {status == 'Sponsored' && status != 'Awaiting Finalization' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && currentPeriod > gracePeriod && !isVotingPeriod && !isGracePeriod ? (
-                <>
+              {(status == 'Awaiting Finalization') ? (         
                 <Grid container alignItems="center" justifyContent="space-between" spacing={1}>
                   <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="left" >
                     <StyledBadge badgeContent={yesVotes} color="primary">
@@ -1150,23 +1189,6 @@ export default function ProposalCard(props) {
                     </StyledBadge>
                   </Grid>
                 </Grid>
-                
-                <Grid container alignItems="center" justifyContent="space-evenly" spacing={1}>
-                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
-                  {nextToFinalize == requestId ?
-                    <Button
-                      variant="contained"
-                      className={classes.greenButton}
-                      align="center"
-                      startIcon={<SendIcon />}
-                      onClick={(e) => handleProcessAction(requestId, proposalType)}
-                    >
-                    Finalize
-                    </Button>
-                    : null }
-                  </Grid>
-                </Grid>
-                </>
               ) : null }
 
               {status == 'Passed' || status == 'Not Passed' ? (
@@ -1194,35 +1216,65 @@ export default function ProposalCard(props) {
               ) : null }
                
               <div className={classes.bottom2}>
+              <Divider className={classes.divider}/>
                 <Grid container alignItems="center" justifyContent="space-evenly" spacing={1}>
 
                 <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
                 {totalMembers != 1 ?
-                  (accountId != proposer && accountId != applicant) && status=='Submitted' && memberStatus == true && detailsExist == true ? 
-                <><Button 
-                    color="primary" 
-                    onClick={detailsExist ? (e) => handleSponsorConfirmationClick(requestId, proposalType, funding) :<p>Details Required</p>}
-                  >
-                  Sponsor
-                  </Button>
-                </> : null
+                  
+                  (accountId != proposer && accountId != applicant) 
+                  && status=='Submitted' 
+                  && memberStatus == true 
+                  && detailsExist == true
+                  && (parseInt(funding) < parseInt(guildBalance[0].balance))
+                    ? 
+                    (
+                      <><Button 
+                          color="primary" 
+                          onClick={detailsExist ? (e) => handleSponsorConfirmationClick(requestId, proposalType, funding) :<p>Details Required</p>}
+                        >
+                        Sponsor
+                        </Button>
+                      </>
+                    ) 
+                    : null
                 :
-                accountId == summoner && status=='Submitted' && memberStatus == true && detailsExist == true ? 
-                <><Button 
-                    color="primary" 
-                    onClick={detailsExist ? (e) => handleSponsorConfirmationClick(requestId, proposalType, funding) : <p>Details required</p>}
-                  >
-                  Sponsor
-                  </Button>
-                </> : null }
+                  accountId == summoner 
+                  && status=='Submitted' 
+                  && memberStatus == true 
+                  && detailsExist == true
+                  && (parseInt(funding) < parseInt(guildBalance[0].balance))
+                  ? 
+                    (  
+                      <><Button 
+                          color="primary" 
+                          onClick={detailsExist ? (e) => handleSponsorConfirmationClick(requestId, proposalType, funding) : <p>Details required</p>}
+                        >
+                        Sponsor
+                        </Button>
+                      </>
+                    ) 
+                  : null
+                }
                 </Grid>
 
-              <Grid item xs={8} sm={8} md={8} lg={8} xl={8} align="right">
+                <Grid item xs={8} sm={8} md={8} lg={8} xl={8} align="center">
+                {nextToFinalize == requestId ?
+                  <Button
+                    variant="contained"
+                    align="left"                    
+                    startIcon={<SendIcon />}
+                    onClick={(e) => handleProcessAction(requestId, proposalType)}
+                  >
+                  Finalize
+                  </Button>
+                  : null }
                 {accountId == proposer && status == 'Submitted' ? 
                 cancelFinish ? 
                   <><Button color="primary" onClick={() => handleCancelAction(requestId, loot, tribute)}>
                     Cancel
                   </Button>
+                 
                   {proposalType === 'Member' || proposalType === 'GuildKick' ? (
                     <><Button 
                         color="primary" 
@@ -1295,6 +1347,9 @@ export default function ProposalCard(props) {
           handleUpdate={handleUpdate}
           accountId={accountId}
           proposalId={requestId}
+          contract={daoContract}
+          funding={funding}
+          referenceIds={referenceIds}
           /> : null }
 
         {editTributeProposalDetailsClicked ? <EditTributeProposalForm
@@ -1332,6 +1387,10 @@ export default function ProposalCard(props) {
           handleUpdate={handleUpdate}
           accountId={accountId}
           proposalId={requestId}
+          contract={daoContract}
+          funding={funding}
+          referenceIds={referenceIds}
+          proposalStatus={status}
           /> : null }
 
         {editOpportunityProposalDetailsClicked ? <EditOpportunityProposalForm
@@ -1366,6 +1425,9 @@ export default function ProposalCard(props) {
           applicant={applicant}
           handleUpdate={handleUpdate}
           proposalId={requestId}
+          proposalStatus={status}
+          sponsor={sponsor}
+          contract={contract}
           /> : null }
 
         {tributeProposalDetailsClicked ? <TributeProposalDetails
@@ -1398,6 +1460,8 @@ export default function ProposalCard(props) {
           applicant={applicant}
           handleUpdate={handleUpdate}
           proposalId={requestId}
+          proposalStatus={status}
+          sponsor={sponsor}
           /> : null }
 
         {opportunityProposalDetailsClicked ? <OpportunityProposalDetails

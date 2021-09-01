@@ -84,7 +84,6 @@ export default function FundingProposal(props) {
     budget
   } = props
 
-  console.log('reference', reference)
   const handleClose = () => {
     handleFundingProposalClickState(false)
   };
@@ -207,7 +206,7 @@ export default function FundingProposal(props) {
                   <Typography variant="body2"><u>Proposal passes:</u></Typography>
                     <ul style={{paddingInlineStart:'10px', paddingInlineEnd:'10px'}}>
                       <li>
-                        <Typography variant="body2">Applicant receives {funding} Ⓝ.</Typography>
+                        <Typography variant="body2">{funding} Ⓝ will be put in escrow and designated for this project.</Typography>
                       </li>
                       <li>
                         <Typography variant="body2">Community fund will decrease by {funding} Ⓝ.</Typography>
@@ -221,7 +220,7 @@ export default function FundingProposal(props) {
                   <Typography variant="body2"><u>Proposal fails or is cancelled:</u></Typography>
                     <ul style={{paddingInlineStart:'10px', paddingInlineEnd:'10px'}}>
                       <li>
-                        <Typography variant="body2">Applicant receives no funding.</Typography>
+                        <Typography variant="body2">No funding will be designated for this proposal.</Typography>
                       </li>
                       <li>
                         <Typography variant="body2">Community fund does not change.</Typography>

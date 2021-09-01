@@ -1,4 +1,4 @@
-import React, { useState, useContext,useEffect } from 'react'
+import React, { useState, useContext, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 
@@ -91,15 +91,17 @@ export default function ActionSelector(props) {
   const [whiteListClicked, setWhiteListClicked] = useState(false)
   const [guildKickClicked, setGuildKickClicked] = useState(false)
   const [stepsEnabled, setStepsEnabled] = useState(false)
-  const [options, setOptions] = useState( {
+  const [options, setOptions] = useState({
     doneLabel: 'Next',                                
     showButtons: true,
     overlayOpacity: 0.5,
     scrollTo: 'element',
     skipLabel: "Skip",
     showProgress: true
-
 })
+
+  const [loaded, setLoaded] = useState(false)
+  
   const { state, dispatch, update } = useContext(appStore);
  
   let steps = [
@@ -116,7 +118,8 @@ export default function ActionSelector(props) {
       element: '.invite',
       intro: <Typography>Here you can invite your friends to join a community on a variety of social media platforms.</Typography>
     }                       
-  ]
+]
+
   const {
     enable,
     returnFunction, 
@@ -139,6 +142,14 @@ export default function ActionSelector(props) {
   const {
     contractId
   } = useParams()
+
+  useEffect(
+    () => {
+      if(memberStatus){
+        setLoaded(true)
+      }
+    }, []
+  )
 
   const handleDonationProposalClick = () => {
     handleExpanded()
@@ -259,6 +270,7 @@ export default function ActionSelector(props) {
   }
   return (
     <>
+
       <Steps
         steps={steps}
         initialStep={0}
@@ -281,6 +293,21 @@ export default function ActionSelector(props) {
       ) : null}
       <Button
         className='proposalList'
+
+    {loaded && !memberStatus ? (
+    <Button
+    style={{marginRight: 5}}
+    aria-controls="fade-menu"
+    aria-haspopup="true"
+    variant="contained"
+    color="primary"
+    onClick={handleMemberProposalClick}
+    >
+      Join
+    </Button>
+    ) : null }
+    <Button
+
         aria-controls="fade-menu"
         aria-haspopup="true"
         variant="contained"

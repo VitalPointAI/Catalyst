@@ -35,6 +35,9 @@ const useStyles = makeStyles((theme) => ({
     margin: 'auto',
     paddingTop: '20px'
   },
+  logoImage: {
+    width: '140px'
+  },
   rootForm: {
   '& > *': {
     margin: theme.spacing(1),
@@ -143,11 +146,9 @@ export default function MemberProposal(props) {
     <div>
       <Dialog open={open} aria-labelledby="form-dialog-title">
         <Grid container alignItems="center" justifyContent="center" style={{padding: '5px'}}>
-          <Grid item xs={12} sm={12} md={1} lg={1} xl={1} >
-          <Avatar variant="square" src={logo} />
-          </Grid>
-          <Grid item xs={12} sm={12} md={11} lg={11} xl={11} >
-            <Typography variant="body1">{communityName ? communityName : contractId}</Typography>
+          <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
+          <img src={logo} className={classes.logoImage} /><br></br>
+          {logo ? null : <Typography variant="h6">{communityName ? communityName : contractId}</Typography>}
           </Grid>
         </Grid>
         <DialogTitle id="form-dialog-title">Request Membership</DialogTitle>

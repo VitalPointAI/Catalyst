@@ -149,7 +149,7 @@ export default function Logo(props) {
             
             <Link to={`/dao/${contractId}`}>
             {!matches ? (
-                <div style={{width: '150px', 
+                <div style={{
                 height: '60px', 
                 marginLeft: '30px',
                 backgroundImage: `url(${logo})`, 
@@ -161,7 +161,7 @@ export default function Logo(props) {
             {accountId == summoner ? <Chip label="Change" onClick={handleEditDaoClick} clickable variant="outlined" className={classes.chip}/> : null }
             </div>
             ) : (
-                <div style={{width: '150px', 
+                <div style={{ 
                 height: '60px', 
                 marginLeft: '10px',
                 backgroundImage: `url(${logo})`, 
@@ -178,7 +178,7 @@ export default function Logo(props) {
         ) : (
             <Link to={`/dao/${contractId}`}>
             {!matches ? (
-                <div style={{width: '150px', 
+                <div style={{
                 height: '60px', 
                 marginLeft: '30px',
                 backgroundImage: `url(${logo})`, 
@@ -189,7 +189,7 @@ export default function Logo(props) {
             }}>
             </div>
             ) : (
-                <div style={{width: '150px', 
+                <div style={{
                 height: '60px', 
                 marginLeft: '10px',
                 backgroundImage: `url(${logo})`, 
@@ -205,7 +205,7 @@ export default function Logo(props) {
         ) : (
             <Link to='/'>
             {!matches ? (
-                <div style={{width: '150px', 
+                <div style={{
                 height: '60px', 
                 marginLeft: '30px',
                 backgroundImage: `url(${logo})`, 
@@ -216,7 +216,7 @@ export default function Logo(props) {
             }}>
             </div>
             ) : (
-                <div style={{width: '150px', 
+                <div style={{
                 height: '60px', 
                 marginLeft: '10px',
                 backgroundImage: `url(${logo})`, 

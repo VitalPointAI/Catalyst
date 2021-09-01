@@ -29,7 +29,6 @@ export default function RandomPhrase(props) {
     }
 
     let randomChoice = getRandomInt(randomPhrases.length)
-    console.log('random choice', randomChoice)
 
     return (
         <>

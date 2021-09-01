@@ -8,7 +8,7 @@ import FundingProposal from '../FundingProposal/fundingProposal'
 import MemberProposal from '../MemberProposal/memberProposal'
 import Persona from '@aluhning/get-personas-js'
 import { dao } from '../../utils/dao'
-import { getStatus } from '../../state/near'
+import { getStatus, formatDate } from '../../state/near'
 import { ceramic } from '../../utils/ceramic'
 import * as nearAPI from 'near-api-js'
 import DOMPurify from "dompurify"
@@ -164,10 +164,10 @@ export default function OpportunityProposalDetails(props) {
             }
             
             if(wallet && contractId){
-              console.log('useContractId', contractId)
+              
               const daoContract = await dao.initDaoContract(wallet.account(), contractId)
               let proposal = await daoContract.getProposal({proposalId: parseInt(opportunityId)})
-              let thisStatus = getStatus(proposal.f)
+              let thisStatus = getStatus(proposal.flags)
               setProposalStatus(thisStatus)
 
               try {
@@ -298,12 +298,6 @@ export default function OpportunityProposalDetails(props) {
 
     function handleFundingProposalClickState(property) {
       setFundingProposalClicked(property)
-    }
-
-    function formatDate(timestamp) {
-      let intDate = parseInt(timestamp)
-      let options = {year: 'numeric', month: 'long', day: 'numeric'}
-      return new Date(intDate).toLocaleString('en-US', options)
     }
 
     let Comments

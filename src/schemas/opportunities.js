@@ -55,7 +55,8 @@ export const opportunitiesSchema = {
           type:'string'
         },
         "budget":{
-          type:'string'
+          type:'number',
+          minimum: 0
         },
         "permission": {
           type: 'string',
