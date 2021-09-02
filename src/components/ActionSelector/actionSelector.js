@@ -112,7 +112,7 @@ export default function ActionSelector(props) {
              <br />
              <Typography>If you are not a member of this community, you can click the join button, and submit a member proposal to gain access to all proposals types.</Typography>
              <br />
-             <Typography>For more information about the various proposal types, you can find them (here)</Typography>
+             <Typography>For more information about the various proposal types, you can find them <a href=''>here</a></Typography>
             </>
     }, {
       element: '.invite',
@@ -282,7 +282,7 @@ export default function ActionSelector(props) {
 
       {loaded && !memberStatus ? (
         <Button
-          className='proposalList'
+
           style={{ marginRight: 5 }}
           aria-controls="fade-menu"
           aria-haspopup="true"
@@ -295,6 +295,7 @@ export default function ActionSelector(props) {
       ) : null}
 
       <Button
+        className='proposalList'
         aria-controls="fade-menu"
         aria-haspopup="true"
         variant="contained"
