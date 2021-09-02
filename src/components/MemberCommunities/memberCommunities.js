@@ -119,7 +119,7 @@ export default function MemberCommunities(props) {
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                 <Card>
                   <CardContent>
-                    <Typography variant="body1">Not a Member of Any Communities Yet!. <a href='/explore'>Explore some.</a></Typography>
+                    <Typography variant="body1">What? This persona has not joined any communities yet! <br></br><a href='/explore'>Time to explore some.</a></Typography>
                   </CardContent>
                 </Card>
               </Grid>

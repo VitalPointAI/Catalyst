@@ -104,7 +104,7 @@ export default function Communities(props) {
                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                     <Card>
                       <CardContent>
-                        <Typography variant="body1">No Communities Yet!</Typography>
+                        <Typography variant="body1">This persona has not founded any communities yet.</Typography>
                       </CardContent>
                     </Card>
                   </Grid>

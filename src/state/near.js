@@ -2771,3 +2771,109 @@ export function formatDateString(timestamp){
         return null
     } 
 }
+
+export async function signal(proposalId, signalType, curDaoIdx, accountId){
+    let currentProperties = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
+    console.log('currentproperties', currentProperties)
+    console.log('current proposalid', proposalId)
+    let hasLiked = false
+    let hasDisLiked = false
+    let hasNeutral = false
+    
+    let i = 0
+    while (i < currentProperties.proposals.length){
+        if(currentProperties.proposals[i].proposalId == proposalId.toString()){
+            hasLiked = currentProperties.proposals[i].likes.includes(accountId)
+            hasDisLiked = currentProperties.proposals[i].dislikes.includes(accountId)
+            hasNeutral = currentProperties.proposals[i].neutrals.includes(accountId)
+        
+            switch(true){
+                case signalType == 'like' && hasLiked:
+                    break
+                case signalType == 'dislike' && hasDisLiked:
+                    break
+                case signalType == 'neutral' && hasNeutral:
+                    break
+                case signalType == 'like' && !hasLiked:
+                    currentProperties.proposals[i].likes.push(accountId)
+                    if(hasDisLiked){
+                        let k = 0
+                        while (k < currentProperties.proposals[i].dislikes.length){
+                            if(currentProperties.proposals[i].dislikes[k] == accountId){
+                                currentProperties.proposals[i].dislikes.splice(k,1)
+                                break
+                            }
+                        k++
+                        }
+                    }
+                    if(hasNeutral){
+                        let k = 0
+                        while (k < currentProperties.proposals[i].neutrals.length){
+                            if(currentProperties.proposals[i].neutrals[k] == accountId){
+                                currentProperties.proposals[i].neutrals.splice(k,1)
+                                break
+                            }
+                        k++
+                        }
+                    }
+                    break
+                case signalType == 'dislike' && !hasDisLiked:
+                    currentProperties.proposals[i].dislikes.push(accountId)
+                    if(hasLiked){
+                        let k = 0
+                        while (k < currentProperties.proposals[i].likes.length){
+                            if(currentProperties.proposals[i].likes[k] == accountId){
+                                currentProperties.proposals[i].likes.splice(k,1)
+                                break
+                            }
+                        k++
+                        }
+                    }
+                    if(hasNeutral){
+                        let k = 0
+                        while (k < currentProperties.proposals[i].neutrals.length){
+                            if(currentProperties.proposals[i].neutrals[k] == accountId){
+                                currentProperties.proposals[i].neutrals.splice(k,1)
+                                break
+                            }
+                        k++
+                        }
+                    }
+                    break
+                    case signalType == 'neutral' && !hasNeutral:
+                        currentProperties.proposals[i].neutrals.push(accountId)
+                        if(hasLiked){
+                            let k = 0
+                            while (k < currentProperties.proposals[i].likes.length){
+                                if(currentProperties.proposals[i].likes[k] == accountId){
+                                    currentProperties.proposals[i].likes.splice(k,1)
+                                    break
+                                }
+                            k++
+                            }
+                        }
+                        if(hasDisLiked){
+                            let k = 0
+                            while (k < currentProperties.proposals[i].dislikes.length){
+                                if(currentProperties.proposals[i].dislikes[k] == accountId){
+                                    currentProperties.proposals[i].dislikes.splice(k,1)
+                                    break
+                                }
+                            k++
+                            }
+                        }
+                        break
+                    default: 
+                        break
+            }
+            break
+        }
+    i++
+    }
+    try{
+        console.log('currentprops end', currentProperties.proposals)
+        await curDaoIdx.set('fundingProposalDetails', currentProperties)
+    } catch (err) {
+        console.log('error with signalling', err)
+    }
+}

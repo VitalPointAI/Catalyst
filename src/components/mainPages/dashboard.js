@@ -1040,6 +1040,11 @@ export default function Dashboard(props) {
                         </React.Fragment>
                         )                               
                 }) :
+                !recommendations || recommendations.length == 0 ? (
+                    <TableRow key={'na'} style={{ height: 33 * emptyRows }}>
+                    <TableCell colSpan={7}><Typography variant="body1">Currently no opportunites available. Please check back.</Typography></TableCell>
+                  </TableRow>
+                ) :
               emptyRows > 0 && (
                 <TableRow key={'na'} style={{ height: 33 * emptyRows }}>
                   <TableCell colSpan={7}><LinearProgress /></TableCell>

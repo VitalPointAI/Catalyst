@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 import { dao } from '../../utils/dao'
-import { explorerUrl } from '../../state/near'
+import { explorerUrl, signal } from '../../state/near'
 import Persona from '@aluhning/get-personas-js'
 
 import EditMemberProposalForm from '../EditProposal/editMemberProposal'
@@ -99,6 +99,9 @@ const useStyles = makeStyles((theme) => ({
       marginTop: '-20px',
       padding: '5px'
     },
+    signals: {
+      width: theme.spacing(3),
+    },
     large: {
       width: theme.spacing(7),
       height: theme.spacing(7),
@@ -135,6 +138,9 @@ const useStyles = makeStyles((theme) => ({
   }
 
   const imageName = require('../../img/default-profile.png') // default no-image avatar
+  const likeImage = require('../../img/happy.png')
+  const dislikeImage = require('../../img/disgust.png') 
+  const neutralImage = require('../../img/neutral.png') 
 
 export default function ProposalCard(props) {
 
@@ -152,6 +158,9 @@ export default function ProposalCard(props) {
     const[payoutTitle, setPayoutTitle] = useState('Payout Details')
 
     const [proposals, setProposals] = useState()
+    const [likes, setLikes] = useState([])
+    const [dislikes, setDisLikes] = useState([])
+    const [neutrals, setNeutrals] = useState([])
 
     const [isUpdated, setIsUpdated] = useState(false)
     const [detailsExist, setDetailsExist] = useState(false)
@@ -257,15 +266,18 @@ export default function ProposalCard(props) {
               for(const [key, value] of Object.entries(referenceIds)){
                 console.log('opp value', value)
                 if(value['valueSetting']!=''){
-                  let oppResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
-                  console.log('oppresult', oppResult)
-                  let k = 0
-                  while(k < oppResult.opportunities.length){
-                    if(oppResult.opportunities[k].opportunityId == value['valueSetting']){
-                      setTitle(oppResult.opportunities[k].title)
-                      break
+                  try{
+                    let oppResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
+                    let k = 0
+                    while(k < oppResult.opportunities.length){
+                      if(oppResult.opportunities[k].opportunityId == value['valueSetting']){
+                        setTitle(oppResult.opportunities[k].title)
+                        break
+                      }
+                      k++
                     }
-                    k++
+                  } catch (err) {
+                    console.log('problem retrieving opporunities', err)
                   }
                 }
               }
@@ -292,12 +304,15 @@ export default function ProposalCard(props) {
             if(curDaoIdx){
              
               let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
-         
+         console.log('card propresult', propResult)
               if(propResult) {
                 let i = 0
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == requestId){
                     propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
+                    propResult.proposals[i].likes ? setLikes(propResult.proposals[i].likes.length) : setLikes(0)
+                    propResult.proposals[i].dislikes ? setDisLikes(propResult.proposals[i].dislikes.length) : setDisLikes(0)
+                    propResult.proposals[i].neutrals ? setNeutrals(propResult.proposals[i].neutrals.length) : setNeutrals(0)
                     setDetailsExist(true)
                     break
                   }
@@ -380,7 +395,7 @@ export default function ProposalCard(props) {
           return () => mounted = false
           }
           
-    }, [isUpdated, queueList, guildBalance, curDaoIdx]
+    }, [isUpdated, queueList, guildBalance, curDaoIdx, likes, dislikes, neutrals]
     )
 
     function handleUpdate(property){
@@ -509,6 +524,11 @@ export default function ProposalCard(props) {
   
     function handleExpanded() {
       setAnchorEl(null)
+    }
+
+    async function handleSignal(type){
+      await signal(requestId, type, curDaoIdx, accountId)
+      handleUpdate(!isUpdated)
     }
 
     return(
@@ -1113,6 +1133,23 @@ export default function ProposalCard(props) {
            
              
               <div className={classes.infoBox}>
+              <Grid container spacing={1} alignItems="center" justifyContent="space-between" style={{marginTop: '10px', marginBottom: '10px'}}>
+              <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
+              <Badge badgeContent={likes} color="primary">  
+                <img src={likeImage} className={classes.signals} onClick={(e) => handleSignal('like')}/>
+              </Badge>
+              </Grid>
+              <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
+              <Badge badgeContent={neutrals} color="primary">  
+                <img src={neutralImage} className={classes.signals} onClick={(e) => handleSignal('neutral')}/>
+              </Badge>
+              </Grid>
+              <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
+              <Badge badgeContent={dislikes} color="primary">  
+                <img src={dislikeImage} className={classes.signals} onClick={(e) => handleSignal('dislike')}/>
+              </Badge>
+              </Grid>
+              </Grid>
               {status == 'Submitted' ? <Typography variant="subtitle2" display="block" align="center">Awaiting Sponsor</Typography> : null}
               {status != 'Passed' && status != 'Sponsored' && status != 'Not Passed' && parseInt(funding) > parseInt(guildBalance[0].balance) ? <Typography variant="subtitle2" display="block" align="center" style={{backgroundColor: 'red', color: 'white', padding: '2px', marginTop:'3px'}}>Funds Required</Typography> : null}
               </div>

@@ -120,7 +120,7 @@ const classes = useStyles()
                             <>
                             <div style={{display: 'inline', width: '100%'}}>
                             <Link to="/daos">
-                                <Button color="primary" style={{textAlign: 'center'}}>This Persona started {daoCount == 1 ? daoCount + ' Community' : daoCount + '  Communities'}</Button>
+                                <Button color="primary" style={{textAlign: 'center'}}>Founded {daoCount ? daoCount == 1 ? daoCount + ' Community' : daoCount + '  Communities' : '0 Communities'}</Button>
                             </Link>
                             <Tooltip TransitionComponent={Zoom} title="The number of communities the signed in persona has founded.">
                                 <InfoIcon fontSize="small" style={{marginLeft: '3px', marginTop:'-3px'}} />
@@ -131,9 +131,9 @@ const classes = useStyles()
                             <>
                             <div style={{display: 'inline', width: '100%'}}>
                             <Link to="/daos">
-                                <Button color="primary" style={{textAlign: 'center'}}>This Persona started {daoCount == 1 ? daoCount + ' Community' : daoCount + '  Communities'}</Button>
+                                <Button color="primary" style={{textAlign: 'center'}}>Founded {daoCount ? daoCount == 1 ? daoCount + ' Community' : daoCount + '  Communities' : '0 Communities'}</Button>
                             </Link>
-                            <Tooltip TransitionComponent={Zoom} title="The number of communities you have founded.">
+                            <Tooltip TransitionComponent={Zoom} title="The number of communities the signed in persona has founded.">
                                 <InfoIcon fontSize="small" style={{marginLeft: '3px', marginTop:'-3px'}} />
                             </Tooltip>
                             </div>
@@ -151,7 +151,7 @@ const classes = useStyles()
                                     <Tooltip TransitionComponent={Zoom} title="The number of communities the signed in persona has founded.">
                                         <InfoIcon fontSize="small" style={{marginLeft: '3px', marginRight:'5px', marginTop:'-3px'}} />
                                     </Tooltip>
-                                    <Button style={{textAlign: 'center'}}>This Persona started 0 Communities</Button>
+                                    <Button style={{textAlign: 'center'}}>Founded 0 Communities</Button>
                                 </Typography>
                             </Grid>
                         </Grid>

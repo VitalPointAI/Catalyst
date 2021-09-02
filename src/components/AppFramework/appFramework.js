@@ -850,7 +850,7 @@ export default function AppFramework(props) {
                   <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" style={{marginBottom: '15px'}}>                    
                     <Chip variant="outlined" label="Member" icon={memberIcon} />
                     <Chip variant="outlined" label={sharesLabel}  />
-                    <Chip variant="ou tlined" label={fairShareLabel}  />
+                    <Chip variant="outlined" label={fairShareLabel}  />
                   </Grid>
                   <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
                     <ActionSelector 
