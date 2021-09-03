@@ -143,14 +143,14 @@ export default function EditFundingProposalForm(props) {
                         setDetails(EditorState.createEmpty())
                       }
                     propResult.proposals[i].likes ? setLikes(propResult.proposals[i].likes.length) : setLikes(0)
-                 //   setCurrentLikes(propResult.proposals[i].likes)
-                    setCurrentLikes([])
+                    setCurrentLikes(propResult.proposals[i].likes)
+                   
                     propResult.proposals[i].dislikes ? setDisLikes(propResult.proposals[i].dislikes.length) : setDisLikes(0)
-                 //   setCurrentDisLikes(propResult.proposals[i].dislikes)
-                    setCurrentDisLikes([])
+                    setCurrentDisLikes(propResult.proposals[i].dislikes)
+                    
                     propResult.proposals[i].neutrals ? setNeutrals(propResult.proposals[i].neutrals.length) : setNeutrals(0)
-                 //   setCurrentNeutrals(propResult.proposals[i].neutrals)
-                    setCurrentNeutrals([])
+                    setCurrentNeutrals(propResult.proposals[i].neutrals)
+                    
                     break
                   } else {
                     // set title to opportunity title if it exists
@@ -158,25 +158,29 @@ export default function EditFundingProposalForm(props) {
                       for(const [key, value] of Object.entries(referenceIds)){
                         console.log('opp value', value)
                         if(value['valueSetting']!=''){
-                          let oppResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
-                          console.log('oppresult', oppResult)
-                          let k = 0
-                          while(k < oppResult.opportunities.length){
-                            if(oppResult.opportunities[k].opportunityId == value['valueSetting']){
-                              setTitle(oppResult.opportunities[k].title)
-                              if (oppResult.opportunities[k].details){
-                                let contentBlock = htmlToDraft(oppResult.opportunities[k].details)
-                                if (contentBlock){
-                                  const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks)
-                                  const editorState = EditorState.createWithContent(contentState)
-                                  setDetails(editorState)
-                                }
-                                } else {
-                                  setDetails(EditorState.createEmpty())
-                                }
-                              break
+                          try{
+                            let oppResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
+                            console.log('oppresult', oppResult)
+                            let k = 0
+                            while(k < oppResult.opportunities.length){
+                              if(oppResult.opportunities[k].opportunityId == value['valueSetting']){
+                                setTitle(oppResult.opportunities[k].title)
+                                if (oppResult.opportunities[k].details){
+                                  let contentBlock = htmlToDraft(oppResult.opportunities[k].details)
+                                  if (contentBlock){
+                                    const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks)
+                                    const editorState = EditorState.createWithContent(contentState)
+                                    setDetails(editorState)
+                                  }
+                                  } else {
+                                    setDetails(EditorState.createEmpty())
+                                  }
+                                break
+                              }
+                              k++
                             }
-                            k++
+                          } catch (err) {
+                            console.log('error retrieving opportunities', err)
                           }
                         }
                       }
