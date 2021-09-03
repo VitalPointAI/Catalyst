@@ -9,6 +9,7 @@ import GuildKickProposal from '../GuildKickProposal/guildKickProposal'
 import MemberProposal from '../MemberProposal/memberProposal'
 import PayoutProposal from '../PayoutProposal/payoutProposal'
 import OpportunityProposal from '../OpportunityProposal/opportunityProposal'
+import CommunityRoleProposal from '../CommunityRoleProposal/communityRoleProposal'
 import Donation from '../Donation/donation'
 import Invite from '../Invite/invite'
 import Leave from '../Leave/leave'
@@ -31,10 +32,6 @@ import EnhancedEncryptionIcon from '@material-ui/icons/EnhancedEncryption'
 import ExitToAppIcon from '@material-ui/icons/ExitToApp'
 import AddAlertIcon from '@material-ui/icons/AddAlert'
 import MoneyIcon from '@material-ui/icons/Money'
-import { EmailIcon } from 'react-share'
-import { SportsTennisRounded } from '@material-ui/icons'
-
-
 
 const StyledMenu = withStyles({
   paper: {
@@ -87,6 +84,7 @@ export default function ActionSelector(props) {
   const [payoutProposalClicked, setPayoutProposalClicked] = useState(false)
   const [donationProposalClicked, setDonationProposalClicked] = useState(false)
   const [opportunityProposalClicked, setOpportunityProposalClicked] = useState(false)
+  const [communityRoleProposalClicked, setCommunityRoleProposalClicked] = useState(false)
   const [leaveClicked, setLeaveClicked] = useState(false)
   const [whiteListClicked, setWhiteListClicked] = useState(false)
   const [guildKickClicked, setGuildKickClicked] = useState(false)
@@ -103,22 +101,6 @@ export default function ActionSelector(props) {
   const [loaded, setLoaded] = useState(false)
   
   const { state, dispatch, update } = useContext(appStore);
- 
-  let steps = [
-    { 
-      element: '.proposalList',
-      intro: <>
-             <Typography>Clicking this button will display a list of proposals that you can submit.</Typography>
-             <br />
-             <Typography>If you are not a member of this community, you can click the join button, and submit a member proposal to gain access to all proposals types.</Typography>
-             <br />
-             <Typography>For more information about the various proposal types, you can find them (here)</Typography>
-            </>
-    }, {
-      element: '.invite',
-      intro: <Typography>Here you can invite your friends to join a community on a variety of social media platforms.</Typography>
-    }                       
-]
 
   const {
     enable,
@@ -150,6 +132,30 @@ export default function ActionSelector(props) {
       }
     }, []
   )
+
+  useEffect(
+    () =>
+      {
+        setStepsEnabled(enable);
+      }
+      , [enable]
+  )
+
+  let steps = [
+    { 
+      element: '.proposalList',
+      intro: <>
+             <Typography>Clicking this button will display a list of proposals that you can submit.</Typography>
+             <br />
+             <Typography>If you are not a member of this community, you can click the join button, and submit a member proposal to gain access to all proposals types.</Typography>
+             <br />
+             <Typography>For more information about the various proposal types, you can find them (here)</Typography>
+            </>
+    }, {
+      element: '.invite',
+      intro: <Typography>Here you can invite your friends to join a community on a variety of social media platforms.</Typography>
+    }                       
+]
 
   const handleDonationProposalClick = () => {
     handleExpanded()
@@ -205,13 +211,11 @@ export default function ActionSelector(props) {
     handleOpportunityProposalClickState(true)
   }
 
-  useEffect(
-    () =>
-      {
-        setStepsEnabled(enable);
-      }
-      , [enable]
-  )
+  const handleCommunityRoleProposalClick = () => {
+    handleExpanded()
+    handleTabValueState('2')
+    handleCommunityRoleProposalClickState(true)
+  }
 
   const handleInvite = () => {
     handleInviteClickState(true);
@@ -255,6 +259,10 @@ export default function ActionSelector(props) {
 
   function handleOpportunityProposalClickState(property) {
     setOpportunityProposalClicked(property)
+  }
+
+  function handleCommunityRoleProposalClickState(property) {
+    setCommunityRoleProposalClicked(property)
   }
 
   function handleExpanded() {
@@ -354,6 +362,12 @@ export default function ActionSelector(props) {
             </ListItemIcon>
             <ListItemText primary="Funding Commitment" />
           </StyledMenuItem>
+          <StyledMenuItem button onClick={handleCommunityRoleProposalClick}>
+          <ListItemIcon>
+            <EnhancedEncryptionIcon fontSize="small" />
+          </ListItemIcon>
+            <ListItemText primary="Community Role" />
+          </StyledMenuItem>
           <StyledMenuItem button onClick={handlePayoutProposalClick}>
             <ListItemIcon>
               <MonetizationOnIcon fontSize="small" />
@@ -395,8 +409,6 @@ export default function ActionSelector(props) {
           </StyledMenuItem>
         </StyledMenu>
       )}
-
-
 
 
       {whiteListClicked ? <WhiteListProposal
@@ -442,6 +454,16 @@ export default function ActionSelector(props) {
         accountId={accountId}
       /> : null}
 
+      {communityRoleProposalClicked ? <CommunityRoleProposal
+        contractId={contractId}
+        handleCommunityRoleProposalClickState={handleCommunityRoleProposalClickState}
+        state={state}
+        depositToken={depositToken}
+        proposalDeposit={proposalDeposit}
+        tokenName={tokenName}
+        accountId={accountId}
+      /> : null}
+
       {tributeProposalClicked ? <TributeProposal
         contractId={contractId}
         handleTributeProposalClickState={handleTributeProposalClickState}
@@ -450,7 +472,6 @@ export default function ActionSelector(props) {
         proposalDeposit={proposalDeposit}
         tokenName={tokenName}
         accountId={accountId}
-
       /> : null}
 
 
@@ -462,7 +483,6 @@ export default function ActionSelector(props) {
         proposalDeposit={proposalDeposit}
         tokenName={tokenName}
         accountId={accountId}
-
       /> : null}
 
       {memberProposalClicked ? <MemberProposal
@@ -472,8 +492,6 @@ export default function ActionSelector(props) {
         depositToken={depositToken}
         handleMemberProposalClickState={handleMemberProposalClickState}
         accountId={accountId}
-
-
       /> : null}
 
       {donationProposalClicked ? <Donation
@@ -483,7 +501,6 @@ export default function ActionSelector(props) {
         depositToken={depositToken}
         handleDonationProposalClickState={handleDonationProposalClickState}
         accountId={accountId}
-
       /> : null}
 
       {payoutProposalClicked ? <PayoutProposal
@@ -494,7 +511,6 @@ export default function ActionSelector(props) {
         tokenName={tokenName}
         handlePayoutProposalClickState={handlePayoutProposalClickState}
         accountId={accountId}
-
       /> : null}
     </>
   )

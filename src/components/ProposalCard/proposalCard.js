@@ -59,7 +59,7 @@ const useStyles = makeStyles((theme) => ({
       marginTop: '10px',
       maxWidth: '250px',
       minWidth: '250px',
-      height: '430px',
+      height: '450px',
       position: 'relative',
       margin: 'auto'
     },
@@ -158,9 +158,9 @@ export default function ProposalCard(props) {
     const[payoutTitle, setPayoutTitle] = useState('Payout Details')
 
     const [proposals, setProposals] = useState()
-    const [likes, setLikes] = useState([])
-    const [dislikes, setDisLikes] = useState([])
-    const [neutrals, setNeutrals] = useState([])
+    const [likes, setLikes] = useState(0)
+    const [dislikes, setDisLikes] = useState(0)
+    const [neutrals, setNeutrals] = useState(0)
 
     const [isUpdated, setIsUpdated] = useState(false)
     const [detailsExist, setDetailsExist] = useState(false)
@@ -1133,23 +1133,25 @@ export default function ProposalCard(props) {
            
              
               <div className={classes.infoBox}>
-              <Grid container spacing={1} alignItems="center" justifyContent="space-between" style={{marginTop: '10px', marginBottom: '10px'}}>
-              <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
-              <Badge badgeContent={likes} color="primary">  
-                <img src={likeImage} className={classes.signals} onClick={(e) => handleSignal('like')}/>
-              </Badge>
-              </Grid>
-              <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
-              <Badge badgeContent={neutrals} color="primary">  
-                <img src={neutralImage} className={classes.signals} onClick={(e) => handleSignal('neutral')}/>
-              </Badge>
-              </Grid>
-              <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
-              <Badge badgeContent={dislikes} color="primary">  
-                <img src={dislikeImage} className={classes.signals} onClick={(e) => handleSignal('dislike')}/>
-              </Badge>
-              </Grid>
-              </Grid>
+              {status == 'Submitted' ?
+                <Grid container spacing={1} alignItems="center" justifyContent="space-between" style={{marginTop: '10px', marginBottom: '10px'}}>
+                <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
+                <Badge badgeContent={likes} color="primary">  
+                  <img src={likeImage} className={classes.signals} onClick={(e) => handleSignal('like')}/>
+                </Badge>
+                </Grid>
+                <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
+                <Badge badgeContent={neutrals} color="primary">  
+                  <img src={neutralImage} className={classes.signals} onClick={(e) => handleSignal('neutral')}/>
+                </Badge>
+                </Grid>
+                <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
+                <Badge badgeContent={dislikes} color="primary">  
+                  <img src={dislikeImage} className={classes.signals} onClick={(e) => handleSignal('dislike')}/>
+                </Badge>
+                </Grid>
+                </Grid>
+                : null }
               {status == 'Submitted' ? <Typography variant="subtitle2" display="block" align="center">Awaiting Sponsor</Typography> : null}
               {status != 'Passed' && status != 'Sponsored' && status != 'Not Passed' && parseInt(funding) > parseInt(guildBalance[0].balance) ? <Typography variant="subtitle2" display="block" align="center" style={{backgroundColor: 'red', color: 'white', padding: '2px', marginTop:'3px'}}>Funds Required</Typography> : null}
               </div>

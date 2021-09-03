@@ -1815,22 +1815,23 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
             let opportunityId = proposal.referenceIds[0].valueSetting
             let opportunitiesList = await curDaoIdx.get('opportunities', curDaoIdx.id)
             let i = 0
-        
-            while (i < opportunitiesList.opportunities.length){
-                if(opportunitiesList.opportunities[i].opportunityId == opportunityId){
-                    let opportunity = opportunitiesList.opportunities[i]
-                    opportunity['budget'] = parseInt(opportunity['budget']) + parseInt(proposal.paymentRequested)
-                    opportunitiesList.opportunities[i] = opportunity
-                    break
+            if(opportunitiesList){
+                while (i < opportunitiesList.opportunities.length){
+                    if(opportunitiesList.opportunities[i].opportunityId == opportunityId){
+                        let opportunity = opportunitiesList.opportunities[i]
+                        opportunity['budget'] = parseInt(opportunity['budget']) + parseInt(proposal.paymentRequested)
+                        opportunitiesList.opportunities[i] = opportunity
+                        break
+                    }
+                    i++
                 }
-                i++
-            }
 
-            try{
-                await curDaoIdx.set('opportunities', opportunitiesList)
-                budgetAdjusted=true
-            } catch (err) {
-                console.log('error processing event', err)
+                try{
+                    await curDaoIdx.set('opportunities', opportunitiesList)
+                    budgetAdjusted=true
+                } catch (err) {
+                    console.log('error processing event', err)
+                }
             }
         }
 
@@ -2268,21 +2269,22 @@ export async function logSponsorEvent (curDaoIdx, daoContract, contractId, propo
              let opportunityId = proposal.referenceIds[0].valueSetting
              let opportunitiesList = await curDaoIdx.get('opportunities', curDaoIdx.id)
              let i = 0
-         
-             while (i < opportunitiesList.opportunities.length){
-                 if(opportunitiesList.opportunities[i].opportunityId == opportunityId){
-                     let opportunity = opportunitiesList.opportunities[i]
-                     opportunity['budget'] = parseInt(opportunity['budget']) - parseInt(proposal.paymentRequested)
-                     opportunitiesList.opportunities[i] = opportunity
-                     break
-                 }
-                 i++
-             }
-             try{
-                await curDaoIdx.set('opportunities', opportunitiesList)
-                budgetAdjusted=true
-            } catch (err) {
-                console.log('error logging sponsor event', err)
+             if(opportunitiesList){
+                while (i < opportunitiesList.opportunities.length){
+                    if(opportunitiesList.opportunities[i].opportunityId == opportunityId){
+                        let opportunity = opportunitiesList.opportunities[i]
+                        opportunity['budget'] = parseInt(opportunity['budget']) - parseInt(proposal.paymentRequested)
+                        opportunitiesList.opportunities[i] = opportunity
+                        break
+                    }
+                    i++
+                }
+                try{
+                    await curDaoIdx.set('opportunities', opportunitiesList)
+                    budgetAdjusted=true
+                } catch (err) {
+                    console.log('error logging sponsor event', err)
+                }
             }
          }
 

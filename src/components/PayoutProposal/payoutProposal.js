@@ -113,6 +113,11 @@ console.log('reference', reference)
           'valueSetting': value.toString()
         })
       }
+    } else {
+      references.push({
+        'keyName': '',
+        'valueSetting': ''
+      })
     }
 
 
