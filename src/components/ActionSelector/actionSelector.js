@@ -101,6 +101,25 @@ export default function ActionSelector(props) {
   const [loaded, setLoaded] = useState(false)
   
   const { state, dispatch, update } = useContext(appStore);
+<<<<<<< HEAD
+=======
+ 
+  let steps = [
+    { 
+      element: '.proposalList',
+      intro: <>
+             <Typography>Clicking this button will display a list of proposals that you can submit.</Typography>
+             <br />
+             <Typography>If you are not a member of this community, you can click the join button, and submit a member proposal to gain access to all proposals types.</Typography>
+             <br />
+             <Typography>For more information about the various proposal types, you can find them <a href=''>here</a></Typography>
+            </>
+    }, {
+      element: '.invite',
+      intro: <Typography>Here you can invite your friends to join a community on a variety of social media platforms.</Typography>
+    }                       
+]
+>>>>>>> 83ecb1abd934da492d0c573311f22295ed6d1cff
 
   const {
     enable,
@@ -290,7 +309,7 @@ export default function ActionSelector(props) {
 
       {loaded && !memberStatus ? (
         <Button
-          className='proposalList'
+
           style={{ marginRight: 5 }}
           aria-controls="fade-menu"
           aria-haspopup="true"
@@ -303,6 +322,7 @@ export default function ActionSelector(props) {
       ) : null}
 
       <Button
+        className='proposalList'
         aria-controls="fade-menu"
         aria-haspopup="true"
         variant="contained"
