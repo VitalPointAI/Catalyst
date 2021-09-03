@@ -145,10 +145,12 @@ export default function ActionSelector(props) {
 
   useEffect(
     () => {
+      setStepsEnabled(enable)
       if(memberStatus){
         setLoaded(true)
       }
-    }, []
+     
+    }, [enable]
   )
 
   const handleDonationProposalClick = () => {
@@ -205,14 +207,6 @@ export default function ActionSelector(props) {
     handleOpportunityProposalClickState(true)
   }
 
-  useEffect(
-    () =>
-      {
-        setStepsEnabled(enable);
-      }
-      , [enable]
-  )
-
   const handleInvite = () => {
     handleInviteClickState(true);
   }
@@ -265,16 +259,19 @@ export default function ActionSelector(props) {
     setAnchorEl(event.currentTarget);
   }
 
-  function onStepsExit() {
+  function onStepsComplete() {
     setStepsEnabled(false)
     returnFunction('actionSelect') 
   }
-
+  function onStepsExit(){
+    setStepsEnabled(false)
+  }
   return (
     <>
       <Steps
         steps={steps}
         initialStep={0}
+        onComplete={() => onStepsComplete()}
         onExit={() => onStepsExit()}
         enabled={stepsEnabled}
         options={options}

@@ -154,7 +154,10 @@ export default function AppFramework(props) {
       <br/>
       <Typography>You can also find community specific opportunities by visitng the communities opportunity page.</Typography>
       </>
-    }]
+    },
+  {
+    intro: "This is a phantom step to denote the end of steps in this component. If it is displayed, there is an error"
+  }]
 
     useEffect(
       () => {
@@ -808,18 +811,19 @@ export default function AppFramework(props) {
       showProgress: true
     }
 
-    function onStepsExit(){
+    function onStepsComplete(){
       setStepsEnabled(false)
       setAppbarStepsEnabled(true)
     }
-
+    function onStepsExit(){
+      setStepsEnabled(false)
+    }
     function handleReturn(proposalIdentifier){
       if(proposalIdentifier == 'actionSelect'){
         setTabTutorialEnabled(true)
         setAppbarStepsEnabled(false)
       }
       else if(proposalIdentifier=='propList'){
-        console.log("DID IT")
         setTabTutorialEnabled(false)
       }
     }
@@ -841,6 +845,12 @@ export default function AppFramework(props) {
                 <Steps
             enabled={stepsEnabled}
             initialStep={0}
+            onBeforeChange={(index)=> 
+              {
+                if(index == 1){onStepsComplete()}
+              }
+            }
+            onComplete={()=>onStepsComplete()}
             onExit={()=>onStepsExit()}
             steps={steps}
             options={options}

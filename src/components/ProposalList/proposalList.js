@@ -980,12 +980,14 @@ function typeFilter(item){
        
     }
   }
-  function onStepsExit(){
+  function onStepsComplete(){
     setStepsEnabled(false)
     returnFunction('propList')
     handleTabChange(null, '1')
   }
-
+  function onStepsExit(){
+    setStepsEnabled(false)
+  }
   let steps=[
     {
       element: '.members',
@@ -1051,6 +1053,7 @@ function typeFilter(item){
       steps={steps}
       options={options}
       initialStep={0}
+      onComplete = {()=>onStepsComplete()}
       onExit = {()=>onStepsExit()}
       onChange = {(index)=>handleStepsChange(index)}  
     / >
