@@ -1133,7 +1133,7 @@ export default function ProposalCard(props) {
            
              
               <div className={classes.infoBox}>
-              {status == 'Submitted' ?
+              {status == 'Submitted' && proposalType == 'Commitment' ?
                 <Grid container spacing={1} alignItems="center" justifyContent="space-between" style={{marginTop: '10px', marginBottom: '10px'}}>
                 <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
                 <Badge badgeContent={likes} color="primary">  
