@@ -86,9 +86,9 @@ export default function CommentForm(props) {
         setCommentPublished(published)
     }
 
-    const handleCommentBodyChange = (editorState) => {
-      setDetails(editorState)
-    }
+     const handleCommentBodyChange = (editorState) => {
+      setCommentBody(editorState)
+     }
 
     const handleReset = () => {
       setCommentSubject('')
