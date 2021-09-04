@@ -1153,7 +1153,7 @@ export default function ProposalCard(props) {
                 </Grid>
                 : null }
               {status == 'Submitted' ? <Typography variant="subtitle2" display="block" align="center">Awaiting Sponsor</Typography> : null}
-              {status != 'Passed' && status != 'Sponsored' && status != 'Not Passed' && parseInt(funding) > parseInt(guildBalance[0].balance) ? <Typography variant="subtitle2" display="block" align="center" style={{backgroundColor: 'red', color: 'white', padding: '2px', marginTop:'3px'}}>Funds Required</Typography> : null}
+              {status != 'Passed' && status != 'Sponsored' && status != 'Not Passed' && parseInt(funding) >= parseInt(guildBalance[0].balance) ? <Typography variant="subtitle2" display="block" align="center" style={{backgroundColor: 'red', color: 'white', padding: '2px', marginTop:'3px'}}>Funds Required</Typography> : null}
               </div>
 
               {status == 'Sponsored' && isVotingPeriod && !isGracePeriod ? (
