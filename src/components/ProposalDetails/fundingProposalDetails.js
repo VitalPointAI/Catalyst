@@ -41,6 +41,9 @@ const useStyles = makeStyles((theme) => ({
       width: '100%',
       marginBottom: '10px'
     },
+    paper: {
+      width: '100%'
+    },
     detailsCard: {
       margin: 'auto',
       width: '100%',
@@ -336,7 +339,7 @@ export default function FundingProposalDetails(props) {
                   </Grid>
                     <Grid container spacing={1} style={{width: '100%'}}>
                     <Typography variant="h6" style={{marginBottom: '10px'}}>Completion Plan</Typography>
-                      <Paper >
+                      <Paper className={classes.paper} >
                       <Grid container justifyContent="flex-start" alignItems="center" spacing={1}>
                         <Grid item xs={1} sm={1} md={1} lg={1} xl={1} align="center">
                           <Typography variant="body2">Id</Typography>
