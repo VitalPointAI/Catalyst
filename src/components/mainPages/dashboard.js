@@ -492,7 +492,7 @@ export default function Dashboard(props) {
                         let skillMatch = 0
 
                         for (const [key, value] of Object.entries(allOpportunities[j].desiredDeveloperSkillSet)){
-                            if(value){
+                            if(value && currentPersona.developerSkillSet){
                                 developerSkillCount++
                                 if(currentPersona.developerSkillSet){
                                     for (const [pkey, pvalue] of Object.entries(currentPersona.developerSkillSet)){
@@ -504,7 +504,7 @@ export default function Dashboard(props) {
                             }
                         }
                         for (const [key, value] of Object.entries(allOpportunities[j].desiredSkillSet)){
-                            if(value){
+                            if(value && currentPersona.skillSet){
                                 skillCount++
                                 if(currentPersona.skillSet){
                                     for (const [pkey, pvalue] of Object.entries(currentPersona.skillSet)){
