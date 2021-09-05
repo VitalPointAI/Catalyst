@@ -127,10 +127,12 @@ export default function ActionSelector(props) {
 
   useEffect(
     () => {
+      setStepsEnabled(enable)
       if(memberStatus){
         setLoaded(true)
       }
-    }, []
+     
+    }, [enable]
   )
 
   useEffect(
@@ -273,16 +275,19 @@ export default function ActionSelector(props) {
     setAnchorEl(event.currentTarget);
   }
 
-  function onStepsExit() {
+  function onStepsComplete() {
     setStepsEnabled(false)
     returnFunction('actionSelect') 
   }
-
+  function onStepsExit(){
+    setStepsEnabled(false)
+  }
   return (
     <>
       <Steps
         steps={steps}
         initialStep={0}
+        onComplete={() => onStepsComplete()}
         onExit={() => onStepsExit()}
         enabled={stepsEnabled}
         options={options}
