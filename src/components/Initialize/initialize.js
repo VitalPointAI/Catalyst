@@ -338,7 +338,7 @@ export default function Initialize(props) {
               <Grid container className={classes.confirmation} spacing={1}>
          
               <Typography variant="body1">These are the initial settings that determine various parameters that define how your community functions.
-              Check the info icon for more information about each setting. Less the initial contribution, all can be changed so don't worry about marketing 
+              Check the info icon for more information about each setting. Less the initial contribution, all can be changed so don't worry about making 
               a mistake now.
               </Typography>
 

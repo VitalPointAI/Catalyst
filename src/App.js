@@ -60,14 +60,15 @@ const useStyles = makeStyles((theme) => ({
     }));
 
 const App = () => {
+    
     const { state, dispatch, update } = useContext(appStore)
 
-   
     const classes = useStyles()
 
     const onMount = () => {
         dispatch(onAppMount());
     };
+
     useEffect(onMount, []);
 
     window.onerror = function (message, url, lineNo) {

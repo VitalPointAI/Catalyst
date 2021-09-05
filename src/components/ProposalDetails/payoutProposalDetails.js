@@ -65,6 +65,8 @@ const useStyles = makeStyles((theme) => ({
     },
     }));
 
+    const imageName = require('../../img/default-profile.png') // default no-image avatar
+    
 export default function PayoutProposalDetails(props) {
     const [open, setOpen] = useState(true)
 

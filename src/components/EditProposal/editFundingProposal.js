@@ -74,6 +74,12 @@ export default function EditFundingProposalForm(props) {
     const [details, setDetails] = useState(EditorState.createEmpty())
     const [milestones, setMilestones] = useState([{milestoneId: ''}])
     const [requested, setRequested] = useState(props.funding)
+    const [likes, setLikes] = useState(0)
+    const [dislikes, setDisLikes] = useState(0)
+    const [neutrals, setNeutrals] = useState(0)
+    const [currentLikes, setCurrentLikes] = useState([])
+    const [currentDisLikes, setCurrentDisLikes] = useState([])
+    const [currentNeutrals, setCurrentNeutrals] = useState([])
     const [left, setLeft] = useState(props.funding)
     const [planned, setPlanned] = useState(0)
     const [disabled, setDisabled] = useState(true)
@@ -114,10 +120,10 @@ export default function EditFundingProposalForm(props) {
 
            // Set Existing Proposal Data
            let thisLeft      
-           if(curDaoIdx && contract && proposalId){
+           if(curDaoIdx && contract ){
             
               let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
-
+            console.log('edit propresult', propResult)
               
               if(propResult) {
                 let i = 0
@@ -136,6 +142,15 @@ export default function EditFundingProposalForm(props) {
                       } else {
                         setDetails(EditorState.createEmpty())
                       }
+                    propResult.proposals[i].likes ? setLikes(propResult.proposals[i].likes.length) : setLikes(0)
+                    setCurrentLikes(propResult.proposals[i].likes)
+                   
+                    propResult.proposals[i].dislikes ? setDisLikes(propResult.proposals[i].dislikes.length) : setDisLikes(0)
+                    setCurrentDisLikes(propResult.proposals[i].dislikes)
+                    
+                    propResult.proposals[i].neutrals ? setNeutrals(propResult.proposals[i].neutrals.length) : setNeutrals(0)
+                    setCurrentNeutrals(propResult.proposals[i].neutrals)
+                    
                     break
                   } else {
                     // set title to opportunity title if it exists
@@ -143,25 +158,29 @@ export default function EditFundingProposalForm(props) {
                       for(const [key, value] of Object.entries(referenceIds)){
                         console.log('opp value', value)
                         if(value['valueSetting']!=''){
-                          let oppResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
-                          console.log('oppresult', oppResult)
-                          let k = 0
-                          while(k < oppResult.opportunities.length){
-                            if(oppResult.opportunities[k].opportunityId == value['valueSetting']){
-                              setTitle(oppResult.opportunities[k].title)
-                              if (oppResult.opportunities[k].details){
-                                let contentBlock = htmlToDraft(oppResult.opportunities[k].details)
-                                if (contentBlock){
-                                  const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks)
-                                  const editorState = EditorState.createWithContent(contentState)
-                                  setDetails(editorState)
-                                }
-                                } else {
-                                  setDetails(EditorState.createEmpty())
-                                }
-                              break
+                          try{
+                            let oppResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
+                            console.log('oppresult', oppResult)
+                            let k = 0
+                            while(k < oppResult.opportunities.length){
+                              if(oppResult.opportunities[k].opportunityId == value['valueSetting']){
+                                setTitle(oppResult.opportunities[k].title)
+                                if (oppResult.opportunities[k].details){
+                                  let contentBlock = htmlToDraft(oppResult.opportunities[k].details)
+                                  if (contentBlock){
+                                    const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks)
+                                    const editorState = EditorState.createWithContent(contentState)
+                                    setDetails(editorState)
+                                  }
+                                  } else {
+                                    setDetails(EditorState.createEmpty())
+                                  }
+                                break
+                              }
+                              k++
                             }
-                            k++
+                          } catch (err) {
+                            console.log('error retrieving opportunities', err)
                           }
                         }
                       }
@@ -216,7 +235,7 @@ export default function EditFundingProposalForm(props) {
         handleEditFundingProposalDetailsClickState(false)
         setOpen(false)
     }
-
+console.log('current likes', currentLikes)
     const handleMilestonesChange = (i, e) => {
       console.log('zi', i)
       console.log('ze', e)
@@ -379,7 +398,10 @@ export default function EditFundingProposalForm(props) {
           proposer: proposer,
           submitDate: now,
           milestones: milestones,
-          published: true
+          published: true,
+          likes: currentLikes,
+          dislikes: currentDisLikes,
+          neutrals: currentNeutrals
       }
 
       // Update existing records

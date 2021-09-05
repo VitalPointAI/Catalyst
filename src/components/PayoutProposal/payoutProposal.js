@@ -106,7 +106,7 @@ console.log('reference', reference)
     setFinished(false)
 
     let references = []
-    if(Object.keys(reference).length > 0 ){
+    if(reference && Object.keys(reference).length > 0 ){
       for(const[key, value] of Object.entries(reference)){
         references.push({
           'keyName': key,
@@ -114,7 +114,6 @@ console.log('reference', reference)
         })
       }
     }
-
 
     let actualPayout
     milestonePayout ? actualPayout = milestonePayout : actualPayout = payout

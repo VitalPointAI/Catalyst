@@ -41,6 +41,9 @@ const useStyles = makeStyles((theme) => ({
       width: '100%',
       marginBottom: '10px'
     },
+    paper: {
+      width: '100%'
+    },
     detailsCard: {
       margin: 'auto',
       width: '100%',
@@ -77,6 +80,8 @@ const useStyles = makeStyles((theme) => ({
     },
     }));
 
+    const imageName = require('../../img/default-profile.png') // default no-image avatar
+
 export default function FundingProposalDetails(props) {
     const [open, setOpen] = useState(true)
 
@@ -84,6 +89,9 @@ export default function FundingProposalDetails(props) {
     const [details, setDetails] = useState()
     const [milestones, setMilestones] = useState([{}])
     const [created, setCreated] = useState()
+    const [likes, setLikes] = useState([])
+    const [dislikes, setDisLikes] = useState([])
+    const [neutrals, setNeutrals] = useState([])
     
     const [applicantAvatar, setApplicantAvatar] = useState()
     const [applicantName, setApplicantName] = useState()
@@ -156,7 +164,7 @@ export default function FundingProposalDetails(props) {
             // Set Existing Proposal Data       
             if(curDaoIdx && contract){
               let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
-              console.log('propresult', propResult)
+              console.log('propResultt', propResult)
               if(propResult) {
                 let i = 0
                 while (i < propResult.proposals.length){
@@ -165,30 +173,37 @@ export default function FundingProposalDetails(props) {
                     propResult.proposals[i].details ? setDetails(propResult.proposals[i].details) : setDetails('')
                     propResult.proposals[i].milestones ? setMilestones(propResult.proposals[i].milestones) : setMilestones([{}])
                     propResult.proposals[i].submitDate ? setCreated(propResult.proposals[i].submitDate) : setCreated()
+                    propResult.proposals[i].likes ? setLikes(propResult.proposals[i].likes.length) : setLikes(0)
+                    propResult.proposals[i].dislikes ? setDisLikes(propResult.proposals[i].dislikes.length) : setDisLikes(0)
+                    propResult.proposals[i].neutrals ? setNeutrals(propResult.proposals[i].neutrals.length) : setNeutrals(0)
+            
                     break
                   }
                   i++
                 }
               }
-            
-              let oppResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
-              console.log('oppresult', oppResult)
-              let confirmedMilestonePayouts = []
-              let t = 0
-              while (t < oppResult.proposals.length){
-                let z = 0
-                while(z < oppResult.proposals[t].referenceIds.length-1){                 
-                  if(oppResult.proposals[t].referenceIds[0].keyName == 'proposal' && oppResult.proposals[t].referenceIds[0].valueSetting == proposalId ){
-                    let currentProposal = await contract.getProposal({proposalId: parseInt(proposalId)})
-                    let status = getStatus(currentProposal.flags)                    
-                    if (status == 'Passed'){
-                      confirmedMilestonePayouts.push(oppResult.proposals[t].referenceIds[1].valueSetting)
-                      setMilestonePayouts(confirmedMilestonePayouts)                     
+              
+              try{
+                let oppResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
+                let confirmedMilestonePayouts = []
+                let t = 0
+                while (t < oppResult.proposals.length){
+                  let z = 0
+                  while(z < oppResult.proposals[t].referenceIds.length-1){                 
+                    if(oppResult.proposals[t].referenceIds[0].keyName == 'proposal' && oppResult.proposals[t].referenceIds[0].valueSetting == proposalId ){
+                      let currentProposal = await contract.getProposal({proposalId: parseInt(proposalId)})
+                      let status = getStatus(currentProposal.flags)                    
+                      if (status == 'Passed'){
+                        confirmedMilestonePayouts.push(oppResult.proposals[t].referenceIds[1].valueSetting)
+                        setMilestonePayouts(confirmedMilestonePayouts)                     
+                      }
                     }
+                  z++
                   }
-                z++
+                t++
                 }
-              t++
+              } catch (err) {
+                console.log('problem retrieving payout details', err)
               }
             }
             
@@ -324,7 +339,7 @@ export default function FundingProposalDetails(props) {
                   </Grid>
                     <Grid container spacing={1} style={{width: '100%'}}>
                     <Typography variant="h6" style={{marginBottom: '10px'}}>Completion Plan</Typography>
-                      <Paper >
+                      <Paper className={classes.paper} >
                       <Grid container justifyContent="flex-start" alignItems="center" spacing={1}>
                         <Grid item xs={1} sm={1} md={1} lg={1} xl={1} align="center">
                           <Typography variant="body2">Id</Typography>

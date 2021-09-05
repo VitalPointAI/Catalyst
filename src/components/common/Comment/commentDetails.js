@@ -24,6 +24,8 @@ const useStyles = makeStyles((theme) => ({
     },
     }));
 
+    const imageName = require('../../../img/default-profile.png') // default no-image avatar
+
 export default function CommentDetails(props) {
 
     const [running, setRunning] = useState(false)

@@ -128,7 +128,7 @@ export default function Opportunities(props) {
 
                         for (const [key, value] of Object.entries(allOpportunities[j].desiredDeveloperSkillSet)){
                          
-                          if(value){
+                          if(value && currentPersona.developerSkillSet){
                                 developerSkillCount++
                                 console.log('xz dev skill count', developerSkillCount)
                                 for (const [pkey, pvalue] of Object.entries(currentPersona.developerSkillSet)){
@@ -141,7 +141,7 @@ export default function Opportunities(props) {
                         console.log('xz allopps', allOpportunities)
                         for (const [key, value] of Object.entries(allOpportunities[j].desiredSkillSet)){
                             
-                          if(value){
+                          if(value && currentPersona.skillSet){
                                 skillCount++
                                 for (const [pkey, pvalue] of Object.entries(currentPersona.skillSet)){
                                   if(pkey == key && pvalue == value){
