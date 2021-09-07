@@ -40,6 +40,12 @@ export const commentsSchema = {
         published: {
           type: 'boolean'
         },
+        originalAuthor: {
+          type: 'string'
+        },
+        originalContent: {
+          type: 'string'
+        }
       }
     }
   }

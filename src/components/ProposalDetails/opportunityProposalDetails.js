@@ -87,7 +87,7 @@ export default function OpportunityProposalDetails(props) {
 
     const [proposerAvatar, setProposerAvatar] = useState()
     const [proposerName, setProposerName] = useState()
-
+   
     const [title, setTitle] = useState('')
     const [details, setDetails] = useState('')
     const [reward, setReward] = useState('')
@@ -102,7 +102,7 @@ export default function OpportunityProposalDetails(props) {
     const [desiredDeveloperSkillSet, setDesiredDeveloperSkillSet] = useState([])
     const [thisCurDaoIdx, setThisCurDaoIdx] = useState(props.curDaoIdx)
     const [memberStatus, setMemberStatus] = useState()
-
+    
     const [memberProposalClicked, setMemberProposalClicked] = useState(false)
     const [fundingProposalClicked, setFundingProposalClicked] = useState(false)
 
@@ -301,12 +301,40 @@ export default function OpportunityProposalDetails(props) {
     }
 
     let Comments
-   
+    let author = ''
+    let preview = ''
+    let color = 'white'
     if (proposalComments && proposalComments.length > 0) {
         Comments = proposalComments.map(comment => {
-         
+            if(comment.originalAuthor && comment.originalContent){
+              author = comment.originalAuthor
+              let previewLength
+              if(comment.originalContent.length > 43){
+                previewLength = 40;
+              }
+              else{
+                previewLength = comment.originalContent.length - 5; 
+              }
+              preview = ': ' + comment.originalContent.substring(3, previewLength) + '...'
+              if(author == accountId){
+                color = '#ffecc7'
+              }
+              else{
+                color = '#dedad3'
+              }
+            }
+          
             return (
+              <div style={{backgroundColor: color}}>
+                   {author != '' ? 
+                      <Typography style={{marginTop: 10}}>
+                      In reply to {author}{preview}
+                      </Typography>: null}
                     <CommentDetails
+                        proposalId={opportunityId}
+                        accountId={accountId}
+                        handleUpdate={handleUpdate}
+                        curDaoIdx={curDaoIdx}
                         key={comment.commentId}
                         commentId={comment.commentId}
                         comments={proposalComments}
@@ -319,6 +347,7 @@ export default function OpportunityProposalDetails(props) {
                         accountId={accountId}
                         curUserIdx={curUserIdx}
                     />
+                </div>
                   )
           })
     }
@@ -498,6 +527,8 @@ export default function OpportunityProposalDetails(props) {
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
               <Typography variant="h5" style={{marginLeft: '10px'}}>Leave a Comment/Ask a Question</Typography>
                   <CommentForm
+                    reply={false}
+                    avatar={proposerAvatar}
                     proposalId={opportunityId}
                     accountId={accountId}
                     contract={contract}

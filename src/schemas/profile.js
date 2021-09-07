@@ -50,5 +50,8 @@ export const profileSchema = {
       developerSkillSet: {
         type: 'object'
       },
+      notifications: {
+        type: 'array'
+      }
     },
   }

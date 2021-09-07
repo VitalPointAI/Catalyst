@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { useForm, Controller } from 'react-hook-form'
+import { appStore, onAppMount } from '../../../state/app'
 import { makeStyles } from '@material-ui/core/styles'
+import * as nearAPI from 'near-api-js'
+import { ceramic } from '../../../utils/ceramic'
 import { EditorState, convertFromRaw, convertToRaw, ContentState } from 'draft-js'
 import { Editor } from "react-draft-wysiwyg"
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
@@ -13,7 +16,7 @@ import TextField from '@material-ui/core/TextField'
 import LinearProgress from '@material-ui/core/LinearProgress'
 import Switch from '@material-ui/core/Switch'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
-
+import Typography from '@material-ui/core/Typography'
 const useStyles = makeStyles((theme) => ({
     root: {
       flexGrow: 1,
@@ -44,6 +47,9 @@ const useStyles = makeStyles((theme) => ({
     }));
 
 export default function CommentForm(props) {
+
+  const { state, dispatch, update } = useContext(appStore);
+
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
     const [commentSubject, setCommentSubject] = useState('')
@@ -54,12 +60,22 @@ export default function CommentForm(props) {
     const [commentId, setCommentId] = useState()   
 
     const { register, handleSubmit, watch, errors } = useForm()
+   
+    const {
+      appIdx,
+      didRegistryContract,
+      near
+    } = state
 
     const {
+        reply,
+        originalAuthor, 
+        originalContent, 
         proposalId,
         accountId,
         curDaoIdx,
-        handleUpdate
+        handleUpdate,
+        avatar
     } = props
    
     const classes = useStyles()
@@ -114,15 +130,41 @@ export default function CommentForm(props) {
         if(!allComments){
           allComments = { comments: [] }
         }
-
-        let record = {
+        let record 
+        let body = draftToHtml(convertToRaw(commentBody.getCurrentContent()))
+        record = {
           commentId: nextCommentId.toString(),
           parent: proposalId.toString(),
           subject: commentSubject,
-          body: draftToHtml(convertToRaw(commentBody.getCurrentContent())),
+          body: body,
           author: commentAuthor,
           postDate: new Date().getTime(),
-          published: commentPublished
+          published: commentPublished,
+          originalAuthor: originalAuthor,
+          originalContent: originalContent
+        }
+        
+        if(reply){
+          let personaAccount = new nearAPI.Account(near.connection, originalAuthor)
+          
+          let thisCurPersonaIdx
+          try{
+           thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, didRegistryContract)
+          } catch (err) {
+            console.log('error retrieving idx', err)
+          }
+          let notificationRecipient = await thisCurPersonaIdx.get('profile', thisCurPersonaIdx.id)
+          
+          let preview
+          if(body.length > 27)
+            { 
+              preview = body.substring(3,25) + "..."
+            }
+          else{
+              preview = body.substring(3, body.length - 5) + "..."
+          }
+          notificationRecipient.notifications.push({avatar: avatar, commentAuthor: accountId, commentPreview: preview, type: "comment", link: null, read: false})
+          thisCurPersonaIdx.set('profile', notificationRecipient)
         }
 
         // Add comment
@@ -144,8 +186,10 @@ export default function CommentForm(props) {
                         control={<Switch checked={commentPublished} onChange={handlePublishToggle} color="primary" />}
                         label="Published"
                       />
+                      <Typography>Reply to {originalAuthor}'s comment</Typography>
                     </div>    
                     <div>
+                      { !reply ?
                       <TextField
                           autoFocus
                           margin="dense"
@@ -159,7 +203,7 @@ export default function CommentForm(props) {
                           inputRef={register({
                               required: true                              
                           })}
-                      />
+                      />: null}
                     {errors.commentSubject && <p style={{color: 'red'}}>You must provide a subject/title.</p>}
                     </div>
                     <div>
