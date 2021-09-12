@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react'
-import { useForm, Controller } from 'react-hook-form'
-import { appStore, onAppMount } from '../../../state/app'
+import { useLocation } from 'react-router-dom'
+import { useForm} from 'react-hook-form'
+import { appStore } from '../../../state/app'
 import { makeStyles } from '@material-ui/core/styles'
 import * as nearAPI from 'near-api-js'
 import { ceramic } from '../../../utils/ceramic'
@@ -8,7 +9,7 @@ import { EditorState, convertFromRaw, convertToRaw, ContentState } from 'draft-j
 import { Editor } from "react-draft-wysiwyg"
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
 import draftToHtml from 'draftjs-to-html'
-import htmlToDraft from 'html-to-draftjs'
+
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -58,7 +59,7 @@ export default function CommentForm(props) {
     const [commentParent, setCommentParent] = useState(props.proposalId.toString())
     const [commentAuthor, setCommentAuthor] = useState(props.accountId)
     const [commentId, setCommentId] = useState()   
-
+    const [submitted, setSubmitted] = useState(false)
     const { register, handleSubmit, watch, errors } = useForm()
    
     const {
@@ -77,7 +78,10 @@ export default function CommentForm(props) {
         handleUpdate,
         avatar
     } = props
-   
+
+
+    const location = useLocation().pathname
+
     const classes = useStyles()
 
     useEffect(() => {
@@ -163,7 +167,20 @@ export default function CommentForm(props) {
           else{
               preview = body.substring(3, body.length - 5) + "..."
           }
-          notificationRecipient.notifications.push({avatar: avatar, commentAuthor: accountId, commentPreview: preview, type: "comment", link: null, read: false})
+          if(notificationRecipient.notifications.length > 75){
+            notificationRecipient.notifications.shift()
+          }
+          notificationRecipient.notifications.push(
+            {
+            avatar: avatar,
+            commentAuthor: accountId,
+            commentPreview: preview,
+            type: "comment",
+            link: location,
+            type: location.split('/').slice(1, 2), 
+            proposalId: proposalId, 
+            read: false
+          })
           thisCurPersonaIdx.set('profile', notificationRecipient)
         }
 
@@ -174,6 +191,7 @@ export default function CommentForm(props) {
         
       handleReset()
       setFinished(true)
+      setSubmitted(true)
       handleUpdate(true)
     }
     
@@ -181,46 +199,52 @@ export default function CommentForm(props) {
           <div>
               {!finished ? <LinearProgress className={classes.progress} /> : (
                 <form>
+                  <div>
+                    { !submitted ?
+                    <>
                     <div>
                       <FormControlLabel
                         control={<Switch checked={commentPublished} onChange={handlePublishToggle} color="primary" />}
                         label="Published"
                       />
                       <Typography>Reply to {originalAuthor}'s comment</Typography>
-                    </div>    
-                    <div>
-                      { !reply ?
-                      <TextField
-                          autoFocus
-                          margin="dense"
-                          id="comment-subject"
-                          variant="outlined"
-                          name="commentSubject"
-                          label="Subject"
-                          placeholder=""
-                          value={commentSubject}
-                          onChange={handleCommentSubjectChange}
-                          inputRef={register({
-                              required: true                              
-                          })}
-                      />: null}
-                    {errors.commentSubject && <p style={{color: 'red'}}>You must provide a subject/title.</p>}
-                    </div>
-                    <div>
-                    <Editor
-                      editorState={commentBody}
-                      toolbarClassName="toolbarClassName"
-                      wrapperClassName="wrapperClassName"
-                      editorClassName="editorClassName"
-                      onEditorStateChange={handleCommentBodyChange}
-                    />
-                    </div>
-                 
+                    </div>   
+          
+                      <div>
+                        { !reply ?
+                        <TextField
+                            autoFocus
+                            margin="dense"
+                            id="comment-subject"
+                            variant="outlined"
+                            name="commentSubject"
+                            label="Subject"
+                            placeholder=""
+                            value={commentSubject}
+                            onChange={handleCommentSubjectChange}
+                            inputRef={register({
+                                required: true                              
+                            })}
+                        />: null}
+                      {errors.commentSubject && <p style={{color: 'red'}}>You must provide a subject/title.</p>}
+                      </div>
+                      <div>
+                      <Editor
+                        editorState={commentBody}
+                        toolbarClassName="toolbarClassName"
+                        wrapperClassName="wrapperClassName"
+                        editorClassName="editorClassName"
+                        onEditorStateChange={handleCommentBodyChange}
+                      />
+                      </div>
                   
-                <Button onClick={handleSubmit(onSubmit)} color="primary" type="submit">
-                  Submit Comment
-                </Button>
-
+                    
+                  <Button onClick={handleSubmit(onSubmit)} color="primary" type="submit">
+                    Submit Comment
+                  </Button> 
+                  </>
+                  : null }     
+                </div>        
               </form>
               )}
         </div>

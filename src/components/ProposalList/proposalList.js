@@ -5,7 +5,8 @@ import { cancelProposal,
   submitVote,
   synchMember, 
   getStatus,
-  getProposalType} from '../../state/near'
+  getProposalType, PROPOSAL_NOTIFICATION} from '../../state/near'
+import {get, set, del} from '../../utils/storage'
 import Fuse from 'fuse.js'
 import MemberCard from '../MemberCard/memberCard'
 import ProposalCard from '../ProposalCard/proposalCard'
@@ -165,7 +166,9 @@ export default function ProposalList(props) {
     summoner,
     contractIdx,
     curUserIdx,
-    appClient
+    appClient,
+
+    notificationIndicator
   } = props
 
   useEffect(() => {
@@ -222,6 +225,11 @@ export default function ProposalList(props) {
 
       
     }
+
+    if(notificationIndicator){
+      handleNotificationArrival()
+    }
+
     let mounted = true
     // if(proposalEvents && proposalEvents.length > 0){
     //   console.log('proposalEvents', proposalEvents)
@@ -236,7 +244,7 @@ export default function ProposalList(props) {
     
    // }
 
-  },[proposalEvents, allMemberInfo, currentPeriod, enable])
+  },[proposalEvents, allMemberInfo, notificationIndicator, currentPeriod, enable])
 
   const handleTabChange = (event, newValue) => {
       handleTabValueState(newValue);
@@ -262,6 +270,12 @@ export default function ProposalList(props) {
     setOnlyConfigurationProposals(event.target.checked)
   }
 
+  const handleNotificationArrival = () => {
+    let notificationFlag = get(PROPOSAL_NOTIFICATION, [])
+    if(notificationFlag[0]){
+      handleTabChange(null, '2')
+     }
+  }
   const handleOnlyTributeProposalChange = (event) => {
     setOnlyTributeProposals(event.target.checked)
   }

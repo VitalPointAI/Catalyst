@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
+import {get, set, del} from '../../utils/storage'
 import { dao } from '../../utils/dao'
 import { explorerUrl, signal } from '../../state/near'
 import Persona from '@aluhning/get-personas-js'
-
+import { PROPOSAL_NOTIFICATION} from '../../state/near'
 import EditMemberProposalForm from '../EditProposal/editMemberProposal'
 import MemberProposalDetails from '../ProposalDetails/memberProposalDetails'
 
@@ -46,6 +47,7 @@ import Chip from '@material-ui/core/Chip'
 import Divider from '@material-ui/core/Divider'
 import Tooltip from '@material-ui/core/Tooltip'
 import ExploreIcon from '@material-ui/icons/Explore'
+
 
 const useStyles = makeStyles((theme) => ({
     pos: {
@@ -240,7 +242,7 @@ export default function ProposalCard(props) {
          
 
           async function fetchData() {
-         
+            
             // Get Persona Information           
             if(applicant){
               const thisPersona = new Persona()
@@ -386,6 +388,26 @@ export default function ProposalCard(props) {
             return true  
           }
 
+          console.log('PROPOSALTYPE', proposalType)
+            let notificationFlag = get(PROPOSAL_NOTIFICATION, [])
+            if(notificationFlag[0]){
+              del(PROPOSAL_NOTIFICATION)
+              if(requestId == notificationFlag[0].proposalId)
+                  switch(proposalType){
+                    case 'Commitment':
+                      handleFundingProposalDetailsClick()
+                      break; 
+                    case 'Tribute':
+                      handleTributeProposalDetailsClick()
+                      break;
+                    case 'Payout':
+                      handlePayoutProposalDetailsClick()
+                      break;
+                    case 'Configuration':
+                      handleConfigurationProposalDetailsClick()
+                      break;
+                  }
+                } 
           let mounted = true
           if(mounted){
             fetchData()

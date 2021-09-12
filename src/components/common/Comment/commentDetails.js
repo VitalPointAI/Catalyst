@@ -155,7 +155,7 @@ export default function CommentDetails(props) {
                         <div dangerouslySetInnerHTML={{ __html: commentBody}}></div>
                     </CardContent>
                     </Grid>
-                    <Grid xs={2} sm={2} md={2} lg={2} xl={2}>
+                    <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
                     <IconButton onClick={()=>handleReplyClick()}><ReplyIcon/></IconButton>
                     </Grid>
                 </Grid>

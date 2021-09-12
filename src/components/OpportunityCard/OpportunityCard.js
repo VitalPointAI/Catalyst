@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import { appStore, onAppMount } from '../../state/app'
 import { useParams } from 'react-router-dom'
+import { get, set, del } from '../../utils/storage'
+import {OPPORTUNITY_NOTIFICATION, PROPOSAL_NOTIFICATION} from '../../state/near' 
 import * as nearAPI from 'near-api-js'
 import { ceramic } from '../../utils/ceramic'
 import { dao } from '../../utils/dao'
@@ -204,6 +206,18 @@ export default function OpportunityCard(props) {
         () => {
        
         async function fetchData() {
+          
+          let notificationFlag = get(OPPORTUNITY_NOTIFICATION, [])
+          if(notificationFlag[0]){
+            //open the proposal with the correct id
+            console.log("THIS WORKED", notificationFlag)
+            if(opportunityId == notificationFlag[0].proposalId){
+              del(OPPORTUNITY_NOTIFICATION)
+              handleOpportunityProposalDetailsClick()
+            }
+            
+          }       
+
           if(didRegistryContract && near){
             state.isUpdated
             if(!contractId && passedContractId) {
