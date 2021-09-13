@@ -77,12 +77,12 @@ export const Header = ({ state, handleUpdate, isUpdated }) => {
                     <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
                         
                         <IconButton onClick={handleClick} color="primary" component="span">
-                        <Badge style={{right: -3, top: 5,  padding: '0 4px',}} badgeContent={newNotifications} color='primary'>
-                            <NotificationsIcon  fontSize='large' /> 
+                        <Badge  badgeContent={newNotifications} color='primary'>
+                            <NotificationsIcon fontSize='large' /> 
                             </Badge>
                         </IconButton>
                    
-                        {wallet && !wallet.signedIn ? <LoginButton /> : <LogoutButton />}
+                        {wallet && !wallet.signedIn ? <LoginButton /> : <LogoutButton/>}
                     
                     <Popover
                     anchorEl={anchorEl}
@@ -119,7 +119,7 @@ export const Header = ({ state, handleUpdate, isUpdated }) => {
                             <Logo />
                         </Grid>
                         <Grid item xs={3} sm={3} md={3} lg={3} xl={3} style={{marginTop: '3px'}}>
-                            {wallet && !wallet.signedIn ? <LoginButton /> : <LogoutButton />}
+                            {wallet && !wallet.signedIn ? <LoginButton /> : <LogoutButton/>}
                         </Grid>
                         <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
                             <AccountInfo balance={wallet.balance} /> 
@@ -142,7 +142,7 @@ export const Header = ({ state, handleUpdate, isUpdated }) => {
                         <Button style={{textAlign: 'center'}}>Contact</Button>
                     </Grid>
                     <Grid item xs={4} sm={4} md={2} lg={2} xl={2}>
-                        {wallet && !wallet.signedIn ? <LoginButton /> : <LogoutButton />}
+                        {wallet && !wallet.signedIn ? <LoginButton /> : <LogoutButton  />}
                     </Grid>
                     </>
                 ) : (
