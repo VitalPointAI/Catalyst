@@ -172,7 +172,7 @@ export default function MemberProposalDetails(props) {
     let Comments
     let author = ''
     let color
-    let preview
+    let preview = ''
     if (proposalComments && proposalComments.length > 0) {
         Comments = proposalComments.map(comment => {
           if(comment.originalAuthor && comment.originalContent){
@@ -196,7 +196,7 @@ export default function MemberProposalDetails(props) {
                 <div style={{backgroundColor: color}}>
                    {author != '' ? 
                       <Typography>
-                      In reply to {author} 
+                      In reply to {author}{preview} 
                       </Typography>: null}
                     <CommentDetails
                         proposalId={proposalId}

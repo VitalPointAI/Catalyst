@@ -13,7 +13,7 @@ import Typography from '@material-ui/core/Typography'
 import Avatar from '@material-ui/core/Avatar'
 import ReplyIcon from '@material-ui/icons/Reply';
 import Button from '@material-ui/core/Button'
-import {OPPORTUNITY_NOTIFICATION, PROPOSAL_NOTIFICATION} from '../../state/near' 
+import {OPPORTUNITY_NOTIFICATION, PROPOSAL_NOTIFICATION, NEW_NOTIFICATIONS} from '../../state/near' 
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -36,19 +36,24 @@ export default function NotificationCard(props){
       accountId
     } = state
 
-    const {
-       handleNotificationClick,
-    } = props
+    const{
+        toolbar,
+        header,
+        handleNotificationClick
+    }=props
 
     useEffect(() => {
+
         async function fetchData(){
         let persona = new Persona()
         //need to get accountId somehow
         let result = await persona.getPersona(accountId)
         setPersona(result)
         setNotifications(result.notifications)
-        }
 
+
+        }
+        del(NEW_NOTIFICATIONS)
         fetchData()
         .then((res) => {
       
@@ -97,14 +102,18 @@ export default function NotificationCard(props){
         })
     }
     
+
     return (
             <div>
+            {toolbar ? <>
             <Dialog className={classes.root} open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
               <DialogTitle id="form-dialog-title">Notifications</DialogTitle>
               <DialogContent>
                   {notifs}
               </DialogContent>
             </Dialog>
+            </>: <div style={{maxWidth: '5%'}}>{notifs}</div>} 
           </div>
+
         )
 }

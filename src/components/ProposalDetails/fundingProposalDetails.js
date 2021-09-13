@@ -282,7 +282,7 @@ export default function FundingProposalDetails(props) {
     let Comments;
     let author = '';
     let color;
-    let preview;
+    let preview = '';
     console.log('proposalComments', proposalComments)
     if (proposalComments && proposalComments.length > 0) {
         Comments = proposalComments.map(comment => {
@@ -307,7 +307,7 @@ export default function FundingProposalDetails(props) {
                 <div style={{backgroundColor: red}}>
                    {author != '' ? 
                         <Typography>
-                        In reply to {author}
+                        In reply to {author}{preview}
                         </Typography>
                       : null}
                     

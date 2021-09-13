@@ -2,11 +2,13 @@ import React, { useState, useEffect, useContext } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useForm} from 'react-hook-form'
 import { appStore } from '../../../state/app'
+import {get,set,del} from '../../../utils/storage'
 import { makeStyles } from '@material-ui/core/styles'
 import * as nearAPI from 'near-api-js'
 import { ceramic } from '../../../utils/ceramic'
 import { EditorState, convertFromRaw, convertToRaw, ContentState } from 'draft-js'
 import { Editor } from "react-draft-wysiwyg"
+import {NEW_NOTIFICATIONS} from '../../../state/near' 
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
 import draftToHtml from 'draftjs-to-html'
 
@@ -18,6 +20,8 @@ import LinearProgress from '@material-ui/core/LinearProgress'
 import Switch from '@material-ui/core/Switch'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Typography from '@material-ui/core/Typography'
+
+
 const useStyles = makeStyles((theme) => ({
     root: {
       flexGrow: 1,
@@ -184,6 +188,14 @@ export default function CommentForm(props) {
           thisCurPersonaIdx.set('profile', notificationRecipient)
         }
 
+        let notificationFlag = get(NEW_NOTIFICATIONS, [])
+        if(notificationFlag >= 1){
+          let count = notificationFlag.newNotifications + 1
+          set(NEW_NOTIFICATIONS, {newNotifications: count})
+        }
+        else{
+          set(NEW_NOTIFICATIONS, {newNotifications: 1})
+        }
         // Add comment
         allComments.comments.push(record)
         console.log('allComments.comments', allComments.comments)

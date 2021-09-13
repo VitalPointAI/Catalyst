@@ -203,7 +203,7 @@ export default function ConfigurationProposalDetails(props) {
     let Comments
     let author = '';
     let color;
-    let preview;
+    let preview = '';
     if (proposalComments && proposalComments.length > 0) {
         Comments = proposalComments.map(comment => {
          if(comment.originalAuthor && comment.originalContent){
@@ -227,7 +227,7 @@ export default function ConfigurationProposalDetails(props) {
               <div style={{backgroundColor: red}}>
               {author != '' ? 
                    <Typography>
-                   In reply to {author}
+                   In reply to {author}{preview}
                    </Typography>
                  : null}
                     <CommentDetails

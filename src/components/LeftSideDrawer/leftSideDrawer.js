@@ -5,7 +5,7 @@ import { Steps, Hints } from "intro.js-react";
 import clsx from 'clsx'
 import AddPersonaForm from '../AddPersona/addPersona'
 import AddDaoForm from '../CreateDAO/addDao'
-import { DASHBOARD_DEPARTURE } from '../../state/near'
+import { DASHBOARD_DEPARTURE, NEW_NOTIFICATIONS} from '../../state/near'
 import NotificationCard from '../Notifications/notifications'
 // Material UI
 import { makeStyles } from '@material-ui/core/styles'
@@ -29,6 +29,7 @@ import SchoolIcon from '@material-ui/icons/School'
 import ContactSupportIcon from '@material-ui/icons/ContactSupport'
 import PieChartIcon from '@material-ui/icons/PieChart'
 import NotificationsIcon from '@material-ui/icons/Notifications';
+import Badge from '@material-ui/core/Badge'
 
 const useStyles = makeStyles((theme) => ({
     list: {
@@ -69,6 +70,7 @@ const [addPersonaClicked, setAddPersonaClicked] = useState(false)
 const [addDaoClicked, setAddDaoClicked] = useState(false)
 const [notificationsClicked, setNotificationsClicked] = useState(false)
 const [stepsEnabled, setStepsEnabled] = useState(false)
+const [newNotifications, setNewNotifications] = useState(0)
 const [drawerState, setDrawerState] = useState({
     top: false,
     left: false,
@@ -121,6 +123,10 @@ const steps = [
 useEffect(
   () => {
 
+    let notificationFlag = get(NEW_NOTIFICATIONS, [])
+    if(notificationFlag){
+      setNewNotifications(notificationFlag.newNotifications)
+    }
 
     let intervalController = setInterval(checkDash, 500)
     function checkDash(){
@@ -208,7 +214,13 @@ const list = (anchor) => (
         </ListItem>
       </Link>
       <ListItem button key={7}>
-        <ListItemIcon><NotificationsIcon /></ListItemIcon>
+       
+        <ListItemIcon>
+          <Badge badgeContent={newNotifications} color='primary'>   
+          <NotificationsIcon />
+          </Badge>
+        </ListItemIcon>
+        
         <ListItemText onClick={(e) => notificationsClick(e)} primary='Notifications'/>
       </ListItem>
     </List>
@@ -352,6 +364,7 @@ return (
 
         {notificationsClicked ? 
         <NotificationCard
+        toolbar={true}
         state={state}
         handleNotificationClick={handleNotificationClick}
         />: null
