@@ -112,7 +112,7 @@ export default function NotificationCard(props){
                   {notifs}
               </DialogContent>
             </Dialog>
-            </>: <div style={{maxWidth: '5%'}}>{notifs}</div>} 
+            </>: <div style={{maxWidth: '100%'}}>{notifs}</div>} 
           </div>
 
         )

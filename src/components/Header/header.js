@@ -95,12 +95,13 @@ export const Header = ({ state, handleUpdate, isUpdated }) => {
                         vertical: 'top',
                         horizontal: 'center',
                     }}
-                    style={{maxWidth: '30%', maxHeight: '80%'}} 
+                    style={{maxWidth: '100%', maxHeight: '80%'}} 
                     open={popoverOpen}
                     >
                         <NotificationCard
                             handleNotificationClick={handleNotificationClick}
                             toolbar={false}
+                            style={{minWidth: '100%'}}
                         />
                     </Popover>
 
