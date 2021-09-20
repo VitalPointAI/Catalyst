@@ -54,7 +54,10 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     const wallet = new nearAPI.WalletAccount(near)
 
     wallet.signIn = () => {
-        wallet.requestSignIn(contractName, 'Blah Blah')
+        wallet.requestSignIn({
+            contractId: contractName,
+            title: 'Catalyst',
+        })
         window.location.assign('/')
     }
 
@@ -142,7 +145,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
                 }
                 if(!exists){
                     upLinks.push({ key: keyPair.secretKey, contractId: accountId, summoner: summoner, created: Date.now() })
-                    let result = await ceramic.storeKeysSecret(state.appIdx, upLinks, 'daoKeys')
+                    let result = await ceramic.storeAppKeysSecret(state.appIdx, upLinks, 'daoKeys')
 
                     let link = '/dao/' + accountId
                     set(REDIRECT, {action: true, link: link})
@@ -191,8 +194,9 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
      // ******** IDX Initialization *********
 
     //Initiate App Ceramic Components
-    
-    const appIdx = await ceramic.getAppIdx(didRegistryContract)
+
+    //testing near auth
+    const appIdx = await ceramic.getAppIdx(didRegistryContract, accountId)
     let appIndex = await appIdx.getIndex()
 
     //** INITIALIZE FACTORY CONTRACT */
