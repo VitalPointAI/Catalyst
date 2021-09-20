@@ -49,6 +49,14 @@ let config = {
     factoryContractName: 'factory1.vitalpointai.testnet'
 }
 
+if(process.env.ENV === 'localhost') {
+  config = {
+    ...config,
+    TOKEN_CALL: 'http://localhost:3000/token',
+    APPSEED_CALL: 'http://localhost:3000/appseed',
+  }
+}
+
 if (process.env.REACT_APP_ENV === 'prod') {
     config = {
         ...config,
