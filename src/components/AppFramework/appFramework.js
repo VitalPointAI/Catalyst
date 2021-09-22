@@ -99,7 +99,7 @@ export default function AppFramework(props) {
     const [currentPeriod, setCurrentPeriod] = useState()
     const [curUserIdx, setCurUserIdx] = useState()
     const [tokenName, setTokenName] = useState()
-
+    const [notificationIndicator, setNotificationIndicator] = useState(false)
     const [summoner, setSummoner] = useState()
     const [totalShares, setTotalShares] = useState()
     const [escrowBalance, setEscrowBalance] = useState()
@@ -562,6 +562,7 @@ export default function AppFramework(props) {
                 
                 return true
         }
+        
 
         if(essentialsInitialized){
           actionTriggers()
@@ -722,6 +723,7 @@ export default function AppFramework(props) {
                           guildRow = '0 Ⓝ'
                         }
                         setGuildBalanceChip(<>{guildRow}</>)
+                        setNotificationIndicator(true)
                       } catch (err) {
                         console.log('no guild balance')
                       }
@@ -998,6 +1000,8 @@ export default function AppFramework(props) {
                 contractId={contractId}
                 appIdx={appIdx}
                 appClient={appClient}
+
+                notificationIndicator = {notificationIndicator}
               />
             </Grid>
           </Grid>
