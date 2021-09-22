@@ -19,8 +19,7 @@ import MemberCommunityCount from '../MemberCommunityCount/memberCommunityCount'
 import MemberCommunities from '../MemberCommunities/memberCommunities'
 import { get, set, del } from '../../utils/storage'
 import { DASHBOARD_ARRIVAL, DASHBOARD_DEPARTURE } from '../../state/near'
-import { Steps, Hints } from "intro.js-react";
-import { formatNearAmount } from 'near-api-js/lib/utils/format'
+import { Steps, Hints } from "intro.js-react"
 
 
 // Material UI
@@ -184,11 +183,10 @@ export default function Dashboard(props) {
     const [selected, setSelected] = useState([])
     const [page, setPage] = useState(0)
     const [rowsPerPage, setRowsPerPage] = useState(5)
+
     //use this to toggle steps if flag is set
     const [stepsEnabled, setStepsEnabled] = useState(false)
     
-
-
     const [anchorEl, setAnchorEl] = useState(null)
 
     const classes = useStyles()

@@ -45,8 +45,8 @@ import useMediaQuery from '@material-ui/core/useMediaQuery'
 import Card from '@material-ui/core/Card'
 import LinearProgress from '@material-ui/core/LinearProgress'
 import { COMMUNITY_ARRIVAL } from '../../state/near'
-import { Steps, Hints } from "intro.js-react";
-import { formatNearAmount } from 'near-api-js/lib/utils/format';
+import { Steps, Hints } from "intro.js-react"
+
 const axios = require('axios').default
 
 const useStyles = makeStyles((theme) => ({
