@@ -4,6 +4,7 @@ import PropTypes from 'prop-types'
 import { appStore, onAppMount } from '../../state/app'
 import * as d3 from 'd3'
 import "d3-time-format"
+import WarningConfirmation from '../Confirmation/warningConfirmation'
 import Persona from '@aluhning/get-personas-js'
 import { formatNearAmount } from 'near-api-js/lib/utils/format'
 import { dao } from '../../utils/dao'
@@ -18,7 +19,7 @@ import PersonaCount from '../PersonaCount/personaCount'
 import MemberCommunityCount from '../MemberCommunityCount/memberCommunityCount'
 import MemberCommunities from '../MemberCommunities/memberCommunities'
 import { get, set, del } from '../../utils/storage'
-import { DASHBOARD_ARRIVAL, DASHBOARD_DEPARTURE } from '../../state/near'
+import { DASHBOARD_ARRIVAL, DASHBOARD_DEPARTURE, WARNING_FLAG } from '../../state/near'
 import { Steps, Hints } from "intro.js-react";
 import { formatNearAmount } from 'near-api-js/lib/utils/format'
 
@@ -186,7 +187,7 @@ export default function Dashboard(props) {
     const [rowsPerPage, setRowsPerPage] = useState(5)
     //use this to toggle steps if flag is set
     const [stepsEnabled, setStepsEnabled] = useState(false)
-    
+    const [triggerSteps, setStepsTriggered] = useState(0)
 
 
     const [anchorEl, setAnchorEl] = useState(null)
@@ -214,12 +215,12 @@ export default function Dashboard(props) {
     useEffect(
         () => {
             let newVisit = get(DASHBOARD_ARRIVAL, [])
-            if(!newVisit[0]){
+            let warningFlag = get(WARNING_FLAG, [])
+            if(!newVisit[0] && warningFlag[0]){
                 setStepsEnabled(true)
                 newVisit.push({status: 'true'})
                 set(DASHBOARD_ARRIVAL, newVisit)
             }
-           
             
             
          //   update('dashboardOpenCommand', {command: true})
@@ -580,7 +581,7 @@ export default function Dashboard(props) {
             mounted = false
             } 
         }
-    }, [contractId, isUpdated]
+    }, [contractId, isUpdated, triggerSteps]
     )
 
     const handleContractIdChange = (event) => {
@@ -939,6 +940,16 @@ export default function Dashboard(props) {
                 set(DASHBOARD_DEPARTURE, finishedVisit)
             }
     }
+
+    function handleWarningReturn(){
+        let warningFlag = get(WARNING_FLAG, [])
+        if(!warningFlag[0]){
+          warningFlag.push({accepted: 'true'})
+          set(WARNING_FLAG, warningFlag)
+          console.log("MADE IT")
+        }
+        setStepsTriggered(triggerSteps + 1)
+    }
     return (
         <>
         <Steps 
@@ -959,6 +970,9 @@ export default function Dashboard(props) {
         />
         
         <div className={classes.root}>
+        <WarningConfirmation
+        returnFunction = {handleWarningReturn}
+         />
         <TabContext value={value}>
             <div className="dashboard">
             <AppBar position="static">
