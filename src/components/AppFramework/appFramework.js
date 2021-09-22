@@ -24,12 +24,12 @@ import Footer from '../../components/common/Footer/footer'
 import { Header } from '../Header/header'
 import Initialize from '../Initialize/initialize'
 import RandomPhrase from '../common/RandomPhrase/randomPhrase'
-
+import WarningConfirmation from '../Confirmation/warningConfirmation';
 import { dao } from '../../utils/dao'
 import { ceramic } from '../../utils/ceramic'
 
 import { NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE, NEW_DONATION, NEW_EXIT, 
-  NEW_DELEGATION, NEW_REVOCATION, COMMUNITY_DELETE, NEW_DELETE, hasKey } from '../../state/near'
+  NEW_DELEGATION, WARNING_FLAG,NEW_REVOCATION, COMMUNITY_DELETE, NEW_DELETE, hasKey } from '../../state/near'
 
 // Material UI imports
 import { makeStyles } from '@material-ui/core/styles'
@@ -117,7 +117,7 @@ export default function AppFramework(props) {
     const [triggersActioned, setTriggersActioned] = useState(false)
     const [restInitialized, setRestInitialized] = useState(false)
     const [essentialsInitialized, setEssentialsInitialized] = useState(false)
-    
+    const [triggerSteps, setStepsTriggered] = useState(0)
     const classes = useStyles()
 
     const {
@@ -163,7 +163,8 @@ export default function AppFramework(props) {
       () => {
 
         let newVisit = get(COMMUNITY_ARRIVAL, [])
-        if(!newVisit[0]){
+        let warningFlag = get(WARNING_FLAG, [])
+        if(!newVisit[0] && warningFlag[0]){
           setStepsEnabled(true)
           newVisit.push({status: 'true'})
           set(COMMUNITY_ARRIVAL, newVisit)
@@ -197,9 +198,9 @@ export default function AppFramework(props) {
             stop()
           }
         }
-      }, [wallet, currentPeriod, triggersActioned]
+      }, [wallet, currentPeriod, triggersActioned, triggerSteps]
     )
-
+    
     useEffect(
       () => {
        
@@ -245,6 +246,7 @@ export default function AppFramework(props) {
 
         }, [state]
     )
+    
 
     useEffect(
       () => {
@@ -787,6 +789,15 @@ export default function AppFramework(props) {
       }
     }
 
+    function handleWarningReturn(){
+      let warningFlag = get(WARNING_FLAG, [])
+      if(!warningFlag[0]){
+        warningFlag.push({accepted: 'true'})
+        set(WARNING_FLAG, warningFlag)
+        
+      }
+      setStepsTriggered(triggerSteps + 1)
+    }
     async function handleEscrowBalanceChanges() {
       try {
         let currentEscrowBalance = await daoContract.getEscrowTokenBalances()
@@ -833,6 +844,9 @@ export default function AppFramework(props) {
       <>
           
             <div className={classes.root}>
+            <WarningConfirmation
+              returnFunction = {handleWarningReturn}
+            /> 
             <Header state={state} />
             <Grid container style={{padding:'20px'}}>
             {initLoad == false ? <div className={classes.centered}>

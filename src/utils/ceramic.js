@@ -53,6 +53,7 @@ import { repFactorProposalDetailsSchema } from '../schemas/repFactorProposal'
 
 import { config } from '../state/config'
 import { InMemorySigner } from 'near-api-js'
+import { waiversSchema } from '../schemas/waivers'
 
 
 const axios = require('axios').default
@@ -723,8 +724,8 @@ async makeSeed(account){
     const appDid = this.associateAppDID(APP_OWNER_ACCOUNT, contract, appClient)
 
   // uncomment below to change a definition
-  //let changed = await this.changeDefinition(APP_OWNER_ACCOUNT, 'fundingProposalDetails', appClient, fundingProposalDetailsSchema, 'funding proposal details', contract)
-  //console.log('changed schema', changed)
+ // let changed = await this.changeDefinition(APP_OWNER_ACCOUNT, 'Waivers', appClient, waiversSchema, 'waiver records', contract)
+ // console.log('changed schema', changed)
 
     const definitions = this.getAlias(APP_OWNER_ACCOUNT, 'Definitions', appClient, definitionsSchema, 'alias definitions', contract)
     const schemas = this.getAlias(APP_OWNER_ACCOUNT, 'Schemas', appClient, schemaSchema, 'user schemas', contract)
@@ -751,6 +752,7 @@ async makeSeed(account){
     const daoDeletionData = this.getAlias(APP_OWNER_ACCOUNT, 'daoDeletionData', appClient, daoDeletionSchema, 'dao deletion data', contract)
     const communityRoles = this.getAlias(APP_OWNER_ACCOUNT, 'communityRoles', appClient, communityRoleProposalDetailsSchema, 'community roles', contract)
     const reputationFactors = this.getAlias(APP_OWNER_ACCOUNT, 'reputationFactors', appClient, repFactorProposalDetailsSchema, 'reputation factors', contract)
+    const waivers = this.getAlias(APP_OWNER_ACCOUNT, 'Waivers', appClient, waiversSchema, 'waiver records', contract)
 
     const done = await Promise.all([
       appDid, 
@@ -778,7 +780,8 @@ async makeSeed(account){
       configurationProposalDetails,
       daoDeletionData,
       communityRoles,
-      reputationFactors
+      reputationFactors,
+      waivers
     ])
     
     let rootAliases = {
@@ -806,7 +809,8 @@ async makeSeed(account){
       configurationProposalDetails: done[22],
       daoDeletionData: done[23],
       communityRoles: done[24],
-      reputationFactors: done[25]
+      reputationFactors: done[25],
+      waivers: done[26]
     }
 
     const appIdx = new IDX({ ceramic: appClient, aliases: rootAliases})
