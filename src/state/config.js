@@ -29,15 +29,18 @@ let config = {
     NEW_REVOCATION: '__NEW_REVOCATION',
     COMMUNITY_DELETE: '__COMMUNITY_DELETE',
     NEW_DELETE: '__NEW_DELETE',
+    AUTH_TOKEN: '__AUTH_TOKEN',
     GAS: '200000000000000',
     FACTORY_DEPOSIT: '2',
     APP_OWNER_ACCOUNT: 'vitalpointai.testnet',
-  //  CERAMIC_API_URL: 'https://ceramic-clay.3boxlabs.com',
+   // CERAMIC_API_URL: 'https://ceramic-clay.3boxlabs.com',
   //  CERAMIC_API_URL: 'http://20.151.200.193:7007',
     CERAMIC_API_URL: 'https://ceramic-node.vitalpointai.com',
     IPFS_PROVIDER: 'https://ipfs.io/ipfs/',
   //  IPFS_PROVIDER: 'https://ceramic-node.vitalpointai.com:5011/ipfs/',
-    APPSEED_CALL: 'https://vpbackend-apim.azure-api.net/appseed',
+  //  APPSEED_CALL: 'https://vpbackend-apim.azure-api.net/appseed',
+    TOKEN_CALL: 'https://catalystdao.com/token',
+    APPSEED_CALL: 'https://catalystdao.com/appseed',
     networkId: 'testnet',
     nodeUrl: 'https://rpc.testnet.near.org',
     walletUrl: 'https://wallet.testnet.near.org',
@@ -47,6 +50,14 @@ let config = {
     contractName: 'testnet',
     didRegistryContractName: 'dids1.vitalpointai.testnet',
     factoryContractName: 'factory1.vitalpointai.testnet'
+}
+
+if(process.env.ENV === 'localhost') {
+  config = {
+    ...config,
+    TOKEN_CALL: 'http://localhost:3000/token',
+    APPSEED_CALL: 'http://localhost:3000/appseed',
+  }
 }
 
 if (process.env.REACT_APP_ENV === 'prod') {

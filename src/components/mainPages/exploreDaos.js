@@ -62,6 +62,7 @@ export default function ExploreDaos(props) {
     const [searchDaos, setSearchDaos] = useState([])
     const [isUpdated, setIsUpdated] = useState()
     const [contract, setContract] = useState()
+   
 
     const classes = useStyles()
 
@@ -86,6 +87,8 @@ export default function ExploreDaos(props) {
                     setDaoCount(currentDaosList.length)
                     sortedDaos = _.sortBy(currentDaosList, 'created').reverse()
                     setDaos(sortedDaos)
+
+
                     
                     let i = 0
                     let balance = 0

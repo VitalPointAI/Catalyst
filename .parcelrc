@@ -6,6 +6,7 @@
 		"*.webp": ["@parcel/transformer-raw"],
 		"*.node": ["@parcel/transformer-raw"],
 		"*.jpg": ["@parcel/transformer-raw"],
-		"*.csv": ["@parcel/transformer-raw"]
-	}
+		"*.csv": ["@parcel/transformer-raw"],
+	},
+	
 }

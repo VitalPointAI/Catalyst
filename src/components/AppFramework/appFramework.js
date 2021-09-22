@@ -24,6 +24,7 @@ import Footer from '../../components/common/Footer/footer'
 import { Header } from '../Header/header'
 import Initialize from '../Initialize/initialize'
 import RandomPhrase from '../common/RandomPhrase/randomPhrase'
+import { formatNearAmount } from 'near-api-js/lib/utils/format'
 
 import { dao } from '../../utils/dao'
 import { ceramic } from '../../utils/ceramic'
@@ -45,6 +46,7 @@ import Card from '@material-ui/core/Card'
 import LinearProgress from '@material-ui/core/LinearProgress'
 import { COMMUNITY_ARRIVAL } from '../../state/near'
 import { Steps, Hints } from "intro.js-react";
+import { formatNearAmount } from 'near-api-js/lib/utils/format';
 const axios = require('axios').default
 
 const useStyles = makeStyles((theme) => ({
@@ -154,7 +156,10 @@ export default function AppFramework(props) {
       <br/>
       <Typography>You can also find community specific opportunities by visitng the communities opportunity page.</Typography>
       </>
-    }]
+    },
+  {
+    intro: "This is a phantom step to denote the end of steps in this component. If it is displayed, there is an error"
+  }]
 
     useEffect(
       () => {
@@ -338,7 +343,7 @@ export default function AppFramework(props) {
                         daoContract, 
                         'Democracy', 
                         state.accountId,
-                        firstInit[c].contribution,
+                        firstInit[c].shares,
                         transactionHash)
                         
                       if (logged) {
@@ -665,8 +670,8 @@ export default function AppFramework(props) {
                           
                       try {
                         let deposit = await daoContract.getProposalDeposit()
-                        setProposalDeposit(deposit)
-                        update('', { proposalDeposit: deposit })
+                        setProposalDeposit(formatNearAmount(deposit))
+                        update('', { proposalDeposit: formatNearAmount(deposit) })
                       } catch (err) {
                         console.log('no proposal deposit yet')
                       }
@@ -778,7 +783,7 @@ export default function AppFramework(props) {
       try {
         let currentGuildBalance = await daoContract.getGuildTokenBalances()
         if(currentGuildBalance) {
-          setGuildBalance(currentGuildBalance)
+          setGuildBalance(formatNearAmount(currentGuildBalance, 4))
         }
         return true
       } catch (err) {
@@ -790,7 +795,7 @@ export default function AppFramework(props) {
       try {
         let currentEscrowBalance = await daoContract.getEscrowTokenBalances()
         if(currentEscrowBalance) {
-          setEscrowBalance(currentEscrowBalance)
+          setEscrowBalance(formatNearAmount(currentEscrowBalance, 4))
         }
         return true
       } catch (err) {
@@ -810,18 +815,19 @@ export default function AppFramework(props) {
       showProgress: true
     }
 
-    function onStepsExit(){
+    function onStepsComplete(){
       setStepsEnabled(false)
       setAppbarStepsEnabled(true)
     }
-
+    function onStepsExit(){
+      setStepsEnabled(false)
+    }
     function handleReturn(proposalIdentifier){
       if(proposalIdentifier == 'actionSelect'){
         setTabTutorialEnabled(true)
         setAppbarStepsEnabled(false)
       }
       else if(proposalIdentifier=='propList'){
-        console.log("DID IT")
         setTabTutorialEnabled(false)
       }
     }
@@ -843,6 +849,12 @@ export default function AppFramework(props) {
                 <Steps
             enabled={stepsEnabled}
             initialStep={0}
+            onBeforeChange={(index)=> 
+              {
+                if(index == 1){onStepsComplete()}
+              }
+            }
+            onComplete={()=>onStepsComplete()}
             onExit={()=>onStepsExit()}
             steps={steps}
             options={options}

@@ -20,6 +20,7 @@ import MemberCommunities from '../MemberCommunities/memberCommunities'
 import { get, set, del } from '../../utils/storage'
 import { DASHBOARD_ARRIVAL, DASHBOARD_DEPARTURE } from '../../state/near'
 import { Steps, Hints } from "intro.js-react";
+import { formatNearAmount } from 'near-api-js/lib/utils/format'
 
 
 // Material UI
@@ -55,7 +56,7 @@ import Button from '@material-ui/core/Button'
 
 
 import './dashboard.css'
-import "intro.js/introjs.css";
+import 'intro.js/introjs.css'
 
 
 
@@ -378,7 +379,7 @@ export default function Dashboard(props) {
                                 })
                                 balance = balance.result.map(c => String.fromCharCode(c)).join('')
                                 let converted = balance.split(':')[2]
-                                balance = converted.replace(/[^a-zA-Z0-9 ]/g, "")
+                                balance = formatNearAmount(converted.replace(/[^a-zA-Z0-9 ]/g, ""))
                                 
                             } catch (err) {
                                 console.log('problem retrieving community balance', err)
@@ -618,6 +619,10 @@ export default function Dashboard(props) {
         setIsUpdated(property)
     }
 
+    function onStepsExit(){
+        setStepsEnabled(false)
+    }
+
     function descendingComparator(a, b, orderBy) {
         if (b[orderBy] < a[orderBy]) {
           return -1;
@@ -633,9 +638,7 @@ export default function Dashboard(props) {
         ? (a, b) => descendingComparator(a, b, orderBy)
         : (a, b) => -descendingComparator(a, b, orderBy);
     }
-    function onStepsExit(){
-        setStepsEnabled(false)
-    }
+
     function stableSort(array, comparator) {
         console.log('array', array)
     const stabilizedThis = array.map((el, index) => [el, index]);
@@ -660,6 +663,43 @@ export default function Dashboard(props) {
         { id: 'budget', numeric: true, disablePadding: false, label: 'Remaining Budget' }
 
     ]
+
+    function EnhancedTableHead(props) {
+        const { classes, onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } = props
+        const createSortHandler = (property) => (event) => {
+          onRequestSort(event, property)
+        }
+        return (
+            <TableHead>
+            <TableRow key={'header'}>
+                {headCells.map((headCell) => (
+                <TableCell
+                    key={headCell.id}
+                    align={headCell.numeric ? 'right' : 'left'}
+                    padding={headCell.disablePadding ? 'none' : 'normal'}
+                    sortDirection={orderBy === headCell.id ? order : false}
+                >
+                    <TableSortLabel
+                    active={orderBy === headCell.id}
+                    direction={orderBy === headCell.id ? order : 'asc'}
+                    onClick={createSortHandler(headCell.id)}
+                    >
+                    {headCell.label}
+                    {orderBy === headCell.id ? (
+                        <span className={classes.visuallyHidden}>
+                        {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                        </span>
+                    ) : null}
+                    </TableSortLabel>
+                </TableCell>
+                ))}
+            </TableRow>
+            </TableHead>
+      );
+    }
+
+    
+    
     let steps = [
         {
             intro: <Typography>Welcome to Catalyst! This is the dashboard, click Next to walk through some of our features, or Skip if you already know what you’re doing.</Typography>,
@@ -703,40 +743,9 @@ export default function Dashboard(props) {
             intro: 'Marks final element'
         }
     ]
-    function EnhancedTableHead(props) {
-        const { classes, onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } = props
-        const createSortHandler = (property) => (event) => {
-          onRequestSort(event, property)
-        }
+  
       
-        return (
-          <TableHead>
-            <TableRow key={'header'}>
-              {headCells.map((headCell) => (
-                <TableCell
-                  key={headCell.id}
-                  align={headCell.numeric ? 'right' : 'left'}
-                  padding={headCell.disablePadding ? 'none' : 'normal'}
-                  sortDirection={orderBy === headCell.id ? order : false}
-                >
-                  <TableSortLabel
-                    active={orderBy === headCell.id}
-                    direction={orderBy === headCell.id ? order : 'asc'}
-                    onClick={createSortHandler(headCell.id)}
-                  >
-                    {headCell.label}
-                    {orderBy === headCell.id ? (
-                      <span className={classes.visuallyHidden}>
-                        {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-                      </span>
-                    ) : null}
-                  </TableSortLabel>
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-        );
-      }
+      
       
     EnhancedTableHead.propTypes = {
         classes: PropTypes.object.isRequired,

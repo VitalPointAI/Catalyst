@@ -61,6 +61,7 @@ export default function Initialize(props) {
     const [dilutionBound, setDilutionBound] = useState('')
     const [voteThreshold, setVoteThreshold] = useState('')
     const [summonerContribution, setSummonerContribution] = useState('')
+    const [shares, setShares] = useState('')
 
     const [confirm, setConfirm] = useState(false)
     const [clicked, setClicked] = useState(false)
@@ -127,6 +128,10 @@ export default function Initialize(props) {
       const handleSummonerContributionChange = (event) => {
         setSummonerContribution(event.target.value)
       }
+
+      const handleSharesChange = (event) => {
+        setShares(event.target.value)
+      }
   
       const handleConfirmChange = (event) => {
         setConfirm(event.target.checked);
@@ -144,6 +149,7 @@ export default function Initialize(props) {
             proposalDeposit, 
             dilutionBound,
             voteThreshold,
+            shares,
             summonerContribution
             )
           setFinished(true)
@@ -302,6 +308,30 @@ export default function Initialize(props) {
                 </Tooltip>
                 </>
               }}
+              />
+
+              <TextField
+                fullWidth
+                margin="dense"
+                id="summoner-shares"
+                required={true}
+                variant="outlined"
+                name="summonerContribution"
+                label="Initial Share Allocation"
+                placeholder="e.g. 100000"
+                value={shares}
+                onChange={handleSharesChange}
+                inputRef={register({
+                    required: true,
+                    validate: value => value != '' || <p style={{color:'red'}}>You must specify the number of shares that will be allocated to the summoner.</p>
+                })}
+                InputProps={{
+                  endAdornment: <><InputAdornment position="end">shares</InputAdornment>
+                  <Tooltip TransitionComponent={Zoom} title="The number of voting shares the community creator is allocating to themselves.">
+                      <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
+                  </Tooltip>
+                  </>
+                }}
               />
                  
               <TextField

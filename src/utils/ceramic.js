@@ -7,7 +7,22 @@ import { createDefinition, publishSchema } from '@ceramicstudio/idx-tools'
 import { Ed25519Provider } from 'key-did-provider-ed25519'
 import KeyDidResolver from 'key-did-resolver'
 import ThreeIdResolver from '@ceramicnetwork/3id-did-resolver'
+import ThreeIdProvider from '3id-did-provider'
+import  { Caip10Link } from '@ceramicnetwork/stream-caip10-link'
+import { EthereumAuthProvider, NearAuthProvider } from '@ceramicnetwork/blockchain-utils-linking'
+import { hash } from '@stablelib/sha256'
 import { DID } from 'dids'
+import { getConsentMessage } from '@ceramicnetwork/blockchain-utils-linking'
+
+import crypto from 'crypto'
+import nacl from 'tweetnacl'
+
+import * as uint8arrays from 'uint8arrays'
+
+const stringEncode = (str) =>
+  //uint8arrays.toString(uint8arrays.fromString(str), 'base64pad')
+  uint8arrays.fromString((str))
+  
 
 // schemas
 import { profileSchema } from '../schemas/profile'
@@ -37,6 +52,8 @@ import { communityRoleProposalDetailsSchema } from '../schemas/communityRoleProp
 import { repFactorProposalDetailsSchema } from '../schemas/repFactorProposal'
 
 import { config } from '../state/config'
+import { InMemorySigner } from 'near-api-js'
+
 
 const axios = require('axios').default
 
@@ -44,12 +61,20 @@ export const {
     FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, REDIRECT, 
     KEY_REDIRECT, APP_OWNER_ACCOUNT, IPFS_PROVIDER, FACTORY_DEPOSIT, CERAMIC_API_URL, APPSEED_CALL, 
     networkId, nodeUrl, walletUrl, nameSuffix,
-    contractName, didRegistryContractName
+    contractName, didRegistryContractName,
+    TOKEN_CALL, AUTH_TOKEN
 } = config
 
 const {
-  KeyPair
-  } = nearApiJs
+  keyStores: { InMemoryKeyStore },
+  Near, Account, Contract, KeyPair,
+  utils: {
+    format: {
+      parseNearAmount
+    }
+  }
+} = nearApiJs
+
 
 class Ceramic {
 
@@ -77,7 +102,7 @@ class Ceramic {
     if(!record){
       record = { seeds: [] }
     }
-   
+    
     let access = [idx._ceramic.did.id]
     if(did) access.push(did)
     const jwe = await idx._ceramic.did.createDagJWE(payload, access)
@@ -92,6 +117,29 @@ class Ceramic {
     }
   }
   
+  async storeAppKeysSecret(idx, payload, key) {
+
+    let record = await idx.get(key)
+    
+    if(!record){
+      record = { seeds: [] }
+    }
+    const didNFT = 'did:nft:eip155:4_erc721:0xa98488786764f827e68d01b18165698fd62bec35_1'
+    // let access = [idx._ceramic.did.id]
+    // if(did) access.push(did)
+    const jwe = await idx._ceramic.did.createDagJWE(payload, [didNFT])
+  
+    record = { seeds: [jwe] }
+    try{
+    await idx.set(key, record)
+    return true
+    } catch (err) {
+      console.log('error setting keys records', err)
+      return false
+    }
+  }
+  
+
   async downloadSecret(idx, key, did) {
   
     let records = await idx.get(key)
@@ -176,16 +224,193 @@ async makeSeed(account){
     return ceramic
   }
 
-  async getAppCeramic() {
-    let retrieveSeed = await axios.get(APPSEED_CALL)
-    const seed = Buffer.from((retrieveSeed.data).slice(0, 32))
+  makeUint8 = (str) => {
+    const utf8Encode = new TextEncoder()
+    return utf8Encode.encode(str)
+  }
+
+  getSignature = async (signer, accountId, message) => {
+
+    console.log('signer', signer)
+    console.log('accountId', accountId)
+    console.log('message', message)
+    
+    const hash = crypto.createHash('sha256').update(message).digest();
+    console.log('getSignature hash', hash)
+
+    const hashString = uint8arrays.toString(hash, 'base64')
+    console.log('getSignature hashString', hashString)
+
+    const signed = await signer.signMessage(message, accountId, networkId);
+    console.log('signed', signed)
+
+    const messageSignature = uint8arrays.toString(signed.signature, 'base64');
+    console.log('messageSignature', messageSignature)
+
+    return { message, messageSignature }    
+  }
+
+  verifySignature = async (publicKey, message, signature) => {
+  
+      console.log('key', publicKey)
+      console.log('message', message)
+      console.log('signature', signature)
+
+      const hash = crypto.createHash('sha256').update(message).digest();
+      console.log('verification hash', hash)
+
+      const hashString = uint8arrays.toString(hash, 'base64')
+      console.log('verification hashstring', hashString)
+      const verified = nacl.sign.detached.verify(uint8arrays.fromString(hashString, 'base64'), signature, publicKey.data);
+      
+      //const verified = key.verify(uint8arrays.fromString(hashString, 'base64'), signature);
+      console.log('verified', verified)
+      return verified
+  };
+
+  async getAppCeramic(accountId) {
+
+    // const key = await near.connection.signer.keyStore.getKey(networkId, accountId)
+    // console.log('key', key)
+
+    // const signer = await InMemorySigner.fromKeyPair(networkId, accountId, key)
+    // console.log('signer', signer)
+
+    // const publicKey = await signer.getPublicKey(accountId, networkId)
+    // console.log('publickey', publicKey)
+
+    // const stringEncode = (str) => {
+    //   return uint8arrays.fromString((str), 'base64pad')
+    // }
+    let token = await axios.post(TOKEN_CALL, 
+      {
+      accountId: accountId
+      }    
+    )
+    set(AUTH_TOKEN, token.data.token)
+    
+    let authToken = get(AUTH_TOKEN, [])   
+    let retrieveSeed = await axios.post(APPSEED_CALL, {
+      // ...data
+    },{
+      headers: {
+        'Authorization': `Basic ${authToken}`
+      }
+    })
+ 
     const ceramic = new CeramicClient(CERAMIC_API_URL)
-    const provider = new Ed25519Provider(seed)
-    const resolver = {...KeyDidResolver.getResolver()}
+    const provider = new Ed25519Provider(retrieveSeed.data.seed)
+    //let authSecret = retrieveSeed.data
+
+    // const authId = 'NearAuthProvider'
+
+    // const getPermission = async (request) => {
+    //   return request.payload.paths
+    // }
+
+    // const threeId = await ThreeIdProvider.create({
+    //   ceramic,
+    //   getPermission,
+    //   authSecret,
+    //   authId
+    // })
+  
+  // const provider = threeId.getDidProvider()
+  // console.log('provider', provider)
+
+   const resolver = {...KeyDidResolver.getResolver()}
+  // const resolver = {...ThreeIdResolver.getResolver()}
+  // console.log('resolver', resolver)
     const did = new DID({ resolver })
+    // console.log('did', did)
     ceramic.setDID(did)
     ceramic.did.setProvider(provider)
     await ceramic.did.authenticate()
+
+    // const link = await Caip10Link.fromAccount(ceramic, accountId)
+    // console.log('link', link)
+
+    // const streamId = link.id.toString()
+    // console.log('streamId', streamId)
+  
+  
+  // const { signature } = keyPair.sign(encodedMsg)
+ //  console.log('signature', signature)
+    // const digest = hash(signature)
+    // console.log('digest', digest)
+    // let result = `0x${uint8arrays.toString(digest, 'base16')}`
+    // console.log('result', result)
+
+   // console.log('near', near)
+    // let prefix = 'near-api-js:keystore:crustykitty.testnet:testnet'
+    // let keyString = get(prefix, [])
+    // console.log('keystring', keyString)
+    // const keyPair = KeyPair.fromString(keyString)
+   
+    
+  //   let thisAddress = uint8arrays.toString(publicKey.data, 'base58btc')
+  //   const nearAuthProvider = new NearAuthProvider(
+  //     key,
+  //     thisAddress,
+  //     'testnet'
+  //   )
+  //   console.log('nearprovider', nearAuthProvider)
+
+  //   let authMessage = 'this message'
+  //   const hash = crypto.createHash('sha256').update(authMessage).digest();
+  //   console.log('getSignature hash', hash)
+  //   const hashString = uint8arrays.toString(hash, 'base16')
+  //   console.log('getSignature hashString', hashString)
+  //   const { signature } = await key.sign(hash)
+  //   console.log('authenticate', uint8arrays.toString(signature, 'base16'))
+    
+  //   const { message, timestamp } = getConsentMessage(ceramic.did.id, true)
+  //  // const altered = makeUint8(message)
+  //   //const { signature } = await keyPair.sign(altered)
+   
+  //   const { messageSignature } = await this.getSignature(signer, accountId, message)
+
+  //   const account = await nearAuthProvider.accountId()
+  //   console.log('account', account)
+
+  //   const proof = {
+  //       version: 2,
+  //       type: 'near',
+  //       message,
+  //       signature: messageSignature,
+  //       account: account.toString(),
+  //       timestamp,
+  //   }
+    
+  //   console.log('proof', proof)
+
+  //   const address = account.address
+  //   console.log('address', address)
+
+  //   const msg = proof.message
+  //   console.log('msg', msg)
+    
+  //   const siga = uint8arrays.fromString(proof.signature, 'base64')
+  //   console.log('siga', siga)
+
+  //   const is_sig_valid = await this.verifySignature(publicKey, msg, siga);
+  //   console.log('valid proof', is_sig_valid)
+
+  //   const accountLink = await Caip10Link.fromAccount(
+  //     ceramic,
+  //     account
+  //   )
+  //   console.log('accountLink', accountLink)
+  //   console.log('cer did', ceramic.did.id)
+
+  //   await accountLink.setDid(
+  //     ceramic.did.id,
+  //     nearAuthProvider
+  //   )
+    
+  //   console.log('accountLink2', accountLink)
+  //   console.log('ceramic', ceramic)
+    
     return ceramic
   }
 
@@ -491,9 +716,9 @@ async makeSeed(account){
 
   // application IDX - maintains most up to date schemas and definitions ensuring chain always has the most recent commit
   
-  async getAppIdx(contract){
+  async getAppIdx(contract, accountId){
 
-    const appClient = await this.getAppCeramic()
+    const appClient = await this.getAppCeramic(accountId)
 
     const appDid = this.associateAppDID(APP_OWNER_ACCOUNT, contract, appClient)
 

@@ -5,29 +5,33 @@ const bodyParser = require('body-parser')
 const path = require('path')
 const cors = require('cors')
 const app = express()
-const { DefaultAzureCredential } = require("@azure/identity")
-const { SecretClient } = require("@azure/keyvault-secrets")
+// const { DefaultAzureCredential } = require("@azure/identity")
+// const { SecretClient } = require("@azure/keyvault-secrets")
 
-const credential = new DefaultAzureCredential()
+// const credential = new DefaultAzureCredential()
 
-const vaultName = process.env.VAULT_NAME
+// const vaultName = process.env.VAULT_NAME
 
-const url = `https://${vaultName}.vault.azure.net`
+// const url = `https://${vaultName}.vault.azure.net`
 
-const client = new SecretClient(url, credential)
+// const client = new SecretClient(url, credential)
 
-const secretName = process.env.SECRET_NAME
+// const secretName = process.env.SECRET_NAME
 
-const allowList = ['https://catalystdao.com, https://ceramic-node.vitalpointai.com']
+// const allowList = ['https://catalystdao.com, https://ceramic-node.vitalpointai.com']
+
+// app.use(cors({
+//   origin: allowList
+// }));
+
+// var corsOptions = {
+//   origin: 'https://catalystdao.com',
+//   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+// }
 
 app.use(cors({
-  origin: allowList
-}));
-
-var corsOptions = {
-  origin: 'https://catalystdao.com',
-  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
-}
+  origin: '*'
+}))
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json())
@@ -51,15 +55,13 @@ app.use(express.static(path.join(__dirname, 'dist')));
     
 // });
 
-app.post('/appseed', cors(), verifyToken, async (req, res) => {
+app.post('/appseed', verifyToken, async (req, res) => {
     
   jwt.verify(req.token, process.env.SECRET_KEY, async (err, authData) => {
     if(err) {
       res.sendStatus(403);
     } else {
-      const latestSecret = await client.getSecret(secretName)
-      console.log('latestsecret', latestSecret)
-      const seed = (latestSecret.value).slice(0, 32)
+      const seed = (process.env.APP_SEED).slice(0, 32)
       res.json({
         seed: seed,
         authData
@@ -70,7 +72,7 @@ app.post('/appseed', cors(), verifyToken, async (req, res) => {
 
 });
 
-app.post('/token', cors(), async (req, res) => {
+app.post('/token', async (req, res) => {
   console.log('req', req.body)
   const accountId = req.body.accountId
   if(!accountId) res.sendStatus(403)
