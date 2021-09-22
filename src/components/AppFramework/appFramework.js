@@ -25,6 +25,7 @@ import { Header } from '../Header/header'
 import Initialize from '../Initialize/initialize'
 import RandomPhrase from '../common/RandomPhrase/randomPhrase'
 import WarningConfirmation from '../Confirmation/warningConfirmation';
+import { formatNearAmount } from 'near-api-js/lib/utils/format'
 import { dao } from '../../utils/dao'
 import { ceramic } from '../../utils/ceramic'
 
@@ -45,6 +46,7 @@ import Card from '@material-ui/core/Card'
 import LinearProgress from '@material-ui/core/LinearProgress'
 import { COMMUNITY_ARRIVAL } from '../../state/near'
 import { Steps, Hints } from "intro.js-react";
+import { formatNearAmount } from 'near-api-js/lib/utils/format';
 const axios = require('axios').default
 
 const useStyles = makeStyles((theme) => ({
@@ -97,7 +99,7 @@ export default function AppFramework(props) {
     const [currentPeriod, setCurrentPeriod] = useState()
     const [curUserIdx, setCurUserIdx] = useState()
     const [tokenName, setTokenName] = useState()
-
+    const [notificationIndicator, setNotificationIndicator] = useState(false)
     const [summoner, setSummoner] = useState()
     const [totalShares, setTotalShares] = useState()
     const [escrowBalance, setEscrowBalance] = useState()
@@ -343,7 +345,7 @@ export default function AppFramework(props) {
                         daoContract, 
                         'Democracy', 
                         state.accountId,
-                        firstInit[c].contribution,
+                        firstInit[c].shares,
                         transactionHash)
                         
                       if (logged) {
@@ -562,6 +564,7 @@ export default function AppFramework(props) {
                 
                 return true
         }
+        
 
         if(essentialsInitialized){
           actionTriggers()
@@ -669,8 +672,8 @@ export default function AppFramework(props) {
                           
                       try {
                         let deposit = await daoContract.getProposalDeposit()
-                        setProposalDeposit(deposit)
-                        update('', { proposalDeposit: deposit })
+                        setProposalDeposit(formatNearAmount(deposit))
+                        update('', { proposalDeposit: formatNearAmount(deposit) })
                       } catch (err) {
                         console.log('no proposal deposit yet')
                       }
@@ -722,6 +725,7 @@ export default function AppFramework(props) {
                           guildRow = '0 Ⓝ'
                         }
                         setGuildBalanceChip(<>{guildRow}</>)
+                        setNotificationIndicator(true)
                       } catch (err) {
                         console.log('no guild balance')
                       }
@@ -781,7 +785,7 @@ export default function AppFramework(props) {
       try {
         let currentGuildBalance = await daoContract.getGuildTokenBalances()
         if(currentGuildBalance) {
-          setGuildBalance(currentGuildBalance)
+          setGuildBalance(formatNearAmount(currentGuildBalance, 4))
         }
         return true
       } catch (err) {
@@ -802,7 +806,7 @@ export default function AppFramework(props) {
       try {
         let currentEscrowBalance = await daoContract.getEscrowTokenBalances()
         if(currentEscrowBalance) {
-          setEscrowBalance(currentEscrowBalance)
+          setEscrowBalance(formatNearAmount(currentEscrowBalance, 4))
         }
         return true
       } catch (err) {
@@ -1010,6 +1014,8 @@ export default function AppFramework(props) {
                 contractId={contractId}
                 appIdx={appIdx}
                 appClient={appClient}
+
+                notificationIndicator = {notificationIndicator}
               />
             </Grid>
           </Grid>

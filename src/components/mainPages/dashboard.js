@@ -21,6 +21,7 @@ import MemberCommunities from '../MemberCommunities/memberCommunities'
 import { get, set, del } from '../../utils/storage'
 import { DASHBOARD_ARRIVAL, DASHBOARD_DEPARTURE, WARNING_FLAG } from '../../state/near'
 import { Steps, Hints } from "intro.js-react";
+import { formatNearAmount } from 'near-api-js/lib/utils/format'
 
 
 // Material UI
@@ -379,7 +380,7 @@ export default function Dashboard(props) {
                                 })
                                 balance = balance.result.map(c => String.fromCharCode(c)).join('')
                                 let converted = balance.split(':')[2]
-                                balance = converted.replace(/[^a-zA-Z0-9 ]/g, "")
+                                balance = formatNearAmount(converted.replace(/[^a-zA-Z0-9 ]/g, ""))
                                 
                             } catch (err) {
                                 console.log('problem retrieving community balance', err)

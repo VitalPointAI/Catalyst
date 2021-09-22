@@ -8,8 +8,10 @@ import { config } from './config'
 
 export const {
     FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT, DAO_FIRST_INIT, 
-    CURRENT_DAO, REDIRECT, NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, OPPORTUNITY_REDIRECT, NEW_PROCESS, NEW_VOTE, DASHBOARD_ARRIVAL,
-    DASHBOARD_DEPARTURE, WARNING_FLAG, PERSONAS_ARRIVAL, EDIT_ARRIVAL, COMMUNITY_ARRIVAL, IPFS_PROVIDER, NEW_DONATION, NEW_EXIT, NEW_RAGE, NEW_DELEGATION, 
+    CURRENT_DAO, REDIRECT, NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, OPPORTUNITY_REDIRECT, NEW_PROCESS, NEW_VOTE, 
+    DASHBOARD_ARRIVAL, DASHBOARD_DEPARTURE, WARNING_FLAG, PERSONAS_ARRIVAL, EDIT_ARRIVAL, COMMUNITY_ARRIVAL, 
+    NEW_DONATION, NEW_EXIT, NEW_RAGE, NEW_DELEGATION, OPPORTUNITY_NOTIFICATION, PROPOSAL_NOTIFICATION, 
+    NEW_NOTIFICATIONS, IPFS_PROVIDER, NEW_DONATION, NEW_EXIT, NEW_RAGE, NEW_DELEGATION, 
     NEW_REVOCATION, COMMUNITY_DELETE, NEW_DELETE, 
     networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix, explorerUrl,
     contractName, didRegistryContractName, factoryContractName
@@ -145,7 +147,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
                 }
                 if(!exists){
                     upLinks.push({ key: keyPair.secretKey, contractId: accountId, summoner: summoner, created: Date.now() })
-                    let result = await ceramic.storeAppKeysSecret(state.appIdx, upLinks, 'daoKeys')
+                    let result = await ceramic.storeKeysSecret(state.appIdx, upLinks, 'daoKeys')
 
                     let link = '/dao/' + accountId
                     set(REDIRECT, {action: true, link: link})
@@ -362,9 +364,30 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     }
     }
 
+    // get average block time
+    let currentBlock = await near.connection.provider.block({
+        finality: 'final'
+    })
+    let lastBlock = currentBlock.header.height
+    let firstBlock = lastBlock - 20
+    let totalTime = 0
+    let count = 0
+    while (firstBlock <= lastBlock ){
+        let prevBlock = await near.connection.provider.block(firstBlock-1)
+        let prevBlockTime = prevBlock.header.timestamp
+        let thisBlock = await near.connection.provider.block(firstBlock)
+        let thisBlockTime = thisBlock.header.timestamp
+        let createTime = thisBlockTime - prevBlockTime
+        count ++
+        totalTime += createTime
+        firstBlock++
+    }
+    let avgBlockTime = parseFloat(Math.fround(totalTime/count / 1000000000).toFixed(3)) // Time in seconds
+    console.log('averageBlocktime', avgBlockTime)
+    console.log('currentblock', currentBlock)
     finished = true
 
-    update('', { near, wallet, finished})
+    update('', { near, wallet, finished, avgBlockTime})
 }
 
 
@@ -461,14 +484,14 @@ export const keyRotation = () => async ({ update, getState, dispatch }) => {
 }
 
 // Initializes a DAO by setting its key components
-export async function initDao(wallet, contractId, periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound, voteThreshold, summonerContribution) {
+export async function initDao(wallet, contractId, periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound, voteThreshold, shares, summonerContribution) {
 
     try {
         const daoContract = await dao.initDaoContract(wallet.account(), contractId)
 
         // set trigger for first init to log summon and member events
         let firstInit = get(DAO_FIRST_INIT, [])
-        firstInit.push({contractId: contractId, contribution: summonerContribution, init: true })
+        firstInit.push({contractId: contractId, shares: shares, init: true })
         set(DAO_FIRST_INIT, firstInit)
        
         await daoContract.init({
@@ -479,7 +502,8 @@ export async function initDao(wallet, contractId, periodDuration, votingPeriodLe
             _proposalDeposit: proposalDeposit,
             _dilutionBound: parseInt(dilutionBound),
             _voteThreshold: parseInt(voteThreshold),
-            _shares: summonerContribution,
+            _shares: shares,
+            _contribution: summonerContribution,
             _contractId: contractId
         }, GAS, parseNearAmount(summonerContribution))
 
@@ -565,7 +589,8 @@ export async function submitProposal(
    
     const daoContract = await dao.initDaoContract(wallet.account(), contractId)
     const proposalId = await daoContract.getProposalsLength()
-    const proposalDeposit = await daoContract.getProposalDeposit()
+    const rawProposalDeposit = await daoContract.getProposalDeposit()
+    const proposalDeposit = formatNearAmount(rawProposalDeposit)
     const depositToken = await daoContract.getDepositToken()
 
     // set trigger for to log new proposal
@@ -1175,7 +1200,7 @@ export async function addDaoToList (appIdx, contractId, summoner, created, categ
 }
 
 // Logs the initial member and summoning event when a DAO is created
-export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType, accountId, contribution, transactionHash) {
+export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType, accountId, shares, transactionHash) {
     
     let summoner
     let periodDuration
@@ -1242,7 +1267,7 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
         memberId: memberId,
         contractId: contractId,
         delegateKey: accountId,
-        shares: contribution,
+        shares: shares,
         delegatedShares: '0',
         receivedDelegations: '0',
         loot: '0',
@@ -1272,7 +1297,7 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
             memberId: memberId,
             summonTime: numberSummonTime,
             transactionHash: transactionHash,
-            shares: parseInt(contribution),
+            shares: parseInt(shares),
             loot: 0,
             summoner: accountId
         }
