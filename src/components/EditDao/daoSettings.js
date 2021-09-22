@@ -3,6 +3,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { appStore, onAppMount } from '../../state/app'
+import { formatNearAmount } from 'near-api-js/lib/utils/format'
 import ConfigurationProposal from '../ConfigurationProposal/configurationProposal'
 
 // Material UI components
@@ -95,7 +96,7 @@ export default function EditInitSettings(props) {
                 result[0][1] ? setPeriodDuration(result[0][1]) : setPeriodDuration('')
                 result[0][2] ? setVotingPeriodLength(result[0][2]) : setVotingPeriodLength('')
                 result[0][3] ? setGracePeriodLength(result[0][3]) : setGracePeriodLength('')
-                result[0][4] ? setProposalDeposit(result[0][4]) : setProposalDeposit('')
+                result[0][4] ? setProposalDeposit(formatNearAmount(result[0][4])) : setProposalDeposit('')
                 result[0][5] ? setDilutionBound(result[0][5]) : setDilutionBound('')
                 result[0][6] ? setVoteThreshold(result[0][6]) : setVoteThreshold('')
     
@@ -105,7 +106,7 @@ export default function EditInitSettings(props) {
                   periodDuration: result[0][1],
                   votingPeriodLength: result[0][2],
                   gracePeriodLength: result[0][3],
-                  proposalDeposit: result[0][4],
+                  proposalDeposit: formatNearAmount(result[0][4]),
                   dilutionBound: result[0][5],
                   voteThreshold: result[0][6],
                   summonTime: result[0][7]
@@ -132,7 +133,7 @@ export default function EditInitSettings(props) {
         initSettings[1] ? setPeriodDuration(initSettings[1]) : setPeriodDuration('')
         initSettings[2] ? setVotingPeriodLength(initSettings[2]) : setVotingPeriodLength('')
         initSettings[3] ? setGracePeriodLength(initSettings[3]) : setGracePeriodLength('')
-        initSettings[4] ? setProposalDeposit(initSettings[4]) : setProposalDeposit('')
+        initSettings[4] ? setProposalDeposit(formatNearAmount(initSettings[4])) : setProposalDeposit('')
         initSettings[5] ? setDilutionBound(initSettings[5]) : setDilutionBound('')
         initSettings[6] ? setVoteThreshold(initSettings[6]) : setVoteThreshold('')
     }

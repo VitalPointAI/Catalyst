@@ -14,6 +14,7 @@ import EditOpportunityProposalForm from '../EditProposal/editOpportunityProposal
 import MemberProposal from '../MemberProposal/memberProposal'
 import MemberProfileDisplay from '../MemberProfileDisplay/memberProfileDisplay'
 import { getStatus } from '../../state/near'
+import { formatNearAmount } from 'near-api-js/lib/utils/format'
 
 // Material UI Components
 import { makeStyles } from '@material-ui/core/styles'
@@ -229,7 +230,7 @@ export default function OpportunityCard(props) {
             let contract = await dao.initDaoContract(state.wallet.account(), useContractId)
             try {
               let deposit = await contract.getProposalDeposit()
-              setProposalDeposit(deposit)
+              setProposalDeposit(formatNearAmount(deposit))
             } catch (err) {
               console.log('no proposal deposit yet')
             }  

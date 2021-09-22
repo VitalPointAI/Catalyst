@@ -12,6 +12,7 @@ import { getStatus, formatDate } from '../../state/near'
 import { ceramic } from '../../utils/ceramic'
 import * as nearAPI from 'near-api-js'
 import DOMPurify from "dompurify"
+import { formatNearAmount } from 'near-api-js/lib/utils/format'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -160,7 +161,7 @@ export default function OpportunityProposalDetails(props) {
 
             if(contract){
               let propDeposit = await contract.getProposalDeposit()
-              setThisProposalDeposit(propDeposit)
+              setThisProposalDeposit(formatNearAmount(propDeposit))
             }
             
             if(wallet && contractId){
