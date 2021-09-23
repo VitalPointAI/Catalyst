@@ -100,14 +100,14 @@ export default function SupporterCard(props) {
     return(
         <>
         <Card raised={true} className={classes.card} >
-          <Grid container justifyContent="flex-start" alignItems="center" spacing={0}>
-            <Grid item xs={12} sm={12} md={1} lg={1} xl={1} align="center">
+          <Grid container justifyContent="flex-start" alignItems="center" spacing={0} style={{width: '90%'}}>
+            <Grid item xs={1} sm={1} md={1} lg={1} xl={1} align="center">
               <Avatar variant="circular" src={avatar} style={{marginLeft: '3px'}} />
             </Grid>
-            <Grid item xs={6} sm={6} md={9} lg={9} xl={9} align="center" >
-              <Typography variant="h6">{name ? name : accountId}</Typography>
+            <Grid item xs={9} sm={9} md={9} lg={9} xl={9} align="center" >
+              
             </Grid>
-            <Grid item xs={6} sm={6} md={2} lg={2} xl={2} align="left" >
+            <Grid item xs={2} sm={2} md={2} lg={2} xl={2} align="left" >
               <Tooltip title="See transaction on explorer.">
               <a href={explorerUrl + '/transactions/' + transactionHash}>
                 <IconButton aria-label="delete">
@@ -119,8 +119,8 @@ export default function SupporterCard(props) {
           </Grid>
          
           <CardHeader
-          subheader={ <><center><Chip size="small" color="primary" label={accountId}/><br></br>
-          <Typography variant="overline" align="center">Contributed: {formatDate(contributed)}</Typography>
+          subheader={ <><center><Chip size="small" color="primary" label={name ? name : accountId}/><br></br>
+          <Typography variant="overline" align="center">{formatDate(contributed)}</Typography>
          </center></>}
           className={classes.header}
           />

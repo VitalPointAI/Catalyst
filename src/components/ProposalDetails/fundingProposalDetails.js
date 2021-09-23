@@ -156,8 +156,11 @@ export default function FundingProposalDetails(props) {
                   let result = await thisPersona.getPersona(applicant)
                       if(result){
                         result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
-                        result.name ? setApplicantName(result.name) : setApplicantName('')
-                      }
+                        result.name ? setApplicantName(result.name) : setApplicantName(applicant)
+                      } else {
+                        setApplicantAvatar(imageName)
+                        setApplicntName(applicant)
+                      } 
             }
 
             // Set Existing Proposal Data       

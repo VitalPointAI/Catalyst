@@ -50,11 +50,9 @@ import { configurationProposalDetailsSchema} from '../schemas/configurationPropo
 import { daoDeletionSchema } from '../schemas/analytics/deletedDAOs'
 import { communityRoleProposalDetailsSchema } from '../schemas/communityRoleProposal'
 import { repFactorProposalDetailsSchema } from '../schemas/repFactorProposal'
-
-import { config } from '../state/config'
-import { InMemorySigner } from 'near-api-js'
 import { waiversSchema } from '../schemas/waivers'
 
+import { config } from '../state/config'
 
 const axios = require('axios').default
 

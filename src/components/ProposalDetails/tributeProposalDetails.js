@@ -63,6 +63,8 @@ const useStyles = makeStyles((theme) => ({
     },
     }));
 
+    const imageName = require('../../img/default-profile.png') // default no-image avatar
+    
 export default function TributeProposalDetails(props) {
     const [open, setOpen] = useState(true)
 
@@ -107,8 +109,11 @@ export default function TributeProposalDetails(props) {
                   let result = await thisPersona.getPersona(applicant)
                       if(result){
                         result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-                        result.name ? setName(result.name) : setName('')
-                      }
+                        result.name ? setName(result.name) : setName(applicant)
+                      } else {
+                        setAvatar(imageName)
+                        setName(applicant)
+                      } 
             }
             
 

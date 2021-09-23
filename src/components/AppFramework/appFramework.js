@@ -313,7 +313,7 @@ export default function AppFramework(props) {
 
                   // check for successfully deleted community and log it then redirect to dashboard as contract account is gone
                   let newDelete = get(NEW_DELETE, [])
-                                                  
+                  console.log('new delete', newDelete)
                   let u = 0
                   while(u < newDelete.length){
                     if(newDelete[u].contractId==contractId && newDelete[u].new == true){
@@ -672,6 +672,7 @@ export default function AppFramework(props) {
                           
                       try {
                         let deposit = await daoContract.getProposalDeposit()
+                        console.log('proposal deposit', deposit)
                         setProposalDeposit(formatNearAmount(deposit))
                         update('', { proposalDeposit: formatNearAmount(deposit) })
                       } catch (err) {
@@ -680,8 +681,8 @@ export default function AppFramework(props) {
 
                       try {
                         let thisCurrentShare = await daoContract.getCurrentShare({member: accountId})
-                        setCurrentShare(thisCurrentShare)
-                        setFairShareLabel('Current Share: ' + thisCurrentShare + 'Ⓝ')
+                        setCurrentShare(formatNearAmount(thisCurrentShare, 3))
+                        setFairShareLabel('Current Share: ' + formatNearAmount(thisCurrentShare, 3) + 'Ⓝ')
                       } catch (err) {
                         console.log('no current share yet')
                       }
@@ -701,7 +702,7 @@ export default function AppFramework(props) {
 
                         if(ebalance) {
                           for (let i = 0; i < ebalance.length; i++) {
-                            escrowRow = (<>{ebalance[i].balance} {ebalance[i].token}</>)
+                            escrowRow = (<>{formatNearAmount(ebalance[i].balance, 3)} {ebalance[i].token}</>)
                           }
                         } else {
                           escrowRow = '0 Ⓝ'
@@ -719,7 +720,7 @@ export default function AppFramework(props) {
 
                         if(gbalance) {
                           for (let i = 0; i < gbalance.length; i++) {
-                            guildRow = (<>{gbalance[i].balance} {gbalance[i].token}</>)
+                            guildRow = (<>{formatNearAmount(gbalance[i].balance,3)} {gbalance[i].token}</>)
                           }
                         } else {
                           guildRow = '0 Ⓝ'
@@ -956,16 +957,16 @@ export default function AppFramework(props) {
             <Grid container justifyContent="center" alignItems="center" spacing={1} className={classes.top}>
            
               <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
-                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Fund: {guildBalanceChip} {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '($' + (parseInt(guildBalance[0].balance) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : <LinearProgress /> } </Typography>
+                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Fund: {guildBalanceChip} {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '($' + (parseInt(formatNearAmount(guildBalance[0].balance)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : <LinearProgress /> } </Typography>
               </Grid>
               <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
-                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Escrow: {escrowBalanceChip} {escrowBalance && escrowBalance.length > 0 ? escrowBalance[0].balance > 0 ? '($' + (parseInt(escrowBalance[0].balance) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : <LinearProgress />  }</Typography>
+                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Escrow: {escrowBalanceChip} {escrowBalance && escrowBalance.length > 0 ? escrowBalance[0].balance > 0 ? '($' + (parseInt(formatNearAmount(escrowBalance[0].balance)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : <LinearProgress />  }</Typography>
               </Grid>
               <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
                 <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Total Shares: {totalShares ? totalShares : <LinearProgress />}</Typography>
               </Grid>
               <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
-                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Share Value: {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '$' + ((parseInt(guildBalance[0].balance)/totalShares)*nearPrice).toFixed(2) + ' USD' : '$0.00 USD' : <LinearProgress />  }</Typography>
+                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Share Value: {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '$' + ((parseInt(formatNearAmount(guildBalance[0].balance))/totalShares)*nearPrice).toFixed(2) + ' USD' : '$0.00 USD' : <LinearProgress />  }</Typography>
               </Grid>
             </Grid>
           </Card>

@@ -164,7 +164,7 @@ export default function Donation(props) {
                   
                   </Grid>
                   <Grid item xs={10} sm={10} md={10} lg={10} xl={10} style={{margin:'auto'}}>
-                    <Typography variant="body2" gutterBottom>You understand that donations do not give you voting shares, and are instant (no voting/ragequitting). The entire donation of <b>{parseInt(donation)} Ⓝ</b> goes directly into the community fund.  
+                    <Typography variant="body2" gutterBottom>You understand that donations do not give you voting shares, and are instant (no voting/ragequitting). The entire donation of <b>{donation} Ⓝ</b> goes directly into the community fund.  
                     </Typography>
                     {errors.confirmCheck && <p style={{color: 'red', marginTop: '10px'}}>You must confirm your understanding.</p>}
                   </Grid>

@@ -109,7 +109,7 @@ export default function TributeProposal(props) {
         applicant,
         '0',
         tribute,
-        tribute,
+        parseInt(tribute).toString(), //first parse to eliminate any decimal (always down)
         '0'
         )
       } catch (err) {
@@ -156,7 +156,7 @@ export default function TributeProposal(props) {
               })}
               InputProps={{
                 endAdornment: <><InputAdornment position="end">{tokenName}</InputAdornment>
-                <Tooltip TransitionComponent={Zoom} title="The amount of NEAR the applicant is providing as a tribute.  It will be matched 1:1 in voting shares.">
+                <Tooltip TransitionComponent={Zoom} title="The amount of NEAR the applicant is providing as a tribute.  It will be matched in voting shares but always rounded down. E.g. 1.5 = 1 voting share.">
                     <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
                 </Tooltip>
                 </>
@@ -166,7 +166,7 @@ export default function TributeProposal(props) {
         <Card>
         <CardContent>
           <WarningIcon fontSize='large' className={classes.warning} />
-          <Typography variant="body1" gutterBottom>You are proposing a tribute of {tribute} Ⓝ which will give <b>{applicant}</b> {tribute} additional voting shares. After submitting
+          <Typography variant="body1" gutterBottom>You are proposing a tribute of {tribute} Ⓝ which will give <b>{applicant}</b> {parseInt(tribute)} additional voting shares. After submitting
           this proposal, you must provide enough supporting detail to help other members vote on and decide whether to approve your proposal or not.</Typography> 
           <Grid container className={classes.confirmation} spacing={1}>
             <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
@@ -181,13 +181,13 @@ export default function TributeProposal(props) {
               />
             </Grid>
             <Grid item xs={10} sm={10} md={10} lg={10} xl={10} style={{margin:'auto'}}>
-              <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{parseInt(tribute) + parseInt(proposalDeposit)} Ⓝ</b>:</Typography>
+              <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{parseFloat(tribute) + parseFloat(proposalDeposit)} Ⓝ</b>:</Typography>
               <Grid container justifyContent="center" spacing={0}>
                 <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                   <Typography variant="body2"><u>Proposal passes:</u></Typography>
                     <ul style={{paddingInlineStart:'10px', paddingInlineEnd:'10px'}}>
                       <li>
-                        <Typography variant="body2">Applicant receives additional {tribute} voting shares.</Typography>
+                        <Typography variant="body2">Applicant receives additional {parseInt(tribute)} voting shares.</Typography>
                       </li>
                       <li>
                         <Typography variant="body2">Community fund will increase by {tribute} Ⓝ.</Typography>

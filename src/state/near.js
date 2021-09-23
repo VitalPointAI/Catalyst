@@ -11,7 +11,7 @@ export const {
     CURRENT_DAO, REDIRECT, NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, OPPORTUNITY_REDIRECT, NEW_PROCESS, NEW_VOTE, 
     DASHBOARD_ARRIVAL, DASHBOARD_DEPARTURE, WARNING_FLAG, PERSONAS_ARRIVAL, EDIT_ARRIVAL, COMMUNITY_ARRIVAL, 
     NEW_DONATION, NEW_EXIT, NEW_RAGE, NEW_DELEGATION, OPPORTUNITY_NOTIFICATION, PROPOSAL_NOTIFICATION, 
-    NEW_NOTIFICATIONS, IPFS_PROVIDER, NEW_DONATION, NEW_EXIT, NEW_RAGE, NEW_DELEGATION, 
+    NEW_NOTIFICATIONS, IPFS_PROVIDER, 
     NEW_REVOCATION, COMMUNITY_DELETE, NEW_DELETE, 
     networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix, explorerUrl,
     contractName, didRegistryContractName, factoryContractName
@@ -164,7 +164,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     }
 
     if(wallet.signedIn){
-    
+   
     // ********* Check and action redirects after DAO and proposal creation *************
     let urlVariables = window.location.search
     const urlParameters = new URLSearchParams(urlVariables)
@@ -192,7 +192,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     const account = wallet.account()
     const accountId = account.accountId
     const didRegistryContract = await ceramic.initiateDidRegistryContract(account)
-
+    
      // ******** IDX Initialization *********
 
     //Initiate App Ceramic Components
@@ -208,7 +208,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     } catch (err) {
         console.log('error initializing daoFactory', err)
     }
-
+    console.log('signedin')
     let t = 0
     let start = 0
     let end = 0
@@ -499,11 +499,11 @@ export async function initDao(wallet, contractId, periodDuration, votingPeriodLe
             _periodDuration: parseInt(periodDuration),
             _votingPeriodLength: parseInt(votingPeriodLength),
             _gracePeriodLength: parseInt(gracePeriodLength),
-            _proposalDeposit: proposalDeposit,
+            _proposalDeposit: parseNearAmount(proposalDeposit),
             _dilutionBound: parseInt(dilutionBound),
             _voteThreshold: parseInt(voteThreshold),
             _shares: shares,
-            _contribution: summonerContribution,
+            _contribution: parseNearAmount(summonerContribution),
             _contractId: contractId
         }, GAS, parseNearAmount(summonerContribution))
 
@@ -524,7 +524,7 @@ export async function changeDao(wallet, contractId, periodDuration, votingPeriod
             _periodDuration: parseInt(periodDuration),
             _votingPeriodLength: parseInt(votingPeriodLength),
             _gracePeriodLength: parseInt(gracePeriodLength),
-            _proposalDeposit: proposalDeposit,
+            _proposalDeposit: parseNearAmount(proposalDeposit),
             _dilutionBound: parseInt(dilutionBound),
             _voteThreshold: parseInt(voteThreshold)
         }, GAS)
@@ -609,11 +609,11 @@ export async function submitProposal(
                 applicant: applicant,
                 sharesRequested: sharesRequested,
                 lootRequested: loot,
-                tributeOffered: tribute,
+                tributeOffered: parseNearAmount(tribute),
                 tributeToken: depositToken,
                 roleNames: ['member'],
                 contractId: contractId
-                }, GAS, parseNearAmount(((parseInt(tribute) + parseInt(loot) + parseInt(proposalDeposit)).toString())))
+                }, GAS, parseNearAmount(((parseFloat(tribute) + parseFloat(loot) + parseFloat(proposalDeposit)).toString())))
             } catch (err) {
                 console.log('submit member proposal failed', err)
                 return false
@@ -624,10 +624,10 @@ export async function submitProposal(
             await daoContract.submitTributeProposal({
                 applicant: applicant,
                 sharesRequested: sharesRequested,
-                tributeOffered: tribute,
+                tributeOffered: parseNearAmount(tribute),
                 tributeToken: depositToken,
                 contractId: contractId
-                }, GAS, parseNearAmount(((parseInt(tribute) + parseInt(proposalDeposit)).toString())))
+                }, GAS, parseNearAmount(((parseFloat(tribute) + parseFloat(proposalDeposit)).toString())))
             } catch (err) {
                 console.log('submit tribute proposal failed', err)
                 return false
@@ -732,7 +732,7 @@ export async function makeDonation(wallet, contractId, contributor, donation) {
                 contractId: contractId,
                 contributor: contributor,
                 token: depositToken,
-                amount: donation
+                amount: parseNearAmount(donation)
             },
             gas: GAS,
             amount: parseNearAmount(donation),
@@ -914,7 +914,8 @@ export async function deleteCommunity(factoryContract, contractId, accountId) {
 
     try{
         await factoryContract.deleteDAO({
-            accountId: contractId
+            accountId: contractId,
+            beneficiary: APP_OWNER_ACCOUNT
             }, GAS)
 
     } catch (err) {
@@ -2574,7 +2575,7 @@ export async function logDonationEvent (curDaoIdx, daoContract, donationId, cont
             contractId: contractId,
             contributor: donation.contributor,
             contributed: parseInt(donation.contributed),
-            donation: parseInt(donation.donation),
+            donation: parseFloat(formatNearAmount(donation.donation)),
             transactionHash: transactionHash
             }
 
@@ -2594,7 +2595,7 @@ export async function logDonationEvent (curDaoIdx, daoContract, donationId, cont
                 contractId: contractId,
                 contributor: donation.contributor,
                 contributed: parseInt(donation.contributed),
-                donation: parseInt(donation.donation),
+                donation: parseFloat(formatNearAmount(donation.donation, 3)),
                 donated: Date.now()
             }
 
