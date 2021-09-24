@@ -847,7 +847,6 @@ export default function AppFramework(props) {
 
     return (
       <>
-          
             <div className={classes.root}>
             <WarningConfirmation
               returnFunction = {handleWarningReturn}
@@ -956,17 +955,14 @@ export default function AppFramework(props) {
           </div>
             <Grid container justifyContent="center" alignItems="center" spacing={1} className={classes.top}>
            
-              <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
-                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Fund: {guildBalanceChip} {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '($' + (parseInt(formatNearAmount(guildBalance[0].balance)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : <LinearProgress /> } </Typography>
+              <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
+                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Fund: {guildBalanceChip} {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '($' + (parseFloat(formatNearAmount(guildBalance[0].balance)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : <LinearProgress /> } </Typography>
               </Grid>
-              <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
-                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Escrow: {escrowBalanceChip} {escrowBalance && escrowBalance.length > 0 ? escrowBalance[0].balance > 0 ? '($' + (parseInt(formatNearAmount(escrowBalance[0].balance)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : <LinearProgress />  }</Typography>
+              <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
+                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Escrow: {escrowBalanceChip} {escrowBalance && escrowBalance.length > 0 ? escrowBalance[0].balance > 0 ? '($' + (parseFloat(formatNearAmount(escrowBalance[0].balance)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : <LinearProgress />  }</Typography>
               </Grid>
-              <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
+              <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
                 <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Total Shares: {totalShares ? totalShares : <LinearProgress />}</Typography>
-              </Grid>
-              <Grid item xs={12} sm={12} md={3} lg={3} xl={3}>
-                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Share Value: {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '$' + ((parseInt(formatNearAmount(guildBalance[0].balance))/totalShares)*nearPrice).toFixed(2) + ' USD' : '$0.00 USD' : <LinearProgress />  }</Typography>
               </Grid>
             </Grid>
           </Card>
@@ -988,18 +984,13 @@ export default function AppFramework(props) {
                 isUpdated={isUpdated}
                 totalShares={totalShares}
                 currentMemberInfo={memberInfo}
-               
-        
-
                 guildBalance={guildBalance}
                 handleTabValueState={handleTabValueState}
                 tabValue={tabValue}
                 handleProposalEventChange={handleProposalEventChange}
                 handleGuildBalanceChanges={handleGuildBalanceChanges}
                 handleEscrowBalanceChanges={handleEscrowBalanceChanges}
-               
                 memberStatus={memberStatus}
-          
                 depositToken={depositToken}
                 tributeToken={tributeToken}
                 tributeOffer={tributeOffer}
@@ -1007,7 +998,6 @@ export default function AppFramework(props) {
                 currentPeriod={currentPeriod}
                 periodDuration={periodDuration}
                 proposalComments={proposalComments}
-               
                 summoner={summoner}
                 contractIdx={contractIdx}
                 curUserIdx={curUserIdx}
@@ -1015,7 +1005,6 @@ export default function AppFramework(props) {
                 contractId={contractId}
                 appIdx={appIdx}
                 appClient={appClient}
-
                 notificationIndicator = {notificationIndicator}
               />
             </Grid>
@@ -1023,7 +1012,6 @@ export default function AppFramework(props) {
           </>
           ) : <Initialize 
                 summoner={summoner}
-               
               />
           }
         </Grid>

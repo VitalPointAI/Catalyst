@@ -396,6 +396,38 @@ export default function ProposalList(props) {
     return formatDate
   }
 
+  
+function typeFilter(item){
+  if(onlyYourProposals){
+    if(item[0].proposalType == 'Member' && onlyMemberProposals && item[0].applicant == accountId) return true
+    if(item[0].proposalType == 'Payout' && onlyPayoutProposals && item[0].applicant == accountId) return true
+    if(item[0].proposalType == 'Commitment' && onlyFundingCommitmentProposals && item[0].applicant == accountId) return true
+    if(item[0].proposalType == 'Opportunity' && onlyOpportunityProposals && item[0].applicant == accountId) return true
+    if(item[0].proposalType == 'Tribute' && onlyTributeProposals && item[0].applicant == accountId) return true
+    if(item[0].proposalType == 'Whitelist' && onlyWhiteListProposals && item[0].applicant == accountId) return true
+    if(item[0].proposalType == 'GuildKick' && onlyGuildKickProposals && item[0].applicant == accountId) return true
+    if(item[0].proposalType == 'CommunityRole' && onlyCommunityRoleProposals && item[0].applicant == accountId) return true
+    if(item[0].proposalType == 'AssignRole' && onlyAssignRoleProposals && item[0].applicant == accountId) return true
+    if(item[0].proposalType == 'ReputationFactor' && onlyReputationFactorProposals && item[0].applicant == accountId) return true
+    if(item[0].proposalType == 'Configuration' && onlyConfigurationProposals && item[0].applicant == accountId) return true
+    return false
+  } else {
+    if(item[0].proposalType == 'Member' && onlyMemberProposals) return true
+    if(item[0].proposalType == 'Payout' && onlyPayoutProposals) return true
+    if(item[0].proposalType == 'Commitment' && onlyFundingCommitmentProposals) return true
+    if(item[0].proposalType == 'Opportunity' && onlyOpportunityProposals) return true
+    if(item[0].proposalType == 'Tribute' && onlyTributeProposals) return true
+    if(item[0].proposalType == 'Whitelist' && onlyWhiteListProposals) return true
+    if(item[0].proposalType == 'GuildKick' && onlyGuildKickProposals) return true
+    if(item[0].proposalType == 'CommunityRole' && onlyCommunityRoleProposals) return true
+    if(item[0].proposalType == 'AssignRole' && onlyAssignRoleProposals) return true
+    if(item[0].proposalType == 'ReputationFactor' && onlyReputationFactorProposals) return true
+    if(item[0].proposalType == 'Configuration' && onlyConfigurationProposals) return true
+    return false
+  }
+  
+}
+
   async function resolveStatus(requests) {
     
     let status
@@ -412,7 +444,7 @@ export default function ProposalList(props) {
       requests.map((fr) => {
      console.log('requests fr', fr)
         status = getStatus(fr.flags)
-
+        console.log('status', status)
         let i = 0
         let currentStreamProposal
         while (i < streamProposals.events.length){
@@ -650,8 +682,9 @@ export default function ProposalList(props) {
 
   let Proposals
   if (proposalList && proposalList.length > 0 && tabValue == '2') {
-  
+ 
     Proposals = proposalList.filter(typeFilter).reverse().map((fr) => {
+      console.log('tab 2', fr)
       return (
         <ProposalCard
           curDaoIdx={curDaoIdx}
@@ -825,87 +858,6 @@ export default function ProposalList(props) {
   }
 }
 
-function typeFilter(item){
-  console.log('item', item)
-  let result
-  if(onlyYourProposals){
-    switch(true){       
-      case item[0].proposalType == 'Member' && onlyMemberProposals && item[0].applicant == accountId:
-          return true
-        
-      case item[0].proposalType == 'Payout' && onlyPayoutProposals && item[0].applicant == accountId:
-          return true
-        
-      case item[0].proposalType == 'Commitment' && onlyFundingCommitmentProposals && item[0].applicant == accountId:
-          return true
-        
-      case item[0].proposalType == 'Opportunity' && onlyOpportunityProposals && item[0].applicant == accountId:
-        return true
-        
-      case item[0].proposalType == 'Tribute' && onlyTributeProposals && item[0].applicant == accountId:
-        return true
-      
-      case item[0].proposalType == 'Whitelist' && onlyWhiteListProposals && item[0].applicant == accountId:
-        return true
-        
-      case item[0].proposalType == 'GuildKick' && onlyGuildKickProposals && item[0].applicant == accountId:
-        return true
-    
-      case item[0].proposalType == 'CommunityRole' && onlyCommunityRoleProposals && item[0].applicant == accountId:
-        return true
-        
-      case item[0].proposalType == 'AssignRole' && onlyAssignRoleProposals && item[0].applicant == accountId:
-        return true
-       
-      case item[0].proposalType == 'ReputationFactor' && onlyReputationFactorProposals && item[0].applicant == accountId:
-        return true
-      
-      case item[0].proposalType == 'Configuration' && onlyConfigurationProposals && item[0].applicant == accountId:
-        return true
-
-      default:
-        break
-    }
-  } else {
-    switch(true){       
-      case item[0].proposalType == 'Member' && onlyMemberProposals:
-          return true
-        
-      case item[0].proposalType == 'Payout' && onlyPayoutProposals:
-          return true
-        
-      case item[0].proposalType == 'Commitment' && onlyFundingCommitmentProposals:
-          return true
-        
-      case item[0].proposalType == 'Opportunity' && onlyOpportunityProposals:
-        return true
-        
-      case item[0].proposalType == 'Tribute' && onlyTributeProposals:
-        return true
-      
-      case item[0].proposalType == 'Whitelist' && onlyWhiteListProposals:
-        return true
-        
-      case item[0].proposalType == 'GuildKick' && onlyGuildKickProposals:
-        return true
-    
-      case item[0].proposalType == 'CommunityRole' && onlyCommunityRoleProposals:
-        return true
-        
-      case item[0].proposalType == 'AssignRole' && onlyAssignRoleProposals:
-        return true
-       
-      case item[0].proposalType == 'ReputationFactor' && onlyReputationFactorProposals:
-        return true
-      
-      case item[0].proposalType == 'Configuration' && onlyConfigurationProposals:
-        return true
-
-      default:
-        break
-    }
-  }
-}
 
   let Processed
   if (processedList && processedList.length > 0 && tabValue == '5') {

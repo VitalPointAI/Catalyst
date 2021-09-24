@@ -365,26 +365,30 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     }
 
     // get average block time
-    let currentBlock = await near.connection.provider.block({
-        finality: 'final'
-    })
-    let lastBlock = currentBlock.header.height
-    let firstBlock = lastBlock - 20
-    let totalTime = 0
-    let count = 0
-    while (firstBlock <= lastBlock ){
-        let prevBlock = await near.connection.provider.block(firstBlock-1)
-        let prevBlockTime = prevBlock.header.timestamp
-        let thisBlock = await near.connection.provider.block(firstBlock)
-        let thisBlockTime = thisBlock.header.timestamp
-        let createTime = thisBlockTime - prevBlockTime
-        count ++
-        totalTime += createTime
-        firstBlock++
+    let avgBlockTime = 60
+    try{
+        let currentBlock = await near.connection.provider.block({
+            finality: 'final'
+        })
+        let lastBlock = currentBlock.header.height
+        let firstBlock = lastBlock - 20
+        let totalTime = 0
+        let count = 0
+        while (firstBlock <= lastBlock ){
+            let prevBlock = await near.connection.provider.block(firstBlock-1)
+            let prevBlockTime = prevBlock.header.timestamp
+            let thisBlock = await near.connection.provider.block(firstBlock)
+            let thisBlockTime = thisBlock.header.timestamp
+            let createTime = thisBlockTime - prevBlockTime
+            count ++
+            totalTime += createTime
+            firstBlock++
+        }
+
+        avgBlockTime = parseFloat(Math.fround(totalTime/count / 1000000000).toFixed(3)) // Time in seconds
+    } catch (err) {
+        console.log("problem retrieving blockTime", err)
     }
-    let avgBlockTime = parseFloat(Math.fround(totalTime/count / 1000000000).toFixed(3)) // Time in seconds
-    console.log('averageBlocktime', avgBlockTime)
-    console.log('currentblock', currentBlock)
     finished = true
 
     update('', { near, wallet, finished, avgBlockTime})
@@ -701,7 +705,7 @@ export async function sponsorProposal(daoContract, contractId, proposalId, depos
         let newSponsor = get(NEW_SPONSOR, [])
         newSponsor.push({contractId: contractId, proposalId: proposalId, new: true})
         set(NEW_SPONSOR, newSponsor)      
-
+       
         await daoContract.sponsorProposal({
             proposalId: proposalId,
             depositToken: depositToken,

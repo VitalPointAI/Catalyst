@@ -387,8 +387,8 @@ export default function Dashboard(props) {
                         }
                         if(account){
                             console.log('account', account)
-                            let formatted = formatNearAmount(balance, 0)
-                            balance = parseInt(formatted)
+                            let formatted = formatNearAmount(balance, 3)
+                            balance = parseFloat(formatted)
                             console.log('balance', balance)
                         }
                             
