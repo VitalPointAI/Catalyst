@@ -896,7 +896,7 @@ export async function leaveCommunity(daoContract, contractId, share, accountId, 
         await daoContract.leave({
             contractId: contractId,
             accountId: accountId,
-            share: share,
+            share: parseNearAmount(share),
             remainingBalance: balanceAvailable,
             appOwner: APP_OWNER_ACCOUNT
             }, GAS)

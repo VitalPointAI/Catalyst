@@ -6,7 +6,7 @@ import { dao } from '../../utils/dao'
 import { explorerUrl, signal } from '../../state/near'
 import Persona from '@aluhning/get-personas-js'
 import { PROPOSAL_NOTIFICATION} from '../../state/near'
-import { formatNearAmount } from 'near-api-js/lib/utils/format'
+import { formatNearAmount, parseNearAmount } from 'near-api-js/lib/utils/format'
 import EditMemberProposalForm from '../EditProposal/editMemberProposal'
 import MemberProposalDetails from '../ProposalDetails/memberProposalDetails'
 
@@ -1125,7 +1125,7 @@ export default function ProposalCard(props) {
                 </Grid>    
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
                   <Typography variant="overline" align="center" style={{marginBottom: '10px'}}>Funding Requested</Typography><br></br>
-                  <Typography variant="overline" align="center">{`${formatNearAmount(funding, 3)} Ⓝ`}</Typography>
+                  <Typography variant="overline" align="center">{`${funding} Ⓝ`}</Typography>
                 </Grid>
               </Grid>
             ) : null}
@@ -1146,7 +1146,7 @@ export default function ProposalCard(props) {
                 </Grid>    
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
                   <Typography variant="overline" align="center" style={{marginBottom: '10px'}}>Payout Requested</Typography><br></br>
-                  <Typography variant="overline" align="center">{`${formatNearAmount(funding, 3)} Ⓝ`}</Typography>
+                  <Typography variant="overline" align="center">{`${funding} Ⓝ`}</Typography>
                 </Grid>
               </Grid>
             ) : null}
@@ -1177,10 +1177,10 @@ export default function ProposalCard(props) {
                 </Grid>
                 </Grid>
                 : null }
-              {status == 'Submitted'  && detailsExist == false ? <Typography variant="subtitle2" display="block" align="center">Awaiting Details</Typography> : null}
-              {status == 'Submitted'  && detailsExist == true ? <Typography variant="subtitle2" display="block" align="center">Awaiting Sponsor</Typography> : null}
-              {status != 'Passed' && status != 'Sponsored' && status != 'Not Passed' && parseInt(funding) >= parseInt(guildBalance[0].balance) ? <Typography variant="subtitle2" display="block" align="center" style={{backgroundColor: 'red', color: 'white', padding: '2px', marginTop:'3px'}}>Funds Required</Typography> : null}
-              </div>
+              {status != 'Passed' && status != 'Sponsored' && status != 'Not Passed' && parseFloat(parseNearAmount(funding)) >= parseFloat(guildBalance[0].balance) ? <Typography variant="subtitle2" display="block" align="center" style={{backgroundColor: 'red', color: 'white', padding: '2px', marginTop:'3px'}}>Funds Required</Typography> 
+              : status == 'Submitted'  && detailsExist == false ? <Typography variant="subtitle2" display="block" align="center">Awaiting Details</Typography>
+              : status == 'Submitted'  && detailsExist == true ? <Typography variant="subtitle2" display="block" align="center">Awaiting Sponsor</Typography> : null}
+                 </div>
 
               {status == 'Sponsored' && isVotingPeriod && !isGracePeriod ? (
                

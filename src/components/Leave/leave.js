@@ -73,6 +73,7 @@ export default function Leave(props) {
         if(contractId && daoContract && state){
           let totalMembers = await daoContract.getTotalMembers()
           setCurrentMembers(totalMembers)
+          console.log('fairshare', fairShare)
           setShare(fairShare)
           
           let account

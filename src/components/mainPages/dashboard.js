@@ -387,7 +387,7 @@ export default function Dashboard(props) {
                         }
                         if(account){
                             console.log('account', account)
-                            let formatted = formatNearAmount(balance, 3)
+                            let formatted = formatNearAmount(account.amount)
                             balance = parseFloat(formatted)
                             console.log('balance', balance)
                         }
@@ -802,7 +802,6 @@ export default function Dashboard(props) {
           .x((d) => { console.log('d value', d.joined); return x(d.joined); })
           .y((d) => { console.log('y value', d.number); return y(d.number); });
       
-          console.log('valueline', valueLine)
         const svg = d3.select("#d3-members").append("svg")
           .attr("preserveAspectRatio", "xMinYMin meet")
           .attr("viewBox", "0 0 960 600")
