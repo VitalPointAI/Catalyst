@@ -66,6 +66,15 @@ export const repFactorProposalDetailsSchema = {
           type: 'number',
           minimum: 0,
         },
+        "likes": {
+          type: 'array'
+        },
+        "dislikes": {
+          type: 'array'
+        },
+        "neutrals": {
+          type: 'array'
+        },
       },
     }
   }

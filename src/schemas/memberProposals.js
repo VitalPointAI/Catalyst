@@ -29,6 +29,15 @@ export const memberProposalDetailsSchema = {
         "updated": {
           "type": "string",
         },
+        "likes": {
+          type: 'array'
+        },
+        "dislikes": {
+          type: 'array'
+        },
+        "neutrals": {
+          type: 'array'
+        },
       }
     }
   }

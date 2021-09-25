@@ -86,8 +86,14 @@ const imageName = require('../../img/default-profile.png') // default no-image a
 export default function OpportunityProposalDetails(props) {
     const [open, setOpen] = useState(true)
 
+    const [applicantAvatar, setApplicantAvatar] = useState()
+    const [applicantName, setApplicantName] = useState()
+
     const [proposerAvatar, setProposerAvatar] = useState()
     const [proposerName, setProposerName] = useState()
+
+    const [curUserAvatar, setCurUserAvatar] = useState()
+    const [curUserName, setCurUserName] = useState()
    
     const [title, setTitle] = useState('')
     const [details, setDetails] = useState('')
@@ -147,18 +153,44 @@ export default function OpportunityProposalDetails(props) {
 
           async function fetchData() {
            
-              if(proposer){                    
-                  const thisPersona = new Persona()
-                  let result = await thisPersona.getPersona(proposer)
-                      if(result){
-                        result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
-                        result.name ? setProposerName(result.name) : setProposerName(proposer)
-                      } else {
-                        setProposerAvatar(imageName)
-                        setProposerName(proposer)
-                      } 
-              }
+             // Get Applicant Persona Information
+           if(proposer){                    
+              
+            let result = await thisPersona.getPersona(proposer)
+                if(result){
+                  result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
+                  result.name ? setProposerName(result.name) : setProposerName(proposer)
+                } else {
+                  setProposerAvatar(imageName)
+                  setProposerName(proposer)
+                } 
+          }
 
+          // Get Current User Persona Information
+          if(accountId){                    
+            
+            let result = await thisPersona.getPersona(accountId)
+                if(result){
+                  result.avatar ? setCurUserAvatar(result.avatar) : setCurUserAvatar(imageName)
+                  result.name ? setCurUserName(result.name) : setCurUserName(accountId)
+                } else {
+                  setCurUserAvatar(imageName)
+                  setCurUserName(accountId)
+                } 
+          }
+         
+          if(applicant){                           
+             
+                let result = await thisPersona.getPersona(applicant)
+                    if(result){
+                      result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
+                      result.name ? setApplicantName(result.name) : setApplicantName(applicant)
+                    } else {
+                      setApplicantAvatar(imageName)
+                      setApplicantName(applicant)
+                    } 
+          }
+          
             if(contract){
               let propDeposit = await contract.getProposalDeposit()
               setThisProposalDeposit(formatNearAmount(propDeposit))
@@ -267,7 +299,7 @@ export default function OpportunityProposalDetails(props) {
               setFinished(true)
             })
           
-    }, [applicant, proposerAvatar, proposer, title, details, proposerName, contractId, thisCurDaoIdx, isUpdated]
+    }, [applicant, applicantAvatar, curUserAvatar, proposerAvatar, proposer, title, details, proposerName, contractId, thisCurDaoIdx, isUpdated]
     )
 
     const handleClose = () => {
@@ -529,7 +561,8 @@ export default function OpportunityProposalDetails(props) {
               <Typography variant="h5" style={{marginLeft: '10px'}}>Leave a Comment/Ask a Question</Typography>
                   <CommentForm
                     reply={false}
-                    avatar={proposerAvatar}
+                    avatar={curUserAvatar}
+                    name={curUserName}
                     proposalId={opportunityId}
                     accountId={accountId}
                     contract={contract}

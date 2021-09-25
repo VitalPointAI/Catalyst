@@ -40,6 +40,15 @@ export const payoutProposalDetailsSchema = {
         "referenceIds": {
           type: 'array'
         },
+        "likes": {
+          type: 'array'
+        },
+        "dislikes": {
+          type: 'array'
+        },
+        "neutrals": {
+          type: 'array'
+        },
       },
     }
   }

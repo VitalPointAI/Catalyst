@@ -156,13 +156,13 @@ export default function WarningConfirmation(props) {
   return (
     <div>
       <Dialog open={open} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Caution</DialogTitle>
+        <DialogTitle id="form-dialog-title">Thanks For Your Interest in Catalyst</DialogTitle>
         <DialogContent className={classes.rootForm}>
               <Card>
-              <CardContent>
+              <CardContent align="center">
                 <WarningIcon fontSize='large' className={classes.warning} />
-                <Typography variant="body1">Thanks for trying out Catalyst.</Typography>
-                <Typography variant="body1">Catalyst is new and still undergoing lots of testing.  It's contracts have not been audited.</Typography>
+                <Typography variant="body1">Catalyst is undergoing lots of testing.</Typography>
+                <Typography variant="body1">It's contracts have not been audited.</Typography>
                 <Typography variant="h6">Use at your own risk.</Typography>
                 
                 <Grid container className={classes.confirmation} spacing={1}>
@@ -179,8 +179,8 @@ export default function WarningConfirmation(props) {
                     />
                    
                   </Grid>
-                  <Grid item xs={10} sm={10} md={10} lg={10} xl={10} style={{margin:'auto'}}>
-                    <p style={{color: 'red', marginTop: '10px'}}>You must confirm your understanding.</p>
+                  <Grid item xs={11} sm={11} md={11} lg={11} xl={11} style={{margin:'auto'}}>
+                    <Typography variant="body2" style={{color: 'red', marginLeft: '15px'}}>You must confirm your understanding.</Typography>
                   </Grid>
                 </Grid>
                 </CardContent>

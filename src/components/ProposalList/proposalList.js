@@ -36,6 +36,7 @@ import FormGroup from '@material-ui/core/FormGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import Switch from '@material-ui/core/Switch';
+import { LinearProgress } from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -64,7 +65,6 @@ export default function ProposalList(props) {
   const [name, setName] = useState()
   const [intro, setIntro] = useState('')
 
-  const [loaded, setLoaded] = useState(false)
   const [proposalList, setProposalList] = useState([])
   const [votingList, setVotingList] = useState([])
   const [queueList, setQueueList] = useState([])
@@ -144,6 +144,7 @@ export default function ProposalList(props) {
     totalShares,
     currentMemberInfo,
     guildBalance,
+    loaded,
 
     tabValue,
     handleTabValueState,
@@ -1024,19 +1025,14 @@ function typeFilter(item){
       onChange = {(index)=>handleStepsChange(index)}  
     / >
     <Paper square className={classes.root}>
-    {!matches ? (
+    {!matches && loaded ? (
       <Tabs
         value={tabValue}
         onChange={handleTabChange}
-       
         indicatorColor="primary"
         aria-label="icon label tabs example"
         variant="fullWidth"
-        
-       
       >
-     
-        
         <Tab 
           className='members'
           icon={     
@@ -1088,65 +1084,63 @@ function typeFilter(item){
           value="5"
         />
         </Tabs>
-      ) : null }
-      {matches ? (
+      ) : <LinearProgress /> }
+      {matches && loaded ? (
         <Tabs
-        value={tabValue}
-        onChange={handleTabChange}
-       
-        indicatorColor="primary"
-        aria-label="icon label tabs example"
-        variant="scrollable"
-        scrollButtons="auto"
-       
-      >
+          value={tabValue}
+          onChange={handleTabChange}
+          indicatorColor="primary"
+          aria-label="icon label tabs example"
+          variant="scrollable"
+          scrollButtons="auto"
+        >
         <Tab 
-        icon={     
-          <StyledBadge badgeContent={memberCount} color="primary">
-            <PeopleAltIcon fontSize='small'/>
-          </StyledBadge>
-        } 
-        label="MEMBERS" 
-        value="1"
-      />
-      <Tab 
-        icon={
-          <StyledBadge badgeContent={proposalCount} color="primary">
-            <ListAltIcon fontSize='small'/>
-          </StyledBadge>
-        } 
-        label="PROPOSALS" 
-        value="2"
-      />
-      <Tab 
-        icon={
-          <StyledBadge badgeContent={voteCount} color="primary">
-            <HowToVoteIcon fontSize='small'/>
-          </StyledBadge>
-        } 
-        label="VOTING" 
-        value="3"
-      />
-      <Tab 
-        icon={
-          <StyledBadge badgeContent={queueCount} color="primary">
-            <QueueIcon fontSize='small'/>
-          </StyledBadge>
-        } 
-        label="PROCESSING" 
-        value="4"
-      />
-      <Tab
-        icon={
-          <StyledBadge badgeContent={processedCount} color="primary">
-            <AssignmentTurnedInIcon fontSize='small'/>
-          </StyledBadge>
-        }
-        label="COMPLETE" 
-        value="5"
-      />
+          icon={     
+            <StyledBadge badgeContent={memberCount} color="primary">
+              <PeopleAltIcon fontSize='small'/>
+            </StyledBadge>
+          } 
+          label="MEMBERS" 
+          value="1"
+        />
+        <Tab 
+          icon={
+            <StyledBadge badgeContent={proposalCount} color="primary">
+              <ListAltIcon fontSize='small'/>
+            </StyledBadge>
+          } 
+          label="PROPOSALS" 
+          value="2"
+        />
+        <Tab 
+          icon={
+            <StyledBadge badgeContent={voteCount} color="primary">
+              <HowToVoteIcon fontSize='small'/>
+            </StyledBadge>
+          } 
+          label="VOTING" 
+          value="3"
+        />
+        <Tab 
+          icon={
+            <StyledBadge badgeContent={queueCount} color="primary">
+              <QueueIcon fontSize='small'/>
+            </StyledBadge>
+          } 
+          label="PROCESSING" 
+          value="4"
+        />
+        <Tab
+          icon={
+            <StyledBadge badgeContent={processedCount} color="primary">
+              <AssignmentTurnedInIcon fontSize='small'/>
+            </StyledBadge>
+          }
+          label="COMPLETE" 
+          value="5"
+        />
       </Tabs>
-      ) : null}
+      ) : <LinearProgress />}
      
     </Paper>
     <TabContext value={tabValue}>

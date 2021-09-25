@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { submitProposal } from '../../state/near'
 import Persona from '@aluhning/get-personas-js'
+import { formatNearAmount } from 'near-api-js/lib/utils/format'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -110,11 +111,14 @@ export default function MemberProposal(props) {
 
   const handleTributeChange = (event) => {
     setTribute(event.target.value)
-    setShares(event.target.value)
   }
 
   const handleLootChange = (event) => {
     setLoot(event.target.value)
+  }
+
+  const handleSharesChange = (event) => {
+    setShares(event.target.value)
   }
 
   const handleConfirmChange = (event) => {
@@ -131,7 +135,7 @@ export default function MemberProposal(props) {
                       applicant,
                       loot,
                       tribute,
-                      tribute,
+                      shares,
                       '0'
                       )
             
@@ -172,13 +176,12 @@ export default function MemberProposal(props) {
             {errors.applicant && <p style={{color: 'red'}}>You must provide a valid NEAR account.</p>}
           </div>
              
-            <div>
               <TextField
                 margin="dense"
                 id="member-proposal-tribute"
                 variant="outlined"
                 name="memberTribute"
-                label="Voting Shares"
+                label="Contribution"
                 placeholder="100"
                 value={tribute}
                 onChange={handleTributeChange}
@@ -194,9 +197,28 @@ export default function MemberProposal(props) {
                 }}
               />
               {errors.memberTribute && <p style={{color: 'red'}}>You must enter a contribution amount.</p>}
-            </div>
+            
+              <TextField
+              margin="dense"
+              id="member-proposal-loot"
+              variant="outlined"
+              name="memberShares"
+              label="Voting Shares"
+              placeholder="100"
+              value={shares}
+              onChange={handleSharesChange}
+              inputRef={register({
+                  required: false,
+              })}
+              InputProps={{
+                endAdornment: <><InputAdornment position="end">shares</InputAdornment>
+                <Tooltip TransitionComponent={Zoom} title="The number of voting shares being requested.">
+                    <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
+                </Tooltip>
+                </>
+              }}
+              />
 
-            <div>
             <TextField
               margin="dense"
               id="member-proposal-loot"
@@ -210,15 +232,14 @@ export default function MemberProposal(props) {
                   required: false,
               })}
               InputProps={{
-                endAdornment: <><InputAdornment position="end">Ⓝ</InputAdornment>
-                <Tooltip TransitionComponent={Zoom} title="The amount of NEAR the member is contributing to the community fund in return for non-voting shares. This fund is used to fund proposals that benefit the community in some way that members vote on and decide collectively to pass.  Members receive one non-voting share for every one NEAR contributed as loot which represents their portion of the community fund.">
+                endAdornment: <><InputAdornment position="end">shares</InputAdornment>
+                <Tooltip TransitionComponent={Zoom} title="The number of non-voting shares being requested.">
                     <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
                 </Tooltip>
                 </>
               }}
             />
           
-          </div>
               <Card>
               <CardContent>
                 <WarningIcon fontSize='large' className={classes.warning} />
@@ -237,7 +258,7 @@ export default function MemberProposal(props) {
                     />
                   </Grid>
                   <Grid item xs={10} sm={10} md={10} lg={10} xl={10} style={{margin:'auto'}}>
-                    <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{(loot ? parseInt(loot) : 0) + (tribute ? parseInt(tribute) : 0) + (parseInt(proposalDeposit))} Ⓝ</b>:</Typography>
+                    <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{(tribute ? parseFloat(tribute) : 0) + parseFloat(proposalDeposit)} Ⓝ</b>:</Typography>
                     <Grid container justifyContent="center" spacing={0}>
                       <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                         <Typography variant="body2"><u>Proposal passes:</u></Typography>
@@ -249,7 +270,7 @@ export default function MemberProposal(props) {
                               <Typography variant="body2">Applicant receives {loot ? parseInt(loot) : 0} non-voting shares.</Typography>
                             </li>
                             <li>
-                              <Typography variant="body2">Total contribution (tribute and loot) of {(loot ? parseInt(loot) : 0) + (tribute ? parseInt(tribute) : 0)} Ⓝ goes into the community fund.</Typography>
+                              <Typography variant="body2">Contribution of {tribute ? parseInt(tribute) : 0} Ⓝ goes into the community fund.</Typography>
                             </li>
                             <li>
                               <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you</Typography>
@@ -263,7 +284,7 @@ export default function MemberProposal(props) {
                               <Typography variant="body2">Applicant does not become a member.</Typography>
                             </li>
                              <li>
-                              <Typography variant="body2">Total contribution (tribute and loot) of {(loot ? parseInt(loot) : 0) + (tribute ? parseInt(tribute) : 0)} Ⓝ is returned to you.</Typography>
+                              <Typography variant="body2">Contribution of {tribute ? parseFloat(tribute) : 0} Ⓝ is returned to you.</Typography>
                             </li>
                             <li>
                               <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you.</Typography>
@@ -271,7 +292,7 @@ export default function MemberProposal(props) {
                           </ul>
                       </Grid>
                     </Grid>
-                    <Typography variant="body2">Your contribution of <b>{(loot ? parseInt(loot) : 0) + (tribute ? parseInt(tribute) : 0)} Ⓝ</b> immediately goes into the community escrow and stays there until the proposal is processed (finalized) or cancelled.</Typography>     
+                    <Typography variant="body2">Your contribution of <b>{tribute ? parseFloat(tribute) : 0} Ⓝ</b> immediately goes into the community escrow and stays there until the proposal is processed (finalized) or cancelled.</Typography>     
                   </Grid>
               </Grid>
                 </CardContent>

@@ -67,8 +67,14 @@ const useStyles = makeStyles((theme) => ({
 export default function MemberProposalDetails(props) {
     const [open, setOpen] = useState(true)
     const [intro, setIntro] = useState()
-    const [avatar, setAvatar] = useState()
-    const [name, setName] = useState('')
+    const [applicantAvatar, setApplicantAvatar] = useState()
+    const [applicantName, setApplicantName] = useState()
+
+    const [proposerAvatar, setProposerAvatar] = useState()
+    const [proposerName, setProposerName] = useState()
+
+    const [curUserAvatar, setCurUserAvatar] = useState()
+    const [curUserName, setCurUserName] = useState()
   
     const [isUpdated, setIsUpdated] = useState(false)
     const [proposalComments, setProposalComments] = useState([])
@@ -102,18 +108,43 @@ export default function MemberProposalDetails(props) {
  
           async function fetchData() {
          
-            // Get Applicant Persona Information
-           
-            if(applicant){                            
-                  let result = await thisPersona.getPersona(applicant)
-                      if(result){
-                        result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-                        result.name ? setName(result.name) : setName(applicant)
-                      } else {
-                        setAvatar(imageName)
-                        setName(applicant)
-                      } 
-            }
+           // Get Applicant Persona Information
+           if(proposer){                    
+              
+            let result = await thisPersona.getPersona(proposer)
+                if(result){
+                  result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
+                  result.name ? setProposerName(result.name) : setProposerName(proposer)
+                } else {
+                  setProposerAvatar(imageName)
+                  setProposerName(proposer)
+                } 
+          }
+
+          // Get Current User Persona Information
+          if(accountId){                    
+            
+            let result = await thisPersona.getPersona(accountId)
+                if(result){
+                  result.avatar ? setCurUserAvatar(result.avatar) : setCurUserAvatar(imageName)
+                  result.name ? setCurUserName(result.name) : setCurUserName(accountId)
+                } else {
+                  setCurUserAvatar(imageName)
+                  setCurUserName(accountId)
+                } 
+          }
+         
+          if(applicant){                           
+             
+                let result = await thisPersona.getPersona(applicant)
+                    if(result){
+                      result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
+                      result.name ? setApplicantName(result.name) : setApplicantName(applicant)
+                    } else {
+                      setApplicantAvatar(imageName)
+                      setApplicantName(applicant)
+                    } 
+          }
             
 
             // Set Existing Proposal Data       
@@ -162,7 +193,7 @@ export default function MemberProposalDetails(props) {
               setFinished(true)
             })
           
-    }, [applicant, avatar, intro, isUpdated]
+    }, [applicant, applicantAvatar, curUserAvatar, proposerAvatar, intro, isUpdated]
     )
 
     const handleClose = () => {
@@ -243,8 +274,8 @@ export default function MemberProposalDetails(props) {
                         </Grid>
                         <Grid item xs={12} sm={12} md={12} lg={12} xl={12} className={classes.centered}>
                             <Typography variant="h6">Meet</Typography>
-                            <Avatar src={avatar} className={classes.large} />
-                            <Typography variant="h3">{applicant}</Typography>
+                            <Avatar src={applicantAvatar} className={classes.large} />
+                            <Typography variant="h3">{applicantName ? applicantName : applicant}</Typography>
                             <Typography variant="overline" display="block" gutterBottom>Proposed by: {proposer}</Typography>
                         </Grid>
                         <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
@@ -278,7 +309,8 @@ export default function MemberProposalDetails(props) {
               <Typography variant="h5" style={{marginLeft: '10px'}}>Leave a Comment/Ask a Question</Typography>
                   <CommentForm
                     reply={false}
-                    avatar={avatar}
+                    avatar={curUserAvatar}
+                    name={curUserName}
                     proposalId={proposalId}
                     accountId={accountId}
                     contract={contract}

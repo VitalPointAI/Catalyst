@@ -270,7 +270,7 @@ export default function ProposalCard(props) {
               if(referenceIds){
               for(const [key, value] of Object.entries(referenceIds)){
                 console.log('opp value', value)
-                if(value['valueSetting']!=''){
+                if(value['valueSetting'] && value['valueSetting'] != ''){
                   try{
                     let oppResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
                     let k = 0
@@ -552,7 +552,7 @@ export default function ProposalCard(props) {
     }
 
     async function handleSignal(type){
-      await signal(requestId, type, curDaoIdx, accountId)
+      await signal(requestId, type, curDaoIdx, accountId, proposalType)
       handleUpdate(!isUpdated)
     }
 

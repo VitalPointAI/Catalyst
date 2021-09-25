@@ -76,6 +76,9 @@ export default function PayoutProposalDetails(props) {
     const [proposerAvatar, setProposerAvatar] = useState()
     const [proposerName, setProposerName] = useState()
 
+    const [curUserAvatar, setCurUserAvatar] = useState()
+    const [curUserName, setCurUserName] = useState()
+
     const [payoutTitle, setPayoutTitle] = useState()
     const [detailsOfCompletion, setDetailsOfCompletion] = useState()
     const [milestones, setMilestones] = useState()
@@ -115,17 +118,30 @@ export default function PayoutProposalDetails(props) {
             if(proposer){                    
               
               let result = await thisPersona.getPersona(proposer)
+                if(result){
+                  result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
+                  result.name ? setProposerName(result.name) : setProposerName(proposer)
+                } else {
+                  setProposerAvatar(imageName)
+                  setProposerName(proposer)
+                } 
+            }
+
+            // Get Current User Persona Information
+            if(accountId){                    
+              
+              let result = await thisPersona.getPersona(accountId)
                   if(result){
-                    result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
-                    result.name ? setProposerName(result.name) : setProposerName(proposer)
+                    result.avatar ? setCurUserAvatar(result.avatar) : setCurUserAvatar(imageName)
+                    result.name ? setCurUserName(result.name) : setCurUserName(accountId)
                   } else {
-                    setProposerAvatar(imageName)
-                    setProposerName(proposer)
+                    setCurUserAvatar(imageName)
+                    setCurUserName(accountId)
                   } 
             }
-           
+          
             if(applicant){                           
-               
+              
                   let result = await thisPersona.getPersona(applicant)
                       if(result){
                         result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
@@ -184,7 +200,7 @@ export default function PayoutProposalDetails(props) {
               setFinished(true)
             })
           
-    }, [applicant, applicantAvatar, proposerAvatar, payoutTitle, created, detailsOfCompletion, applicantName, proposerName, isUpdated]
+    }, [applicant, applicantAvatar, curUserAvatar, proposerAvatar, payoutTitle, created, detailsOfCompletion, applicantName, proposerName, isUpdated]
     )
          
     let Milestones
@@ -359,7 +375,8 @@ export default function PayoutProposalDetails(props) {
               <Typography variant="h5" style={{marginLeft: '10px'}}>Leave a Comment/Ask a Question</Typography>
                   <CommentForm
                     reply={false}
-                    avatar={avatar}
+                    avatar={curUserAvatar}
+                    name={curUserName}
                     proposalId={proposalId}
                     accountId={accountId}
                     contract={contract}

@@ -31,6 +31,15 @@ export const configurationProposalDetailsSchema = {
         "published": {
           type: 'boolean'
         },
+        "likes": {
+          type: 'array'
+        },
+        "dislikes": {
+          type: 'array'
+        },
+        "neutrals": {
+          type: 'array'
+        },
       },
     }
   }

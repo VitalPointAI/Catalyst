@@ -34,6 +34,15 @@ export const tributeProposalDetailsSchema = {
         "published": {
           type: 'boolean'
         },
+        "likes": {
+          type: 'array'
+        },
+        "dislikes": {
+          type: 'array'
+        },
+        "neutrals": {
+          type: 'array'
+        },
       },
     }
   }

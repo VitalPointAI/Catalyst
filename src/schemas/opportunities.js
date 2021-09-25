@@ -78,6 +78,15 @@ export const opportunitiesSchema = {
         "desiredDeveloperSkillSet": {
           type: 'object'
         },
+        "likes": {
+          type: 'array'
+        },
+        "dislikes": {
+          type: 'array'
+        },
+        "neutrals": {
+          type: 'array'
+        },
       },
     }
   }

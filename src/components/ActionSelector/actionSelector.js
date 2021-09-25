@@ -32,6 +32,7 @@ import EnhancedEncryptionIcon from '@material-ui/icons/EnhancedEncryption'
 import ExitToAppIcon from '@material-ui/icons/ExitToApp'
 import AddAlertIcon from '@material-ui/icons/AddAlert'
 import MoneyIcon from '@material-ui/icons/Money'
+import { LinearProgress } from '@material-ui/core'
 
 const StyledMenu = withStyles({
   paper: {
@@ -97,8 +98,6 @@ export default function ActionSelector(props) {
     skipLabel: "Skip",
     showProgress: true
 })
-
-  const [loaded, setLoaded] = useState(false)
   
   const { state, dispatch, update } = useContext(appStore)
 
@@ -119,7 +118,8 @@ export default function ActionSelector(props) {
     idx,
     contract,
     fairShare,
-    memberStatus } = props
+    memberStatus,
+    loaded } = props
 
   const {
     contractId
@@ -128,19 +128,8 @@ export default function ActionSelector(props) {
   useEffect(
     () => {
       setStepsEnabled(enable)
-      if(memberStatus){
-        setLoaded(true)
-      }
      
     }, [enable]
-  )
-
-  useEffect(
-    () =>
-      {
-        setStepsEnabled(enable);
-      }
-      , [enable]
   )
 
   let steps = [
@@ -282,6 +271,7 @@ export default function ActionSelector(props) {
   function onStepsExit(){
     setStepsEnabled(false)
   }
+
   return (
     <>
       <Steps
@@ -330,7 +320,7 @@ export default function ActionSelector(props) {
         Invite
       </Button>
 
-      {memberStatus ? (
+      {loaded && memberStatus ? (
         <StyledMenu
           id="customized-menu"
           anchorEl={anchorEl}
@@ -393,7 +383,8 @@ export default function ActionSelector(props) {
             <ListItemText primary="Leave Community" />
           </StyledMenuItem>
         </StyledMenu>
-      ) : (
+      ) : 
+      loaded ? (
         <StyledMenu
           id="customized-menu"
           anchorEl={anchorEl}
@@ -414,7 +405,9 @@ export default function ActionSelector(props) {
             <ListItemText primary="Donate (no Voting Rights)" />
           </StyledMenuItem>
         </StyledMenu>
-      )}
+      ) :
+    <LinearProgress />
+    }
 
 
       {whiteListClicked ? <WhiteListProposal

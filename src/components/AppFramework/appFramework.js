@@ -120,6 +120,7 @@ export default function AppFramework(props) {
     const [restInitialized, setRestInitialized] = useState(false)
     const [essentialsInitialized, setEssentialsInitialized] = useState(false)
     const [triggerSteps, setStepsTriggered] = useState(0)
+    const [loaded, setLoaded] = useState(false)
     const classes = useStyles()
 
     const {
@@ -760,6 +761,7 @@ export default function AppFramework(props) {
         fetchData()
         .then((res) => {
              setRestInitialized(true)
+             setLoaded(true)
         })
 
         return () => {
@@ -900,6 +902,7 @@ export default function AppFramework(props) {
                       curUserIdx={curUserIdx}
                       memberStatus={memberStatus}
                       fairShare={currentShare}
+                      loaded={loaded}
                     />
                   </Grid>
               
@@ -928,6 +931,7 @@ export default function AppFramework(props) {
                   curUserIdx={curUserIdx}
                   memberStatus={memberStatus}
                   fairShare={currentShare}
+                  loaded={loaded}
                 />
               </div>
               </Grid>
@@ -1006,6 +1010,7 @@ export default function AppFramework(props) {
                 appIdx={appIdx}
                 appClient={appClient}
                 notificationIndicator = {notificationIndicator}
+                loaded={loaded}
               />
             </Grid>
           </Grid>

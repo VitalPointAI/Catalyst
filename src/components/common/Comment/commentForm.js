@@ -80,7 +80,8 @@ export default function CommentForm(props) {
         accountId,
         curDaoIdx,
         handleUpdate,
-        avatar
+        avatar,
+        name
     } = props
 
 

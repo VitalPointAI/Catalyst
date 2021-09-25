@@ -98,6 +98,9 @@ export default function FundingProposalDetails(props) {
     const [proposerAvatar, setProposerAvatar] = useState()
     const [proposerName, setProposerName] = useState()
 
+    const [curUserAvatar, setCurUserAvatar] = useState()
+    const [curUserName, setCurUserName] = useState()
+
     const [milestonePayouts, setMilestonePayouts] = useState([])
 
     // const [proposalStatus, setProposalStatus] = useState()
@@ -150,6 +153,19 @@ export default function FundingProposalDetails(props) {
                     setProposerName(proposer)
                   } 
             }
+
+            // Get Current User Persona Information
+            if(accountId){                    
+              
+              let result = await thisPersona.getPersona(accountId)
+                  if(result){
+                    result.avatar ? setCurUserAvatar(result.avatar) : setCurUserAvatar(imageName)
+                    result.name ? setCurUserName(result.name) : setCurUserName(accountId)
+                  } else {
+                    setCurUserAvatar(imageName)
+                    setCurUserName(accountId)
+                  } 
+            }
            
             if(applicant){                           
                
@@ -159,7 +175,7 @@ export default function FundingProposalDetails(props) {
                         result.name ? setApplicantName(result.name) : setApplicantName(applicant)
                       } else {
                         setApplicantAvatar(imageName)
-                        setApplicntName(applicant)
+                        setApplicantName(applicant)
                       } 
             }
 
@@ -239,7 +255,7 @@ export default function FundingProposalDetails(props) {
               setFinished(true)
             })
           
-    }, [applicant, applicantAvatar, proposerAvatar, title, created, details, applicantName, proposerName, isUpdated]
+    }, [applicant, applicantAvatar, curUserAvatar, proposerAvatar, title, created, details, applicantName, proposerName, isUpdated]
     )
 
     const handleClose = () => {
@@ -428,7 +444,8 @@ export default function FundingProposalDetails(props) {
               <Typography variant="h5" style={{marginLeft: '10px'}}>Leave a Comment/Ask a Question</Typography>
                   <CommentForm
                     reply={false}
-                    avatar={avatar}
+                    avatar={curUserAvatar}
+                    name={curUserName}
                     proposalId={proposalId}
                     accountId={accountId}
                     contract={contract}
