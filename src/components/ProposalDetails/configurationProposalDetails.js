@@ -118,6 +118,8 @@ export default function ConfigurationProposalDetails(props) {
         contract
     } = props
 
+    const thisPersona = new Persona()
+    
     useEffect(
         () => {
          

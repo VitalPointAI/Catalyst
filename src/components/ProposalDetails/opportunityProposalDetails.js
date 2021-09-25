@@ -147,6 +147,8 @@ export default function OpportunityProposalDetails(props) {
         contractId
     } = props
   
+    const thisPersona = new Persona()
+    
     useEffect(
         () => {
          
@@ -190,7 +192,7 @@ export default function OpportunityProposalDetails(props) {
                       setApplicantName(applicant)
                     } 
           }
-          
+
             if(contract){
               let propDeposit = await contract.getProposalDeposit()
               setThisProposalDeposit(formatNearAmount(propDeposit))
@@ -493,50 +495,24 @@ export default function OpportunityProposalDetails(props) {
                       <Grid item xs={12} sm={12} md={6} lg={6} xl={6} className={classes.centered}>
                       
                       {status == 'Passed' ? 
-                        memberStatus ? (
-                        <>
                        <Button 
                           color="primary" 
                           onClick={handleFundingProposalClick}>
                             Accept
-                        </Button>
-                        </>
-                        ) : (
-                          <>
-                          <Button 
-                             color="primary" 
-                             onClick={handleMemberProposalClick}>
-                              Join Community
-                           </Button>
-                           </>
-                        )
-                        
-                        : null }
+                        </Button>                        
+                      : null }
                         </Grid>
                       </Grid>
-                    
-                      
-                    
                     </>)}
                 </DialogContent>
               <DialogActions>
-              {memberStatus ? (
-              <>
-             <Button 
-                color="primary" 
-                onClick={handleFundingProposalClick}>
-                  Accept
-              </Button>
-              </>
-              ) : (
-                <>
+              {status == 'Passed' ? 
                 <Button 
-                   color="primary" 
-                   onClick={handleMemberProposalClick}>
-                    Join Community
-                 </Button>
-                 </>
-              )}
+                    color="primary" 
+                    onClick={handleFundingProposalClick}>
+                      Accept
+                </Button>
+              : null }
                 <Button onClick={handleClose} color="primary">
                   Close
                 </Button>

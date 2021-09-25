@@ -102,6 +102,8 @@ export default function TributeProposalDetails(props) {
         contract
     } = props
 
+    const thisPersona = new Persona()
+    
     useEffect(
         () => {
          

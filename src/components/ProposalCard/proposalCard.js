@@ -1538,6 +1538,7 @@ export default function ProposalCard(props) {
           handleUpdate={handleUpdate}
           opportunityId={requestId}
           contractId={contractId}
+          status={status}
           /> : null }
 
         </>
