@@ -81,7 +81,7 @@ export default function EditOpportunityProposalForm(props) {
     const [title, setTitle] = useState('')
     const [details, setDetails] = useState(EditorState.createEmpty())
     const [reward, setReward] = useState('')
-    const [budget, setBudget] = useState('')
+    const [budget, setBudget] = useState()
     const [category, setCategory] = useState('')
     const [projectName, setProjectName] = useState('')
     const [status, setStatus] = useState(false)
@@ -164,7 +164,7 @@ export default function EditOpportunityProposalForm(props) {
                     propResult.opportunities[i].permission ? setPermission(propResult.opportunities[i].permission) : setPermission('')
                     propResult.opportunities[i].deadline ? setDeadline(propResult.opportunities[i].deadline) : setDeadline('')
                     propResult.opportunities[i].familiarity ? setFamiliarity(propResult.opportunities[i].familiarity) : setFamiliarity('0')
-                    propResult.opportunities[i].budget ? setBudget(propResult.opportunities[i].budget) : setBudget(''); 
+                    propResult.opportunities[i].budget ? setBudget(propResult.opportunities[i].budget) : setBudget()
                     propResult.opportunities[i].desiredSkillSet ? setDesiredSkillSet(propResult.opportunities[i].desiredSkillSet): setDesiredSkillSet({})
                     propResult.opportunities[i].desiredDeveloperSkillSet ? setDesiredDeveloperSkillSet(propResult.opportunities[i].desiredDeveloperSkillSet): setDesiredDeveloperSkillSet({})
                     break
@@ -268,7 +268,7 @@ export default function EditOpportunityProposalForm(props) {
           category: category,
           projectName: projectName,
           deadline: deadline, 
-          budget: budget,
+          budget: parseFloat(budget),
           status: status,
           permission: permission,
           familiarity: familiarity,
@@ -390,11 +390,12 @@ export default function EditOpportunityProposalForm(props) {
                         variant="outlined"
                         name="opportunityProposalBudget"
                         label="Budget"
-                        placeholder="9999"
+                        type="number"
                         value={budget}
                         onChange={handleBudgetChange}
                         inputRef={register({
-                            required: true                              
+                            required: true,
+                            min: 0                      
                         })}
                         InputProps={{
                           endAdornment: <><InputAdornment position="end">Ⓝ</InputAdornment>

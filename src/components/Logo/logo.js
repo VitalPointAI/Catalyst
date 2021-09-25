@@ -9,7 +9,7 @@ import EditDaoForm from '../EditDao/editDao'
 // Material UI
 import { makeStyles } from '@material-ui/core/styles'
 import Chip from '@material-ui/core/Chip'
-import RightSideDrawer from '../AppFramework/RightSideDrawer'
+import EditIcon from '@material-ui/icons/Edit'
 import { CircularProgress } from '@material-ui/core'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
 
@@ -158,7 +158,7 @@ export default function Logo(props) {
                 backgroundRepeat: 'no-repeat',
                 backgroundOrigin: 'content-box'
             }}>
-            {accountId == summoner ? <Chip label="Change" onClick={handleEditDaoClick} clickable variant="outlined" className={classes.chip}/> : null }
+            {accountId == summoner ? <Chip label={<EditIcon />} onClick={handleEditDaoClick} clickable variant="outlined" className={classes.chip}/> : null }
             </div>
             ) : (
                 <div style={{ 
@@ -170,7 +170,7 @@ export default function Logo(props) {
                 backgroundRepeat: 'no-repeat',
                 backgroundOrigin: 'content-box'
             }}>
-            {accountId == summoner ? <Chip label="Change" onClick={handleEditDaoClick} clickable variant="outlined" className={classes.chip}/> : null }
+            {accountId == summoner ? <Chip label={<EditIcon />} onClick={handleEditDaoClick} clickable variant="outlined" className={classes.chip}/> : null }
             </div>
             )}
             </Link>           

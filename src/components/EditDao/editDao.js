@@ -30,6 +30,16 @@ import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Accordion from '@material-ui/core/Accordion'
 import { AccordionDetails } from '@material-ui/core'
 import { AccordionSummary } from '@material-ui/core'
+import Paper from '@material-ui/core/Paper'
+import EmailIcon from '@material-ui/icons/Email'
+import RedditIcon from '@material-ui/icons/Reddit'
+import TwitterIcon from '@material-ui/icons/Twitter'
+import TelegramIcon from '@material-ui/icons/Telegram'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import Zoom from '@material-ui/core/Zoom'
+import Tooltip from '@material-ui/core/Tooltip'
+import { InputAdornment } from '@material-ui/core'
+import InfoIcon from '@material-ui/icons/Info'
 
 // CSS Styles
 import { CircularProgress } from '@material-ui/core';
@@ -61,6 +71,7 @@ const useStyles = makeStyles((theme) => ({
     }));
 
 const imageName = require('../../img/default_logo.png') // default no-image avatar
+const discordIcon = require('../../img/discord-icon.png')
 
 export default function EditDaoForm(props) {
     const [open, setOpen] = useState(true)
@@ -185,17 +196,15 @@ export default function EditDaoForm(props) {
       let value = event.target.value;
       setWebhook(value)
     }
-    const handleEditorStateChange = (editorState) => {
-      setPurpose(editorState)
-    }
+   
     function formatDate(timestamp) {
       let intDate = parseInt(timestamp)
       let options = {year: 'numeric', month: 'long', day: 'numeric'}
       return new Date(intDate).toLocaleString('en-US', options)
     }
 
-    const handlePurposeChange = (content, delta, source, editor) => {
-      setPurpose(content)
+    const handlePurposeChange = (editorState) => {
+      setPurpose(editorState)
     }
     const handleDiscordActivation = () => {
       setDiscordActivated(!discordActivated) 
@@ -316,7 +325,7 @@ export default function EditDaoForm(props) {
                     {errors.name && <p style={{color: 'red'}}>You must provide a community name.</p>}
 
                     <TextField
-                      autoFocus
+                      
                       margin="dense"
                       id="profile-category"
                       variant="outlined"
@@ -332,14 +341,38 @@ export default function EditDaoForm(props) {
                     />
                     {errors.name && <p style={{color: 'red'}}>You must categorize your DAO so others can find it.</p>} 
                
-               
-                   
-                  <Card style={{marginTop: '10px', marginBottom: '20px', padding: '5px'}}>
+                    <Typography variant="h6" style={{marginTop: '10px'}}>Community Purpose</Typography>
+                    <Paper style={{padding: '5px'}}>
+                    <Editor
+                      editorState={purpose}
+                      toolbarClassName="toolbarClassName"
+                      wrapperClassName="wrapperClassName"
+                      editorClassName="editorClassName"
+                      onEditorStateChange={handlePurposeChange}
+                      editorStyle={{minHeight:'200px'}}
+                    />
+                    </Paper>
+
+                    <Paper style={{padding: '5px', marginTop: '20px'}}>
+                    <Grid container spacing={1}>
+                      <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                        <Typography variant="h6">Add a Logo</Typography>
+                      </Grid>
+                      <Grid item xs={4} sm={4} md={4} lg={4} xl={4}>
+                          <Avatar src={logo} variant="square" className={classes.square} />
+                      </Grid>
+                      <Grid item xs={8} sm={8} md={8} lg={8} xl={8}>
+                        <FileUpload handleFileHash={handleFileHash} align="center"/>
+                      </Grid>
+                    </Grid>
+                    </Paper>
+
+                  <Card style={{marginTop: '20px', marginBottom: '20px', padding: '5px'}}>
                   <Typography variant="h6">Notifications</Typography>
                       <Grid container justifyContent="flex-start" alignItems="center" spacing={1}>
                         <Grid item xs={9} sm={9} md={9} lg={9} xl={9}>
                           <TextField
-                            autoFocus
+                            
                             fullWidth
                             margin="dense"
                             id="discord-webhook"
@@ -373,130 +406,161 @@ export default function EditDaoForm(props) {
                     
                   </Card>
                   <Accordion>
-                        <AccordionSummary>Community Tools</AccordionSummary>
-                          <AccordionDetails>
-                            <Grid container>
-                              <Grid item xs={12}>
-                                <TextField
-                                    autoFocus
-                                    margin="dense"
-                                    id="profile-email"
-                                    variant="outlined"
-                                    name="email"
-                                    label="Contact Email"
-                                    placeholder="someone@someplace"
-                                    value={email}
-                                    onChange={handleEmailChange}
-                                    inputRef={register({
-                                        required: false                              
-                                    })}
-                                />
-                              </Grid>
-                              <Grid item xs={12}>
-                                <TextField
-                                    autoFocus
-                                    margin="dense"
-                                    id="profile-telegram"
-                                    variant="outlined"
-                                    name="telegram"
-                                    label="Telegram"
-                                    placeholder="telegram"
-                                    value={telegram}
-                                    onChange={handleTelegramChange}
-                                    inputRef={register({
-                                        required: false                              
-                                    })}
-                                />
-                              </Grid>
-                              <Grid item xs={12}>
-                                <TextField
-                                    autoFocus
-                                    margin="dense"
-                                    id="profile-website"
-                                    variant="outlined"
-                                    name="website"
-                                    label="Website"
-                                    placeholder="website"
-                                    value={website}
-                                    onChange={handleWebsiteChange}
-                                    inputRef={register({
-                                        required: false                              
-                                    })}
-                                />
-                              </Grid>
-                              <Grid item xs={12}>
-                                <TextField
-                                    autoFocus
-                                    margin="dense"
-                                    id="profile-discord"
-                                    variant="outlined"
-                                    name="discord"
-                                    label="Discord"
-                                    placeholder="some server"
-                                    value={discord}
-                                    onChange={handleDiscordChange}
-                                    inputRef={register({
-                                        required: false                              
-                                    })}
-                                />
-                              </Grid>
-                              <Grid item xs={12}>
-                                <TextField
-                                    autoFocus
-                                    margin="dense"
-                                    id="profile-twitter"
-                                    variant="outlined"
-                                    name="twitter"
-                                    label="Twitter"
-                                    placeholder="some user"
-                                    value={twitter}
-                                    onChange={handleTwitterChange}
-                                    inputRef={register({
-                                        required: false                              
-                                    })}
-                                />
-                              </Grid>
-                              <Grid item xs={12}>
-                                <TextField
-                                    autoFocus
-                                    margin="dense"
-                                    id="profile-reddit"
-                                    variant="outlined"
-                                    name="reddit"
-                                    label="Subreddit"
-                                    placeholder="some subreddit"
-                                    value={reddit}
-                                    onChange={handleRedditChange}
-                                    inputRef={register({
-                                        required: false                              
-                                    })}
-                                />
-                              </Grid>
-                            </Grid>
-                        </AccordionDetails>
-                      </Accordion>
-                  <Typography variant="h6">Community Purpose</Typography>
-                  <Editor
-                    editorState={purpose}
-                    toolbarClassName="toolbarClassName"
-                    wrapperClassName="wrapperClassName"
-                    editorClassName="editorClassName"
-                    onEditorStateChange={handleEditorStateChange}
-                  />
-
-                  
-                  <Grid container spacing={1}>
-                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                      <Typography variant="h6">Upload Logo</Typography>
+                      <AccordionSummary
+                        expandIcon={<ExpandMoreIcon />}
+                        aria-controls="panel1bh-content"
+                        id="panel1bh-header"
+                      >
+                      Community Accounts
+                      <Tooltip TransitionComponent={Zoom} title="Here you can add communication channels for your community.">
+                        <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                      </Tooltip>
+                      </AccordionSummary>
+                  <AccordionDetails>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                      <TextField
+                        
+                        margin="dense"
+                        id="input-with-icon-grid"
+                        id="profile-email"
+                        variant="outlined"
+                        name="email"
+                        label="Email"
+                        placeholder="someone@someplace"
+                        value={email}
+                        onChange={handleEmailChange}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <EmailIcon />
+                            </InputAdornment>
+                          ),
+                        }}
+                        inputRef={register({
+                            required: false                              
+                        })}
+                      />
                     </Grid>
-                    <Grid item xs={4} sm={4} md={4} lg={4} xl={4}>
-                        <Avatar src={logo} variant="square" className={classes.square} />
+                    <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                      <TextField
+                       
+                        margin="dense"
+                        id="daoprofile-website"
+                        variant="outlined"
+                        name="website"
+                        label="Website"
+                        placeholder="www.someplace.com"
+                        value={website}
+                        onChange={handleWebsiteChange}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              https://
+                            </InputAdornment>
+                          ),
+                        }}
+                        inputRef={register({
+                            required: false                              
+                        })}
+                      />
                     </Grid>
-                    <Grid item xs={8} sm={8} md={8} lg={8} xl={8}>
-                      <FileUpload handleFileHash={handleFileHash} align="center"/>
+                    <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                      <TextField
+                       
+                        margin="dense"
+                        id="profile-discord"
+                        variant="outlined"
+                        name="discord"
+                        label="Discord"
+                        placeholder="someone#1234"
+                        value={discord}
+                        onChange={handleDiscordChange}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <img src={discordIcon} style={{width: '24px', height: 'auto'}}/>
+                            </InputAdornment>
+                          ),
+                        }}
+                        inputRef={register({
+                            required: false                              
+                        })}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                      <TextField
+                      
+                        margin="dense"
+                        id="profile-telegram"
+                        variant="outlined"
+                        name="telegram"
+                        label="Telegram"
+                        placeholder="@someplace"
+                        value={discord}
+                        onChange={handleTelegramChange}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                             <TelegramIcon />
+                            </InputAdornment>
+                          ),
+                        }}
+                        inputRef={register({
+                            required: false                              
+                        })}
+                      />
+                  </Grid>
+                    <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                      <TextField
+                        
+                        margin="dense"
+                        id="profile-twitter"
+                        variant="outlined"
+                        name="twitter"
+                        label="Twitter"
+                        placeholder="some user"
+                        value={twitter}
+                        onChange={handleTwitterChange}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <TwitterIcon />
+                            </InputAdornment>
+                          ),
+                        }}
+                        inputRef={register({
+                            required: false                              
+                        })}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                      <TextField
+                        
+                        margin="dense"
+                        id="profile-reddit"
+                        variant="outlined"
+                        name="reddit"
+                        label="Reddit"
+                        placeholder="some user"
+                        value={reddit}
+                        onChange={handleRedditChange}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <RedditIcon />
+                            </InputAdornment>
+                          ),
+                        }}
+                        inputRef={register({
+                            required: false                              
+                        })}
+                      />
                     </Grid>
                   </Grid>
-                 
+
+                </AccordionDetails>
+              </Accordion>       
                 </DialogContent>
                
               {!finished ? <LinearProgress className={classes.progress} style={{marginBottom: '25px' }}/> : (
