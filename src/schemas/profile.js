@@ -52,6 +52,12 @@ export const profileSchema = {
       },
       notifications: {
         type: 'array'
-      }
+      },
+      "personaSkills": {
+        type: "array"
+      },
+      "personaSpecificSkills": {
+        type: "array"
+      },
     },
   }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import FileUpload from '../IPFSupload/ipfsUpload'
 import { flexClass } from '../../App'
@@ -40,6 +40,8 @@ import Zoom from '@material-ui/core/Zoom'
 import Tooltip from '@material-ui/core/Tooltip'
 import { InputAdornment } from '@material-ui/core'
 import InfoIcon from '@material-ui/icons/Info'
+import DeleteForeverIcon from '@material-ui/icons/DeleteForever'
+import AddBoxIcon from '@material-ui/icons/AddBox'
 
 // CSS Styles
 import { CircularProgress } from '@material-ui/core';
@@ -61,6 +63,9 @@ const useStyles = makeStyles((theme) => ({
       //backgroundColor: deepOrange[500],
       width: '175px',
       height: 'auto'
+    },
+    id: {
+      display: 'none'
     },
     waiting: {
       minWidth: '100%',
@@ -97,8 +102,31 @@ export default function EditDaoForm(props) {
     const [website, setWebsite] = useState('')
     const [telegram, setTelegram] = useState('')
     const [reddit, setReddit] = useState('')
-    const { register, handleSubmit, watch, errors } = useForm()
+    const [addDisabled, setAddDisabled] = useState(true)
+   
+    const { register, handleSubmit, watch, errors, control, reset, setValue, getValues } = useForm()
+   
+    
+    const {
+       fields: skillsFields,
+       append: skillsAppend,
+       remove: skillsRemove} = useFieldArray({
+      name: "skills",
+      control
+    })
 
+    const { 
+      fields: specificSkillsFields,
+      append: specificSkillsAppend,
+      remove: specificSkillsRemove } = useFieldArray({
+      name: "specificSkills",
+      control
+    })
+
+    const skills = watch('skills', skillsFields)
+    const specificSkills = watch('specificSkills', specificSkillsFields)
+    
+  
     const { state, dispatch, update } = useContext(appStore)
 
     const {
@@ -114,7 +142,7 @@ export default function EditDaoForm(props) {
     } = state
     
     const classes = useStyles()
-
+   
     useEffect(() => {
         async function fetchData() {
           setLoaded(false)
@@ -129,7 +157,7 @@ export default function EditDaoForm(props) {
               setCurDaoIdx(thisCurDaoIdx)
 
               let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
-
+              console.log('daoprofile result', result)
               let webhook = await ceramic.downloadKeysSecret(thisCurDaoIdx, 'apiKeys')
               console.log("webhook", webhook)
               if(webhook && Object.keys(webhook).length > 0){
@@ -153,6 +181,8 @@ export default function EditDaoForm(props) {
                 result.name ? setName(result.name) : setName('')
                 result.date ? setDate(result.date) : setDate('')
                 result.logo ? setLogo(result.logo) : setLogo(imageName)
+                result.skills ? setValue('skills', result.skills) : setValue('skills', {'name': ''})
+                result.specificSkills ? setValue('specificSkills', result.specificSkills) : setValue('specificSkills', {'name': ''})
                 result.category ? setCategory(result.category) : setCategory('')
                 result.discordActivation ? setDiscordActivated(true) : setDiscordActivated(false)
                 result.proposalActivation ? setProposalsActivated(true) : setProposalsActivated(false)
@@ -242,11 +272,12 @@ export default function EditDaoForm(props) {
       let value = event.target.value;
       setReddit(value); 
     }
+
     const onSubmit = async (values) => {
         event.preventDefault();
         setFinished(false)
         let now = new Date().getTime()
-       
+      
         let formattedDate = formatDate(now)
     
         let record = {
@@ -261,6 +292,8 @@ export default function EditDaoForm(props) {
             proposalActivation: proposalsActivated,
             passedProposalActivation: passedProposalsActivated,
             sponsorActivation: sponsorActivated,
+            skills: skills,
+            specificSkills: specificSkills,
             discord: discord,
             twitter: twitter,
             telegram: telegram, 
@@ -295,7 +328,8 @@ export default function EditDaoForm(props) {
       setOpen(false)
       handleClose()
     }
-    
+
+
         return (
            
             <div>
@@ -411,7 +445,7 @@ export default function EditDaoForm(props) {
                         aria-controls="panel1bh-content"
                         id="panel1bh-header"
                       >
-                      Community Accounts
+                      <Typography variant="h6">Community Accounts</Typography>
                       <Tooltip TransitionComponent={Zoom} title="Here you can add communication channels for your community.">
                         <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
                       </Tooltip>
@@ -560,7 +594,131 @@ export default function EditDaoForm(props) {
                   </Grid>
 
                 </AccordionDetails>
-              </Accordion>       
+              </Accordion>
+              <Accordion>
+                      <AccordionSummary
+                        expandIcon={<ExpandMoreIcon />}
+                        aria-controls="panel1bh-content"
+                        id="panel1bh-header"
+                      >
+                      <Typography variant="h6">General Skills and Competencies</Typography>
+                      <Tooltip TransitionComponent={Zoom} title="Here you can add the general skills (leadership, management, teamwork, etc...) that are relevant to what your community does.">
+                        <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                      </Tooltip>
+                      </AccordionSummary>
+                  <AccordionDetails>
+                    <React.Fragment>
+                      <Grid container justifyContent="space-between" alignItems="flex-end" spacing={1}>
+                      {
+                        skillsFields.map((field, index) => {
+                        return(
+                          
+                          <Grid item xs={12} sm={12} md={12} lg={12} xl={12} key={field.id}>
+                          <TextField
+                            
+                            margin="dense"
+                            id={`skills[${index}].name`}
+                            variant="outlined"
+                            name={`skills[${index}].name`}
+                            defaultValue={field.name}
+                            label="Skill Name:"
+                            InputProps={{
+                              endAdornment: <div>
+                              <Tooltip TransitionComponent={Zoom} title="Short name of skill.">
+                                  <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                              </Tooltip>
+                              </div>
+                            }}
+                            inputRef={register({
+                                required: true                              
+                            })}
+                          />
+                          {errors[`skills${index}.name`] && <p style={{color: 'red', fontSize:'80%'}}>You must provide a skill name.</p>}
+                          
+                          <Button type="button" onClick={() => skillsRemove(index)} style={{float: 'right', marginLeft:'10px'}}>
+                            <DeleteForeverIcon />
+                          </Button>
+                          </Grid>
+                          
+                        )
+                      }) 
+                      }
+                      {!skillsFields || skillsFields.length == 0 ?
+                        <Typography variant="body1" style={{marginLeft: '5px'}}>No general skills defined yet. Add general skills that are relevant to your community.</Typography>
+                      : null }
+                      <Button
+                        type="button"
+                        onClick={() => skillsAppend({name: ''})}
+                        startIcon={<AddBoxIcon />}
+                      >
+                        Add Skill
+                      </Button>
+                    </Grid>
+                    </React.Fragment>  
+                </AccordionDetails>
+              </Accordion>
+              <Accordion>
+                      <AccordionSummary
+                        expandIcon={<ExpandMoreIcon />}
+                        aria-controls="panel1bh-content"
+                        id="panel1bh-header"
+                      >
+                      <Typography variant="h6">Specific Skills and Certifications</Typography>
+                      <Tooltip TransitionComponent={Zoom} title="Here you can add specific skills such as programming languages, frameworks, certifications, etc... that are relevant to what your community does.">
+                        <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                      </Tooltip>
+                      </AccordionSummary>
+                  <AccordionDetails>
+                    <React.Fragment>
+                      <Grid container justifyContent="space-between" alignItems="flex-end" spacing={1}>
+                      {
+                        specificSkillsFields.map((field, index) => {
+                        return(
+                          
+                          <Grid item xs={12} sm={12} md={12} lg={12} xl={12} key={field.id}>
+                          <TextField
+                            
+                            margin="dense"
+                            id={`specificSkills[${index}].name`}
+                            variant="outlined"
+                            name={`specificSkills[${index}].name`}
+                            defaultValue={field.name}
+                            label="Skill Name:"
+                            InputProps={{
+                              endAdornment: <div>
+                              <Tooltip TransitionComponent={Zoom} title="Short name of skill.">
+                                  <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                              </Tooltip>
+                              </div>
+                            }}
+                            inputRef={register({
+                                required: true                              
+                            })}
+                          />
+                          {errors[`specificSkills${index}.name`] && <p style={{color: 'red', fontSize:'80%'}}>You must provide a skill name.</p>}
+                          
+                          <Button type="button" onClick={() => specificSkillsRemove(index)} style={{float: 'right', marginLeft:'10px'}}>
+                            <DeleteForeverIcon />
+                          </Button>
+                          </Grid>
+                          
+                        )
+                      }) 
+                      }
+                      {!specificSkillsFields || specificSkillsFields.length == 0 ?
+                        <Typography variant="body1" style={{marginLeft: '5px'}}>No specific skills defined yet. Add specific skills that are relevant to your community.</Typography>
+                      : null }
+                      <Button
+                        type="button"
+                        onClick={() => specificSkillsAppend({name: ''})}
+                        startIcon={<AddBoxIcon />}
+                      >
+                        Add Skill
+                      </Button>
+                    </Grid>
+                    </React.Fragment>  
+                </AccordionDetails>
+              </Accordion>
                 </DialogContent>
                
               {!finished ? <LinearProgress className={classes.progress} style={{marginBottom: '25px' }}/> : (

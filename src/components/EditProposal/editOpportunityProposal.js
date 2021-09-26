@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { flexClass } from '../../App'
 import { IPFS_PROVIDER } from '../../utils/ceramic'
@@ -39,6 +39,8 @@ import Checkbox from '@material-ui/core/Checkbox'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import Rating from '@material-ui/lab/Rating'
 import Paper from '@material-ui/core/Paper'
+import DeleteForeverIcon from '@material-ui/icons/DeleteForever'
+import AddBoxIcon from '@material-ui/icons/AddBox'
 
 // CSS Styles
 import { CircularProgress } from '@material-ui/core';
@@ -87,26 +89,21 @@ export default function EditOpportunityProposalForm(props) {
     const [status, setStatus] = useState(false)
     const [permission, setPermission] = useState('')
     const [familiarity, setFamiliarity] = useState('0')
-    const [desiredSkillSet, setDesiredSkillSet] = useState({
-      memeCreation: false,
-      videoCreation: false,
-      writing: false,
-      design: false,
-      eventOrganization: false,
-      socialMedia: false,
-      marketing: false,
-      translation: false
-    })
-    const [desiredDeveloperSkillSet, setDesiredDeveloperSkillSet] = useState({
-      rust: false,
-      assemblyScript: false,
-      javascript: false,
-      typescript: false,
-      solidity: false,
-      webDevelopment: false
-    })
+    const [communitySkills, setCommunitySkills] = useState({})
+    const [desiredSkillSet, setDesiredSkillSet] = useState({})
+    const [desiredDeveloperSkillSet, setDesiredDeveloperSkillSet] = useState({})
     const { state, dispatch, update } = useContext(appStore)
-    const { register, handleSubmit, watch, errors } = useForm()
+    const { register, handleSubmit, watch, errors, control, reset, setValue, getValues } = useForm()
+
+    const {
+      fields: opportunitySkillsFields,
+      append: opportunitySkillsAppend,
+      remove: opportunitySkillsRemove} = useFieldArray({
+     name: "opportunitySkills",
+     control
+    })
+
+    const opportunitySkills = watch('opportunitySkills', opportunitySkillsFields)
 
     const {
         handleUpdate,
@@ -120,7 +117,7 @@ export default function EditOpportunityProposalForm(props) {
     } = props
     
     const classes = useStyles()
-
+    
     useEffect(() => {
         async function fetchData() {
           setLoaded(false)
@@ -135,6 +132,24 @@ export default function EditOpportunityProposalForm(props) {
                 result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
                 result.name ? setName(result.name) : setName('')
               }
+           }
+
+           // Get Existing Community Skills
+           if(curDaoIdx){
+             let daoProfileResult = await curDaoIdx.get('daoProfile', curDaoIdx.id)
+             console.log('daoprofile result', daoProfileResult)
+             let currentSkills = {...desiredSkillSet}
+             let currentSpecificSkills = {...desiredDeveloperSkillSet}
+             if(daoProfileResult){
+                const skillsResult = daoProfileResult.skills.map((name, value) => {
+                  currentSkills = ({...currentSkills, [name.name]: false})
+                })
+                const specificSkillsResult = daoProfileResult.specificSkills.map((name, value) => {
+                  currentSpecificSkills = ({...currentSpecificSkills, [name.name]: false})
+                })
+              setDesiredSkillSet(currentSkills)
+              setDesiredDeveloperSkillSet(currentSpecificSkills)
+             }
            }
 
            // Set Existing Proposal Data       
@@ -164,6 +179,7 @@ export default function EditOpportunityProposalForm(props) {
                     propResult.opportunities[i].permission ? setPermission(propResult.opportunities[i].permission) : setPermission('')
                     propResult.opportunities[i].deadline ? setDeadline(propResult.opportunities[i].deadline) : setDeadline('')
                     propResult.opportunities[i].familiarity ? setFamiliarity(propResult.opportunities[i].familiarity) : setFamiliarity('0')
+                    propResult.opportunities[i].opportunitySkills ? setValue('opportunitySkills', propResult.opportunities[i].opportunitySkills) : setValue('opportunitySkills', {'name': ''})
                     propResult.opportunities[i].budget ? setBudget(propResult.opportunities[i].budget) : setBudget()
                     propResult.opportunities[i].desiredSkillSet ? setDesiredSkillSet(propResult.opportunities[i].desiredSkillSet): setDesiredSkillSet({})
                     propResult.opportunities[i].desiredDeveloperSkillSet ? setDesiredDeveloperSkillSet(propResult.opportunities[i].desiredDeveloperSkillSet): setDesiredDeveloperSkillSet({})
@@ -273,7 +289,8 @@ export default function EditOpportunityProposalForm(props) {
           permission: permission,
           familiarity: familiarity,
           desiredSkillSet: desiredSkillSet,
-          desiredDeveloperSkillSet: desiredDeveloperSkillSet
+          desiredDeveloperSkillSet: desiredDeveloperSkillSet,
+          opportunitySkills: opportunitySkills
       }
 
       // Update existing records
@@ -439,85 +456,99 @@ export default function EditOpportunityProposalForm(props) {
                     aria-controls="panel1bh-content"
                     id="panel1bh-header"
                   >
-                  Required Skills and Competencies
+                  <Typography variant="h6" style={{marginBottom:'10px', marginTop:'10px'}}>Desired Skills and Competencies</Typography>
                   </AccordionSummary>
                     <AccordionDetails>
                       <Grid container spacing={2}>
                       <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                       <FormControl component="fieldset" className={classes.formControl}>
-                        <FormLabel component="legend">Skills Required</FormLabel>
+                        <FormLabel component="legend">General Skills Required</FormLabel>
                         <FormGroup>
-                          <FormControlLabel
-                            control={<Checkbox checked={desiredSkillSet.memeCreation} onChange={handleDesiredSkillSetChange} name="memeCreation" />}
-                            label="Meme Creation"
-                          />
-                          <FormControlLabel
-                            control={<Checkbox checked={desiredSkillSet.videoCreation} onChange={handleDesiredSkillSetChange} name="videoCreation" />}
-                            label="Video Creation"
-                          />
-                          <FormControlLabel
-                            control={<Checkbox checked={desiredSkillSet.writing} onChange={handleDesiredSkillSetChange} name="writing" />}
-                            label="Writing"
-                          />
-                          <FormControlLabel
-                            control={<Checkbox checked={desiredSkillSet.design} onChange={handleDesiredSkillSetChange} name="design" />}
-                            label="Design"
-                          />
-                          <FormControlLabel
-                            control={<Checkbox checked={desiredSkillSet.eventOrganization} onChange={handleDesiredSkillSetChange} name="eventOrganization" />}
-                            label="Event Organization"
-                          />
-                          <FormControlLabel
-                            control={<Checkbox checked={desiredSkillSet.socialMedia} onChange={handleDesiredSkillSetChange} name="socialMedia" />}
-                            label="Social Media"
-                          />
-                          <FormControlLabel
-                            control={<Checkbox checked={desiredSkillSet.marketing} onChange={handleDesiredSkillSetChange} name="marketing" />}
-                            label="Marketing"
-                          />
-                          <FormControlLabel
-                            control={<Checkbox checked={desiredSkillSet.translation} onChange={handleDesiredSkillSetChange} name="translation" />}
-                            label="Translation"
-                          />
+                        {loaded && desiredSkillSet && Object.keys(desiredSkillSet).length > 0 ?
+                            Object.keys(desiredSkillSet).map((key) => {
+                              return (
+                                <FormControlLabel
+                                  control={<Checkbox checked={desiredSkillSet[key]} onChange={handleDesiredSkillSetChange} name={key} />}
+                                  label={key}
+                                />
+                              )
+                            })
+                        : null }
                         </FormGroup>
                         
-                        <FormHelperText>Check off the skills someone should have.</FormHelperText>
+                        <FormHelperText>Check off the general skills someone should have.</FormHelperText>
                       </FormControl>
                       </Grid>
                       <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                         <FormControl component="fieldset" className={classes.formControl}>
-                          <FormLabel component="legend">Required Developer Skills</FormLabel>
+                          <FormLabel component="legend">Specific Skills Required</FormLabel>
                           <FormGroup>
-                          <FormControlLabel
-                              control={<Checkbox checked={desiredDeveloperSkillSet.rust} onChange={handleDesiredDeveloperSkillSetChange} name="rust" />}
-                              label="RUST"
-                            />
-                            <FormControlLabel
-                              control={<Checkbox checked={desiredDeveloperSkillSet.assemblyScript} onChange={handleDesiredDeveloperSkillSetChange} name="assemblyScript" />}
-                              label="AssemblyScript"
-                            />
-                            <FormControlLabel
-                              control={<Checkbox checked={desiredDeveloperSkillSet.javascript} onChange={handleDesiredDeveloperSkillSetChange} name="javascript" />}
-                              label="JavaScript"
-                            />
-                            <FormControlLabel
-                              control={<Checkbox checked={desiredDeveloperSkillSet.typescript} onChange={handleDesiredDeveloperSkillSetChange} name="typescript" />}
-                              label="TypeScript"
-                            />
-                            <FormControlLabel
-                              control={<Checkbox checked={desiredDeveloperSkillSet.solidity} onChange={handleDesiredDeveloperSkillSetChange} name="solidity" />}
-                              label="Solidity"
-                            />
-                            <FormControlLabel
-                              control={<Checkbox checked={desiredDeveloperSkillSet.webDevelopment} onChange={handleDesiredDeveloperSkillSetChange} name="webDevelopment" />}
-                              label="Web Development"
-                            />
+                          {loaded && desiredDeveloperSkillSet && Object.keys(desiredDeveloperSkillSet).length > 0 ?
+                            Object.keys(desiredDeveloperSkillSet).map((key) => {
+                              return (
+                                <FormControlLabel
+                                  control={<Checkbox checked={desiredDeveloperSkillSet[key]} onChange={handleDesiredDeveloperSkillSetChange} name={key} />}
+                                  label={key}
+                                />
+                              )
+                            })
+                        : null }
+                         
                           
                           </FormGroup>
-                          <FormHelperText>Check off the developer skills someone should have.</FormHelperText>
+                          <FormHelperText>Check off the specific skills someone should have.</FormHelperText>
                         </FormControl>
                       </Grid>
-                      <Grid item xs={12}>
+                      <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                        <Grid container justifyContent="space-between" alignItems="flex-end" spacing={1}>
+                        <Typography variant="body1" style={{marginTop: '10px', marginBottom:'10px'}}>Additional Skills</Typography>
+                        {
+                          opportunitySkillsFields.map((field, index) => {
+                          return(
+                            
+                            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} key={field.id}>
+                            <TextField
+                              
+                              margin="dense"
+                              id={`opportunitySkills[${index}].name`}
+                              variant="outlined"
+                              name={`opportunitySkills[${index}].name`}
+                              defaultValue={field.name}
+                              label="Skill Name:"
+                              InputProps={{
+                                endAdornment: <div>
+                                <Tooltip TransitionComponent={Zoom} title="Short name of skill.">
+                                    <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                                </Tooltip>
+                                </div>
+                              }}
+                              inputRef={register({
+                                  required: true                              
+                              })}
+                            />
+                            {errors[`opportunitySkills${index}.name`] && <p style={{color: 'red', fontSize:'80%'}}>You must provide a skill name.</p>}
+                            
+                            <Button type="button" onClick={() => opportunitySkillsRemove(index)} style={{float: 'right', marginLeft:'10px'}}>
+                              <DeleteForeverIcon />
+                            </Button>
+                            </Grid>
+                            
+                          )
+                        }) 
+                        }
+                        {!opportunitySkillsFields || opportunitySkillsFields.length == 0 ?
+                          <Typography variant="body1" style={{marginLeft: '5px'}}>No opportunity specific skills defined yet. Add them if there are skills specific to this opportunity needed to complete it.</Typography>
+                        : null }
+                          <Button
+                            type="button"
+                            onClick={() => opportunitySkillsAppend({name: ''})}
+                            startIcon={<AddBoxIcon />}
+                          >
+                            Add Skill
+                          </Button>
+                        </Grid>
+                      </Grid>
+                      <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                             <Typography>Desired Familiarity with Crypto/Blockchain</Typography>
                             <Rating name="Familiarity" onChange={handleRatingChange} value={parseInt(familiarity)} />
                       </Grid>

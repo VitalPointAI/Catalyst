@@ -15,7 +15,8 @@ import { logInitEvent,
   logDeleteCommunity,
   deleteCommunity,
   synchProposalEvent, 
-  synchMember } from '../../state/near'
+  synchMember,
+  synchDaos } from '../../state/near'
 
 import ActionSelector from '../ActionSelector/actionSelector'
 import ProposalList from '../ProposalList/proposalList'
@@ -224,7 +225,9 @@ export default function AppFramework(props) {
                
                 try{
                   curDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+                  console.log('curdaoIdx essentials', curDaoIdx)
                   setCurDaoIdx(curDaoIdx)
+                  
                 } catch (err) {
                   console.log('problem getting curdaoidx', err)
                   return false
@@ -259,6 +262,7 @@ export default function AppFramework(props) {
           const urlParameters = new URLSearchParams(urlVariables)
           let transactionHash = urlParameters.get('transactionHashes')
 
+          console.log('curdaoidx app', curDaoIdx)
 
             // *********CHECK FOR TRIGGERS AND EXECUTE*************
 
@@ -543,25 +547,32 @@ export default function AppFramework(props) {
                   // has to occur after all triggers so everything is logged
                   // otherwise will erase transaction hashes as they aren't
                   // retrievable from the contract
-                  
+                  let daosynch = false
                   try {
-                    let synched = await synchProposalEvent(curDaoIdx, daoContract)
-                    setAllProposals(synched.events)
+                    daosynch = await synchDaos(state)
                   } catch (err) {
-                    console.log('no proposals yet', err)
+                    console.log('dao synch error', err)
                   }
 
-                  try {
-                    let synched = await synchMember(curDaoIdx, daoContract, contractId, accountId)
-                    
-                    if(synched){
-                      let members = await curDaoIdx.get('members', curDaoIdx.id)
-                      setAllMemberInfo(members.events)
+                  if(daosynch){
+                    try {
+                      let synched = await synchProposalEvent(curDaoIdx, daoContract)
+                      setAllProposals(synched.events)
+                    } catch (err) {
+                      console.log('no proposals yet', err)
                     }
-                  } catch (err) {
-                    console.log('no members yet', err)
+
+                    try {
+                      let synched = await synchMember(curDaoIdx, daoContract, contractId, accountId)
+                      
+                      if(synched){
+                        let members = await curDaoIdx.get('members', curDaoIdx.id)
+                        setAllMemberInfo(members.events)
+                      }
+                    } catch (err) {
+                      console.log('no members yet', err)
+                    }
                   }
-                
                 
                 return true
         }

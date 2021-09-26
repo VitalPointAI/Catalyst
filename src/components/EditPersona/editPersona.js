@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useContext } from 'react'
+import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import FileUpload from '../IPFSupload/ipfsUpload'
 import { flexClass } from '../../App'
-import { IPFS_PROVIDER } from '../../utils/ceramic' 
+import { ceramic, IPFS_PROVIDER } from '../../utils/ceramic' 
 import { config } from '../../state/config'
+import * as nearAPI from 'near-api-js'
 
 // Material UI components
 import InfoIcon from '@material-ui/icons/Info'
@@ -43,6 +45,8 @@ import { InputAdornment } from '@material-ui/core'
 import { CircularProgress } from '@material-ui/core'
 import Zoom from '@material-ui/core/Zoom'
 import Tooltip from '@material-ui/core/Tooltip'
+import DeleteForeverIcon from '@material-ui/icons/DeleteForever'
+import AddBoxIcon from '@material-ui/icons/AddBox'
 
 const axios = require('axios').default
 
@@ -95,6 +99,7 @@ export const {
 } = config
 
 export default function EditPersonaForm(props) {
+
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
     const [loaded, setLoaded] = useState(false)
@@ -114,45 +119,89 @@ export default function EditPersonaForm(props) {
     const [familiarity, setFamiliarity] = useState('0')
     const [airtableClicked, setAirtableClicked] = useState(false)
     const [airtableData, setAirtableData] = useState(false)
-    const { register, handleSubmit, watch, errors } = useForm()
+    
     const [otherSkills, setOtherSkills] = useState([])
     const [notifications, setNotifications] = useState([])
     const { state, dispatch, update } = useContext(appStore)
+
     const countries = ["Afghanistan","Albania","Algeria","Andorra","Angola","Anguilla","Antigua & Barbuda","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bermuda","Bhutan","Bolivia","Bosnia & Herzegovina","Botswana","Brazil","British Virgin Islands","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Cayman Islands","Chad","Chile","China","Colombia","Congo","Cook Islands","Costa Rica","Cote D Ivoire","Croatia","Cruise Ship","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Estonia","Ethiopia","Falkland Islands","Faroe Islands","Fiji","Finland","France","French Polynesia","French West Indies","Gabon","Gambia","Georgia","Germany","Ghana","Gibraltar","Greece","Greenland","Grenada","Guam","Guatemala","Guernsey","Guinea","Guinea Bissau","Guyana","Haiti","Honduras","Hong Kong","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Isle of Man","Israel","Italy","Jamaica","Japan","Jersey","Jordan","Kazakhstan","Kenya","Kuwait","Kyrgyz Republic","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Macau","Macedonia","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Mauritania","Mauritius","Mexico","Moldova","Monaco","Mongolia","Montenegro","Montserrat","Morocco","Mozambique","Namibia","Nepal","Netherlands","Netherlands Antilles","New Caledonia","New Zealand","Nicaragua","Niger","Nigeria","Norway","Oman","Pakistan","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Puerto Rico","Qatar","Reunion","Romania","Russia","Rwanda","Saint Pierre & Miquelon","Samoa","San Marino","Satellite","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","South Africa","South Korea","Spain","Sri Lanka","St Kitts & Nevis","St Lucia","St Vincent","St. Lucia","Sudan","Suriname","Swaziland","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor L'Este","Togo","Tonga","Trinidad & Tobago","Tunisia","Turkey","Turkmenistan","Turks & Caicos","Uganda","Ukraine","United Arab Emirates","United Kingdom","Uruguay","Uzbekistan","Venezuela","Vietnam","Virgin Islands (US)","Yemen","Zambia","Zimbabwe"];
     const languages = ['Abkhazian','Afar','Afrikaans','Akan','Albanian','Amharic','Arabic','Aragonese','Armenian','Assamese','Avaric','Avestan','Aymara','Azerbaijani','Bambara','Bashkir','Basque','Belarusian','Bengali','Bihari languages','Bislama','Bosnian','Breton','Bulgarian','Burmese','Catalan, Valencian','Central Khmer','Chamorro','Chechen','Chichewa, Chewa, Nyanja','Chinese','Church Slavonic, Old Bulgarian, Old Church Slavonic','Chuvash','Cornish','Corsican','Cree','Croatian','Czech','Danish','Divehi, Dhivehi, Maldivian','Dutch, Flemish','Dzongkha','English','Esperanto','Estonian','Ewe','Faroese','Fijian','Finnish','French','Fulah','Gaelic, Scottish Gaelic','Galician','Ganda', 'Georgian','German','Gikuyu, Kikuyu','Greek (Modern)','Greenlandic, Kalaallisut','Guarani','Gujarati','Haitian, Haitian Creole','Hausa','Hebrew','Herero','Hindi','Hiri Motu','Hungarian','Icelandic','Ido','Igbo','Indonesian','Interlingua (International Auxiliary Language Association)','Interlingue','Inuktitut','Inupiaq','Irish','Italian','Japanese','Javanese','Kannada','Kanuri','Kashmiri','Kazakh','Kinyarwanda','Komi','Kongo','Korean','Kwanyama, Kuanyama','Kurdish','Kyrgyz','Lao','Latin','Latvian','Letzeburgesch, Luxembourgish','Limburgish, Limburgan, Limburger','Lingala','Lithuanian','Luba-Katanga','Macedonian','Malagasy','Malay','Malayalam','Maltese','Manx','Maori','Marathi','Marshallese','Moldovan, Moldavian, Romanian','Mongolian','Nauru','Navajo, Navaho','Northern Ndebele','Ndonga','Nepali','Northern Sami','Norwegian','Norwegian Bokmål','Norwegian Nynorsk','Nuosu, Sichuan Yi','Occitan (post 1500)','Ojibwa','Oriya','Oromo','Ossetian, Ossetic','Pali','Panjabi, Punjabi','Pashto, Pushto','Persian','Polish','Portuguese','Quechua','Romansh','Rundi','Russian','Samoan','Sango','Sanskrit','Sardinian','Serbian','Shona','Sindhi','Sinhala, Sinhalese','Slovak','Slovenian','Somali','Sotho, Southern','South Ndebele','Spanish, Castilian','Sundanese','Swahili','Swati','Swedish','Tagalog','Tahitian','Tajik','Tamil','Tatar','Telugu','Thai','Tibetan','Tigrinya','Tonga (Tonga Islands)','Tsonga','Tswana','Turkish','Turkmen','Twi','Uighur, Uyghur','Ukrainian','Urdu','Uzbek','Venda','Vietnamese','Volap_k','Walloon','Welsh','Western Frisian','Wolof','Xhosa','Yiddish','Yoruba','Zhuang, Chuang','Zulu' ]
-    const [skillSet, setSkillSet] = useState({
-      memeCreation: false,
-      videoCreation: false,
-      writing: false,
-      design: false,
-      eventOrganization: false,
-      socialMedia: false,
-      marketing: false,
-      translation: false,
+    const [skillSet, setSkillSet] = useState({})
+    const [developerSkillSet, setDeveloperSkillSet] = useState({})
+
+    const { register, handleSubmit, watch, errors, control, reset, setValue, getValues } = useForm()
+    const {
+      fields: personaSkillsFields,
+      append: personaSkillsAppend,
+      remove: personaSkillsRemove} = useFieldArray({
+     name: "personaSkills",
+     control
     })
-    const [developerSkillSet, setDeveloperSkillSet] = useState({
-      rust: false,
-      assemblyScript: false,
-      javascript: false,
-      typescript: false,
-      solidity: false,
-      webDevelopment: false,
+
+    const {
+      fields: personaSpecificSkillsFields,
+      append: personaSpecificSkillsAppend,
+      remove: personaSpecificSkillsRemove} = useFieldArray({
+     name: "personaSpecificSkills",
+     control
     })
-  
+
+    const personaSkills = watch('personaSkills', personaSkillsFields)
+    const personaSpecificSkills = watch('personaSpecificSkills', personaSpecificSkillsFields)
+
     const {
         handleUpdate,
         handleEditPersonaClickState,
         accountId,
         curPersonaIdx
     } = props
+
+    const {
+      near,
+      appIdx,
+      didRegistryContract
+    } = state
+
+    const {
+      contractId
+    } = useParams()
     
     const classes = useStyles()
 
     let base 
 
+   
+
     useEffect(() => {
         async function fetchData() {
           setLoaded(false)
+
+          // Set Dao Idx
+          if(near && contractId){
+            let daoAccount = new nearAPI.Account(near.connection, contractId)
+              
+            let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+            
+
+            // Get Existing Community Skills
+            if(thisCurDaoIdx){
+              let daoProfileResult = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
+              console.log('daoprofile result', daoProfileResult)
+              let currentSkills = {...skillSet}
+              let currentSpecificSkills = {...developerSkillSet}
+              if(daoProfileResult){
+                const skillsResult = daoProfileResult.skills.map((name, value) => {
+                  currentSkills = ({...currentSkills, [name.name]: false})
+                })
+                const specificSkillsResult = daoProfileResult.specificSkills.map((name, value) => {
+                  currentSpecificSkills = ({...currentSpecificSkills, [name.name]: false})
+                })
+              setSkillSet(currentSkills)
+              setDeveloperSkillSet(currentSpecificSkills)
+              }
+            }
+          }
+
            // Set Card Persona Idx       
            if(accountId){
               let result = await curPersonaIdx.get('profile', curPersonaIdx.id)
@@ -170,24 +219,10 @@ export default function EditPersonaForm(props) {
                 result.skill ? setSkill(result.skill): setSkill([])
                 result.familiarity? setFamiliarity(result.familiarity): setFamiliarity('0')
                 result.notifications? setNotifications(result.notifications): setNotifications([])
-                result.skillSet? setSkillSet(result.skillSet): setSkillSet({
-                  memeCreation: false,
-                  videoCreation: false,
-                  writing: false,
-                  design: false,
-                  eventOrganization: false,
-                  socialMedia: false,
-                  marketing: false,
-                  translation: false,
-                  })
-                result.developerSkillSet? setDeveloperSkillSet(result.developerSkillSet): setDeveloperSkillSet({
-                  rust: false,
-                  assemblyScript: false,
-                  javascript: false,
-                  typescript: false,
-                  solidity: false,
-                  webDevelopment: false,
-                  })
+                result.skillSet? setSkillSet(result.skillSet): setSkillSet({})
+                result.developerSkillSet? setDeveloperSkillSet(result.developerSkillSet): setDeveloperSkillSet({})
+                result.personaSkills? setValue('personaSkills', result.personaSkills): setValue('personaSkills', {name: ''})
+                result.personaSpecificSkills? setValue('personaSpecificSkills', result.personaSpecificSkills): setValue('personaSpecificSkills', {name: ''})
               }
 
               let accessVariables = await axios.get('https://vpbackend-apim.azure-api.net/airtable')    
@@ -391,6 +426,8 @@ export default function EditPersonaForm(props) {
             familiarity: familiarity,
             skillSet: skillSet,
             developerSkillSet: developerSkillSet,
+            personaSkills: personaSkills,
+            personaSpecificSkills: personaSpecificSkills,
             notifications: notifications
         }
      
@@ -430,7 +467,7 @@ export default function EditPersonaForm(props) {
                         aria-controls="panel1bh-content"
                         id="panel1bh-header"
                       >
-                      General Information
+                      <Typography variant="h6">General Information</Typography>
                       <Tooltip TransitionComponent={Zoom} title="Here you can add information to let people, and communities know some basic information about yourself.">
                              <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
                       </Tooltip>
@@ -511,108 +548,167 @@ export default function EditPersonaForm(props) {
                             </Grid>
                           </AccordionDetails>
                         </Accordion>
-                        <Accordion>
-                          <AccordionSummary
-                            expandIcon={<ExpandMoreIcon />}
-                            aria-controls="panel1bh-content"
-                            id="panel1bh-header"
-                          >
-                          Skills and Competencies                        
-                          <Tooltip TransitionComponent={Zoom} title="Skills allow us to assign appropriate suitability scores for opportunities">
-                                <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
-                          </Tooltip>
-                          </AccordionSummary>
-                            <AccordionDetails>
-                              <Grid container spacing={2}>
-                              <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
-                              <FormControl component="fieldset" className={classes.formControl}>
-                                <FormLabel component="legend">Skill Set</FormLabel>
-                                <FormGroup>
-                                  <FormControlLabel
-                                    control={<Checkbox checked={skillSet.memeCreation} onChange={handleSkillSetChange} name="memeCreation" />}
-                                    label="Meme Creation"
-                                  />
-                                  <FormControlLabel
-                                    control={<Checkbox checked={skillSet.videoCreation} onChange={handleSkillSetChange} name="videoCreation" />}
-                                    label="Video Creation"
-                                  />
-                                  <FormControlLabel
-                                    control={<Checkbox checked={skillSet.writing} onChange={handleSkillSetChange} name="writing" />}
-                                    label="Writing"
-                                  />
-                                  <FormControlLabel
-                                    control={<Checkbox checked={skillSet.design} onChange={handleSkillSetChange} name="design" />}
-                                    label="Design"
-                                  />
-                                  <FormControlLabel
-                                    control={<Checkbox checked={skillSet.eventOrganization} onChange={handleSkillSetChange} name="eventOrganization" />}
-                                    label="Event Organization"
-                                  />
-                                  <FormControlLabel
-                                    control={<Checkbox checked={skillSet.socialMedia} onChange={handleSkillSetChange} name="socialMedia" />}
-                                    label="Social Media"
-                                  />
-                                  <FormControlLabel
-                                    control={<Checkbox checked={skillSet.marketing} onChange={handleSkillSetChange} name="marketing" />}
-                                    label="Marketing"
-                                  />
-                                   <FormControlLabel
-                                    control={<Checkbox checked={skillSet.translation} onChange={handleSkillSetChange} name="translation" />}
-                                    label="Translation"
-                                  />
-                                </FormGroup>
-                                
-                                <FormHelperText>Check off which skills you have.</FormHelperText>
-                              </FormControl>
-                              </Grid>
-                              <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
-                                <FormControl component="fieldset" className={classes.formControl}>
-                                  <FormLabel component="legend">Developer Skills</FormLabel>
-                                  <FormGroup>
-                                  <FormControlLabel
-                                      control={<Checkbox checked={developerSkillSet.rust} onChange={handleDeveloperSkillSetChange} name="rust" />}
-                                      label="RUST"
-                                    />
-                                    <FormControlLabel
-                                      control={<Checkbox checked={developerSkillSet.assemblyScript} onChange={handleDeveloperSkillSetChange} name="assemblyScript" />}
-                                      label="AssemblyScript"
-                                    />
-                                    <FormControlLabel
-                                      control={<Checkbox checked={developerSkillSet.javascript} onChange={handleDeveloperSkillSetChange} name="javascript" />}
-                                      label="JavaScript"
-                                    />
-                                    <FormControlLabel
-                                      control={<Checkbox checked={developerSkillSet.typescript} onChange={handleDeveloperSkillSetChange} name="typescript" />}
-                                      label="TypeScript"
-                                    />
-                                    <FormControlLabel
-                                      control={<Checkbox checked={developerSkillSet.solidity} onChange={handleDeveloperSkillSetChange} name="solidity" />}
-                                      label="Solidity"
-                                    />
-                                    <FormControlLabel
-                                      control={<Checkbox checked={developerSkillSet.webDevelopment} onChange={handleDeveloperSkillSetChange} name="webDevelopment" />}
-                                      label="Web Development"
-                                    />
+                        <Accordion style={{marginBottom: '20px'}}>
+                  <AccordionSummary
+                    expandIcon={<ExpandMoreIcon />}
+                    aria-controls="panel1bh-content"
+                    id="panel1bh-header"
+                  >
+                  <Typography variant="h6">Skills and Competencies</Typography>
+                  </AccordionSummary>
+                    <AccordionDetails>
+                      <Grid container spacing={2}>
+                      <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                      <FormControl component="fieldset" className={classes.formControl}>
+                        <FormLabel component="legend">General Skills</FormLabel>
+                        <FormGroup>
+                        {loaded && skillSet && Object.keys(skillSet).length > 0 ?
+                            Object.keys(skillSet).map((key) => {
+                              return (
+                                <FormControlLabel
+                                  control={<Checkbox checked={skillSet[key]} onChange={handleSkillSetChange} name={key} />}
+                                  label={key}
+                                />
+                              )
+                            })
+                        : null }
+                        </FormGroup>
+                        
+                        <FormHelperText>Check off the general skills you have.</FormHelperText>
+                      </FormControl>
+                      </Grid>
+                      <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                        <FormControl component="fieldset" className={classes.formControl}>
+                          <FormLabel component="legend">Specific Skills</FormLabel>
+                          <FormGroup>
+                          {loaded && developerSkillSet && Object.keys(developerSkillSet).length > 0 ?
+                            Object.keys(developerSkillSet).map((key) => {
+                              return (
+                                <FormControlLabel
+                                  control={<Checkbox checked={developerSkillSet[key]} onChange={handleDeveloperSkillSetChange} name={key} />}
+                                  label={key}
+                                />
+                              )
+                            })
+                        : null }
+                         
+                          
+                          </FormGroup>
+                          <FormHelperText>Check off the specific skills you have.</FormHelperText>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                        <Grid container justifyContent="space-between" alignItems="flex-end" spacing={1}>
+                        <Typography variant="body1" style={{marginTop: '10px', marginBottom:'10px'}}>Additional General Skills</Typography>
+                        {
+                          personaSkillsFields.map((field, index) => {
+                          return(
+                            
+                            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} key={field.id}>
+                            <TextField
                               
-                                  </FormGroup>
-                                  <FormHelperText>Identify which developer skills you have.</FormHelperText>
-                                </FormControl>
-                              </Grid>
-                              
-                              <Grid item xs={12}>
-                                    <Typography>Familiarity with Crypto/Blockchain</Typography>
-                                    <Rating name="Familiarity" onChange={handleRatingChange} value={parseInt(familiarity)} />
-                              </Grid>
+                              margin="dense"
+                              id={`personaSkills[${index}].name`}
+                              variant="outlined"
+                              name={`personaSkills[${index}].name`}
+                              defaultValue={field.name}
+                              label="Skill Name:"
+                              InputProps={{
+                                endAdornment: <div>
+                                <Tooltip TransitionComponent={Zoom} title="Short name of skill.">
+                                    <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                                </Tooltip>
+                                </div>
+                              }}
+                              inputRef={register({
+                                  required: true                              
+                              })}
+                            />
+                            {errors[`personaSkills${index}.name`] && <p style={{color: 'red', fontSize:'80%'}}>You must provide a skill name.</p>}
+                            
+                            <Button type="button" onClick={() => personaSkillsRemove(index)} style={{float: 'right', marginLeft:'10px'}}>
+                              <DeleteForeverIcon />
+                            </Button>
                             </Grid>
-                          </AccordionDetails>
-                      </Accordion>
+                            
+                          )
+                        }) 
+                        }
+                        {!personaSkillsFields || personaSkillsFields.length == 0 ?
+                          <Typography variant="body1" style={{marginLeft: '5px'}}>No additional general skills defined yet. Add them for better chance of being matched to opportunities.</Typography>
+                        : null }
+                          <Button
+                            type="button"
+                            onClick={() => personaSkillsAppend({name: ''})}
+                            startIcon={<AddBoxIcon />}
+                          >
+                            Add Skill
+                          </Button>
+                        </Grid>
+                      </Grid>
+                      <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                        <Grid container justifyContent="space-between" alignItems="flex-end" spacing={1}>
+                        <Typography variant="body1" style={{marginTop: '10px', marginBottom:'10px'}}>Additional Specific Skills</Typography>
+                        {
+                          personaSpecificSkillsFields.map((field, index) => {
+                          return(
+                            
+                            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} key={field.id}>
+                            <TextField
+                              
+                              margin="dense"
+                              id={`personaSpecificSkills[${index}].name`}
+                              variant="outlined"
+                              name={`personaSpecificSkills[${index}].name`}
+                              defaultValue={field.name}
+                              label="Skill Name:"
+                              InputProps={{
+                                endAdornment: <div>
+                                <Tooltip TransitionComponent={Zoom} title="Short name of skill.">
+                                    <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                                </Tooltip>
+                                </div>
+                              }}
+                              inputRef={register({
+                                  required: true                              
+                              })}
+                            />
+                            {errors[`personaSpecificSkills${index}.name`] && <p style={{color: 'red', fontSize:'80%'}}>You must provide a skill name.</p>}
+                            
+                            <Button type="button" onClick={() => personaSpecificSkillsRemove(index)} style={{float: 'right', marginLeft:'10px'}}>
+                              <DeleteForeverIcon />
+                            </Button>
+                            </Grid>
+                            
+                          )
+                        }) 
+                        }
+                        {!personaSpecificSkillsFields || personaSpecificSkillsFields.length == 0 ?
+                          <Typography variant="body1" style={{marginLeft: '5px'}}>No additional general skills defined yet. Add them for better chance of being matched to opportunities.</Typography>
+                        : null }
+                          <Button
+                            type="button"
+                            onClick={() => personaSpecificSkillsAppend({name: ''})}
+                            startIcon={<AddBoxIcon />}
+                          >
+                            Add Skill
+                          </Button>
+                        </Grid>
+                      </Grid>
+                      <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                            <Typography>Familiarity with Crypto/Blockchain</Typography>
+                            <Rating name="Familiarity" onChange={handleRatingChange} value={parseInt(familiarity)} />
+                      </Grid>
+                    </Grid>
+                  </AccordionDetails>
+              </Accordion>
                       <Accordion>
                       <AccordionSummary
                         expandIcon={<ExpandMoreIcon />}
                         aria-controls="panel1bh-content"
                         id="panel1bh-header"
                       >
-                      Accounts and Notifications
+                      <Typography variant="h6">Accounts and Notifications</Typography>
                       <Tooltip TransitionComponent={Zoom} title="Here you can add some of your social media handles if you would like fellow Catalyst users to be able to find or contact you elsewhere.">
                         <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
                       </Tooltip>

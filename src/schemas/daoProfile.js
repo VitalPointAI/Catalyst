@@ -43,6 +43,12 @@ export const daoProfileSchema = {
       },
       "twitter": {
         type: "string"
-      }
+      },
+      "skills": {
+        type: "array"
+      },
+      "specificSkills": {
+        type: "array"
+      },
    },
   }

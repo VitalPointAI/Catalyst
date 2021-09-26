@@ -81,6 +81,8 @@ export default function MemberProfileDisplay(props) {
     const [familiarity, setFamiliarity] = useState('')
     const [skillSet, setSkillSet] = useState([])
     const [developerSkillSet, setDeveloperSkillSet] = useState([])
+    const [personaSkillSet, setPersonaSkillSet] = useState([])
+    const [personaSpecificSkillSet, setPersonaSpecificSkillSet] = useState([])
 
     const classes = useStyles()
 
@@ -132,6 +134,16 @@ export default function MemberProfileDisplay(props) {
                           developerSkillSetArray.push(result.developerSkillSet)
                           setDeveloperSkillSet(developerSkillSetArray)
                         }
+                        if(result.personaSkillSet){
+                          let personaSkillSetArray = []      
+                          personaSkillSetArray.push(result.personaSkillSet)
+                          setPersonaSkillSet(personaSkillSetArray)
+                        }
+                        if(result.personaSpecificSkillSet){
+                          let personaSpecificSkillSetArray = []      
+                          personaSpecificSkillSetArray.push(result.personaSpecificSkillSet)
+                          setpersonaSpecificSkillSet(personaSpecificSkillSetArray)
+                        }
                       }
             }         
                     
@@ -178,62 +190,102 @@ export default function MemberProfileDisplay(props) {
                     </Table>
                   </TableContainer>
                   <Grid container justifyContent="space-evenly" spacing={1} style={{marginTop:'20px', marginBottom: '20px'}}>
-                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                    <Typography variant="h6">Crypto/Blockchain Familiarity: <Rating readOnly value={parseInt(familiarity)} /> </Typography>
-                  </Grid>
                   <Grid item xs={12} sm={12} md={6} lg={6} xl={6} className={classes.centered}>
-                  <Typography variant="h6">Skills</Typography>
+                  <Typography variant="h6">General Skills</Typography>
                   <TableContainer component={Paper}>
                     <Table className={classes.table} size="small" aria-label="a dense table">
                       <TableHead>
                       
                       </TableHead>
                       <TableBody>
-                      {skillSet && skillSet.length > 0 ?(
-                        
-                              <>
-                              {skillSet[0].memeCreation ? <TableRow key={1}><TableCell>Meme Creation</TableCell></TableRow>: null}
-                              {skillSet[0].videoCreation ? <TableRow key={2}><TableCell>Video Creation</TableCell></TableRow>: null}
-                              {skillSet[0].writing ? <TableRow key={3}><TableCell>Writing</TableCell></TableRow>: null}
-                              {skillSet[0].design ? <TableRow key={4}><TableCell>Design</TableCell></TableRow>: null}
-                              {skillSet[0].eventOrganization ? <TableRow key={5}><TableCell>Event Organization</TableCell></TableRow>: null} 
-                              {skillSet[0].socialMedia ? <TableRow key={6}><TableCell>Social Media</TableCell></TableRow>: null}
-                              {skillSet[0].marketing ? <TableRow key={7}><TableCell>Marketing</TableCell></TableRow>: null}
-                              {skillSet[0].translation ? <TableRow key={8}><TableCell>Translation</TableCell></TableRow>: null}
-                              </>
+                      {skillSet && skillSet.length > 0 ?
+                        skillSet.map((values, index) => {
+
+                          console.log('value', values)
+                          console.log('index', index)
+                          for (const [key, value] of Object.entries(values)) {
+                            if(value){
+                              return(
+                                <TableRow key={key}>
+                                <TableCell>{key}</TableCell>
+                                </TableRow>
                               )
-                      : <TableRow key={0}><TableCell>None</TableCell></TableRow>
+                            } else {
+                              return(
+                                <TableRow key={'none'}>
+                                <TableCell>None</TableCell>
+                                </TableRow>
+                              )
+                            }
+                          }
+                        })
+                        : null
                       }
+                      {personaSkillSet && personaSkillSet.length > 0 ?
+                       
+                        personaSkillSet[0].map((values, index) => {
+                          
+                            return (
+                              <TableRow key={values.name}>
+                                <TableCell>{values.name}</TableCell>
+                              </TableRow>
+                            )
                          
+                      })
+                      : null
+                    }
+                          
+                              
                       </TableBody>
                     </Table>
                   </TableContainer>
                   </Grid>
                   <Grid item xs={12} sm={12} md={6} lg={6} xl={6} className={classes.centered}>
-                  <Typography variant="h6">Developer Skills</Typography>
+                  <Typography variant="h6">Specific Skills</Typography>
                   <TableContainer component={Paper}>
                     <Table className={classes.table} size="small" aria-label="a dense table">
                       <TableHead>
                       
                       </TableHead>
                       <TableBody>
-                      {developerSkillSet && developerSkillSet.length > 0 ? (
-                         
-                              <>
-                              {developerSkillSet[0].rust ? <TableRow key={1}><TableCell>RUST</TableCell></TableRow>: null}
-                              {developerSkillSet[0].assemblyScript ? <TableRow key={2}><TableCell>AssemblyScript</TableCell></TableRow>: null}
-                              {developerSkillSet[0].javascript ? <TableRow key={3}><TableCell>JavaScript</TableCell></TableRow>: null}
-                              {developerSkillSet[0].typescript ? <TableRow key={4}><TableCell>TypeScript</TableCell></TableRow>: null}
-                              {developerSkillSet[0].solidity ? <TableRow key={5}><TableCell>Solidity</TableCell></TableRow>: null}
-                              {developerSkillSet[0].webDevelopment ? <TableRow key={6}><TableCell>Web Development</TableCell></TableRow>: null}
-                              </>
-                            )
+                      
+                      {developerSkillSet && developerSkillSet.length > 0 ?
+                        developerSkillSet.map((values, index) => {
+
+                          for (const [key, value] of Object.entries(values)) {
+                            if(value){
+                              return(
+                                
+                                <TableRow key={key}>
+                                  <TableCell>{key}</TableCell>
+                                </TableRow>
+                                
+                              )
+                            }
+                          }
+                        })
+                        : null
+                      }
+                      {personaSpecificSkillSet && personaSpecificSkillSet.length > 0 ?
                        
-                        : <TableRow key={0}><TableCell>None</TableCell></TableRow>
-                        }
+                          personaSpecificSkillSet[0].map((values, index) => {
+                            
+                              return (
+                                <TableRow key={values.name}>
+                                  <TableCell>{values.name}</TableCell>
+                                </TableRow>
+                              )
+                           
+                        })
+                        : null
+                      }
+                      
                       </TableBody>
                     </Table>
                   </TableContainer>
+                  </Grid>
+                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                    <Typography variant="overline">Level of crypto/blockchain familiarity: <Rating readOnly value={parseInt(familiarity)} /> </Typography>
                   </Grid>
                   </Grid>
 

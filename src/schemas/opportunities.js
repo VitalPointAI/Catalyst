@@ -87,6 +87,9 @@ export const opportunitiesSchema = {
         "neutrals": {
           type: 'array'
         },
+        "opportunitySkills": {
+          type: "array"
+        },
       },
     }
   }

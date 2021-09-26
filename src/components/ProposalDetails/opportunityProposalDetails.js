@@ -107,6 +107,7 @@ export default function OpportunityProposalDetails(props) {
     const [proposalStatus, setProposalStatus] = useState()
     const [desiredSkillSet, setDesiredSkillSet] = useState([])
     const [desiredDeveloperSkillSet, setDesiredDeveloperSkillSet] = useState([])
+    const [opportunitySkillSet, setOpportunitySkillSet] = useState([])
     const [thisCurDaoIdx, setThisCurDaoIdx] = useState(props.curDaoIdx)
     const [memberStatus, setMemberStatus] = useState()
     
@@ -231,9 +232,7 @@ export default function OpportunityProposalDetails(props) {
                 setThisCurDaoIdx(loadCurDaoIdx)
 
               }
-            }
-
-            
+            }           
 
 
             if(thisCurDaoIdx){
@@ -263,6 +262,12 @@ export default function OpportunityProposalDetails(props) {
                       let developerSkillSetArray = []
                       developerSkillSetArray.push(propResult.opportunities[i].desiredDeveloperSkillSet)
                       setDesiredDeveloperSkillSet(developerSkillSetArray)
+                    }
+                    if(propResult.opportunities[i].opportunitySkills){
+                      let opportunitySkillSetArray = []
+                      opportunitySkillSetArray.push(propResult.opportunities[i].opportunitySkills)
+                      console.log('opportunityskillarray', opportunitySkillSetArray)
+                      setOpportunitySkillSet(opportunitySkillSetArray)
                     }
                     break
                   }
@@ -427,7 +432,7 @@ export default function OpportunityProposalDetails(props) {
                           <Typography variant="overline" color="textSecondary">Sponsor: {sponsor}</Typography>
                         </Grid>
                         ) : null }
-                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{marginTop: '20px'}}>
                           <Card className={classes.card}>
                           <div dangerouslySetInnerHTML={{ __html: details }} />
                           </Card>
@@ -435,62 +440,90 @@ export default function OpportunityProposalDetails(props) {
                         </Grid>
                       </Grid>
                       <Grid container justifyContent="space-evenly" spacing={1} style={{marginTop:'20px', marginBottom: '20px'}}>
+                     
+                      <Grid item xs={12} sm={12} md={6} lg={6} xl={6} className={classes.centered}>
+                      <Typography variant="h6">General Skills Required</Typography>
+                      <TableContainer component={Paper}>
+                        <Table className={classes.table} size="small" aria-label="a dense table">
+                          <TableHead>
+                          
+                          </TableHead>
+                          <TableBody>
+                          {desiredSkillSet && desiredSkillSet.length > 0 ?
+                            desiredSkillSet.map((values, index) => {
+
+                              console.log('value', values)
+                              console.log('index', index)
+                              for (const [key, value] of Object.entries(values)) {
+                                if(value){
+                                  return(
+                                    <TableRow key={key}>
+                                    <TableCell>{key}</TableCell>
+                                    </TableRow>
+                                  )
+                                } else {
+                                  return(
+                                    <TableRow key={'none'}>
+                                    <TableCell>None</TableCell>
+                                    </TableRow>
+                                  )
+                                }
+                              }
+                            })
+                            : <TableRow key={'none'}><TableCell>None</TableCell></TableRow>
+                          }
+                              
+                                  
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                      </Grid>
+                      <Grid item xs={12} sm={12} md={6} lg={6} xl={6} className={classes.centered}>
+                      <Typography variant="h6">Specific Skills Required</Typography>
+                      <TableContainer component={Paper}>
+                        <Table className={classes.table} size="small" aria-label="a dense table">
+                          <TableHead>
+                          
+                          </TableHead>
+                          <TableBody>
+                          
+                          {desiredDeveloperSkillSet && desiredDeveloperSkillSet.length > 0 ?
+                            desiredDeveloperSkillSet.map((values, index) => {
+
+                              for (const [key, value] of Object.entries(values)) {
+                                if(value){
+                                  return(
+                                    
+                                    <TableRow key={key}>
+                                      <TableCell>{key}</TableCell>
+                                    </TableRow>
+                                    
+                                  )
+                                }
+                              }
+                            })
+                            : null
+                          }
+                          {opportunitySkillSet && opportunitySkillSet.length > 0 ?
+                           
+                              opportunitySkillSet[0].map((values, index) => {
+                                
+                                  return (
+                                    <TableRow key={values.name}>
+                                      <TableCell>{values.name}</TableCell>
+                                    </TableRow>
+                                  )
+                               
+                            })
+                            : null
+                          }
+                          
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                      </Grid>
                       <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                        <Typography variant="h6">Crypto/Blockchain Familiarity: <Rating readOnly value={parseInt(familiarity)} /> </Typography>
-                      </Grid>
-                      <Grid item xs={12} sm={12} md={6} lg={6} xl={6} className={classes.centered}>
-                      <Typography variant="h6">Skills Required</Typography>
-                      <TableContainer component={Paper}>
-                        <Table className={classes.table} size="small" aria-label="a dense table">
-                          <TableHead>
-                          
-                          </TableHead>
-                          <TableBody>
-                          {desiredSkillSet && desiredSkillSet.length > 0 ? (
-                              
-                                  <>
-                                  {desiredSkillSet[0].memeCreation ? <TableRow key={1}><TableCell>Meme Creation</TableCell></TableRow>: null}
-                                  {desiredSkillSet[0].videoCreation ? <TableRow key={2}><TableCell>Video Creation</TableCell></TableRow>: null}
-                                  {desiredSkillSet[0].writing ? <TableRow key={3}><TableCell>Writing</TableCell></TableRow>: null}
-                                  {desiredSkillSet[0].design ? <TableRow key={4}><TableCell>Design</TableCell></TableRow>: null}
-                                  {desiredSkillSet[0].eventOrganization ? <TableRow key={5}><TableCell>Event Organization</TableCell></TableRow>: null} 
-                                  {desiredSkillSet[0].socialMedia ? <TableRow key={6}><TableCell>Social Media</TableCell></TableRow>: null}
-                                  {desiredSkillSet[0].marketing ? <TableRow key={7}><TableCell>Marketing</TableCell></TableRow>: null}
-                                  {desiredSkillSet[0].translation ? <TableRow key={8}><TableCell>Translation</TableCell></TableRow>: null}
-    
-                                  </>
-                            )
-                            : <TableRow key={0}><TableCell>None</TableCell></TableRow>
-                            }
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                      </Grid>
-                      <Grid item xs={12} sm={12} md={6} lg={6} xl={6} className={classes.centered}>
-                      <Typography variant="h6">Developer Skills Required</Typography>
-                      <TableContainer component={Paper}>
-                        <Table className={classes.table} size="small" aria-label="a dense table">
-                          <TableHead>
-                          
-                          </TableHead>
-                          <TableBody>
-                          {desiredDeveloperSkillSet && desiredDeveloperSkillSet.length > 0 ? (
-                             
-                                  <>
-                                  {desiredDeveloperSkillSet[0].rust ? <TableRow key={1}><TableCell>RUST</TableCell></TableRow>: null}
-                                  {desiredDeveloperSkillSet[0].assemblyScript ? <TableRow key={2}><TableCell>AssemblyScript</TableCell></TableRow>: null}
-                                  {desiredDeveloperSkillSet[0].javascript ? <TableRow key={3}><TableCell>JavaScript</TableCell></TableRow>: null}
-                                  {desiredDeveloperSkillSet[0].typescript ? <TableRow key={4}><TableCell>TypeScript</TableCell></TableRow>: null}
-                                  {desiredDeveloperSkillSet[0].solidity ? <TableRow key={5}><TableCell>Solidity</TableCell></TableRow>: null}
-                                  {desiredDeveloperSkillSet[0].webDevelopment ? <TableRow key={6}><TableCell>Web Development</TableCell></TableRow>: null}
-                                  </>
-                                )
-                              
-                            : <TableRow key={0}><TableCell>None</TableCell></TableRow>
-                            }
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
+                        <Typography variant="overline">Level of crypto/blockchain familiarity: <Rating readOnly value={parseInt(familiarity)} /> </Typography>
                       </Grid>
                       <Grid item xs={12} sm={12} md={6} lg={6} xl={6} className={classes.centered}>
                       

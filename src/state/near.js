@@ -132,7 +132,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
             let state = getState()
 
             let upLinks = await ceramic.downloadKeysSecret(state.appIdx, 'daoKeys')
-   
+           
             const daoInit = get(DAO_FIRST_INIT, [])
 
             try{
@@ -951,11 +951,53 @@ export async function cancelProposal(daoContract, contractId, proposalId, loot =
     return true
 }
 
+// Synch DAOs
+export async function synchDaos(state){
+
+    try{
+        const keyPair = KeyPair.fromRandom('ed25519')
+        
+        let upLinks = await ceramic.downloadKeysSecret(state.appIdx, 'daoKeys')
+        let i = 0
+        let exists = false
+        let summoner
+        let created
+        let contractId
+
+        while (i < state.currentDaosList.length){
+            let j = 0
+            while(j < upLinks.length){
+                if(state.currentDaosList[i].contractId == upLinks[j].contractId){
+                    exists = true
+                    break
+                }
+                summoner = state.currentDaosList[i].summoner
+                created = state.currentDaosList[i].created
+                contractId = state.currentDaosList[i].contractId
+            j++
+            }
+        i++
+        }
+        if(!exists){
+            upLinks.push({ key: keyPair.secretKey, contractId: contractId, summoner: summoner, created: created })
+            let result = await ceramic.storeKeysSecret(state.appIdx, upLinks, 'daoKeys')
+
+            if(result){
+                window.location.assign('/')
+            }
+        }
+    } catch (err) {
+        console.log('error synching daos', err)
+    }
+    return true
+}
+
 // Synch Proposals
 export async function synchProposalEvent(curDaoIdx, daoContract) {
     let exists = false
     let contractProposals
     let proposalEventRecord
+    console.log('curdaoidx synch', curDaoIdx)
     try{
         contractProposals = await daoContract.getProposalsLength()
         console.log('synch contract proposal length', contractProposals)

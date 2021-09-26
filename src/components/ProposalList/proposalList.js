@@ -197,33 +197,34 @@ export default function ProposalList(props) {
           i++
       }
       currentPeriod
-      console.log('original proposal events', proposalEvents)
-      let newLists = await resolveStatus(proposalEvents)
-      console.log('newlists', newLists)
-      setProposalList(newLists.allProposals)
-      setVotingList(newLists.votingProposals)
-      setQueueList(newLists.queueProposals)
-      setProcessedList(newLists.processedProposals)
-      setProposalCount(newLists.allProposals.length)
-      setVoteCount(newLists.votingProposals.length)
-      setProcessedCount(newLists.processedProposals.length)
-      setQueueCount(newLists.queueProposals.length)
+      if(curDaoIdx){
+        console.log('original proposal events', proposalEvents)
+        let newLists = await resolveStatus(proposalEvents)
+        console.log('newlists', newLists)
+        setProposalList(newLists.allProposals)
+        setVotingList(newLists.votingProposals)
+        setQueueList(newLists.queueProposals)
+        setProcessedList(newLists.processedProposals)
+        setProposalCount(newLists.allProposals.length)
+        setVoteCount(newLists.votingProposals.length)
+        setProcessedCount(newLists.processedProposals.length)
+        setQueueCount(newLists.queueProposals.length)
 
-      if(newLists.processedProposals.length > 0){
-      
-        let i = 0
-        while (i < newLists.processedProposals.length){
+        if(newLists.processedProposals.length > 0){
         
-          if(newLists.processedProposals[i][0].proposalType == 'Member'){
-            
-            await synchMember(curDaoIdx, contract, contractId, newLists.processedProposals[i][0].applicant)
+          let i = 0
+          while (i < newLists.processedProposals.length){
+          
+            if(newLists.processedProposals[i][0].proposalType == 'Member'){
+              
+              await synchMember(curDaoIdx, contract, contractId, newLists.processedProposals[i][0].applicant)
+            }
+            i++
           }
-          i++
+
+        
         }
-
-      
       }
-
       
     }
 
@@ -245,7 +246,7 @@ export default function ProposalList(props) {
     
    // }
 
-  },[proposalEvents, allMemberInfo, notificationIndicator, currentPeriod, enable])
+  },[proposalEvents, allMemberInfo, notificationIndicator, currentPeriod, curDaoIdx, enable])
 
   const handleTabChange = (event, newValue) => {
       handleTabValueState(newValue);
