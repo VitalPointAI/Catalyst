@@ -297,6 +297,9 @@ export default function ProposalCard(props) {
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == requestId){
                     propResult.proposals[i].intro ? setIntro(propResult.proposals[i].intro) : setIntro('')
+                    propResult.proposals[i].likes ? setLikes(propResult.proposals[i].likes.length) : setLikes(0)
+                    propResult.proposals[i].dislikes ? setDisLikes(propResult.proposals[i].dislikes.length) : setDisLikes(0)
+                    propResult.proposals[i].neutrals ? setNeutrals(propResult.proposals[i].neutrals.length) : setNeutrals(0)
                     setDetailsExist(true)
                     break
                   }
@@ -335,6 +338,9 @@ export default function ProposalCard(props) {
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == requestId){
                     propResult.proposals[i].title ? setTributeTitle(propResult.proposals[i].title) : setTributeTitle('')
+                    propResult.proposals[i].likes ? setLikes(propResult.proposals[i].likes.length) : setLikes(0)
+                    propResult.proposals[i].dislikes ? setDisLikes(propResult.proposals[i].dislikes.length) : setDisLikes(0)
+                    propResult.proposals[i].neutrals ? setNeutrals(propResult.proposals[i].neutrals.length) : setNeutrals(0)
                     setDetailsExist(true)
                     break
                   }
@@ -352,6 +358,9 @@ export default function ProposalCard(props) {
                 while (i < propResult.opportunities.length){
                   if(propResult.opportunities[i].opportunityId == requestId){
                     propResult.opportunities[i].title ? setOpportunityTitle(propResult.opportunities[i].title) : setOpportunityTitle('')
+                    propResult.proposals[i].likes ? setLikes(propResult.proposals[i].likes.length) : setLikes(0)
+                    propResult.proposals[i].dislikes ? setDisLikes(propResult.proposals[i].dislikes.length) : setDisLikes(0)
+                    propResult.proposals[i].neutrals ? setNeutrals(propResult.proposals[i].neutrals.length) : setNeutrals(0)
                     setDetailsExist(true)
                     break
                   }
@@ -369,6 +378,9 @@ export default function ProposalCard(props) {
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == requestId){
                     propResult.proposals[i].title ? setPayoutTitle(propResult.proposals[i].title) : setPayoutTitle('')
+                    propResult.proposals[i].likes ? setLikes(propResult.proposals[i].likes.length) : setLikes(0)
+                    propResult.proposals[i].dislikes ? setDisLikes(propResult.proposals[i].dislikes.length) : setDisLikes(0)
+                    propResult.proposals[i].neutrals ? setNeutrals(propResult.proposals[i].neutrals.length) : setNeutrals(0)
                     setDetailsExist(true)
                     break
                   }

@@ -79,6 +79,11 @@ export default function EditOpportunityProposalForm(props) {
     const [avatar, setAvatar] = useState(imageName)
     const [shortBio, setShortBio] = useState('')
     const [deadline, setDeadline] = useState('')
+
+    const [currentLikes, setCurrentLikes] = useState([])
+    const [currentDisLikes, setCurrentDisLikes] = useState([])
+    const [currentNeutrals, setCurrentNeutrals] = useState([])
+
     // Opportunity Proposal Fields
     const [title, setTitle] = useState('')
     const [details, setDetails] = useState(EditorState.createEmpty())
@@ -183,6 +188,10 @@ export default function EditOpportunityProposalForm(props) {
                     propResult.opportunities[i].budget ? setBudget(propResult.opportunities[i].budget) : setBudget()
                     propResult.opportunities[i].desiredSkillSet ? setDesiredSkillSet(propResult.opportunities[i].desiredSkillSet): setDesiredSkillSet({})
                     propResult.opportunities[i].desiredDeveloperSkillSet ? setDesiredDeveloperSkillSet(propResult.opportunities[i].desiredDeveloperSkillSet): setDesiredDeveloperSkillSet({})
+                    propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
+                    propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
+                    propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
+                    
                     break
                   }
                   i++
@@ -290,7 +299,10 @@ export default function EditOpportunityProposalForm(props) {
           familiarity: familiarity,
           desiredSkillSet: desiredSkillSet,
           desiredDeveloperSkillSet: desiredDeveloperSkillSet,
-          opportunitySkills: opportunitySkills
+          opportunitySkills: opportunitySkills,
+          likes: currentLikes,
+          dislikes: currentDisLikes,
+          neutrals: currentNeutrals
       }
 
       // Update existing records

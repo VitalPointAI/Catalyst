@@ -235,6 +235,7 @@ export default function AppFramework(props) {
                 
                 try{
                   contract = await dao.initDaoContract(state.wallet.account(), contractId)
+                  console.log('daocontract', contract)
                   setDaoContract(contract)
                 } catch (err) {
                   console.log('problem initializing dao contract', err)
@@ -693,6 +694,7 @@ export default function AppFramework(props) {
 
                       try {
                         let thisCurrentShare = await daoContract.getCurrentShare({member: accountId})
+                        console.log('this current share', thisCurrentShare)
                         setCurrentShare(formatNearAmount(thisCurrentShare, 3))
                         setFairShareLabel('Current Share: ' + formatNearAmount(thisCurrentShare, 3) + 'Ⓝ')
                       } catch (err) {
@@ -710,6 +712,7 @@ export default function AppFramework(props) {
                       let escrowRow
                       try {
                         ebalance = await daoContract.getEscrowTokenBalances()
+                        console.log('ebalance', ebalance)
                         setEscrowBalance(ebalance)
 
                         if(ebalance) {
@@ -728,6 +731,7 @@ export default function AppFramework(props) {
                       let guildRow
                       try {
                         gbalance = await daoContract.getGuildTokenBalances()
+                        console.log('gbalance', gbalance)
                         setGuildBalance(gbalance)
 
                         if(gbalance) {

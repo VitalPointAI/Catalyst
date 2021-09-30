@@ -74,9 +74,7 @@ export default function EditFundingProposalForm(props) {
     const [details, setDetails] = useState(EditorState.createEmpty())
     const [milestones, setMilestones] = useState([{milestoneId: ''}])
     const [requested, setRequested] = useState(props.funding)
-    const [likes, setLikes] = useState(0)
-    const [dislikes, setDisLikes] = useState(0)
-    const [neutrals, setNeutrals] = useState(0)
+    
     const [currentLikes, setCurrentLikes] = useState([])
     const [currentDisLikes, setCurrentDisLikes] = useState([])
     const [currentNeutrals, setCurrentNeutrals] = useState([])
@@ -142,14 +140,10 @@ export default function EditFundingProposalForm(props) {
                       } else {
                         setDetails(EditorState.createEmpty())
                       }
-                    propResult.proposals[i].likes ? setLikes(propResult.proposals[i].likes.length) : setLikes(0)
-                    setCurrentLikes(propResult.proposals[i].likes)
-                   
-                    propResult.proposals[i].dislikes ? setDisLikes(propResult.proposals[i].dislikes.length) : setDisLikes(0)
-                    setCurrentDisLikes(propResult.proposals[i].dislikes)
-                    
-                    propResult.proposals[i].neutrals ? setNeutrals(propResult.proposals[i].neutrals.length) : setNeutrals(0)
-                    setCurrentNeutrals(propResult.proposals[i].neutrals)
+                      propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
+                      propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
+                      propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
+                      
                     
                     break
                   } else {

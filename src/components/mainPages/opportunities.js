@@ -159,15 +159,15 @@ export default function Opportunities(props) {
                         try{
           
                           
-                          let index = await thisContract.getProposalIndex({proposalId: parseInt(allOpportunities[j].opportunityId)})
-                            if (index != -1){
+                          let index = await thisContract.getProposal({proposalId: parseInt(allOpportunities[j].opportunityId)})
+                            if (index){
                                 exists = true
                             } else {
                                 exists = false
                             }
                           
                         } catch (err) {
-                            console.log('error getting proposal index', err)
+                            console.log('error getting proposal', err)
                             exists = false
                         }
                         if(exists){

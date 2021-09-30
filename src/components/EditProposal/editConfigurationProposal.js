@@ -63,6 +63,11 @@ export default function EditConfigurationProposalForm(props) {
     const [avatar, setAvatar] = useState(imageName)
     const [shortBio, setShortBio] = useState('')
 
+    
+    const [currentLikes, setCurrentLikes] = useState([])
+    const [currentDisLikes, setCurrentDisLikes] = useState([])
+    const [currentNeutrals, setCurrentNeutrals] = useState([])
+
     // Configuration Proposal Fields
     const [details, setDetails] = useState(EditorState.createEmpty())
 
@@ -114,6 +119,10 @@ export default function EditConfigurationProposalForm(props) {
                       } else {
                         setDetails(EditorState.createEmpty())
                       }
+                      propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
+                      propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
+                      propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
+                      
                   break
                   }
                   i++
@@ -166,7 +175,10 @@ export default function EditConfigurationProposalForm(props) {
           details: draftToHtml(convertToRaw(details.getCurrentContent())),
           proposer: proposer,
           submitDate: now,
-          published: true
+          published: true,
+          likes: currentLikes,
+          dislikes: currentDisLikes,
+          neutrals: currentNeutrals
       }
 
       // Update existing records

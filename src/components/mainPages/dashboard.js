@@ -527,15 +527,15 @@ export default function Dashboard(props) {
                         // confirm proposal exists
                         let exists
                         try{
-                            let index = await thisContract.getProposalIndex({proposalId: parseInt(allOpportunities[j].opportunityId)})
-                            if (index != -1){
+                            let index = await thisContract.getProposal({proposalId: parseInt(allOpportunities[j].opportunityId)})
+                            if (index){
                                 exists = true
                             } else {
                                 exists = false
                             }
                             console.log('opp exists', exists)
                         } catch (err) {
-                            console.log('error getting proposal index', err)
+                            console.log('error getting proposal', err)
                             exists = false
                         }
                         if(exists){

@@ -40,9 +40,11 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     });
 
     const isAccountTaken = async (accountId) => {
+        console.log('accountId near', accountId)
         const account = new nearAPI.Account(near.connection, accountId);
         try {
             await account.state()
+            console.log('account state', await account.state())
         } catch(e) {
             console.warn(e)
             if (/does not exist while viewing/.test(e.toString())) {
@@ -644,7 +646,7 @@ export async function submitProposal(
 
                 await daoContract.submitCommitmentProposal({
                     applicant: applicant,
-                    paymentRequested: paymentRequested,
+                    paymentRequested: parseNearAmount(paymentRequested),
                     paymentToken: depositToken,
                     referenceIds: references,
                     contractId: contractId
@@ -669,7 +671,7 @@ export async function submitProposal(
         case 'Opportunity':
             try{
                 await daoContract.submitOpportunityProposal({
-                    creator: applicant,
+                    applicant: applicant,
                     contractId: contractId
                     }, GAS, parseNearAmount(proposalDeposit))
                 } catch (err) {
@@ -723,6 +725,7 @@ export async function sponsorProposal(daoContract, contractId, proposalId, depos
 // Make a Donation
 export async function makeDonation(wallet, contractId, contributor, donation) {
     const daoContract = await dao.initDaoContract(wallet.account(), contractId)
+    
     const donationId = await daoContract.getDonationsLength()
     const depositToken = await daoContract.getDepositToken()
     try {
@@ -871,7 +874,7 @@ export async function leaveCommunity(daoContract, contractId, share, accountId, 
 
         // set trigger for new donation if share is not the total share
         if(share < entitlement){
-            const donationId = await daoContract.getDonationsLength()
+          const donationId = await daoContract.getDonationsLength()
             
             // set trigger for to log new proposal
             let newDonation = get(NEW_DONATION, [])
@@ -2597,7 +2600,7 @@ export async function logDonationEvent (curDaoIdx, daoContract, donationId, cont
 
     let donation
     try{
-        donation = await daoContract.getDonation({donationId: parseInt(donationId)})
+        donation = await daoContract.getDonation({donationId: donationId})
     } catch (err) {
         console.log('error retrieving donation for this id', err)
     }

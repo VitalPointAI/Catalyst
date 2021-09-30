@@ -60,6 +60,11 @@ export default function EditMemberProposalForm(props) {
     const [avatar, setAvatar] = useState(imageName)
     const [shortBio, setShortBio] = useState('')
 
+  
+    const [currentLikes, setCurrentLikes] = useState([])
+    const [currentDisLikes, setCurrentDisLikes] = useState([])
+    const [currentNeutrals, setCurrentNeutrals] = useState([])
+
     // Proposal Fields
     const [intro, setIntro] = useState(EditorState.createEmpty())
 
@@ -112,6 +117,10 @@ export default function EditMemberProposalForm(props) {
                       } else {
                         setIntro(EditorState.createEmpty())
                       }
+                      propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
+                      propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
+                      propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
+                      
                     break
                   }
                   i++
@@ -168,7 +177,10 @@ export default function EditMemberProposalForm(props) {
           proposalId: proposalId.toString(),
           intro: draftToHtml(convertToRaw(intro.getCurrentContent())),
           applicant: applicant,
-          updated: formattedDate
+          updated: formattedDate,
+          likes: currentLikes,
+          dislikes: currentDisLikes,
+          neutrals: currentNeutrals
       }
 
       // Update existing records
