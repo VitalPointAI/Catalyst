@@ -96,6 +96,7 @@ export default function ConfigurationProposalDetails(props) {
     const [currentProposalDeposit, setCurrentProposalDeposit] = useState()
     const [currentDilutionBound, setCurrentDilutionBound] = useState()
     const [currentVoteThreshold, setCurrentVoteThreshold] = useState()
+    const [currentPlatformPercent, setCurrentPlatformPercent] = useState()
 
     const classes = useStyles()
 
@@ -119,7 +120,7 @@ export default function ConfigurationProposalDetails(props) {
     } = props
 
     const thisPersona = new Persona()
-    
+
     useEffect(
         () => {
          
@@ -173,6 +174,7 @@ export default function ConfigurationProposalDetails(props) {
                 result[0][4] ? setCurrentProposalDeposit(formatNearAmount(result[0][4])) : setCurrentProposalDeposit('')
                 result[0][5] ? setCurrentDilutionBound(result[0][5]) : setCurrentDilutionBound('')
                 result[0][6] ? setCurrentVoteThreshold(result[0][6]) : setCurrentVoteThreshold('')
+                result[0][8] ? setCurrentPlatformPercent(formatNearAmount(result[0][8], 5)) : setCurrentPlatformPercent('')
               } catch (err) {
                 console.log('error retrieving current init settings', err)
               }
@@ -394,6 +396,19 @@ export default function ConfigurationProposalDetails(props) {
                                 backgroundColor: currentVoteThreshold != configuration[5] ? 'yellow' : ''
                               }}>
                                 {configuration.length > 0 ? configuration[5] : <CircularProgress />}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell component="th" scope="row">
+                                Platform Support
+                              </TableCell>
+                              <TableCell>
+                                {currentPlatformPercent ? currentPlatformPercent : <CircularProgress />}
+                              </TableCell>
+                              <TableCell style={{ 
+                                backgroundColor: currentPlatformPercent != configuration[6] ? 'yellow' : ''
+                              }}>
+                                {configuration.length > 0 ? configuration[6] : <CircularProgress />}
                               </TableCell>
                             </TableRow>
                                     

@@ -499,6 +499,7 @@ export async function initDao(wallet, contractId, periodDuration, votingPeriodLe
         let firstInit = get(DAO_FIRST_INIT, [])
         firstInit.push({contractId: contractId, shares: shares, init: true })
         set(DAO_FIRST_INIT, firstInit)
+        console.log('platform account', PLATFORM_SUPPORT_ACCOUNT)
        
         await daoContract.init({
             _approvedTokens: ['Ⓝ'],
@@ -510,7 +511,7 @@ export async function initDao(wallet, contractId, periodDuration, votingPeriodLe
             _voteThreshold: parseInt(voteThreshold),
             _shares: shares,
             _contribution: parseNearAmount(summonerContribution),
-            _platformSupportPercent: platformPercent,
+            _platformSupportPercent: parseNearAmount(platformPercent),
             _platformAccount: PLATFORM_SUPPORT_ACCOUNT,
             _contractId: contractId
         }, GAS, parseNearAmount(summonerContribution))
@@ -535,7 +536,8 @@ export async function changeDao(wallet, contractId, periodDuration, votingPeriod
             _proposalDeposit: parseNearAmount(proposalDeposit),
             _dilutionBound: parseInt(dilutionBound),
             _voteThreshold: parseInt(voteThreshold),
-            _platformPercent: platformPercent
+            _platformSupportPercent: parseNearAmount(platformPercent),
+            _platformAccount: PLATFORM_SUPPORT_ACCOUNT
         }, GAS)
 
     } catch (err) {
@@ -812,10 +814,18 @@ export async function processProposal(daoContract, contractId, proposalId, propo
         // set trigger for to log new proposal
         let newProcess = get(NEW_PROCESS, [])
         newProcess.push({contractId: contractId, proposalId: proposalId, new: true, type: proposalType})
-        set(NEW_PROCESS, newProcess)        
+        set(NEW_PROCESS, newProcess)
+
+        let proposal = await daoContract.getProposal({proposalId: proposalId})
+        let platformPercent = await daoContract.getPlatformPercentage()
+        let percentage = parseFloat(formatNearAmount(platformPercent, 5))
+        console.log('percentage', percentage)
+        let platformPayment = parseFloat(parseNearAmount(proposal.paymentRequested)) * percentage
+        console.log('platform payment', platformPayment)
 
         await daoContract.processProposal({
-            proposalId: proposalId
+            proposalId: proposalId,
+            platformPayment: parseNearAmount(platformPayment),
             }, GAS)
 
     } catch (err) {

@@ -29,6 +29,9 @@ import WarningConfirmation from '../Confirmation/warningConfirmation';
 import { formatNearAmount } from 'near-api-js/lib/utils/format'
 import { dao } from '../../utils/dao'
 import { ceramic } from '../../utils/ceramic'
+import { COMMUNITY_ARRIVAL } from '../../state/near'
+import { Steps, Hints } from "intro.js-react"
+
 
 import { NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE, NEW_DONATION, NEW_EXIT, 
   NEW_DELEGATION, WARNING_FLAG,NEW_REVOCATION, COMMUNITY_DELETE, NEW_DELETE, hasKey } from '../../state/near'
@@ -45,8 +48,6 @@ import CircularProgress from '@material-ui/core/CircularProgress'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
 import Card from '@material-ui/core/Card'
 import LinearProgress from '@material-ui/core/LinearProgress'
-import { COMMUNITY_ARRIVAL } from '../../state/near'
-import { Steps, Hints } from "intro.js-react"
 
 const axios = require('axios').default
 
@@ -691,6 +692,13 @@ export default function AppFramework(props) {
                         update('', { proposalDeposit: formatNearAmount(deposit) })
                       } catch (err) {
                         console.log('no proposal deposit yet')
+                      }
+
+                      try{
+                        let platformaccount = await daoContract.getPlatformAccount()
+                        console.log('platformAccount', platformaccount)
+                      } catch (err) {
+                        console.log('no platformaccount yet')
                       }
 
                       try {

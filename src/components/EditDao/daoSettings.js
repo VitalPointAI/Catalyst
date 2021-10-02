@@ -22,6 +22,9 @@ import TableContainer from '@material-ui/core/TableContainer'
 import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
 import Paper from '@material-ui/core/Paper'
+import Tooltip from '@material-ui/core/Tooltip'
+import Zoom from '@material-ui/core/Zoom'
+import InfoIcon from '@material-ui/icons/Info'
 
 import './daoSettings.css'
 
@@ -61,7 +64,7 @@ export default function EditInitSettings(props) {
     const [open, setOpen] = useState()
     const [appDBList, setAppDBList] = useState([])
     const [configureClicked, setConfigureClicked] = useState()
-    const [platformPercent, setPlatformPercent] = ('')
+    const [platformPercent, setPlatformPercent] = useState('')
     const [anchorEl, setAnchorEl] = useState(null)
 
     const classes = useStyles()
@@ -94,13 +97,14 @@ export default function EditInitSettings(props) {
             try {
               
                 let result = await contract.getInitSettings({})
+                console.log('dao settings result', result)
                 result[0][1] ? setPeriodDuration(result[0][1]) : setPeriodDuration('')
                 result[0][2] ? setVotingPeriodLength(result[0][2]) : setVotingPeriodLength('')
                 result[0][3] ? setGracePeriodLength(result[0][3]) : setGracePeriodLength('')
                 result[0][4] ? setProposalDeposit(formatNearAmount(result[0][4])) : setProposalDeposit('')
                 result[0][5] ? setDilutionBound(result[0][5]) : setDilutionBound('')
                 result[0][6] ? setVoteThreshold(result[0][6]) : setVoteThreshold('')
-                result[0][8] ? setPlatformPercent(result[0][8]) : setPlatformPercent('')
+                result[0][8] ? setPlatformPercent(formatNearAmount(result[0][8], 5)) : setPlatformPercent('')
 
                 initArray.push({
                   summonName: result[0][0],
@@ -111,7 +115,7 @@ export default function EditInitSettings(props) {
                   dilutionBound: result[0][5],
                   voteThreshold: result[0][6],
                   summonTime: result[0][7],
-                  platformPercent: result[0][8]
+                  platformPercent: formatNearAmount(result[0][8], 5)
                 })
               
                 setInitSettings(initArray)
@@ -130,7 +134,7 @@ export default function EditInitSettings(props) {
           
       }, [loaded]
     )
-
+console.log('init settings', initSettings)
     const handleReset = () => {
         initSettings[1] ? setPeriodDuration(initSettings[1]) : setPeriodDuration('')
         initSettings[2] ? setVotingPeriodLength(initSettings[2]) : setVotingPeriodLength('')
@@ -138,7 +142,7 @@ export default function EditInitSettings(props) {
         initSettings[4] ? setProposalDeposit(formatNearAmount(initSettings[4])) : setProposalDeposit('')
         initSettings[5] ? setDilutionBound(initSettings[5]) : setDilutionBound('')
         initSettings[6] ? setVoteThreshold(initSettings[6]) : setVoteThreshold('')
-        initSettings[8] ? setPlatformPercent(initSettings[8]) : setPlatformPercent('')
+        initSettings[7] ? setPlatformPercent(formatNearAmount(initSettings[7], 5)) : setPlatformPercent('')
     }
 
     const handlePeriodDurationChange = (event) => {
@@ -319,19 +323,14 @@ export default function EditInitSettings(props) {
                     />
 
                     <TextField
-                    fullWidth
-                    margin="dense"
                     id="platform-percent"
-                    required={true}
                     variant="outlined"
                     name="platformPercent"
                     label="Catalyst Support"
-                    placeholder="e.g. 0.5"
                     value={platformPercent}
                     onChange={handlePlatformPercentChange}
                     inputRef={register({
                         required: true,
-                        validate: value => value != '' || <p style={{color:'red'}}>You must specify a percent amount of each successful payout proposal that will go to support continued Catalyst development (even if 0)</p>
                     })}
                     InputProps={{
                       endAdornment: <><InputAdornment position="end">%</InputAdornment>
@@ -418,6 +417,14 @@ export default function EditInitSettings(props) {
                           </TableCell>
                           <TableCell>
                             {initSettings.length > 0 ? initSettings[0].voteThreshold : <CircularProgress />}
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell component="th" scope="row">
+                            Platform Support
+                          </TableCell>
+                          <TableCell>
+                            {initSettings.length > 0 ? initSettings[0].platformPercent : <CircularProgress />}
                           </TableCell>
                         </TableRow>
                                 
