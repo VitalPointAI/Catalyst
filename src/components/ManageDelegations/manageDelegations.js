@@ -90,11 +90,11 @@ export default function ManageDelegations(props) {
             try{
               if(parseInt(allMemberInfo[i].receivedDelegations) > 0){
                 let delegationInfo = await contract.getDelegationInfo({member: state.accountId, delegatee: allMemberInfo[i].delegateKey})
-               
-                if(delegationInfo.length > 0){
+                console.log('delegationInfo', delegationInfo)
+                if(delegationInfo && (Object.keys(delegationInfo).length > 0 || delegationInfo.length > 0)){
                   let delegations = {
-                    delegatedTo: delegationInfo[0][0],
-                    shares: delegationInfo[0][1]
+                    delegatedTo: delegationInfo.delegatedTo,
+                    shares: delegationInfo.shares
                   }
                   delegationArray.push(delegations)
                 }
@@ -152,8 +152,10 @@ export default function ManageDelegations(props) {
          
           <TableBody>
           {delegationInfo && delegationInfo.length > 0 ? (
-            delegationInfo.map((row) => (
-              <TableRow key={row.delegatedTo}>
+            delegationInfo.map((row) => {
+              console.log('delegation row', row)
+              return (
+                <TableRow key={row.delegatedTo}>
                 <TableCell component="th" scope="row">
                   {row.delegatedTo}
                 </TableCell>
@@ -164,8 +166,8 @@ export default function ManageDelegations(props) {
                   {parseInt(row.shares) > 0 ? <Button onClick={(e) => revokeVotes(row.delegatedTo, row.shares, e)}>Revoke</Button> : null }
                 </TableCell>
               </TableRow>
-            ))
-            
+              )
+            })            
           ) : null }            
           </TableBody>
         </Table>

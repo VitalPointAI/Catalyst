@@ -65,7 +65,8 @@ export default function Leave(props) {
     handleLeaveClickState,
     fairShare
    } = props
-
+console.log('fairshare', fairShare)
+console.log('share', share)
    useEffect(
     () => {
 
@@ -133,21 +134,26 @@ export default function Leave(props) {
          
           <Grid container>
           {currentMembers > 1 ? ( 
-            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-              <Typography variant="body1">Your current fair share of the fund is: <b>{fairShare} Ⓝ</b>.</Typography>
+            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
+              <Typography variant="body1">Your current fair share of the fund is:<br></br>
+              <b>{fairShare} yocto</b><br></br>
+              (~ {formatNearAmount(fairShare, 3)} Ⓝ)</Typography>
               <Typography variant="body1">That is the maximum you may leave with. If you choose to leave with less, 
               the difference will be donated to the community on your behalf.</Typography>
             </Grid>       
           ) : (
-            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-              <Typography variant="body1">As you are the last member, the remaining <b>{fairShare} Ⓝ</b> in the community 
-              fund will be sent to your account.</Typography>
+            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
+              <Typography variant="body1">As you are the last member, the remaining:<br></br>
+              <b>{fairShare} yocto</b><br></br>
+              (~ {formatNearAmount(fairShare, 3)} Ⓝ)<br></br>
+              in the community fund will be sent to your account.</Typography>
             </Grid>
           )}
           
             {currentMembers > 1 ? (
-              <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '20px'}}>
               <TextField
+                fullWidth
                 margin="dense"
                 id="share-donation"
                 variant="outlined"
@@ -160,8 +166,8 @@ export default function Leave(props) {
                     required: true,
                 })}
                 InputProps={{
-                  endAdornment: <><InputAdornment position="end">Ⓝ</InputAdornment>
-                  <Tooltip TransitionComponent={Zoom} title="The amount of NEAR up to their fair share the member is entitled to leave with.  
+                  endAdornment: <><InputAdornment position="end">yocto</InputAdornment>
+                  <Tooltip TransitionComponent={Zoom} title="The amount of yocto up to their fair share the member is entitled to leave with.  
                   Anything less than the current fair share will be donated on their behalf to the community fund. g to the community fund.">
                       <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
                   </Tooltip>
@@ -200,8 +206,8 @@ export default function Leave(props) {
                   <Grid item xs={10} sm={10} md={10} lg={10} xl={10} style={{margin:'auto'}}>
                       {currentMembers > 1 ? (<Typography variant="body2" gutterBottom>
                         You understand this request means you will no longer be a member of the community. You are 
-                        withdrawing <b>{(share ? share : 0)} Ⓝ</b> and you are donating <b>
-                        {share ? (parseFloat(fairShare)) - (parseFloat(share)) : 0}</b> Ⓝ to the community as you leave.
+                        withdrawing <b>{(share ? share : 0)} yocto (~ {formatNearAmount((share ? share : 0), 3)} Ⓝ)</b> and you are donating <b>
+                        {share ? (parseFloat(fairShare)) - (parseFloat(share)) : 0}</b> yocto (~{formatNearAmount((share ? (parseFloat(fairShare)) - (parseFloat(share)) : 0), 3)} Ⓝ) to the community as you leave.
                         </Typography>) : (
                           <Typography variant="body2" gutterBottom>
                             You understand this action is not reversible.

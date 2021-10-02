@@ -62,6 +62,7 @@ export default function Initialize(props) {
     const [voteThreshold, setVoteThreshold] = useState('')
     const [summonerContribution, setSummonerContribution] = useState('')
     const [shares, setShares] = useState('')
+    const [platformPercent, setPlatformPercent] = useState('')
 
     const [confirm, setConfirm] = useState(false)
     const [clicked, setClicked] = useState(false)
@@ -121,6 +122,10 @@ export default function Initialize(props) {
           setProposalDeposit(event.target.value)
       }
 
+      const handlePlatformPercentChange = (event) => {
+        setPlatformPercent(event.target.value)
+      }
+
       const handleVoteThresholdChange = (event) => {
         setVoteThreshold(event.target.value)
       }
@@ -150,7 +155,8 @@ export default function Initialize(props) {
             dilutionBound,
             voteThreshold,
             shares,
-            summonerContribution
+            summonerContribution,
+            platformPercent
             )
           setFinished(true)
         } catch (err) {
@@ -352,6 +358,30 @@ export default function Initialize(props) {
                 InputProps={{
                   endAdornment: <><InputAdornment position="end">Ⓝ</InputAdornment>
                   <Tooltip TransitionComponent={Zoom} title="The amount of Ⓝ the community creator is contributing. This will allocate 1 voting share per 1 Ⓝ contributed.">
+                      <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
+                  </Tooltip>
+                  </>
+                }}
+              />
+
+              <TextField
+                fullWidth
+                margin="dense"
+                id="platform-percent"
+                required={true}
+                variant="outlined"
+                name="platformPercent"
+                label="Catalyst Support"
+                placeholder="e.g. 0.5"
+                value={platformPercent}
+                onChange={handlePlatformPercentChange}
+                inputRef={register({
+                    required: true,
+                    validate: value => value != '' || <p style={{color:'red'}}>You must specify a percent amount of each successful payout proposal that will go to support continued Catalyst development (even if 0)</p>
+                })}
+                InputProps={{
+                  endAdornment: <><InputAdornment position="end">%</InputAdornment>
+                  <Tooltip TransitionComponent={Zoom} title="The percentage amount you are willing to send to the Catalyst development team that comes off each successful proposal payout.">
                       <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
                   </Tooltip>
                   </>

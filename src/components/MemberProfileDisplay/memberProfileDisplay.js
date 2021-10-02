@@ -142,7 +142,7 @@ export default function MemberProfileDisplay(props) {
                         if(result.personaSpecificSkillSet){
                           let personaSpecificSkillSetArray = []      
                           personaSpecificSkillSetArray.push(result.personaSpecificSkillSet)
-                          setpersonaSpecificSkillSet(personaSpecificSkillSetArray)
+                          setPersonaSpecificSkillSet(personaSpecificSkillSetArray)
                         }
                       }
             }         

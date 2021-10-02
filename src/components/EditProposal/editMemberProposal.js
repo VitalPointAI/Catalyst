@@ -222,7 +222,7 @@ export default function EditMemberProposalForm(props) {
                   
                   </DialogContentText>
                   <div><Avatar src={avatar} /></div>
-                  <Typography variant="h6">{name}</Typography>
+                  <Typography variant="h6">{name ? name : applicant}</Typography>
 
                   <Paper style={{padding: '5px'}}>
                   <Editor

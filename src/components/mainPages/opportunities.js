@@ -17,6 +17,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import Card from '@material-ui/core/Card'
+import { CircularProgress } from '@material-ui/core'
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -49,6 +50,7 @@ export default function Opportunities(props) {
     const [searchOpportunities, setSearchOpportunities] = useState([])
     const [recommendations, setRecommendations] = useState([])
     const [suitabilityScore, setSuitabilityScore] = useState()
+    const [finished, setFinished] = useState(false)
 
     const classes = useStyles()
 
@@ -68,8 +70,7 @@ export default function Opportunities(props) {
     useEffect(
         () => {
           async function fetchData() {
-            console.log('contractid', contractId)
-            console.log('accountId', accountId)
+            setFinished(false)
             if(didRegistryContract && near && contractId){
               let Persona = new Personas()
               let thisCurDaoIdx
@@ -112,53 +113,92 @@ export default function Opportunities(props) {
                   
                     // 3. For each opportunity, compare opportunity skillset requirements to persona skillsets and add to recommendations array if the same
                     // calculate a suitability percentage from skills required (true) (total skills possessed / total skills)
-                    let j = 0
+                    
                     
                     let developerSkillCount
                     let developerSkillMatch
                     let skillCount
                     let skillMatch
-                  
+                    let personaSkillCount
+                    let personaSkillMatch
+                    let personaSpecificSkillCount
+                    let personaSpecificSkillMatch
+                    let combinedOpportunitySkills = []
+
+                    // Get complete list of Persona Skills
+                    let combinedPersonaSkills = []
+                    if(currentPersona && Object.keys(currentPersona).length > 0){
+                    for (const [key, value] of Object.entries(currentPersona.developerSkillSet)){
+                      if(value){
+                        combinedPersonaSkills.push(key)
+                      }
+                    }
+                    for (const [key, value] of Object.entries(currentPersona.skillSet)){
+                      if(value){
+                        combinedPersonaSkills.push(key)
+                      }
+                    }
+                    if (currentPersona && currentPersona.personaSkills.length > 0){
+                      currentPersona.personaSkills.map((values, index) => {
+                        if(values.name){
+                          combinedPersonaSkills.push(values.name)
+                        }
+                      })
+                    }
+                    if (currentPersona && currentPersona.personaSpecificSkills.length > 0){
+                      currentPersona.personaSpecificSkills.map((values, index) => {
+                        if(values.name){
+                          combinedPersonaSkills.push(values.name)
+                        }
+                      })
+                    }
+                    console.log('combinedpersonaskills', combinedPersonaSkills)
+
+                    let j = 0
+
                     while (j < allOpportunities.length){
                         //reset counters for each iteration through loop
-                        developerSkillCount = 0
-                        developerSkillMatch = 0
-                        skillCount = 0
+
                         skillMatch = 0
 
                         for (const [key, value] of Object.entries(allOpportunities[j].desiredDeveloperSkillSet)){
-                         
-                          if(value && currentPersona.developerSkillSet){
-                                developerSkillCount++
-                                console.log('xz dev skill count', developerSkillCount)
-                                for (const [pkey, pvalue] of Object.entries(currentPersona.developerSkillSet)){
-                                    if(pkey == key && pvalue == value){
-                                        developerSkillMatch ++
-                                    }
-                                }
-                            }
+                          if(value){
+                            combinedOpportunitySkills.push(key)
+                          }
                         }
-                        console.log('xz allopps', allOpportunities)
                         for (const [key, value] of Object.entries(allOpportunities[j].desiredSkillSet)){
-                            
-                          if(value && currentPersona.skillSet){
-                                skillCount++
-                                for (const [pkey, pvalue] of Object.entries(currentPersona.skillSet)){
-                                  if(pkey == key && pvalue == value){
-                                        skillMatch++
-                                    }
-                                }
-                            }
+                          if(value){
+                            combinedOpportunitySkills.push(key)
+                          }
                         }
-                      
-                        let asuitabilityScore = ((skillMatch + developerSkillMatch)/(skillCount + developerSkillCount)*100).toFixed(0)
+                        if (allOpportunities && allOpportunities[j].opportunitySkills.length > 0){
+                         allOpportunities[j].opportunitySkills.map((values, index) => {
+                            if(values.name){
+                              combinedOpportunitySkills.push(values.name)
+                            }
+                          })
+                        }
+                        console.log('combinedopportunityskills', combinedOpportunitySkills)
+
+                        let k = 0
+                        while (k < combinedOpportunitySkills.length){
+                          let n = 0
+                          while (n < combinedPersonaSkills.length){
+                            if (combinedPersonaSkills[n] == combinedOpportunitySkills[k]){
+                              skillMatch++
+                            }
+                            n++
+                          }
+                          k++
+                        }
+
+                        let asuitabilityScore = ((skillMatch/combinedOpportunitySkills.length)*100).toFixed(0)
                         setSuitabilityScore(asuitabilityScore)
+
                         let thisContract = await dao.initDaoContract(state.wallet.account(), allOpportunities[j].contractId)
                           // confirm proposal exists
                         let exists
                         try{
-          
-                          
                           let index = await thisContract.getProposal({proposalId: parseInt(allOpportunities[j].opportunityId)})
                             if (index){
                                 exists = true
@@ -173,20 +213,21 @@ export default function Opportunities(props) {
                         if(exists){
                           let propFlags = await thisContract.getProposalFlags({proposalId: parseInt(allOpportunities[j].opportunityId)})
                           let status = getStatus(propFlags)
-                          currentRecommendations.push({opportunity: allOpportunities[j], status: status, skillMatch: skillMatch, developerSkillMatch: developerSkillMatch, skillCount: skillCount, developerSkillCount: developerSkillCount, suitabilityScore: asuitabilityScore})
+                          currentRecommendations.push({opportunity: allOpportunities[j], status: status, skillMatch: skillMatch, allSkills: combinedOpportunitySkills.length, suitabilityScore: asuitabilityScore})
                          }
                         j++
                     }
                     setRecommendations(currentRecommendations)
                     console.log('xz recommendations', currentRecommendations)
+                  }
             }
-
+            setFinished(true)
           }
           let mounted = true
           if(mounted){
             fetchData()
             .then((res) => {
-                           
+             
             })
           return() => mounted = false
           }
@@ -236,8 +277,8 @@ export default function Opportunities(props) {
               onChange={(e) => searchData(e.target.value)}
           />
           </Grid>
-          
-            {recommendations && recommendations.length > 0 ?
+          {finished ?
+            recommendations && recommendations.length > 0 ?
               recommendations.map((fr, i) => {
                 console.log('fr', fr)
                 if(fr.status == "Passed"){
@@ -255,10 +296,8 @@ export default function Opportunities(props) {
                     opportunityId={fr.opportunity.opportunityId}
                     opportunityStatus={fr.opportunity.status}
                     permission={fr.opportunity.permission}
-                    skillCount={fr.skillCount}
                     skillMatch={fr.skillMatch}
-                    developerSkillCount={fr.developerSkillCount}
-                    developerSkillMatch={fr.developerSkillMatch}
+                    allSkills={fr.allSkills}
                     suitabilityScore={fr.suitabilityScore}
                     deadline={fr.opportunity.deadline}
                     budget={fr.opportunity.budget}
@@ -266,9 +305,11 @@ export default function Opportunities(props) {
                 )} else {
                   return null
                 }
-              }) : <Card className={classes.card}>
-              <Typography variant="h5">No Opportunities Yet - Please Check Back Soon.</Typography>
-            </Card> }
+              }) 
+              : <Card className={classes.card}>
+                  <Typography variant="h5">No Opportunities Yet - Please Check Back Soon.</Typography>
+                </Card>
+          : <CircularProgress />}
           
         </Grid>
         </div>

@@ -323,7 +323,7 @@ export default function FundingProposalDetails(props) {
             }
           }
             return (
-                <div style={{backgroundColor: red}}>
+                <div style={{backgroundColor: 'red'}}>
                    {author != '' ? 
                         <Typography>
                         In reply to {author}{preview}

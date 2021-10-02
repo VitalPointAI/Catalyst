@@ -77,9 +77,6 @@ export const proposalSchema = {
         },
         "roles": {
           "type": "array",
-          "items": {
-            "type": "string"
-          }
         },
         "submitTransactionHash": {
           "type": "string",
@@ -95,15 +92,15 @@ export const proposalSchema = {
         },
         "configuration": {
           "type": "array",
-          "items": {
-            "type": "string"
-          }
         },
         "roleConfiguration": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "type": "object",
+        },
+        "reputationConfiguration": {
+          "type": "object",
+        },
+        "memberRoleConfiguration": {
+          "type": "object",
         },
         "referenceIds": {
           "type": "array",

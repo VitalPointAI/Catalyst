@@ -270,7 +270,7 @@ export default function MemberProposal(props) {
                               <Typography variant="body2">Applicant receives {loot ? parseInt(loot) : 0} non-voting shares.</Typography>
                             </li>
                             <li>
-                              <Typography variant="body2">Contribution of {tribute ? parseInt(tribute) : 0} Ⓝ goes into the community fund.</Typography>
+                              <Typography variant="body2">Contribution of {tribute ? parseFloat(tribute) : 0} Ⓝ goes into the community fund.</Typography>
                             </li>
                             <li>
                               <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you</Typography>

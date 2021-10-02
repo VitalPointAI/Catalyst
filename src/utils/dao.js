@@ -38,7 +38,8 @@ class DAO {
                 'getDonationsLength',
                 'getCurrentShare',
                 'getDelegationInfo',
-                'getNeededVotes'
+                'getNeededVotes',
+                'getRemainingDelegates'
             ],
             // Change methods can modify the state. But you don't receive the returned value when called.
             changeMethods: [

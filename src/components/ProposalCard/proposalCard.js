@@ -64,7 +64,7 @@ const useStyles = makeStyles((theme) => ({
       marginTop: '10px',
       maxWidth: '250px',
       minWidth: '250px',
-      height: '450px',
+      height: '490px',
       position: 'relative',
       margin: 'auto'
     },
@@ -102,6 +102,12 @@ const useStyles = makeStyles((theme) => ({
       textAlign: 'center',
       width: '100%',
       marginTop: '-20px',
+      padding: '5px'
+    },
+    memberInfoBox: {
+      textAlign: 'center',
+      width: '100%',
+      marginTop: '-60px',
       padding: '5px'
     },
     signals: {
@@ -163,9 +169,9 @@ export default function ProposalCard(props) {
     const[payoutTitle, setPayoutTitle] = useState('Payout Details')
 
     const [proposals, setProposals] = useState()
-    const [likes, setLikes] = useState(0)
-    const [dislikes, setDisLikes] = useState(0)
-    const [neutrals, setNeutrals] = useState(0)
+    const [currentLikes, setCurrentLikes] = useState([])
+    const [currentDisLikes, setCurrentDisLikes] = useState([])
+    const [currentNeutrals, setCurrentNeutrals] = useState([])
 
     const [isUpdated, setIsUpdated] = useState(false)
     const [detailsExist, setDetailsExist] = useState(false)
@@ -245,7 +251,7 @@ export default function ProposalCard(props) {
          
 
           async function fetchData() {
-            
+            isUpdated
             // Get Persona Information           
             if(applicant){
               const thisPersona = new Persona()
@@ -289,7 +295,7 @@ export default function ProposalCard(props) {
             }
 
             // Set Existing Member Proposal Data       
-            if(curDaoIdx){
+            if(curDaoIdx && proposalType=='Member'){
               let propResult = await curDaoIdx.get('memberProposalDetails', curDaoIdx.id)
               
               if(propResult) {
@@ -297,9 +303,9 @@ export default function ProposalCard(props) {
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == requestId){
                     propResult.proposals[i].intro ? setIntro(propResult.proposals[i].intro) : setIntro('')
-                    propResult.proposals[i].likes ? setLikes(propResult.proposals[i].likes.length) : setLikes(0)
-                    propResult.proposals[i].dislikes ? setDisLikes(propResult.proposals[i].dislikes.length) : setDisLikes(0)
-                    propResult.proposals[i].neutrals ? setNeutrals(propResult.proposals[i].neutrals.length) : setNeutrals(0)
+                    propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
+                    propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
+                    propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
                     setDetailsExist(true)
                     break
                   }
@@ -309,7 +315,7 @@ export default function ProposalCard(props) {
             }
             
             // Set Existing Funding Proposal Data       
-            if(curDaoIdx){
+            if(curDaoIdx && proposalType=='Commitment'){
              
               let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
          console.log('card propresult', propResult)
@@ -318,9 +324,9 @@ export default function ProposalCard(props) {
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == requestId){
                     propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
-                    propResult.proposals[i].likes ? setLikes(propResult.proposals[i].likes.length) : setLikes(0)
-                    propResult.proposals[i].dislikes ? setDisLikes(propResult.proposals[i].dislikes.length) : setDisLikes(0)
-                    propResult.proposals[i].neutrals ? setNeutrals(propResult.proposals[i].neutrals.length) : setNeutrals(0)
+                    propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
+                    propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
+                    propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
                     setDetailsExist(true)
                     break
                   }
@@ -330,7 +336,7 @@ export default function ProposalCard(props) {
             }
 
             // Set Existing Tribute Proposal Data       
-            if(curDaoIdx){
+            if(curDaoIdx && proposalType=='Tribute'){
               let propResult = await curDaoIdx.get('tributeProposalDetails', curDaoIdx.id)
           
               if(propResult) {
@@ -338,9 +344,9 @@ export default function ProposalCard(props) {
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == requestId){
                     propResult.proposals[i].title ? setTributeTitle(propResult.proposals[i].title) : setTributeTitle('')
-                    propResult.proposals[i].likes ? setLikes(propResult.proposals[i].likes.length) : setLikes(0)
-                    propResult.proposals[i].dislikes ? setDisLikes(propResult.proposals[i].dislikes.length) : setDisLikes(0)
-                    propResult.proposals[i].neutrals ? setNeutrals(propResult.proposals[i].neutrals.length) : setNeutrals(0)
+                    propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
+                    propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
+                    propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
                     setDetailsExist(true)
                     break
                   }
@@ -350,7 +356,7 @@ export default function ProposalCard(props) {
             }
 
             // Set Existing Opportunity Proposal Data       
-            if(curDaoIdx){
+            if(curDaoIdx && proposalType=='Opportunity'){
               let propResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
           
               if(propResult) {
@@ -358,9 +364,9 @@ export default function ProposalCard(props) {
                 while (i < propResult.opportunities.length){
                   if(propResult.opportunities[i].opportunityId == requestId){
                     propResult.opportunities[i].title ? setOpportunityTitle(propResult.opportunities[i].title) : setOpportunityTitle('')
-                    propResult.proposals[i].likes ? setLikes(propResult.proposals[i].likes.length) : setLikes(0)
-                    propResult.proposals[i].dislikes ? setDisLikes(propResult.proposals[i].dislikes.length) : setDisLikes(0)
-                    propResult.proposals[i].neutrals ? setNeutrals(propResult.proposals[i].neutrals.length) : setNeutrals(0)
+                    propResult.opportunities[i].likes ? setCurrentLikes(propResult.opportunities[i].likes) : setCurrentLikes([])
+                    propResult.opportunities[i].dislikes ? setCurrentDisLikes(propResult.opportunities[i].dislikes) : setCurrentDisLikes([])
+                    propResult.opportunities[i].neutrals ? setCurrentNeutrals(propResult.opportunities[i].neutrals) : setCurrentNeutrals([])
                     setDetailsExist(true)
                     break
                   }
@@ -370,7 +376,7 @@ export default function ProposalCard(props) {
             }
 
             // Set Existing Payout Proposal Data       
-             if(curDaoIdx){
+             if(curDaoIdx && proposalType=='Payout'){
               let propResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
            
               if(propResult) {
@@ -378,9 +384,9 @@ export default function ProposalCard(props) {
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == requestId){
                     propResult.proposals[i].title ? setPayoutTitle(propResult.proposals[i].title) : setPayoutTitle('')
-                    propResult.proposals[i].likes ? setLikes(propResult.proposals[i].likes.length) : setLikes(0)
-                    propResult.proposals[i].dislikes ? setDisLikes(propResult.proposals[i].dislikes.length) : setDisLikes(0)
-                    propResult.proposals[i].neutrals ? setNeutrals(propResult.proposals[i].neutrals.length) : setNeutrals(0)
+                    propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
+                    propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
+                    propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
                     setDetailsExist(true)
                     break
                   }
@@ -432,7 +438,7 @@ export default function ProposalCard(props) {
           return () => mounted = false
           }
           
-    }, [isUpdated, queueList, guildBalance, curDaoIdx, likes, dislikes, neutrals]
+    }, [isUpdated, queueList, guildBalance, curDaoIdx]
     )
 
     function handleUpdate(property){
@@ -563,8 +569,8 @@ export default function ProposalCard(props) {
       setAnchorEl(null)
     }
 
-    async function handleSignal(type){
-      await signal(requestId, type, curDaoIdx, accountId, proposalType)
+    async function handleSignal(sig){
+      await signal(requestId, sig, curDaoIdx, accountId, proposalType)
       handleUpdate(!isUpdated)
     }
 
@@ -1113,9 +1119,10 @@ export default function ProposalCard(props) {
                
             {proposalType == 'Member' ? (
               <Grid container alignItems="center" justifyContent="space-evenly" style={{marginBottom:'5px'}}>
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-20px', marginBottom: '40px'}}>
-                  <Typography variant="overline">Shares: {shares}</Typography><br></br>
-                  <Typography variant="overline">{`Tribute: ${formatNearAmount(tribute, 3)} Ⓝ`}</Typography>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-40px', marginBottom: '40px'}}>
+                  <Typography variant="overline">Voting Shares: {shares}</Typography><br></br>
+                  <Typography variant="overline">Non-Voting Shares: {loot ? loot : '0'}</Typography><br></br>
+                  <Typography variant="overline" style={{fontSize:'100%'}}>{`Tribute: ${formatNearAmount(tribute, 3)} Ⓝ`}</Typography>
                 </Grid>
               </Grid>
             ) : null }
@@ -1137,7 +1144,7 @@ export default function ProposalCard(props) {
                 </Grid>    
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
                   <Typography variant="overline" align="center" style={{marginBottom: '10px'}}>Funding Requested</Typography><br></br>
-                  <Typography variant="overline" align="center">{`${funding} Ⓝ`}</Typography>
+                  <Typography variant="overline" align="center" style={{fontSize:'100%'}}>{`${formatNearAmount(funding, 3)} Ⓝ`}</Typography>
                 </Grid>
               </Grid>
             ) : null}
@@ -1146,7 +1153,8 @@ export default function ProposalCard(props) {
               <Grid container alignItems="center" justifyContent="space-evenly" style={{marginBottom:'5px'}}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-20px'}}>
                   <Typography variant="overline">Shares: {shares}</Typography><br></br>
-                  <Typography variant="overline">{`Tribute: ${formatNearAmount(tribute, 3)} Ⓝ`}</Typography>
+                  <Typography variant="overline">Non-Voting Shares: {loot ? loot : '0'}</Typography><br></br>
+                  <Typography variant="overline" style={{fontSize:'100%'}}>{`Tribute: ${formatNearAmount(tribute, 3)} Ⓝ`}</Typography>
                 </Grid>
               </Grid>
             ) : null }
@@ -1158,7 +1166,7 @@ export default function ProposalCard(props) {
                 </Grid>    
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
                   <Typography variant="overline" align="center" style={{marginBottom: '10px'}}>Payout Requested</Typography><br></br>
-                  <Typography variant="overline" align="center">{`${funding} Ⓝ`}</Typography>
+                  <Typography variant="overline" align="center" style={{fontSize:'100%'}}>{`${formatNearAmount(funding, 3)} Ⓝ`}</Typography>
                 </Grid>
               </Grid>
             ) : null}
@@ -1168,28 +1176,30 @@ export default function ProposalCard(props) {
             </CardContent>
             <CardActions className={classes.cardAction}>
            
-             
-              <div className={classes.infoBox}>
+  
+              <div className={`${proposalType != 'Member' ? classes.infoBox : classes.memberInfoBox}`}>
+            
               {status == 'Submitted' && detailsExist ?
                 <Grid container spacing={1} alignItems="center" justifyContent="space-between" style={{marginTop: '10px', marginBottom: '10px'}}>
                 <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
-                <Badge badgeContent={likes} color="primary">  
+                <Badge badgeContent={currentLikes.length} color="primary" max={9999999}>  
                   <img src={likeImage} className={classes.signals} onClick={(e) => handleSignal('like')}/>
                 </Badge>
                 </Grid>
                 <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
-                <Badge badgeContent={neutrals} color="primary">  
+                <Badge badgeContent={currentNeutrals.length} color="primary" max={9999999}>  
                   <img src={neutralImage} className={classes.signals} onClick={(e) => handleSignal('neutral')}/>
                 </Badge>
                 </Grid>
                 <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
-                <Badge badgeContent={dislikes} color="primary">  
+                <Badge badgeContent={currentDisLikes.length} color="primary" max={9999999}>  
                   <img src={dislikeImage} className={classes.signals} onClick={(e) => handleSignal('dislike')}/>
                 </Badge>
                 </Grid>
                 </Grid>
                 : null }
-              {status != 'Passed' && status != 'Sponsored' && status != 'Not Passed' && parseFloat(parseNearAmount(funding)) >= parseFloat(guildBalance[0].balance) ? <Typography variant="subtitle2" display="block" align="center" style={{backgroundColor: 'red', color: 'white', padding: '2px', marginTop:'3px'}}>Funds Required</Typography> 
+              {status != 'Passed' && status != 'Sponsored' && status != 'Not Passed' && parseFloat(funding) >= parseFloat(guildBalance[0].balance) ? 
+                <Typography variant="subtitle2" display="block" align="center" style={{backgroundColor: 'red', color: 'white', padding: '2px', marginTop:'3px'}}>Funds Required</Typography> 
               : status == 'Submitted'  && detailsExist == false ? <Typography variant="subtitle2" display="block" align="center">Awaiting Details</Typography>
               : status == 'Submitted'  && detailsExist == true ? <Typography variant="subtitle2" display="block" align="center">Awaiting Sponsor</Typography> : null}
                  </div>
@@ -1198,7 +1208,7 @@ export default function ProposalCard(props) {
                
                 <Grid container alignItems="center" justifyContent="space-between" spacing={1} style={{position: 'absolute', bottom:'5px', right:'1px'}}>
                   <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="left">
-                     {done ? ( <StyledBadge badgeContent={yesVotes} color="primary">
+                     {done ? ( <StyledBadge badgeContent={yesVotes} color="primary" max={9999999}>
                         <IconButton onClick={(e) => handleVotingAction(requestId, 'yes')} disabled={voted}>
                           <ThumbUpIcon fontSize='small' color="primary" />
                         </IconButton>
@@ -1211,7 +1221,7 @@ export default function ProposalCard(props) {
                     </Typography>
                   </Grid>
                   <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="center" >
-                  {done ? ( <StyledBadge badgeContent={noVotes} color="secondary">
+                  {done ? ( <StyledBadge badgeContent={noVotes} color="secondary" max={9999999}>
                         <IconButton onClick={(e) => handleVotingAction(requestId, 'no')} disabled={voted}>
                           <ThumbDownIcon fontSize='small' color="secondary" />
                         </IconButton>
@@ -1247,7 +1257,7 @@ export default function ProposalCard(props) {
               {(status == 'Awaiting Finalization') ? (         
                 <Grid container alignItems="center" justifyContent="space-between" spacing={1}>
                   <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="left" >
-                    <StyledBadge badgeContent={yesVotes} color="primary">
+                    <StyledBadge badgeContent={yesVotes} color="primary" max={9999999}>
                       <IconButton onClick={(e) => handleVotingAction(requestId, 'yes')} disabled={true}>
                         <ThumbUpIcon fontSize='small' color="primary" />
                       </IconButton>
@@ -1259,7 +1269,7 @@ export default function ProposalCard(props) {
                     </Typography>
                   </Grid>
                   <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="center" >
-                    <StyledBadge badgeContent={noVotes} color="secondary">
+                    <StyledBadge badgeContent={noVotes} color="secondary" max={9999999}>
                       <IconButton onClick={(e) => handleVotingAction(requestId, 'no')} disabled={true}>
                         <ThumbDownIcon fontSize='small' color="secondary" />
                       </IconButton>
@@ -1271,7 +1281,7 @@ export default function ProposalCard(props) {
               {status == 'Passed' || status == 'Not Passed' ? (
                 <Grid container alignItems="center" justifyContent="space-between" spacing={0} style={{position: 'absolute', bottom:'5px', right:'1px'}} >
                   <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center" >
-                    <StyledBadge badgeContent={yesVotes} color="primary">
+                    <StyledBadge badgeContent={yesVotes} color="primary" max={9999999}>
                       <IconButton onClick={(e) => handleVotingAction(requestId, 'yes')} disabled={true}>
                         <ThumbUpIcon fontSize='small' color="primary" />
                       </IconButton>
@@ -1283,7 +1293,7 @@ export default function ProposalCard(props) {
                     </Typography>
                   </Grid>
                   <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center" >
-                    <StyledBadge badgeContent={noVotes} color="secondary">
+                    <StyledBadge badgeContent={noVotes} color="secondary" max={9999999}>
                       <IconButton onClick={(e) => handleVotingAction(requestId, 'no')} disabled={true}>
                         <ThumbDownIcon fontSize='small' color="secondary" />
                       </IconButton>

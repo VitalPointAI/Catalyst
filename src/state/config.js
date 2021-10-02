@@ -49,6 +49,7 @@ let config = {
     nameSuffix: '.testnet',
     factorySuffix: '.factory1.vitalpointai.testnet',
     contractName: 'testnet',
+    PLATFORM_SUPPORT_ACCOUNT: 'vitalpointai.testnet',
     didRegistryContractName: 'dids1.vitalpointai.testnet',
     factoryContractName: 'factory1.vitalpointai.testnet'
 }
@@ -61,18 +62,20 @@ if(process.env.ENV === 'localhost') {
   }
 }
 
-if (process.env.REACT_APP_ENV === 'prod') {
+if (process.env.ENV === 'prod') {
     config = {
         ...config,
         networkId: 'mainnet',
         nodeUrl: 'https://rpc.mainnet.near.org',
         walletUrl: 'https://wallet.near.org',
+        explorerUrl: 'https://explorer.mainnet.near.org',
         nameSuffix: '.near',
         factorySuffix: '.dao.cdao.near',
         contractName: 'near',
         didRegistryContractName: 'did.near',
         factoryContractName: 'dao.cdao.near',
         APP_OWNER_ACCOUNT: 'cdao.near',
+        PLATFORM_SUPPORT_ACCOUNT: 'vitalpointai.near',
         CERAMIC_API_URL: 'https://ceramic-node.vitalpointai.com',
     }
 }

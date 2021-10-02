@@ -281,13 +281,16 @@ async makeSeed(account){
     // const stringEncode = (str) => {
     //   return uint8arrays.fromString((str), 'base64pad')
     // }
+    let existingToken = get(AUTH_TOKEN, [])
+    if(!existingToken){
     let token = await axios.post(TOKEN_CALL, 
       {
       accountId: accountId
       }    
     )
     set(AUTH_TOKEN, token.data.token)
-    
+    }
+
     let authToken = get(AUTH_TOKEN, [])   
     let retrieveSeed = await axios.post(APPSEED_CALL, {
       // ...data
@@ -722,7 +725,7 @@ async makeSeed(account){
     const appDid = this.associateAppDID(APP_OWNER_ACCOUNT, contract, appClient)
 
   // uncomment below to change a definition
-  // let changed = await this.changeDefinition(APP_OWNER_ACCOUNT, 'profile', appClient, profileSchema, 'persona profiles', contract)
+  // let changed = await this.changeDefinition(APP_OWNER_ACCOUNT, 'proposals', appClient, proposalSchema, 'proposal events', contract)
   // let changed1 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'payoutProposalDetails', appClient, payoutProposalDetailsSchema, 'payout proposal details', contract)
   // let changed2 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'tributeProposalDetails', appClient, tributeProposalDetailsSchema, 'tribute proposal details', contract)
   // let changed3 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'configurationProposalDetails', appClient, configurationProposalDetailsSchema, 'configuration proposal details', contract)

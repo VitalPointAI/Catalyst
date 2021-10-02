@@ -61,6 +61,7 @@ export default function EditInitSettings(props) {
     const [open, setOpen] = useState()
     const [appDBList, setAppDBList] = useState([])
     const [configureClicked, setConfigureClicked] = useState()
+    const [platformPercent, setPlatformPercent] = ('')
     const [anchorEl, setAnchorEl] = useState(null)
 
     const classes = useStyles()
@@ -99,7 +100,7 @@ export default function EditInitSettings(props) {
                 result[0][4] ? setProposalDeposit(formatNearAmount(result[0][4])) : setProposalDeposit('')
                 result[0][5] ? setDilutionBound(result[0][5]) : setDilutionBound('')
                 result[0][6] ? setVoteThreshold(result[0][6]) : setVoteThreshold('')
-    
+                result[0][8] ? setPlatformPercent(result[0][8]) : setPlatformPercent('')
 
                 initArray.push({
                   summonName: result[0][0],
@@ -109,7 +110,8 @@ export default function EditInitSettings(props) {
                   proposalDeposit: formatNearAmount(result[0][4]),
                   dilutionBound: result[0][5],
                   voteThreshold: result[0][6],
-                  summonTime: result[0][7]
+                  summonTime: result[0][7],
+                  platformPercent: result[0][8]
                 })
               
                 setInitSettings(initArray)
@@ -136,6 +138,7 @@ export default function EditInitSettings(props) {
         initSettings[4] ? setProposalDeposit(formatNearAmount(initSettings[4])) : setProposalDeposit('')
         initSettings[5] ? setDilutionBound(initSettings[5]) : setDilutionBound('')
         initSettings[6] ? setVoteThreshold(initSettings[6]) : setVoteThreshold('')
+        initSettings[8] ? setPlatformPercent(initSettings[8]) : setPlatformPercent('')
     }
 
     const handlePeriodDurationChange = (event) => {
@@ -163,6 +166,10 @@ export default function EditInitSettings(props) {
         setDilutionBound(value)
     }
 
+    const handlePlatformPercentChange = (event) => {
+      setPlatformPercent(event.target.value)
+    }
+
     const handleVoteThresholdChange = (event) => {
       let value = event.target.value;
       setVoteThreshold(value)
@@ -180,7 +187,8 @@ export default function EditInitSettings(props) {
             gracePeriodLength,
             proposalDeposit,
             dilutionBound,
-            voteThreshold
+            voteThreshold,
+            platformPercent
           )
         } catch (err) {
           console.log('error', err)
@@ -189,43 +197,6 @@ export default function EditInitSettings(props) {
           handleClose()
         }
     }
-
-  //   const onDeleteSubmit = async (values) => {
-  //     setFinish(false)
-  //     let finished
-
-  //     try {
-  //     let accountName = accountId.split('.')
-  //     console.log('accountName', accountName[0])
-  //     let name = accountName[0]
-  //     if(hasDao){
-  //         // create Fleet for account
-  //        finished = await contract.deleteDAO({
-  //             name: name,
-  //             beneficiary: accountId
-  //         }, GAS)
-  //         console.log('finished', finished)
-  //         if(finished) {
-  //             await handleHasDao(false)
-             
-  //         } else {
-  //             console.log('error deleting Fleet Dao')
-             
-  //             setFinished(true)
-  //             handleEditSettingsClick()
-  //         }
-  //     }
-  //     } catch (err) {
-  //     console.log('error deleting fleet dao', err)
-     
-  //     setFinish(true)
-  //     handleEditSettingsClick()
-  //     }
-  //     if(finished) {
-  //         setFinish(true)
-  //         handleEditSettingsClick()
-  //     }
-  // }
 
   const handleConfigureClick = () => {
     handleExpanded()
@@ -346,6 +317,30 @@ export default function EditInitSettings(props) {
                       endAdornment: <InputAdornment position="end">%</InputAdornment>,
                       }}
                     />
+
+                    <TextField
+                    fullWidth
+                    margin="dense"
+                    id="platform-percent"
+                    required={true}
+                    variant="outlined"
+                    name="platformPercent"
+                    label="Catalyst Support"
+                    placeholder="e.g. 0.5"
+                    value={platformPercent}
+                    onChange={handlePlatformPercentChange}
+                    inputRef={register({
+                        required: true,
+                        validate: value => value != '' || <p style={{color:'red'}}>You must specify a percent amount of each successful payout proposal that will go to support continued Catalyst development (even if 0)</p>
+                    })}
+                    InputProps={{
+                      endAdornment: <><InputAdornment position="end">%</InputAdornment>
+                      <Tooltip TransitionComponent={Zoom} title="The percentage amount you are willing to send to the Catalyst development team that comes off each successful proposal payout.">
+                          <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
+                      </Tooltip>
+                      </>
+                    }}
+                  />
 
                   <Button variant="contained" color="primary" type="submit" onClick={handleSubmit(onSubmit)}>
                         Submit

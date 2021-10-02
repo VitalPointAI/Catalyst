@@ -116,7 +116,8 @@ export default function Delegation(props) {
       <Dialog open={open} aria-labelledby="form-dialog-title">
         <DialogTitle id="form-dialog-title">Delegate Votes</DialogTitle>
         <DialogContent className={classes.rootForm}>
-        <Typography variant="body1">You can delegate up to {maxDelegation} votes.</Typography>
+        <Typography variant="body1">You can delegate up to {maxDelegation} votes to a maximum of 10 personas.</Typography>
+        <Typography variant="body1">You can still delegate to {remainingDelegates} personas.</Typography>
           <div>
             <TextField
                 autoFocus

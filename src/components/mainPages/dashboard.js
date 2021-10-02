@@ -480,45 +480,121 @@ export default function Dashboard(props) {
 
                     // 3. Initialize recommendations array
                     let currentRecommendations = []
-                  
+
                     // 3. For each opportunity, compare opportunity skillset requirements to persona skillsets and add to recommendations array if the same
                     // calculate a suitability percentage from skills required (true) (total skills possessed / total skills)
+                    
+                    let skillMatch
+                    let combinedOpportunitySkills = []
+
+                    // Get complete list of Persona Skills
+                    let combinedPersonaSkills = []
+                    if(currentPersona && Object.keys(currentPersona).length > 0){
+                    for (const [key, value] of Object.entries(currentPersona.developerSkillSet)){
+                      if(value){
+                        combinedPersonaSkills.push(key)
+                      }
+                    }
+                    for (const [key, value] of Object.entries(currentPersona.skillSet)){
+                      if(value){
+                        combinedPersonaSkills.push(key)
+                      }
+                    }
+                    if (currentPersona && currentPersona.personaSkills.length > 0){
+                      currentPersona.personaSkills.map((values, index) => {
+                        if(values.name){
+                          combinedPersonaSkills.push(values.name)
+                        }
+                      })
+                    }
+                    if (currentPersona && currentPersona.personaSpecificSkills.length > 0){
+                      currentPersona.personaSpecificSkills.map((values, index) => {
+                        if(values.name){
+                          combinedPersonaSkills.push(values.name)
+                        }
+                      })
+                    }
+                    console.log('combinedpersonaskills', combinedPersonaSkills)
+
                     let j = 0
-                   
+
                     while (j < allOpportunities.length){
-                      
-                        let developerSkillCount = 0
-                        let developerSkillMatch = 0
-                        let skillCount = 0
-                        let skillMatch = 0
+                        //reset counters for each iteration through loop
+
+                        skillMatch = 0
 
                         for (const [key, value] of Object.entries(allOpportunities[j].desiredDeveloperSkillSet)){
-                            if(value && currentPersona.developerSkillSet){
-                                developerSkillCount++
-                                if(currentPersona.developerSkillSet){
-                                    for (const [pkey, pvalue] of Object.entries(currentPersona.developerSkillSet)){
-                                        if(pkey == key && pvalue == value){
-                                            developerSkillMatch ++
-                                        }
-                                    }
-                                }
-                            }
+                          if(value){
+                            combinedOpportunitySkills.push(key)
+                          }
                         }
                         for (const [key, value] of Object.entries(allOpportunities[j].desiredSkillSet)){
-                            if(value && currentPersona.skillSet){
-                                skillCount++
-                                if(currentPersona.skillSet){
-                                    for (const [pkey, pvalue] of Object.entries(currentPersona.skillSet)){
-                                        if(pkey == key && pvalue == value){
-                                            skillMatch++
-                                        }
-                                    }
-                                }
-                            }
+                          if(value){
+                            combinedOpportunitySkills.push(key)
+                          }
                         }
+                        if (allOpportunities && allOpportunities[j].opportunitySkills.length > 0){
+                         allOpportunities[j].opportunitySkills.map((values, index) => {
+                            if(values.name){
+                              combinedOpportunitySkills.push(values.name)
+                            }
+                          })
+                        }
+                        console.log('combinedopportunityskills', combinedOpportunitySkills)
+
+                        let k = 0
+                        while (k < combinedOpportunitySkills.length){
+                          let n = 0
+                          while (n < combinedPersonaSkills.length){
+                            if (combinedPersonaSkills[n] == combinedOpportunitySkills[k]){
+                              skillMatch++
+                            }
+                            n++
+                          }
+                          k++
+                        }
+
+                        let asuitabilityScore = ((skillMatch/combinedOpportunitySkills.length)*100).toFixed(0)
+                   //     setSuitabilityScore(asuitabilityScore)
+                  
+                    // // 3. For each opportunity, compare opportunity skillset requirements to persona skillsets and add to recommendations array if the same
+                    // // calculate a suitability percentage from skills required (true) (total skills possessed / total skills)
+                    // let j = 0
+                   
+                    // while (j < allOpportunities.length){
+                      
+                    //     let developerSkillCount = 0
+                    //     let developerSkillMatch = 0
+                    //     let skillCount = 0
+                    //     let skillMatch = 0
+
+                    //     for (const [key, value] of Object.entries(allOpportunities[j].desiredDeveloperSkillSet)){
+                    //         if(value && currentPersona.developerSkillSet){
+                    //             developerSkillCount++
+                    //             if(currentPersona.developerSkillSet){
+                    //                 for (const [pkey, pvalue] of Object.entries(currentPersona.developerSkillSet)){
+                    //                     if(pkey == key && pvalue == value){
+                    //                         developerSkillMatch ++
+                    //                     }
+                    //                 }
+                    //             }
+                    //         }
+                    //     }
+                    //     for (const [key, value] of Object.entries(allOpportunities[j].desiredSkillSet)){
+                    //         if(value && currentPersona.skillSet){
+                    //             skillCount++
+                    //             if(currentPersona.skillSet){
+                    //                 for (const [pkey, pvalue] of Object.entries(currentPersona.skillSet)){
+                    //                     if(pkey == key && pvalue == value){
+                    //                         skillMatch++
+                    //                     }
+                    //                 }
+                    //             }
+                    //         }
+                    //     }
                        
-                        let asuitabilityScore = parseInt(((skillMatch + developerSkillMatch)/(skillCount + developerSkillCount)*100).toFixed(0))
-                        if (!asuitabilityScore){
+                    //     let asuitabilityScore = parseInt(((skillMatch + developerSkillMatch)/(skillCount + developerSkillCount)*100).toFixed(0))
+                         if (!asuitabilityScore){
                             asuitabilityScore = 0
                         }
                         setSuitabilityScore(asuitabilityScore)
@@ -553,9 +629,7 @@ export default function Dashboard(props) {
                                     communityPurpose: result.purpose,
                                     baseReward: parseInt(allOpportunities[j].reward), 
                                     skillMatch: skillMatch, 
-                                    developerSkillMatch: developerSkillMatch, 
-                                    skillCount: skillCount, 
-                                    developerSkillCount: developerSkillCount, 
+                                    allSkills: combinedOpportunitySkills.length,
                                     suitabilityScore: asuitabilityScore})
                             }
                         }
@@ -566,6 +640,7 @@ export default function Dashboard(props) {
                     setRecommendationsLoaded(true)
                     console.log('recommendations', currentRecommendations)
             }
+        }
         
         let mounted = true
         if(mounted){

@@ -122,6 +122,7 @@ export default function AppFramework(props) {
     const [essentialsInitialized, setEssentialsInitialized] = useState(false)
     const [triggerSteps, setStepsTriggered] = useState(0)
     const [loaded, setLoaded] = useState(false)
+    const [remainingDelegates, setRemainingDelegates] = useState()
     const classes = useStyles()
 
     const {
@@ -695,10 +696,18 @@ export default function AppFramework(props) {
                       try {
                         let thisCurrentShare = await daoContract.getCurrentShare({member: accountId})
                         console.log('this current share', thisCurrentShare)
-                        setCurrentShare(formatNearAmount(thisCurrentShare, 3))
+                        setCurrentShare(thisCurrentShare)
                         setFairShareLabel('Current Share: ' + formatNearAmount(thisCurrentShare, 3) + 'Ⓝ')
                       } catch (err) {
                         console.log('no current share yet')
+                      }
+
+                      try{
+                        let delegates = await daoContract.getRemainingDelegates({member: accountId})
+                        console.log('remaining delegates', delegates)
+                        setRemainingDelegates(delegates)
+                      } catch (err) {
+                        console.log('no remaining delegates info yet')
                       }
           
                       try {
@@ -988,7 +997,8 @@ export default function AppFramework(props) {
           <Divider variant="middle" align="center" style={{width:'75%', margin: 'auto'}}/>
 
           <Grid container justifyContent="space-evenly" alignItems="center" spacing={1} >
-            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
+            {loaded ?
               <ProposalList
                 returnFunction={handleReturn}
                 enable={tabTutorialEnabled}
@@ -1026,7 +1036,9 @@ export default function AppFramework(props) {
                 appClient={appClient}
                 notificationIndicator = {notificationIndicator}
                 loaded={loaded}
+                remainingDelegates={remainingDelegates}
               />
+              : <div style={{margin: 'auto', width: '200px'}}><CircularProgress /></div>}
             </Grid>
           </Grid>
           </>

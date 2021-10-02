@@ -76,6 +76,7 @@ export default function MemberCard(props) {
     const {
       accountName, 
       shares,
+      loot,
       delegatedShares,
       receivedDelegations,
       currentMemberInfo,
@@ -100,7 +101,7 @@ export default function MemberCard(props) {
           if(contract && parseInt(receivedDelegations) > 0){
             try{
               let delegationInfo = await contract.getDelegationInfo({member: state.accountId, delegatee: accountName})
-              setCurUserDelegatedTo(delegationInfo[0][1])
+              setCurUserDelegatedTo(delegationInfo.shares)
             } catch (err) {
               console.log('error retrieving delegation info', err)
             }
@@ -214,7 +215,8 @@ export default function MemberCard(props) {
                 <TableBody>
                 <TableRow>
                   <TableCell component="th" scope="row" colSpan={2} align="center">
-                   <Typography variant="overline">Shares: <b>{shares}</b></Typography>
+                   <Typography variant="overline">Voting Shares: <b>{shares}</b></Typography><br></br>
+                   <Typography variant="overline">Non-Voting Shares: <b>{loot ? loot : '0'}</b></Typography>
                   </TableCell>
                 </TableRow>
                
@@ -247,7 +249,7 @@ export default function MemberCard(props) {
           <CardActions style={{marginTop: '-40px'}}>
           <>
           {accountId != accountName && currentMemberInfo && currentMemberInfo.length > 0 && currentMemberInfo[0].active ? (
-            <Badge color="secondary" badgeContent={curUserDelegatedTo}>
+            <Badge color="secondary" badgeContent={curUserDelegatedTo} max={9999999}>
               <Button
               color="primary"
               onClick={handleDelegationClick}>

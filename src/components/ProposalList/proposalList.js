@@ -42,7 +42,7 @@ const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
     flexWrap: 'wrap',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
     backgroundColor: theme.palette.background.paper,
     marginBottom: '5px',
   },
@@ -145,6 +145,7 @@ export default function ProposalList(props) {
     currentMemberInfo,
     guildBalance,
     loaded,
+    remainingDelegates,
 
     tabValue,
     handleTabValueState,
@@ -186,15 +187,30 @@ export default function ProposalList(props) {
     async function fetchData() {
       let i = 0
       let result
+      let didVote = false
       while (i < proposalEvents.length) {
+        // let status = await getStatus(proposalEvents[i].flags)
+
+        // if (status == 'Sponsored' || status == 'Not Passed'){
           try{
             result = await getUserVote(proposalEvents[i].proposalId)
+            console.log('proposal: ' + proposalEvents[i].proposalId + 'vote result: ' + result)
+            proposalEvents[i].vote = result
+            if (result == 'yes' || result == 'no'){
+              didVote = true
+            } else {
+              didVote = false
+            }
           } catch (err) {
             console.log('problem getting user vote', err)
+            didVote = false
           }
-          proposalEvents[i].vote = result
-          proposalEvents[i].voted = result == 'yes' || result == 'no'? true : false
-          i++
+    
+      //  }
+        
+        console.log('didVote', didVote)
+        proposalEvents[i].voted = didVote
+        i++
       }
       currentPeriod
       if(curDaoIdx){
@@ -503,10 +519,14 @@ function typeFilter(item){
             vote: fr.vote,
             referenceIds: fr.referenceIds,
             configuration: fr.configuration,
-            submitTransactionHash: currentStreamProposal.submitTransactionHash,
-            cancelTransactionHash: currentStreamProposal.cancelTransactionHash,
-            processTransactionHash: currentStreamProposal.processTransactionHash,
-            sponsorTransactionHash: currentStreamProposal.sponsorTransactionHash
+            roleConfiguation: fr.roleConfiguation,
+            reputationConfiguration: fr.reputationConfiguration,
+            roles: fr.roleNames,
+            memberRoleConfiguration: fr.memberRoleConfiguration,
+            submitTransactionHash: currentStreamProposal && currentStreamProposal.submitTransactionHash ? currentStreamProposal.submitTransactionHash : '',
+            cancelTransactionHash: currentStreamProposal && currentStreamProposal.cancelTransactionHash ? currentStreamProposal.cancelTransactionHash : '',
+            processTransactionHash: currentStreamProposal && currentStreamProposal.processTransactionHash ? currentStreamProposal.processTransactionHash : '',
+            sponsorTransactionHash: currentStreamProposal && currentStreamProposal.sponsorTransactionHash ? currentStreamProposal.sponsorTransactionHash : ''
           }])
         }
 
@@ -540,10 +560,14 @@ function typeFilter(item){
             vote: fr.vote,
             referenceIds: fr.referenceIds,
             configuration: fr.configuration,
-            submitTransactionHash: currentStreamProposal.submitTransactionHash,
-            cancelTransactionHash: currentStreamProposal.cancelTransactionHash,
-            processTransactionHash: currentStreamProposal.processTransactionHash,
-            sponsorTransactionHash: currentStreamProposal.sponsorTransactionHash
+            roleConfiguation: fr.roleConfiguation,
+            reputationConfiguration: fr.reputationConfiguration,
+            roles: fr.roleNames,
+            memberRoleConfiguration: fr.memberRoleConfiguration,
+            submitTransactionHash: currentStreamProposal && currentStreamProposal.submitTransactionHash ? currentStreamProposal.submitTransactionHash : '',
+            cancelTransactionHash: currentStreamProposal && currentStreamProposal.cancelTransactionHash ? currentStreamProposal.cancelTransactionHash : '',
+            processTransactionHash: currentStreamProposal && currentStreamProposal.processTransactionHash ? currentStreamProposal.processTransactionHash : '',
+            sponsorTransactionHash: currentStreamProposal && currentStreamProposal.sponsorTransactionHash ? currentStreamProposal.sponsorTransactionHash : ''
           }])
         }
 
@@ -579,10 +603,14 @@ function typeFilter(item){
             vote: fr.vote,
             referenceIds: fr.referenceIds,
             configuration: fr.configuration,
-            submitTransactionHash: currentStreamProposal.submitTransactionHash,
-            cancelTransactionHash: currentStreamProposal.cancelTransactionHash,
-            processTransactionHash: currentStreamProposal.processTransactionHash,
-            sponsorTransactionHash: currentStreamProposal.sponsorTransactionHash
+            roleConfiguation: fr.roleConfiguation,
+            reputationConfiguration: fr.reputationConfiguration,
+            roles: fr.roleNames,
+            memberRoleConfiguration: fr.memberRoleConfiguration,
+            submitTransactionHash: currentStreamProposal && currentStreamProposal.submitTransactionHash ? currentStreamProposal.submitTransactionHash : '',
+            cancelTransactionHash: currentStreamProposal && currentStreamProposal.cancelTransactionHash ? currentStreamProposal.cancelTransactionHash : '',
+            processTransactionHash: currentStreamProposal && currentStreamProposal.processTransactionHash ? currentStreamProposal.processTransactionHash : '',
+            sponsorTransactionHash: currentStreamProposal && currentStreamProposal.sponsorTransactionHash ? currentStreamProposal.sponsorTransactionHash : ''
           })
         }
 
@@ -616,10 +644,14 @@ function typeFilter(item){
             vote: fr.vote,
             referenceIds: fr.referenceIds,
             configuration: fr.configuration,
-            submitTransactionHash: currentStreamProposal.submitTransactionHash,
-            cancelTransactionHash: currentStreamProposal.cancelTransactionHash,
-            processTransactionHash: currentStreamProposal.processTransactionHash,
-            sponsorTransactionHash: currentStreamProposal.sponsorTransactionHash
+            roleConfiguation: fr.roleConfiguation,
+            reputationConfiguration: fr.reputationConfiguration,
+            roles: fr.roleNames,
+            memberRoleConfiguration: fr.memberRoleConfiguration,
+            submitTransactionHash: currentStreamProposal && currentStreamProposal.submitTransactionHash ? currentStreamProposal.submitTransactionHash : '',
+            cancelTransactionHash: currentStreamProposal && currentStreamProposal.cancelTransactionHash ? currentStreamProposal.cancelTransactionHash : '',
+            processTransactionHash: currentStreamProposal && currentStreamProposal.processTransactionHash ? currentStreamProposal.processTransactionHash : '',
+            sponsorTransactionHash: currentStreamProposal && currentStreamProposal.sponsorTransactionHash ? currentStreamProposal.sponsorTransactionHash : ''
           }])
         }
       }) 
@@ -660,6 +692,7 @@ function typeFilter(item){
           accountId={accountId}
           accountName={fr.delegateKey}
           shares={fr.shares}
+          loot={fr.loot}
           delegatedShares={fr.delegatedShares}
           receivedDelegations={fr.receivedDelegations}
           memberCount={memberCount}
@@ -677,6 +710,7 @@ function typeFilter(item){
           active={fr.active}
           totalShares={totalShares}
           currentMemberInfo={currentMemberInfo}
+          remainingDelegates={remainingDelegates}
         />
       )
     })
@@ -1037,7 +1071,7 @@ function typeFilter(item){
         <Tab 
           className='members'
           icon={     
-            <StyledBadge badgeContent={memberCount} color="primary">
+            <StyledBadge badgeContent={memberCount} color="primary" max={9999999}>
               <PeopleAltIcon fontSize='large'/>
             </StyledBadge>
           } 
@@ -1047,7 +1081,7 @@ function typeFilter(item){
         <Tab 
           className='proposals'
           icon={
-            <StyledBadge badgeContent={proposalCount} color="primary">
+            <StyledBadge badgeContent={proposalCount} color="primary" max={9999999}>
               <ListAltIcon fontSize='large'/>
             </StyledBadge>
           } 
@@ -1057,7 +1091,7 @@ function typeFilter(item){
         <Tab 
           className='voting'
           icon={
-            <StyledBadge badgeContent={voteCount} color="primary">
+            <StyledBadge badgeContent={voteCount} color="primary" max={9999999}>
               <HowToVoteIcon fontSize='large'/>
             </StyledBadge>
           } 
@@ -1067,7 +1101,7 @@ function typeFilter(item){
         <Tab 
           className='finalization'
           icon={
-            <StyledBadge badgeContent={queueCount} color="primary">
+            <StyledBadge badgeContent={queueCount} color="primary" max={9999999}>
               <QueueIcon fontSize='large'/>
             </StyledBadge>
           } 
@@ -1077,7 +1111,7 @@ function typeFilter(item){
         <Tab
           className='processed'
           icon={
-            <StyledBadge badgeContent={processedCount} color="primary">
+            <StyledBadge badgeContent={processedCount} color="primary" max={9999999}>
               <AssignmentTurnedInIcon fontSize='large'/>
             </StyledBadge>
           }
@@ -1097,7 +1131,7 @@ function typeFilter(item){
         >
         <Tab 
           icon={     
-            <StyledBadge badgeContent={memberCount} color="primary">
+            <StyledBadge badgeContent={memberCount} color="primary" max={9999999}>
               <PeopleAltIcon fontSize='small'/>
             </StyledBadge>
           } 
@@ -1106,7 +1140,7 @@ function typeFilter(item){
         />
         <Tab 
           icon={
-            <StyledBadge badgeContent={proposalCount} color="primary">
+            <StyledBadge badgeContent={proposalCount} color="primary" max={9999999}>
               <ListAltIcon fontSize='small'/>
             </StyledBadge>
           } 
@@ -1115,7 +1149,7 @@ function typeFilter(item){
         />
         <Tab 
           icon={
-            <StyledBadge badgeContent={voteCount} color="primary">
+            <StyledBadge badgeContent={voteCount} color="primary" max={9999999}>
               <HowToVoteIcon fontSize='small'/>
             </StyledBadge>
           } 
@@ -1124,7 +1158,7 @@ function typeFilter(item){
         />
         <Tab 
           icon={
-            <StyledBadge badgeContent={queueCount} color="primary">
+            <StyledBadge badgeContent={queueCount} color="primary" max={9999999}>
               <QueueIcon fontSize='small'/>
             </StyledBadge>
           } 
@@ -1133,7 +1167,7 @@ function typeFilter(item){
         />
         <Tab
           icon={
-            <StyledBadge badgeContent={processedCount} color="primary">
+            <StyledBadge badgeContent={processedCount} color="primary" max={9999999}>
               <AssignmentTurnedInIcon fontSize='small'/>
             </StyledBadge>
           }
@@ -1145,6 +1179,8 @@ function typeFilter(item){
      
     </Paper>
     <TabContext value={tabValue}>
+    {loaded ?
+      <>
       <TabPanel value="1" >
       <Grid container alignItems="center" justifyContent="space-between" spacing={3} style={{padding: '20px'}} >
       { membersArray && membersArray.length > 0 ? 
@@ -1184,6 +1220,7 @@ function typeFilter(item){
                     currentMemberInfo={currentMemberInfo}
                     contract={contract}
                     allMemberInfo={allMemberInfo}
+                    remainingDelegates={remainingDelegates}
                   />
                 ) 
               )}
@@ -1318,6 +1355,10 @@ function typeFilter(item){
         {Processed}
         </Grid>
       </TabPanel>
+      </>
+      : <div style={{margin: 'auto', width:'200px', marginTop:'20px'}}>
+          <CircularProgress />
+      </div>}
     </TabContext>
 
        

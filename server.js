@@ -81,6 +81,14 @@ app.post('/token', cors(), async (req, res) => {
   });
 });
 
+app.get('/testnet/*', cors(), function (req, res) {
+  // res.setHeader(
+  //   'Content-Security-Policy-Report-Only',
+  //   "default-src 'self'; font-src 'self'; img-src 'self'; script-src 'self'; style-src 'self'; frame-src 'self'"
+  // );
+  res.sendFile(path.join(__dirname, 'test', 'index.html'));
+});
+
 app.get('/*', cors(), function (req, res) {
   // res.setHeader(
   //   'Content-Security-Policy-Report-Only',

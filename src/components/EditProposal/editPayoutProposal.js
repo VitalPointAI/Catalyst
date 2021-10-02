@@ -304,9 +304,11 @@ export default function EditPayoutProposalForm(props) {
               <DialogTitle id="form-dialog-title">Payout Proposal Details</DialogTitle>
               <DialogContent>
                  
-                  {milestones && milestones.length > 0 ? Milestones : null}
+                  {referenceIds && referenceIds.length > 0 ?
+                    milestones && milestones.length > 0 ? Milestones : null
+                  : null }
                   
-                  {title == '' ? (
+                  {referenceIds && referenceIds.length == 0 ? (
                   <TextField
                       autoFocus
                       margin="dense"
@@ -324,7 +326,7 @@ export default function EditPayoutProposalForm(props) {
                   ) : null }
                   {errors.payoutProposalTitle && <p style={{color: 'red'}}>You must provide a payout proposal title.</p>}
                  
-                  <Typography variant="h6">Please provide proof of work completion:</Typography>
+                  <Typography variant="h6">Please provide detail for your payout requesting including proof of work completion if applicable:</Typography>
                   <Paper style={{padding: '5px'}}>
                   <Editor
                     name="details"

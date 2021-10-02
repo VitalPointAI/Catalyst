@@ -11,7 +11,7 @@ export const {
     CURRENT_DAO, REDIRECT, NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, OPPORTUNITY_REDIRECT, NEW_PROCESS, NEW_VOTE, 
     DASHBOARD_ARRIVAL, DASHBOARD_DEPARTURE, WARNING_FLAG, PERSONAS_ARRIVAL, EDIT_ARRIVAL, COMMUNITY_ARRIVAL, 
     NEW_DONATION, NEW_EXIT, NEW_RAGE, NEW_DELEGATION, OPPORTUNITY_NOTIFICATION, PROPOSAL_NOTIFICATION, 
-    NEW_NOTIFICATIONS, IPFS_PROVIDER, 
+    NEW_NOTIFICATIONS, IPFS_PROVIDER, PLATFORM_SUPPORT_ACCOUNT,
     NEW_REVOCATION, COMMUNITY_DELETE, NEW_DELETE, 
     networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix, explorerUrl,
     contractName, didRegistryContractName, factoryContractName
@@ -490,7 +490,7 @@ export const keyRotation = () => async ({ update, getState, dispatch }) => {
 }
 
 // Initializes a DAO by setting its key components
-export async function initDao(wallet, contractId, periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound, voteThreshold, shares, summonerContribution) {
+export async function initDao(wallet, contractId, periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound, voteThreshold, shares, summonerContribution, platformPercent) {
 
     try {
         const daoContract = await dao.initDaoContract(wallet.account(), contractId)
@@ -510,6 +510,8 @@ export async function initDao(wallet, contractId, periodDuration, votingPeriodLe
             _voteThreshold: parseInt(voteThreshold),
             _shares: shares,
             _contribution: parseNearAmount(summonerContribution),
+            _platformSupportPercent: platformPercent,
+            _platformAccount: PLATFORM_SUPPORT_ACCOUNT,
             _contractId: contractId
         }, GAS, parseNearAmount(summonerContribution))
 
@@ -521,7 +523,7 @@ export async function initDao(wallet, contractId, periodDuration, votingPeriodLe
 }
 
 // Submits new DAO settings from summoner if only member
-export async function changeDao(wallet, contractId, periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound, voteThreshold) {
+export async function changeDao(wallet, contractId, periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound, voteThreshold, platformPercent) {
 
     try {
         const daoContract = await dao.initDaoContract(wallet.account(), contractId)
@@ -532,7 +534,8 @@ export async function changeDao(wallet, contractId, periodDuration, votingPeriod
             _gracePeriodLength: parseInt(gracePeriodLength),
             _proposalDeposit: parseNearAmount(proposalDeposit),
             _dilutionBound: parseInt(dilutionBound),
-            _voteThreshold: parseInt(voteThreshold)
+            _voteThreshold: parseInt(voteThreshold),
+            _platformPercent: platformPercent
         }, GAS)
 
     } catch (err) {
@@ -683,7 +686,7 @@ export async function submitProposal(
             try{
                 await daoContract.submitPayoutProposal({
                     applicant: applicant,
-                    paymentRequested: paymentRequested,
+                    paymentRequested: parseNearAmount(paymentRequested),
                     paymentToken: depositToken,
                     referenceIds: references,
                     contractId: contractId
@@ -899,7 +902,7 @@ export async function leaveCommunity(daoContract, contractId, share, accountId, 
         await daoContract.leave({
             contractId: contractId,
             accountId: accountId,
-            share: parseNearAmount(share),
+            share: share,
             remainingBalance: balanceAvailable,
             appOwner: APP_OWNER_ACCOUNT
             }, GAS)
@@ -1049,17 +1052,25 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
                                 tributeToken: proposal.tributeToken,
                                 paymentRequested: proposal.paymentRequested,
                                 paymentToken: proposal.paymentToken,
-                                startingPeriod: proposal.startingPeriod,
+                                startingPeriod: parseInt(proposal.startingPeriod),
                                 yesVote: proposal.yesVotes,
                                 noVote: proposal.noVotes,
                                 flags: proposal.flags,
                                 maxTotalSharesAndLootAtYesVote: proposal.maxTotalSharesAndLootAtYesVote,
                                 proposalSubmission: parseInt(proposal.proposalSubmitted),
-                                votingPeriod: proposal.votingPeriod,
-                                gracePeriod: proposalgracePeriod,
+                                votingPeriod: parseInt(proposal.votingPeriod),
+                                gracePeriod: parseInt(proposal.gracePeriod),
                                 voteFinalized: parseInt(proposal.voteFinalized),
+                                submitTransactionHash: proposal.submitTransactionHash,
+                                processTransactionHash: proposal.processTransactionHash,
+                                cancelTransactionHash: proposal.cancelTransactionHash,
+                                sponsorTransactionHash: proposal.sponsorTransactionHash,         
                                 configuration: proposal.configuration,
-                                referenceIds: proposal.referenceIds ? proposal.referenceIds : [{}]
+                                memberRoleConfiguration: proposal.memberRoleConfiguration,
+                                referenceIds: proposal.referenceIds ? proposal.referenceIds : [{}],
+                                roles: proposal.roleNames,
+                                roleConfiguration: proposal.roleConfiguration,
+                                reputationConfiguration: proposal.reputationConfiguration
                                 }
 
                                 proposalEventRecord.events.push(indivProposalRecord)
@@ -1090,7 +1101,7 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
             let i = 0
             while (i < contractProposals){
                 let proposal = await daoContract.getProposal({proposalId: i})
-               
+                
                 if(proposal) {
                     
                     let indivProposalRecord = {
@@ -1104,17 +1115,25 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
                         tributeToken: proposal.tributeToken,
                         paymentRequested: proposal.paymentRequested,
                         paymentToken: proposal.paymentToken,
-                        startingPeriod: proposal.startingPeriod,
+                        startingPeriod: parseInt(proposal.startingPeriod),
                         yesVote: proposal.yesVotes,
                         noVote: proposal.noVotes,
                         flags: proposal.flags,
                         maxTotalSharesAndLootAtYesVote: proposal.maxTotalSharesAndLootAtYesVote,
                         proposalSubmission: parseInt(proposal.proposalSubmitted),
-                        votingPeriod: proposal.votingPeriod,
-                        gracePeriod: proposal.gracePeriod,
+                        votingPeriod: parseInt(proposal.votingPeriod),
+                        gracePeriod: parseInt(proposal.gracePeriod),
                         voteFinalized: parseInt(proposal.voteFinalized),
+                        submitTransactionHash: proposal.submitTransactionHash,
+                        processTransactionHash: proposal.processTransactionHash,
+                        cancelTransactionHash: proposal.cancelTransactionHash,
+                        sponsorTransactionHash: proposal.sponsorTransactionHash,         
                         configuration: proposal.configuration,
-                        referenceIds: proposal.referenceIds ? proposal.referenceIds : [{}]
+                        memberRoleConfiguration: proposal.memberRoleConfiguration,
+                        referenceIds: proposal.referenceIds ? proposal.referenceIds : [{}],
+                        roles: proposal.roleNames,
+                        roleConfiguration: proposal.roleConfiguration,
+                        reputationConfiguration: proposal.reputationConfiguration
                         }
 
                         proposalEventRecord.events.push(indivProposalRecord)
@@ -1446,29 +1465,30 @@ export async function logExitEvent(contractId, curDaoIdx, daoContract, accountId
     // at this point, no member in the contract, but are members in data stream - need to set member as inactive
     if(memberEventRecord){
        
-        // Update an existing member- set active to inactive indicating member has left
+        // Splice member out of data stream
         let i = 0
         while (i < memberEventRecord.events.length){
             if(memberEventRecord.events[i].delegateKey == accountId){
-                let updatedMemberRecord = {
-                    memberId: memberEventRecord.events[i].memberId,
-                    contractId: contractId,
-                    delegateKey: memberEventRecord.events[i].delegateKey,
-                    shares: memberEventRecord.events[i].shares,
-                    delegatedShares: memberEventRecord.events[i].delegatedShares,
-                    receivedDelegations: memberEventRecord.events[i].receivedDelegations,
-                    loot: memberEventRecord.events[i].loot,
-                    existing: memberEventRecord.events[i].existing,
-                    highestIndexYesVote: memberEventRecord.events[i].highestIndexYesVote,
-                    roles: memberEventRecord.events[i].roles,
-                    reputation: memberEventRecord.events[i].reputation,
-                    jailed: memberEventRecord.events[i].jailed,
-                    joined: parseInt(memberEventRecord.events[i].joined),
-                    updated: parseInt(Date.now()),
-                    active: false
-                    }
+                memberEventRecord.events.splice(i,1)
+                // let updatedMemberRecord = {
+                //     memberId: memberEventRecord.events[i].memberId,
+                //     contractId: contractId,
+                //     delegateKey: memberEventRecord.events[i].delegateKey,
+                //     shares: memberEventRecord.events[i].shares,
+                //     delegatedShares: memberEventRecord.events[i].delegatedShares,
+                //     receivedDelegations: memberEventRecord.events[i].receivedDelegations,
+                //     loot: memberEventRecord.events[i].loot,
+                //     existing: memberEventRecord.events[i].existing,
+                //     highestIndexYesVote: memberEventRecord.events[i].highestIndexYesVote,
+                //     roles: memberEventRecord.events[i].roles,
+                //     reputation: memberEventRecord.events[i].reputation,
+                //     jailed: memberEventRecord.events[i].jailed,
+                //     joined: parseInt(memberEventRecord.events[i].joined),
+                //     updated: parseInt(Date.now()),
+                //     active: false
+                //     }
 
-                memberEventRecord.events[i] = updatedMemberRecord
+                // memberEventRecord.events[i] = updatedMemberRecord
 
                 try {
                     await curDaoIdx.set('members', memberEventRecord)
@@ -1696,21 +1716,25 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
             tributeToken: proposal.tributeToken,
             paymentRequested: proposal.paymentRequested,
             paymentToken: proposal.paymentToken,
-            startingPeriod: proposal.startingPeriod,
+            startingPeriod: parseInt(proposal.startingPeriod),
             yesVote: proposal.yesVotes,
             noVote: proposal.noVotes,
             flags: proposal.flags,
             maxTotalSharesAndLootAtYesVote: proposal.maxTotalSharesAndLootAtYesVote,
             proposalSubmission: parseInt(proposal.proposalSubmitted),
-            votingPeriod: proposal.votingPeriod,
-            gracePeriod: proposal.gracePeriod,
+            votingPeriod: parseInt(proposal.votingPeriod),
+            gracePeriod: parseInt(proposal.gracePeriod),
             voteFinalized: parseInt(proposal.voteFinalized),
             submitTransactionHash: transactionHash,
             processTransactionHash: '',
             cancelTransactionHash: '',
             sponsorTransactionHash: '',         
             configuration: proposal.configuration,
-            referenceIds: proposal.referenceIds
+            referenceIds: proposal.referenceIds,
+            roles: proposal.roleNames,
+            roleConfiguration: proposal.roleConfiguration,
+            memberRoleConfiguration: proposal.memberRoleConfiguration,
+            reputationConfiguration: proposal.reputationConfiguration
             }
 
             console.log('indivproposalrecord', indivProposalRecord)
@@ -1898,7 +1922,7 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                 while (i < opportunitiesList.opportunities.length){
                     if(opportunitiesList.opportunities[i].opportunityId == opportunityId){
                         let opportunity = opportunitiesList.opportunities[i]
-                        opportunity['budget'] = parseFloat(opportunity['budget']) + parseFloat(proposal.paymentRequested)
+                        opportunity['budget'] = opportunity['budget'] + parseFloat(proposal.paymentRequested)
                         opportunitiesList.opportunities[i] = opportunity
                         break
                     }
@@ -1930,17 +1954,21 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                         tributeToken: proposal.tributeToken,
                         paymentRequested: proposal.paymentRequested,
                         paymentToken: proposal.paymentToken,
-                        startingPeriod: proposal.startingPeriod,
+                        startingPeriod: parseInt(proposal.startingPeriod),
                         yesVote: proposal.yesVotes,
                         noVote: proposal.noVotes,
                         flags: proposal.flags,
                         maxTotalSharesAndLootAtYesVote: proposal.maxTotalSharesAndLootAtYesVote,
                         proposalSubmission: parseInt(proposal.proposalSubmitted),
-                        votingPeriod: proposal.votingPeriod,
-                        gracePeriod: proposal.gracePeriod,
+                        votingPeriod: parseInt(proposal.votingPeriod),
+                        gracePeriod: parseInt(proposal.gracePeriod),
                         voteFinalized: parseInt(proposal.voteFinalized),
                         configuration: proposal.configuration,
                         referenceIds: proposal.referenceIds,
+                        roles: proposal.roleNames,
+                        roleConfiguration: proposal.roleConfiguration,
+                        memberRoleConfiguration: proposal.memberRoleConfiguration,
+                        reputationConfiguration: proposal.reputationConfiguration,
                         processTransactionHash: transactionHash ? transactionHash : '',
                         submitTransactionHash: proposalRecords.events[i].submitTransactionHash,
                         cancelTransactionHash: proposalRecords.events[i].cancelTransactionHash,
@@ -2002,11 +2030,13 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
     if(proposalType == 'Member' || proposalType == 'Tribute'){
 
         let member = await daoContract.getMemberInfo({member: proposal.applicant})
-    
+        console.log('memberevent', member)
+        console.log('memberproposalevent', proposal)
         let memberId = generateId()
        
         // Log Member Event
         let memberEventRecord = await curDaoIdx.get('members', curDaoIdx.id)
+        console.log('membereventrecord', memberEventRecord)
         if(!memberEventRecord){
             memberEventRecord = { events: [] }
         }
@@ -2018,16 +2048,17 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
         }
 
         let memberExists = false
-        if(memberEventRecord && memberEventRecord.events.length > 0){
-            let k = 0
-            while(k < memberEventRecord.events.length){
-                if(member[0].delegateKey == memberEventRecord.events[k].delegateKey){
-                    memberExists = true
-                    break
+        if(member.length > 0){
+            if(memberEventRecord && memberEventRecord.events.length > 0){
+                let k = 0
+                while(k < memberEventRecord.events.length){
+                    if(member[0].delegateKey == memberEventRecord.events[k].delegateKey){
+                        memberExists = true
+                        break
+                    }
+                    k++
                 }
-                k++
             }
-            
         }
 
         if(member.length > 0 && !memberExists){
@@ -2165,7 +2196,8 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
             } 
         } 
     }
-  
+    memberLogged = true
+    processLogged = true
     if(processLogged && memberLogged && memberDataLogged && proposalDataLogged){
         // Discord Integration
         let data = {
@@ -2236,17 +2268,21 @@ export async function logVoteEvent(curDaoIdx, contractId, daoContract, proposalI
                     tributeToken: proposal.tributeToken,
                     paymentRequested: proposal.paymentRequested,
                     paymentToken: proposal.paymentToken,
-                    startingPeriod: proposal.startingPeriod,
+                    startingPeriod: parseInt(proposal.startingPeriod),
                     yesVote: proposal.yesVotes,
                     noVote: proposal.noVotes,
                     flags: proposal.flags,
                     maxTotalSharesAndLootAtYesVote: proposal.maxTotalSharesAndLootAtYesVote,
                     proposalSubmission: parseInt(proposal.proposalSubmitted),
-                    votingPeriod: proposal.votingPeriod,
-                    gracePeriod: proposal.gracePeriod,
+                    votingPeriod: parseInt(proposal.votingPeriod),
+                    gracePeriod: parseInt(proposal.gracePeriod),
                     voteFinalized: parseInt(proposal.voteFinalized),
                     configuration: proposal.configuration,
                     referenceIds: proposal.referenceIds,
+                    roles: proposal.RoleNames,
+                    roleConfiguration: proposal.roleConfiguration,
+                    reputationConfiguration: proposal.reputationConfiguration,
+                    memberRoleConfiguration: proposal.memberRoleConfiguration,
                     submitTransactionHash: proposalRecords.events[i].submitTransactionHash,
                     cancelTransactionHash: proposalRecords.events[i].cancelTransactionHash,
                     processTransactionHash: proposalRecords.events[i].processTransactionHash,
@@ -2386,17 +2422,21 @@ export async function logSponsorEvent (curDaoIdx, daoContract, contractId, propo
                 tributeToken: proposal.tributeToken,
                 paymentRequested: proposal.paymentRequested,
                 paymentToken: proposal.paymentToken,
-                startingPeriod: proposal.startingPeriod,
+                startingPeriod: parseInt(proposal.startingPeriod),
                 yesVote: proposal.yesVotes,
                 noVote: proposal.noVotes,
                 flags: proposal.flags,
                 maxTotalSharesAndLootAtYesVote: proposal.maxTotalSharesAndLootAtYesVote,
                 proposalSubmission: parseInt(proposal.proposalSubmitted),
-                votingPeriod: proposal.votingPeriod,
-                gracePeriod: proposal.gracePeriod,
+                votingPeriod: parseInt(proposal.votingPeriod),
+                gracePeriod: parseInt(proposal.gracePeriod),
                 voteFinalized: parseInt(proposal.voteFinalized),
                 configuration: proposal.configuration,
                 referenceIds: proposal.referenceIds,
+                roles: proposal.roleNames,
+                roleConfiguration: proposal.roleConfiguration,
+                reputationConfiguration: proposal.reputationConfiguration,
+                memberRoleConfiguration: proposal.memberRoleConfiguration,
                 submitTransactionHash: proposalRecords.events[i].submitTransactionHash,
                 cancelTransactionHash: proposalRecords.events[i].cancelTransactionHash,
                 processTransactionHash: proposalRecords.events[i].processTransactionHash,
@@ -2519,17 +2559,21 @@ export async function logCancelEvent (curDaoIdx, daoContract, contractId, propos
                     tributeToken: proposal.tributeToken,
                     paymentRequested: proposal.paymentRequested,
                     paymentToken: proposal.paymentToken,
-                    startingPeriod: proposal.startingPeriod,
+                    startingPeriod: parseInt(proposal.startingPeriod),
                     yesVote: proposal.yesVotes,
                     noVote: proposal.noVotes,
                     flags: proposal.flags,
                     maxTotalSharesAndLootAtYesVote: proposal.maxTotalSharesAndLootAtYesVote,
                     proposalSubmission: parseInt(proposal.proposalSubmitted),
-                    votingPeriod: proposal.votingPeriod,
-                    gracePeriod: proposal.gracePeriod,
+                    votingPeriod: parseInt(proposal.votingPeriod),
+                    gracePeriod: parseInt(proposal.gracePeriod),
                     voteFinalized: parseInt(proposal.voteFinalized),
                     configuration: proposal.configuration,
                     referenceIds: proposal.referenceIds,
+                    roles: proposal.roleNames,
+                    roleConfiguration: proposal.roleConfiguration,
+                    reputationConfiguration: proposal.reputationConfiguration,
+                    memberRoleConfiguration: proposal.memberRoleConfiguration,
                     cancelTransactionHash: transactionHash,
                     submitTransactionHash: proposalRecords.events[i].submitTransactionHash,
                     processTransactionHash: proposalRecords.events[i].processTransactionHash,
@@ -2938,7 +2982,103 @@ export async function signal(proposalId, signalType, curDaoIdx, accountId, propo
     let hasLiked = false
     let hasDisLiked = false
     let hasNeutral = false
-    
+    if(stream == 'opportunities'){
+        let i = 0
+    while (i < currentProperties.opportunities.length){
+        
+        if(currentProperties.opportunities[i].opportunityId == proposalId.toString()){
+            let proposalToUpdate = currentProperties.opportunities[i]
+            console.log('signal proposaltoupdate', proposalToUpdate)
+            hasLiked = proposalToUpdate.likes.includes(accountId)
+            console.log('signal hasliked', hasLiked)
+            hasDisLiked = proposalToUpdate.dislikes.includes(accountId)
+            hasNeutral = proposalToUpdate.neutrals.includes(accountId)
+
+            if(signalType == 'like' && !hasLiked){
+                proposalToUpdate.likes.push(accountId)
+                console.log('signal proposaltoupdte', proposalToUpdate)
+                if(hasDisLiked){
+                    let k = 0
+                    while (k < proposalToUpdate.dislikes.length){
+                        if(proposalToUpdate.dislikes[k] == accountId){
+                            proposalToUpdate.dislikes.splice(k,1)
+                            break
+                        }
+                    k++
+                    }
+                }
+                if(hasNeutral){
+                    let k = 0
+                    while (k < proposalToUpdate.neutrals.length){
+                        if(proposalToUpdate.neutrals[k] == accountId){
+                            proposalToUpdate.neutrals.splice(k,1)
+                            break
+                        }
+                    k++
+                    }
+                }
+            }
+
+            if(signalType == 'dislike' && !hasDisLiked){
+                proposalToUpdate.dislikes.push(accountId)
+                if(hasLiked){
+                    let k = 0
+                    while (k < proposalToUpdate.likes.length){
+                        if(proposalToUpdate.likes[k] == accountId){
+                            proposalToUpdate.likes.splice(k,1)
+                            break
+                        }
+                    k++
+                    }
+                }
+                if(hasNeutral){
+                    let k = 0
+                    while (k < proposalToUpdate.neutrals.length){
+                        if(proposalToUpdate.neutrals[k] == accountId){
+                            proposalToUpdate.neutrals.splice(k,1)
+                            break
+                        }
+                    k++
+                    }
+                }
+            }
+
+            if(signalType == 'neutral' && !hasNeutral){
+                proposalToUpdate.neutrals.push(accountId)
+                if(hasLiked){
+                    let k = 0
+                    while (k < proposalToUpdate.likes.length){
+                        if(proposalToUpdate.likes[k] == accountId){
+                            proposalToUpdate.likes.splice(k,1)
+                            break
+                        }
+                    k++
+                    }
+                }
+                if(hasDisLiked){
+                    let k = 0
+                    while (k < proposalToUpdate.dislikes.length){
+                        if(proposalToUpdate.dislikes[k] == accountId){
+                            proposalToUpdate.dislikes.splice(k,1)
+                            break
+                        }
+                    k++
+                    }
+                }
+            }
+        currentProperties.opportunities[i] = proposalToUpdate
+        break
+        }
+    i++
+    }
+
+    try{
+        console.log('currentprops end', currentProperties.opportunities)
+        await curDaoIdx.set(stream, currentProperties)
+    } catch (err) {
+        console.log('error with signalling', err)
+    } 
+} else {
     let i = 0
     while (i < currentProperties.proposals.length){
         
@@ -3034,4 +3174,5 @@ export async function signal(proposalId, signalType, curDaoIdx, accountId, propo
     } catch (err) {
         console.log('error with signalling', err)
     }
+}
 }

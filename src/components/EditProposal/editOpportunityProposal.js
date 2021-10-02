@@ -4,6 +4,7 @@ import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { flexClass } from '../../App'
 import { IPFS_PROVIDER } from '../../utils/ceramic'
+import { parseNearAmount } from 'near-api-js/lib/utils/format'
 import { EditorState, convertFromRaw, convertToRaw, ContentState } from 'draft-js'
 import { Editor } from "react-draft-wysiwyg"
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
@@ -138,14 +139,13 @@ export default function EditOpportunityProposalForm(props) {
                 result.name ? setName(result.name) : setName('')
               }
            }
-
-           // Get Existing Community Skills
-           if(curDaoIdx){
-             let daoProfileResult = await curDaoIdx.get('daoProfile', curDaoIdx.id)
-             console.log('daoprofile result', daoProfileResult)
-             let currentSkills = {...desiredSkillSet}
-             let currentSpecificSkills = {...desiredDeveloperSkillSet}
-             if(daoProfileResult){
+            // Get Existing Community Skills
+            if(curDaoIdx){
+              let daoProfileResult = await curDaoIdx.get('daoProfile', curDaoIdx.id)
+              console.log('daoprofile result', daoProfileResult)
+              let currentSkills = {...desiredSkillSet}
+              let currentSpecificSkills = {...desiredDeveloperSkillSet}
+              if(daoProfileResult){
                 const skillsResult = daoProfileResult.skills.map((name, value) => {
                   currentSkills = ({...currentSkills, [name.name]: false})
                 })
@@ -154,8 +154,8 @@ export default function EditOpportunityProposalForm(props) {
                 })
               setDesiredSkillSet(currentSkills)
               setDesiredDeveloperSkillSet(currentSpecificSkills)
-             }
-           }
+              }
+            }
 
            // Set Existing Proposal Data       
            if(curDaoIdx){
@@ -188,9 +188,9 @@ export default function EditOpportunityProposalForm(props) {
                     propResult.opportunities[i].budget ? setBudget(propResult.opportunities[i].budget) : setBudget()
                     propResult.opportunities[i].desiredSkillSet ? setDesiredSkillSet(propResult.opportunities[i].desiredSkillSet): setDesiredSkillSet({})
                     propResult.opportunities[i].desiredDeveloperSkillSet ? setDesiredDeveloperSkillSet(propResult.opportunities[i].desiredDeveloperSkillSet): setDesiredDeveloperSkillSet({})
-                    propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
-                    propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
-                    propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
+                    propResult.opportunities[i].likes ? setCurrentLikes(propResult.opportunities[i].likes) : setCurrentLikes([])
+                    propResult.opportunities[i].dislikes ? setCurrentDisLikes(propResult.opportunities[i].dislikes) : setCurrentDisLikes([])
+                    propResult.opportunities[i].neutrals ? setCurrentNeutrals(propResult.opportunities[i].neutrals) : setCurrentNeutrals([])
                     
                     break
                   }
@@ -198,6 +198,9 @@ export default function EditOpportunityProposalForm(props) {
                 }
               }
            }
+
+           
+           
         }
         let mounted = true
         if(mounted){
@@ -293,7 +296,7 @@ export default function EditOpportunityProposalForm(props) {
           category: category,
           projectName: projectName,
           deadline: deadline, 
-          budget: parseFloat(budget),
+          budget: parseFloat(parseNearAmount(budget)),
           status: status,
           permission: permission,
           familiarity: familiarity,

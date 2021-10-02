@@ -181,10 +181,8 @@ export default function OpportunityCard(props) {
       opportunityStatus,
       permission,
       opportunityId,
-      skillCount,
       skillMatch,
-      developerSkillCount,
-      developerSkillMatch,
+      allSkills,
       suitabilityScore,
       passedContractId,
       deadline,
@@ -291,6 +289,8 @@ export default function OpportunityCard(props) {
             daoResult.name ? setCommunityName(daoResult.name) : setCommunityName('')
             daoResult.logo ? setLogo(daoResult.logo) : setLogo(defaultImage)
           }
+
+          
 
         }
 

@@ -9,7 +9,7 @@ import { Editor } from "react-draft-wysiwyg"
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
 import draftToHtml from 'draftjs-to-html'
 import htmlToDraft from 'html-to-draftjs'
-import { generateId } from '../../state/near'
+import { formatNearAmount, parseNearAmount } from 'near-api-js/lib/utils/format';
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -86,7 +86,7 @@ export default function EditFundingProposalForm(props) {
     const [message, setMessage] = useState(false)
     const [max, setMax] = useState(props.funding)
     const { register, handleSubmit, watch, errors } = useForm()
-
+  
     const {
         handleUpdate,
         handleEditFundingProposalDetailsClickState,
@@ -199,8 +199,8 @@ export default function EditFundingProposalForm(props) {
                    
                   }
           
-                  setPlanned(totalProgrammed)
-                  thisLeft = requested - totalProgrammed
+                  setPlanned(parseFloat(parseNearAmount(totalProgrammed.toString())))
+                  thisLeft = parseFloat(requested) - parseFloat(parseNearAmount(totalProgrammed.toString()))
                   console.log('xy this left not nan', thisLeft)
                   setLeft(thisLeft)
                  
@@ -236,11 +236,11 @@ console.log('current likes', currentLikes)
       let newMilestone = [...milestones]
       console.log('zi new milestones', newMilestone)
       newMilestone[i]['milestoneId'] = i
-      if(e.target.name == [`payout${i}`]){
-        newMilestone[i][e.target.name] = parseInt(e.target.value)
-      } else {
-        newMilestone[i][e.target.name] = e.target.value
-      }
+      // if(e.target.name == [`payout${i}`]){
+      //   newMilestone[i][e.target.name] = parseFloat(e.target.value)
+      // } else {
+         newMilestone[i][e.target.name] = e.target.value
+      // }
       console.log('newmilestonet', newMilestone[i])
       setMilestones(newMilestone)
    
@@ -248,7 +248,7 @@ console.log('current likes', currentLikes)
       setDisabled(true)
       let thisLeft
       if(milestones.length == 1)  {
-        thisLeft = requested
+        thisLeft = parseFloat(requested)
         setMax(thisLeft)
       } else {
         thisLeft = left
@@ -261,8 +261,8 @@ console.log('current likes', currentLikes)
           newMilestone[i][`milestone${i}`]!='' &&
           newMilestone[i][`deadline${i}`]!='' &&
           newMilestone[i][`briefDescription${i}`]!='' &&
-          (newMilestone[i][`payout${i}`] < requested ||
-          newMilestone[i][`payout${i}`] < thisLeft ||
+          (parseFloat(parseNearAmount(newMilestone[i][`payout${i}`].toString())) < requested ||
+          parseFloat(parseNearAmount(newMilestone[i][`payout${i}`].toString())) < thisLeft ||
           thisLeft != 0)
         ) {
           setAddDisabled(false)
@@ -295,12 +295,12 @@ console.log('current likes', currentLikes)
          
         }
 
-        setPlanned(totalProgrammed)
-        thisLeft = requested - totalProgrammed
+        setPlanned(parseFloat(parseNearAmount(totalProgrammed.toString())))
+        thisLeft = parseFloat(requested) - parseFloat(parseNearAmount(totalProgrammed.toString()))
         console.log('xy this left not nan', thisLeft)
         setLeft(thisLeft)
 
-        if(totalProgrammed == requested){
+        if(parseFloat(parseNearAmount(totalProgrammed.toString())) == parseFloat(requested)){
           setDisabled(false)
         }
         i++
@@ -337,12 +337,12 @@ console.log('current likes', currentLikes)
          
         }
 
-        setPlanned(totalProgrammed)
-        thisLeft = requested - totalProgrammed
+        setPlanned(parseFloat(parseNearAmount(totalProgrammed.toString())))
+        thisLeft = parseFloat(requested) - parseFloat(parseNearAmount(totalProgrammed.toString()))
         console.log('xy this left not nan', thisLeft)
         setLeft(thisLeft)
 
-        if(totalProgrammed == requested){
+        if(parseFloat(parseNearAmount(totalProgrammed.toString())) == parseFloat(requested)){
           setDisabled(false)
         }
         i++
@@ -424,7 +424,8 @@ console.log('current likes', currentLikes)
       handleClose()
     }
 
-   
+   console.log('left', left)
+   console.log('requested', requested)
     
         return (
            
@@ -469,7 +470,7 @@ console.log('current likes', currentLikes)
                   </Paper>
                   <Typography variant="h6" style={{marginTop: '30px'}}>Milestones</Typography>
                   <Paper style={{padding: '5px'}}>
-                  <Typography variant="body1">You've requested {requested} Ⓝ.  The total amount of all milestones must equal the amount requested.</Typography>
+                  <Typography variant="body1">You've requested {formatNearAmount(requested, 3)} Ⓝ.  The total amount of all milestones must equal the amount requested.</Typography>
                   {milestones && milestones.map((element, index) => (
                   
                       <React.Fragment key={index}>
@@ -544,7 +545,7 @@ console.log('current likes', currentLikes)
                        
                         </Grid>
                         <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
-                        <Typography variant="overline">{left} Ⓝ left to plan work for.</Typography>
+                        <Typography variant="overline">{left ? formatNearAmount(left, 3) : 0} Ⓝ left to plan work for.</Typography>
                         <TextField
                           margin="dense"
                           fullWidth
