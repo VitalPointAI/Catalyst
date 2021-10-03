@@ -85,7 +85,8 @@ export default function MemberCard(props) {
       totalShares,
       active,
       summoner,
-      contract
+      contract,
+      remainingDelegates
     } = props
 
     const {
@@ -279,6 +280,7 @@ export default function MemberCard(props) {
           maxDelegation={maxDelegation}
           state={state}
           delegateTo={accountName}
+          remainingDelegates={remainingDelegates}
           /> : null }
 
         {manageDelegationsClicked ? <ManageDelegations
@@ -291,6 +293,7 @@ export default function MemberCard(props) {
           allMemberInfo={allMemberInfo}
           delegatedShares={delegatedShares}
           shares={shares}
+          remainingDelegates={remainingDelegates}
           /> : null }
 
         </>

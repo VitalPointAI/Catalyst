@@ -77,6 +77,7 @@ export default function ManageDelegations(props) {
     depositToken,
     proposalDeposit,
     handleManageDelegationsClickState,
+    remainingDelegates
    } = props
 
    useEffect(
@@ -110,7 +111,7 @@ export default function ManageDelegations(props) {
       }
       
       fetchData()
-   }, [delegateTo]
+   }, [allMemberInfo]
    )
 
   const handleClose = () => {
@@ -138,8 +139,10 @@ export default function ManageDelegations(props) {
     <div>
       <Dialog open={open} aria-labelledby="form-dialog-title">
         <DialogTitle id="form-dialog-title">Manage Your Vote Delegations</DialogTitle>
-        <DialogContent className={classes.rootForm}>
+        <DialogContent className={classes.rootForm} align="center">
         <Typography variant="body1">You have delegated <b>{delegatedShares}</b> of your <b>{shares}</b> votes.</Typography>
+        <Typography variant="body1">You have delegated to <b>{delegationInfo && delegationInfo.length ? delegationInfo.length : '0'} personas</b>.<br></br>
+        You have <b>{remainingDelegates}</b> remaining.</Typography>
         <TableContainer component={Paper}>
         <Table className={classes.table} size="small" aria-label="a dense table">
           <TableHead>

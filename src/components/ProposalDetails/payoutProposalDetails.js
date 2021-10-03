@@ -4,6 +4,8 @@ import { makeStyles } from '@material-ui/core/styles'
 import CommentForm from '../common/Comment/commentForm'
 import CommentDetails from '../common/Comment/commentDetails'
 import Persona from '@aluhning/get-personas-js'
+import MilestoneCard from '../MilestoneCard/MilestoneCard'
+import { formatDate } from '../../state/near'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -161,7 +163,7 @@ export default function PayoutProposalDetails(props) {
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == proposalId){
                     propResult.proposals[i].title ? setPayoutTitle(propResult.proposals[i].title) : setPayoutTitle('')
-                    propResult.proposals[i].detailsOfCompletion ? setDetailsOfCompletion(propResult.proposals[i].detailsOfCompletion) : setDetailsOfCompletion('')
+                    propResult.proposals[i].details ? setDetailsOfCompletion(propResult.proposals[i].details) : setDetailsOfCompletion('')
                     propResult.proposals[i].milestones ? setMilestones(propResult.proposals[i].milestones) : setMilestones([{}])
                     propResult.proposals[i].submitDate ? setCreated(propResult.proposals[i].submitDate) : setCreated()
                     break
@@ -200,7 +202,7 @@ export default function PayoutProposalDetails(props) {
               setFinished(true)
             })
           
-    }, [applicant, applicantAvatar, curUserAvatar, proposerAvatar, payoutTitle, created, detailsOfCompletion, applicantName, proposerName, isUpdated]
+    }, [curDaoIdx]
     )
          
     let Milestones
@@ -317,9 +319,13 @@ export default function PayoutProposalDetails(props) {
                       
                     </Grid>
                   </Grid>
+                  {milestones && milestones.length > 0 ?
                     <Grid container spacing={1} style={{width: '100%'}}>
-                    <Typography variant="h6" style={{marginBottom: '10px'}}>Completion Plan</Typography>
-                      <Paper >
+                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                      <Typography variant="h6" style={{marginBottom: '10px'}}>Completion Plan</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                    <Paper >
                       <Grid container justifyContent="flex-start" alignItems="center" spacing={1}>
                         <Grid item xs={1} sm={1} md={1} lg={1} xl={1} align="center">
                           <Typography variant="body2">Id</Typography>
@@ -340,14 +346,14 @@ export default function PayoutProposalDetails(props) {
                          
                         </Grid>
                       </Grid>
-                    
-
+     
                         <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                             {Milestones}
                         </Grid>
                         </Paper>
+                      </Grid>
                     </Grid>
-                  
+                  : null }
                     </>)}
                 </DialogContent>
               <DialogActions>

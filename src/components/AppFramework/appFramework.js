@@ -566,7 +566,7 @@ export default function AppFramework(props) {
                     }
 
                     try {
-                      let synched = await synchMember(curDaoIdx, daoContract, contractId, accountId)
+                      let synched = await synchMember(curDaoIdx, daoContract, contractId, accountId, false)
                       
                       if(synched){
                         let members = await curDaoIdx.get('members', curDaoIdx.id)
@@ -585,6 +585,7 @@ export default function AppFramework(props) {
           actionTriggers()
           .then((res) => {
             res ? setTriggersActioned(true) : setTriggersActioned(false)
+            setLoaded(true)
           })
         }
 
@@ -595,34 +596,6 @@ export default function AppFramework(props) {
       () => {
        
           async function fetchData() {
-
-              // if(contractId){
-              //   let curDaoIdx
-              //   let daoAccount
-              //   let contract
-              //   try{
-              //     daoAccount = new nearAPI.Account(near.connection, contractId)
-              //   } catch (err) {
-              //     console.log('no account', err)
-              //   }
-               
-              //   try{
-              //     curDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
-              //     setCurDaoIdx(curDaoIdx)
-              //   } catch (err) {
-              //     console.log('problem getting curdaoidx', err)
-              //   }
-                
-              //   try{
-              //     contract = await dao.initDaoContract(state.wallet.account(), contractId)
-              //     setDaoContract(contract)
-              //   } catch (err) {
-              //     console.log('problem initializing dao contract', err)
-              //   }
-
-              //   if(curDaoIdx && contract){
-
-                
 
                   //************ LOAD COMMUNITY SETTINGS AND INFORMATION */
                      
@@ -793,7 +766,6 @@ export default function AppFramework(props) {
         fetchData()
         .then((res) => {
              setRestInitialized(true)
-             setLoaded(true)
         })
 
         return () => {

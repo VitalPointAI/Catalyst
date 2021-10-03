@@ -3,6 +3,7 @@ import { get, set, del } from '../utils/storage'
 import { APP_OWNER_ACCOUNT, ceramic } from '../utils/ceramic'
 import { factory } from '../utils/factory'
 import { dao } from '../utils/dao'
+import Big from 'big.js'
 
 import { config } from './config'
 
@@ -343,21 +344,32 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         }
 
         const daoLinks = await ceramic.downloadKeysSecret(state.appIdx, 'daoKeys')
-  
+        let linksChanged = false
         for (let i = 0; i < daoLinks.length; i++) {
             const { contractId } = daoLinks[i]
-            const exists = await isAccountTaken(contractId)
-            if(!exists){
-                daoLinks.splice(i, 1)
-           
-                try{
-                await ceramic.storeKeysSecret(state.appIdx, daoLinks, 'daoKeys')
-                } catch (err) {
-                    console.log('error removing missing dao account', err)
+            let k = 0
+            let inList = false
+            while (k < currentDaosList.length){
+                if(contractId == currentDaosList[k].contractId){
+                    inList = true
+                    break
                 }
-                continue
+                k++
+            }
+            const exists = await isAccountTaken(contractId)
+            if(!exists || !inList){
+                daoLinks.splice(i, 1)
+                linksChanged = true   
             }
         }
+        if(linksChanged){
+            try{
+                await ceramic.storeKeysSecret(state.appIdx, daoLinks, 'daoKeys')
+            } catch (err) {
+                console.log('error removing missing dao account', err)
+            }
+        }
+            
 
         const claimed = localLinks.filter(({claimed}) => !!claimed)
         const links = localLinks.filter(({claimed}) => !claimed)
@@ -818,14 +830,16 @@ export async function processProposal(daoContract, contractId, proposalId, propo
 
         let proposal = await daoContract.getProposal({proposalId: proposalId})
         let platformPercent = await daoContract.getPlatformPercentage()
-        let percentage = parseFloat(formatNearAmount(platformPercent, 5))
+        let percentage = parseFloat(formatNearAmount(platformPercent, 5))/100
         console.log('percentage', percentage)
-        let platformPayment = parseFloat(parseNearAmount(proposal.paymentRequested)) * percentage
-        console.log('platform payment', platformPayment)
+        let platformPayment = (parseFloat(proposal.paymentRequested) * percentage)
+        console.log('platformpayment', platformPayment)
+        console.log('platform test', platformPayment.toLocaleString('fullwide', {useGrouping: false}))
+        let payment = platformPayment.toLocaleString('fullwide', {useGrouping: false})
 
         await daoContract.processProposal({
             proposalId: proposalId,
-            platformPayment: parseNearAmount(platformPayment),
+            platformPayment: payment,
             }, GAS)
 
     } catch (err) {
@@ -1164,11 +1178,11 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
 }
 
 // // Synch Current Member to Log
-export async function synchMember(curDaoIdx, daoContract, contractId, accountId) {
+export async function synchMember(curDaoIdx, daoContract, contractId, accountId, update) {
 
     let exists = false
     let member
- 
+    console.log('synch accountid', accountId)
     try{
         member = await daoContract.getMemberInfo({member: accountId})
         console.log('member here', member)
@@ -1177,6 +1191,7 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId)
     }
 
     let logMembers = await curDaoIdx.get('members', curDaoIdx.id)
+    console.log('cer members', logMembers)
     if(!logMembers){
         logMembers = { events: [] }
     }
@@ -1223,6 +1238,34 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId)
             }
         
             logMembers.events.push(indivMemberRecord)
+        }
+
+        if(update){
+            let i = 0
+            while(i < logMembers.events.length){
+                let member = await daoContract.getMemberInfo({member: logMembers.events[i].delegateKey})
+                console.log('all synch member', member)
+                let indivMemberRecord = {
+                    memberId: logMembers.events[i].memberId,
+                    contractId: logMembers.events[i].contractId,
+                    delegateKey: member[0].delegateKey,
+                    shares: member[0].shares,
+                    delegatedShares: member[0].delegatedShares,
+                    receivedDelegations: member[0].receivedDelegations,
+                    loot: member[0].loot,
+                    existing: member[0].existing,
+                    highestIndexYesVote: member[0].highestIndexYesVote,
+                    roles: member[0].roles,
+                    reputation: member[0].reputation,
+                    jailed: member[0].jailed,
+                    joined: parseInt(member[0].joined),
+                    updated: parseInt(member[0].updated),
+                    active: member[0].active
+                }
+
+                logMembers.events[i] = indivMemberRecord
+                i++
+            }
         }
 
         try {
@@ -1510,11 +1553,15 @@ export async function logExitEvent(contractId, curDaoIdx, daoContract, accountId
             }
         i++
         }
+       
+
     } else {
         // member doesn't exist so set to true so flag is updated, doesn't keep trying to log
         memberLogged = true  
     }
     if(memberLogged && contractMemberRemoved){
+         // synch other members
+         synchMember(curDaoIdx, daoContract, contractId, accountId, true)
         return true
     } else {
         return false

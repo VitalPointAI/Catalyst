@@ -20,6 +20,7 @@ import LinearProgress from '@material-ui/core/LinearProgress'
 import Switch from '@material-ui/core/Switch'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Typography from '@material-ui/core/Typography'
+import Paper from '@material-ui/core/Paper'
 
 
 const useStyles = makeStyles((theme) => ({
@@ -163,7 +164,7 @@ export default function CommentForm(props) {
             console.log('error retrieving idx', err)
           }
           let notificationRecipient = await thisCurPersonaIdx.get('profile', thisCurPersonaIdx.id)
-          
+          console.log('notificationrecipient', notificationRecipient)
           let preview
           if(body.length > 27)
             { 
@@ -186,7 +187,7 @@ export default function CommentForm(props) {
             proposalId: proposalId, 
             read: false
           })
-          thisCurPersonaIdx.set('profile', notificationRecipient)
+          await thisCurPersonaIdx.set('profile', notificationRecipient)
         }
 
         let notificationFlag = get(NEW_NOTIFICATIONS, [])
@@ -242,13 +243,17 @@ export default function CommentForm(props) {
                       {errors.commentSubject && <p style={{color: 'red'}}>You must provide a subject/title.</p>}
                       </div>
                       <div>
+                      <Paper style={{padding: '5px'}}>
                       <Editor
                         editorState={commentBody}
                         toolbarClassName="toolbarClassName"
                         wrapperClassName="wrapperClassName"
                         editorClassName="editorClassName"
                         onEditorStateChange={handleCommentBodyChange}
+                        editorStyle={{minHeight:'200px'}}
                       />
+                      </Paper>
+                      
                       </div>
                   
                     

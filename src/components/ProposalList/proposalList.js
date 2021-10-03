@@ -37,6 +37,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import Switch from '@material-ui/core/Switch';
 import { LinearProgress } from '@material-ui/core';
+import CircularProgress from '@material-ui/core/CircularProgress'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -115,6 +116,7 @@ export default function ProposalList(props) {
   const [onlyAssignRoleProposals, setOnlyAssignRoleProposals] = useState(true)
   const [onlyCommunityRoleProposals, setOnlyCommunityRoleProposals] = useState(true)
   const [onlyYourProposals, setOnlyYourProposals] = useState(false)
+  const [loaded, setLoaded] = useState(false)
   const classes = useStyles()
   const theme = useTheme()
   const matches = useMediaQuery('(max-width:500px)')
@@ -144,7 +146,6 @@ export default function ProposalList(props) {
     totalShares,
     currentMemberInfo,
     guildBalance,
-    loaded,
     remainingDelegates,
 
     tabValue,
@@ -255,7 +256,7 @@ export default function ProposalList(props) {
       if(mounted){
         fetchData()
             .then((res) => {
-             
+             setLoaded(true)
             })
       return () => mounted = false
       }

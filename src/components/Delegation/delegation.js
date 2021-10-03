@@ -53,6 +53,7 @@ export default function Delegation(props) {
   
   const [quantity, setQuantity] = useState('')
   const [confirm, setConfirm] = useState(false)
+  const [disabled, setDisabled] = useState(false)
   
   const classes = useStyles()
   const { register, handleSubmit, watch, errors } = useForm()
@@ -65,13 +66,16 @@ export default function Delegation(props) {
     depositToken,
     proposalDeposit,
     handleDelegationClickState,
-   
+    remainingDelegates
    } = props
 
    useEffect(
     () => {
       if(delegateTo){
         setReceiver(delegateTo)
+      }
+      if(remainingDelegates == 0){
+        setDisabled(true)
       }
    }, [delegateTo]
    )
@@ -189,7 +193,7 @@ export default function Delegation(props) {
             </Card>
           </DialogContent>
         <DialogActions>
-        {finished ? <><Button onClick={handleSubmit(onSubmit)} color="primary" type="submit">Delegate Votes</Button></> : <LinearProgress className={classes.progress} />}
+        {finished ? <><Button onClick={handleSubmit(onSubmit)} disabled={disabled} color="primary" type="submit">Delegate Votes</Button></> : <LinearProgress className={classes.progress} />}
         {finished ? <><Button onClick={handleClose} color="primary">Cancel</Button></> : null }
         </DialogActions>
       </Dialog>
