@@ -6,7 +6,7 @@
     "author": "Aaron Luhning",
     "license": "ISC",
     "dependencies": {
-        "@aluhning/get-personas-js": "^1.30.0",
+        "@aluhning/get-personas-js": "^1.32.0",
         "@azure/identity": "^1.5.2",
         "@azure/keyvault-secrets": "^4.3.0",
         "@ceramicnetwork/3id-did-resolver": "^1.4.1",
@@ -76,8 +76,9 @@
     "scripts": {
         "deploy:testnet": "npm run build && gh-pages -d dist",
         "deploy": "REACT_APP_ENV=\"prod\" yarn build && cp -a static/* dist && gh-pages -d dist",
-        "prebuild": "npm run clean",
+        "prebuild": "npm run clean && env-cmd -f ./.env",
         "build": "node ./node_modules/.bin/parcel build src/index.html --no-scope-hoist",
+        "build:main": "node ./node_modules/.bin/parcel build src/index.html --no-scope-hoist",
         "clean": "rimraf ./dist && rimraf .parcel-cache",
         "cleandist": "rimraf ./dist",
         "fix": "eslint src/ --fix",

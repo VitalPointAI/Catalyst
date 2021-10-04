@@ -18,7 +18,7 @@ const client = new SecretClient(url, credential)
 
 const secretName = process.env.SECRET_NAME
 
-const allowList = ['https://catalystdao.com, https://ceramic-node.vitalpointai.com']
+const allowList = ['https://cdao.app, https://catalystdao.com, https://ceramic-node.vitalpointai.com']
 
 app.use(cors({
   origin: allowList
@@ -58,7 +58,6 @@ app.post('/appseed', cors(), verifyToken, async (req, res) => {
       res.sendStatus(403);
     } else {
       const latestSecret = await client.getSecret(secretName)
-      console.log('latestsecret', latestSecret)
       const seed = (latestSecret.value).slice(0, 32)
       res.json({
         seed: seed,
@@ -71,8 +70,8 @@ app.post('/appseed', cors(), verifyToken, async (req, res) => {
 });
 
 app.post('/token', cors(), async (req, res) => {
-  console.log('req', req.body)
   const accountId = req.body.accountId
+  console.log('accountId', accountId)
   if(!accountId) res.sendStatus(403)
   jwt.sign({ accountId: accountId }, process.env.SECRET_KEY, (err, token) => {
     res.json({
@@ -81,20 +80,20 @@ app.post('/token', cors(), async (req, res) => {
   });
 });
 
-app.get('/testnet/*', cors(), function (req, res) {
-  // res.setHeader(
-  //   'Content-Security-Policy-Report-Only',
-  //   "default-src 'self'; font-src 'self'; img-src 'self'; script-src 'self'; style-src 'self'; frame-src 'self'"
-  // );
-  res.sendFile(path.join(__dirname, 'test', 'index.html'));
-});
+// app.get('/testnet', cors(), function (req, res) {
+//   // res.setHeader(
+//   //   'Content-Security-Policy-Report-Only',
+//   //   "default-src 'self'; font-src 'self'; img-src 'self'; script-src 'self'; style-src 'self'; frame-src 'self'"
+//   // );
+//   res.sendFile(path.join(__dirname, 'test', 'index.html'));
+// });
 
 app.get('/*', cors(), function (req, res) {
   // res.setHeader(
   //   'Content-Security-Policy-Report-Only',
   //   "default-src 'self'; font-src 'self'; img-src 'self'; script-src 'self'; style-src 'self'; frame-src 'self'"
   // );
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  res.sendFile(path.join(__dirname, 'test', 'index.html'));
 });
 
  
@@ -128,6 +127,7 @@ function verifyToken(req, res, next){
   }
 }
 
-app.listen(3000, () => {
+app.listen(3001, () => {
   console.log('running')
+  console.log('and listening')
 });

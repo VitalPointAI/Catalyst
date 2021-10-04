@@ -65,16 +65,18 @@ if(process.env.ENV === 'localhost') {
 if (process.env.ENV === 'prod') {
     config = {
         ...config,
+        TOKEN_CALL: 'https://cdao.app/token',
+        APPSEED_CALL: 'https://cdao.app/appseed',
         networkId: 'mainnet',
         nodeUrl: 'https://rpc.mainnet.near.org',
         walletUrl: 'https://wallet.near.org',
         explorerUrl: 'https://explorer.mainnet.near.org',
         nameSuffix: '.near',
-        factorySuffix: '.dao.cdao.near',
+        factorySuffix: 'v1.cdao.near',
         contractName: 'near',
         didRegistryContractName: 'did.near',
-        factoryContractName: 'dao.cdao.near',
-        APP_OWNER_ACCOUNT: 'cdao.near',
+        factoryContractName: 'cdao.near',
+        APP_OWNER_ACCOUNT: 'vitalpointai.near',
         PLATFORM_SUPPORT_ACCOUNT: 'vitalpointai.near',
         CERAMIC_API_URL: 'https://ceramic-node.vitalpointai.com',
     }

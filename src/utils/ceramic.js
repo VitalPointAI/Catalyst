@@ -281,15 +281,15 @@ async makeSeed(account){
     // const stringEncode = (str) => {
     //   return uint8arrays.fromString((str), 'base64pad')
     // }
-    let existingToken = get(AUTH_TOKEN, [])
-    if(!existingToken){
+    //let existingToken = get(AUTH_TOKEN, [])
+    //if(!existingToken){
     let token = await axios.post(TOKEN_CALL, 
       {
       accountId: accountId
       }    
     )
     set(AUTH_TOKEN, token.data.token)
-    }
+   // }
 
     let authToken = get(AUTH_TOKEN, [])   
     let retrieveSeed = await axios.post(APPSEED_CALL, {
