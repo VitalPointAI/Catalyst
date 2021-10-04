@@ -76,7 +76,7 @@ if (process.env.ENV === 'prod') {
         contractName: 'near',
         didRegistryContractName: 'did.near',
         factoryContractName: 'cdao.near',
-        APP_OWNER_ACCOUNT: 'vitalpointai.near',
+        APP_OWNER_ACCOUNT: 'aaron.near',
         PLATFORM_SUPPORT_ACCOUNT: 'vitalpointai.near',
         CERAMIC_API_URL: 'https://ceramic-node.vitalpointai.com',
     }

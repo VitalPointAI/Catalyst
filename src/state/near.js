@@ -204,6 +204,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     const appIdx = await ceramic.getAppIdx(didRegistryContract, accountId)
     let appIndex = await appIdx.getIndex()
 
+    console.log('app owner', APP_OWNER_ACCOUNT)
     //** INITIALIZE FACTORY CONTRACT */
     let daoFactory
     try {
