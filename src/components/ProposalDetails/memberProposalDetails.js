@@ -250,6 +250,7 @@ export default function MemberProposalDetails(props) {
                         commentSubject={comment.subject}
                         accountId={accountId}
                         curUserIdx={curUserIdx}
+                        memberStatus={memberStatus}
                     />
                   </div>
                   )

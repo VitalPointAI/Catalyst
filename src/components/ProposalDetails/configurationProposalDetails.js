@@ -285,6 +285,7 @@ export default function ConfigurationProposalDetails(props) {
                         commentSubject={comment.subject}
                         accountId={accountId}
                         curUserIdx={curUserIdx}
+                        memberStatus={memberStatus}
                     />
                 </div>
                   )

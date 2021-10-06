@@ -386,6 +386,7 @@ export default function OpportunityProposalDetails(props) {
                         commentSubject={comment.subject}
                         accountId={accountId}
                         curUserIdx={curUserIdx}
+                        memberStatus={memberStatus}
                     />
                 </div>
                   )

@@ -253,6 +253,7 @@ export default function TributeProposalDetails(props) {
                         commentSubject={comment.subject}
                         accountId={accountId}
                         curUserIdx={curUserIdx}
+                        memberStatus={memberStatus}
                     />
                 </div>
                   )

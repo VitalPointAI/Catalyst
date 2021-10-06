@@ -347,6 +347,7 @@ export default function FundingProposalDetails(props) {
                         commentSubject={comment.subject}
                         accountId={accountId}
                         curUserIdx={curUserIdx}
+                        memberStatus={memberStatus}
                     />
               </div>
                   )

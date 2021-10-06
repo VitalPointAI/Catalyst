@@ -42,15 +42,20 @@ export default function NotificationCard(props){
         handleNotificationClick
     }=props
 
+    const data = new Persona()
+
     useEffect(() => {
 
         async function fetchData(){
-        let persona = new Persona()
-        //need to get accountId somehow
-        let result = await persona.getPersona(accountId)
-        setPersona(result)
-        setNotifications(result.notifications)
-
+        
+        if(accountId){
+            console.log('notification accountId', accountId)
+            //need to get accountId somehow
+            let result = await data.getPersona(accountId)
+            console.log('persona result', result)
+            setPersona(result)
+            setNotifications(result.notifications)
+        }
 
         }
         del(NEW_NOTIFICATIONS)
@@ -58,7 +63,7 @@ export default function NotificationCard(props){
         .then((res) => {
       
         })
-    },[])
+    },[accountId])
 
     const handleClose = () => {
         handleNotificationClick(false)
