@@ -422,7 +422,6 @@ export default function EditPersonaForm(props) {
             birthdate: birthdate,
             country: country,
             language: language,
-            skill: skill,
             familiarity: familiarity,
             skillSet: skillSet,
             developerSkillSet: developerSkillSet,

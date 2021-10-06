@@ -1502,6 +1502,7 @@ export default function ProposalCard(props) {
           applicant={applicant}
           handleUpdate={handleUpdate}
           proposalId={requestId}
+          memberStatus={memberStatus}
           /> : null }
 
         {fundingProposalDetailsClicked ? <FundingProposalDetails
@@ -1515,6 +1516,7 @@ export default function ProposalCard(props) {
           proposalStatus={status}
           sponsor={sponsor}
           contract={contract}
+          memberStatus={memberStatus}
           /> : null }
 
         {tributeProposalDetailsClicked ? <TributeProposalDetails
@@ -1525,6 +1527,7 @@ export default function ProposalCard(props) {
           applicant={applicant}
           handleUpdate={handleUpdate}
           proposalId={requestId}
+          memberStatus={memberStatus}
           /> : null }
 
         {configurationProposalDetailsClicked ? <ConfigurationProposalDetails
@@ -1537,6 +1540,7 @@ export default function ProposalCard(props) {
           proposalId={requestId}
           configuration={configuration}
           contract={contract}
+          memberStatus={memberStatus}
           /> : null }
 
         {payoutProposalDetailsClicked ? <PayoutProposalDetails
@@ -1549,6 +1553,7 @@ export default function ProposalCard(props) {
           proposalId={requestId}
           proposalStatus={status}
           sponsor={sponsor}
+          memberStatus={memberStatus}
           /> : null }
 
         {opportunityProposalDetailsClicked ? <OpportunityProposalDetails
@@ -1561,6 +1566,7 @@ export default function ProposalCard(props) {
           opportunityId={requestId}
           contractId={contractId}
           status={status}
+          memberStatus={memberStatus}
           /> : null }
 
         </>

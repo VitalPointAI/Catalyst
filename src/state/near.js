@@ -212,6 +212,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     } catch (err) {
         console.log('error initializing daoFactory', err)
     }
+   
     console.log('signedin')
     let t = 0
     let start = 0
@@ -2141,7 +2142,6 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
 
             memberEventRecord.events.push(indivMemberEventRecord)
          
-                
             try {
             await curDaoIdx.set('members', memberEventRecord)
             memberLogged = true
@@ -2149,6 +2149,37 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
             } catch (err) {
                 console.log('error adding new member', err)
             }
+
+            // initiate empty profile
+            let record = {
+                date: '',
+                owner: '',
+                name: '',
+                avatar: '',
+                shortBio: '',
+                email: '',
+                discord: '',
+                twitter: '',
+                reddit: '',
+                birthdate: '',
+                country: '',
+                language: [],
+                familiarity: '',
+                skillSet: {},
+                developerSkillSet: {},
+                personaSkills: [],
+                personaSpecificSkills: [],
+                notifications: []
+            }
+
+            let personaAccount = new nearAPI.Account(near.connection, originalAuthor)
+            let thisCurPersonaIdx
+            try{
+            thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, didRegistryContract)
+            } catch (err) {
+                console.log('error retrieving idx', err)
+            }
+            let result = await thisCurPersonaIdx.set('profile', record)
 
                 // Associated Member Data to Log
 

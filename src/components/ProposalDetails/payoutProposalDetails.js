@@ -107,7 +107,8 @@ export default function PayoutProposalDetails(props) {
         curDaoIdx,
         sponsor,
         proposer,
-        contract
+        contract,
+        memberStatus
     } = props
 
     const thisPersona = new Persona()
@@ -376,7 +377,7 @@ export default function PayoutProposalDetails(props) {
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                   {Comments}
               </Grid>
-              {status != 'Passed' && status != 'Not Passed' ? (
+              {status != 'Passed' && status != 'Not Passed' && memberStatus ? (
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
               <Typography variant="h5" style={{marginLeft: '10px'}}>Leave a Comment/Ask a Question</Typography>
                   <CommentForm

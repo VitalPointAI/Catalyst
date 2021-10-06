@@ -95,6 +95,10 @@ export default function Import(props) {
          
       }, [recoverSeed])
 
+      const handleRecoverSeed = (e) => {
+        setRecoverSeed(e.target.value.toLowerCase())
+      }
+
       const onSubmit = async (values) => {
         let currentAccounts = get(ACCOUNT_LINKS, [])
         let newAccount = { key: (base58.encode(await bip39.mnemonicToSeed(seedPhrase))), accountId: accountId, owner: accountId, keyStored: Date.now() }
@@ -143,10 +147,7 @@ export default function Import(props) {
                       label="12 Word Recovery Seed Phrase"
                       helperText="12 words, 1 space between each word"
                       value={recoverSeed}
-                      onChange={(e) => {
-                          const v = e.target.value.toLowerCase()
-                          setRecoverSeed(v)
-                      }}
+                      onChange={handleRecoverSeed}
                   />
                 </div>
               <Button color="primary" onClick={handleSubmit(onRecover)}>

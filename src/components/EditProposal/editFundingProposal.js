@@ -100,7 +100,8 @@ export default function EditFundingProposalForm(props) {
     } = props
     
     const classes = useStyles()
-
+console.log('props funding', funding)
+console.log('props requested', requested)
     useEffect(() => {
         async function fetchData() {
            
@@ -194,15 +195,15 @@ export default function EditFundingProposalForm(props) {
                   }
           
                   if(!isNaN(milestones[j][`payout${j}`])){
-                    totalProgrammed = totalProgrammed + milestones[j][`payout${j}`]
+                    totalProgrammed = parseFloat(totalProgrammed.toString()) + parseFloat(milestones[i][`payout${i}`])
                     console.log('xy totalprogrammed notnan', totalProgrammed)
                    
                   }
           
-                  setPlanned(parseFloat(parseNearAmount(totalProgrammed.toString())))
-                  thisLeft = parseFloat(requested) - parseFloat(parseNearAmount(totalProgrammed.toString()))
-                  console.log('xy this left not nan', thisLeft)
-                  setLeft(thisLeft)
+                  setPlanned(parseFloat(parseNearAmount(totalProgrammed.toLocaleString('fullwide', {useGrouping: false}))))
+                  thisLeft = parseFloat(requested) - parseFloat(parseNearAmount(totalProgrammed.toLocaleString('fullwide', {useGrouping: false})))
+                  console.log('xy this left not nan', thisLeft.toLocaleString('fullwide', {useGrouping: false}))
+                  setLeft(thisLeft.toLocaleString('fullwide', {useGrouping: false}))
                  
                   j++
                 }
@@ -261,8 +262,8 @@ console.log('current likes', currentLikes)
           newMilestone[i][`milestone${i}`]!='' &&
           newMilestone[i][`deadline${i}`]!='' &&
           newMilestone[i][`briefDescription${i}`]!='' &&
-          (parseFloat(parseNearAmount(newMilestone[i][`payout${i}`].toString())) < requested ||
-          parseFloat(parseNearAmount(newMilestone[i][`payout${i}`].toString())) < thisLeft ||
+          (parseFloat(parseNearAmount(newMilestone[i][`payout${i}`].toLocaleString('fullwide', {useGrouping: false}))) < requested ||
+          parseFloat(parseNearAmount(newMilestone[i][`payout${i}`].toLocaleString('fullwide', {useGrouping: false}))) < thisLeft ||
           thisLeft != 0)
         ) {
           setAddDisabled(false)
@@ -290,17 +291,17 @@ console.log('current likes', currentLikes)
         }
 
         if(!isNaN(milestones[i][`payout${i}`])){
-          totalProgrammed = totalProgrammed + milestones[i][`payout${i}`]
+          totalProgrammed = parseFloat(totalProgrammed.toString()) + parseFloat(milestones[i][`payout${i}`])
           console.log('xy totalprogrammed notnan', totalProgrammed)
          
         }
 
-        setPlanned(parseFloat(parseNearAmount(totalProgrammed.toString())))
-        thisLeft = parseFloat(requested) - parseFloat(parseNearAmount(totalProgrammed.toString()))
-        console.log('xy this left not nan', thisLeft)
-        setLeft(thisLeft)
+        setPlanned(parseFloat(parseNearAmount(totalProgrammed.toLocaleString('fullwide', {useGrouping: false}))))
+        thisLeft = parseFloat(requested) - parseFloat(parseNearAmount(totalProgrammed.toLocaleString('fullwide', {useGrouping: false})))
+        console.log('xy this left not nan', thisLeft.toLocaleString('fullwide', {useGrouping: false}))
+        setLeft(thisLeft.toLocaleString('fullwide', {useGrouping: false}))
 
-        if(parseFloat(parseNearAmount(totalProgrammed.toString())) == parseFloat(requested)){
+        if(parseFloat(parseNearAmount(totalProgrammed.toLocaleString('fullwide', {useGrouping: false}))) == parseFloat(requested)){
           setDisabled(false)
         }
         i++
@@ -332,15 +333,16 @@ console.log('current likes', currentLikes)
         }
 
         if(!isNaN(newMilestones[i][`payout${i}`])){
-          totalProgrammed = totalProgrammed + newMilestones[i][`payout${i}`]
+          console.log('remove total programmed', parseFloat(totalProgrammed.toString()))
+          totalProgrammed = parseFloat(totalProgrammed.toString()) + parseFloat(milestones[i][`payout${i}`])
           console.log('xy totalprogrammed notnan', totalProgrammed)
          
         }
 
-        setPlanned(parseFloat(parseNearAmount(totalProgrammed.toString())))
-        thisLeft = parseFloat(requested) - parseFloat(parseNearAmount(totalProgrammed.toString()))
-        console.log('xy this left not nan', thisLeft)
-        setLeft(thisLeft)
+        setPlanned(parseFloat(parseNearAmount(totalProgrammed.toLocaleString('fullwide', {useGrouping: false}))))
+        thisLeft = parseFloat(requested) - parseFloat(parseNearAmount(totalProgrammed.toLocaleString('fullwide', {useGrouping: false})))
+        console.log('xy this left not nan', thisLeft.toLocaleString('fullwide', {useGrouping: false}))
+        setLeft(thisLeft.toLocaleString('fullwide', {useGrouping: false}))
 
         if(parseFloat(parseNearAmount(totalProgrammed.toString())) == parseFloat(requested)){
           setDisabled(false)
