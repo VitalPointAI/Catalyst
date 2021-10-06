@@ -55,7 +55,7 @@ app.use(express.static(path.join(__dirname, 'dist')));
     
 // });
 
-app.post('/appseed', verifyToken, async (req, res) => {
+app.post('/appseed', cors(), verifyToken, async (req, res) => {
     
   jwt.verify(req.token, process.env.SECRET_KEY, async (err, authData) => {
     if(err) {
@@ -72,7 +72,7 @@ app.post('/appseed', verifyToken, async (req, res) => {
 
 });
 
-app.post('/token', async (req, res) => {
+app.post('/token', cors(), async (req, res) => {
   console.log('req', req.body)
   const accountId = req.body.accountId
   if(!accountId) res.sendStatus(403)

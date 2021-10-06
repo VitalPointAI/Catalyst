@@ -1184,6 +1184,7 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId,
 
     let exists = false
     let member
+    let duplicates
     console.log('synch accountid', accountId)
     try{
         member = await daoContract.getMemberInfo({member: accountId})
@@ -1200,21 +1201,28 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId,
 
     let i = 0
     let memberIndexesToDelete = []
+    let count = 0
     if(member && member.length > 0){
         // add processed members
         while(i < logMembers.events.length){
             if(logMembers.events[i].delegateKey == member[0].delegateKey){
                 exists = true
-                memberIndexesToDelete.push(i)
+                count++
+                if(count > 1){
+                    memberIndexesToDelete.push(i)
+                }
             }
-            i++
+            i++    
         }
 
         // delete duplicate members from datastream leaving first one
-        let kk = 1
-        while(kk < memberIndexesToDelete.length){
-            logMembers.events.splice(kk, 1)
-            kk++
+        if(memberIndexesToDelete.length > 0){
+            duplicates = true
+            let kk = 1
+            while(kk < memberIndexesToDelete.length){
+                logMembers.events.splice(kk, 1)
+                kk++
+            }
         }
 
         if(!exists){
