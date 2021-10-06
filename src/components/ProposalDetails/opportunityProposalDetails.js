@@ -365,7 +365,7 @@ export default function OpportunityProposalDetails(props) {
             }
           
             return (
-              <div style={{backgroundColor: color}}>
+              <div >
                    {author != '' ? 
                       <Typography style={{marginTop: 10}}>
                       In reply to {author}{preview}

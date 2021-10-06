@@ -27,7 +27,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function NotificationCard(props){
     const [open, setOpen] = useState(true)
-    const [persona, setPersona] = useState()
+
     const [notifications, setNotifications] = useState([])
     const { state, dispatch, update } = useContext(appStore)
     const classes = useStyles()
@@ -42,23 +42,27 @@ export default function NotificationCard(props){
         handleNotificationClick
     }=props
 
+    const thisPersona = new Persona()
+
     useEffect(() => {
 
         async function fetchData(){
-        let persona = new Persona()
-        //need to get accountId somehow
-        let result = await persona.getPersona(accountId)
-        setPersona(result)
-        setNotifications(result.notifications)
-
-
+            if(accountId){
+                let result = await thisPersona.getPersona(accountId)
+                console.log("PERSONA", result)
+                    if(result){
+                        setNotifications(result.notifications)
+                        console.log("RESULT", result.notifications)
+                    }
+                }
         }
         del(NEW_NOTIFICATIONS)
+
         fetchData()
         .then((res) => {
       
         })
-    },[])
+    },[state])
 
     const handleClose = () => {
         handleNotificationClick(false)
@@ -89,7 +93,7 @@ export default function NotificationCard(props){
     console.log('notifications', notifications)
 
     if (notifications && notifications.length > 0) {
-        notifs = notifications.slice(0).reverse().map(notification => {
+        notifs = notifications.slice().reverse().map(notification => {
             return(
                 <Button href={notification.link} onClick={()=>{handleClick(notification)}} style={{minWidth: '100%'}}>
                 <Card style={{minWidth: '100%', marginTop: 10}}>
@@ -109,10 +113,14 @@ export default function NotificationCard(props){
             <Dialog className={classes.root} open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
               <DialogTitle id="form-dialog-title">Notifications</DialogTitle>
               <DialogContent>
-                  {notifs}
+              {notifs ? (<>{notifs}</>) : (<Typography>no notifications yet</Typography>)}
               </DialogContent>
             </Dialog>
-            </>: <div style={{maxWidth: '100%'}}>{notifs}</div>} 
+            </>: <div style={{maxWidth: '100%'}}>{notifs ? (<>{notifs}</>) :
+                (
+                <Card>
+                <Typography>no notifications yet</Typography>
+                </Card>)}</div>} 
           </div>
 
         )

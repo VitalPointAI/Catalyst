@@ -258,7 +258,7 @@ export default function PayoutProposalDetails(props) {
               }
             }
             return (
-              <div style={{backgroundColor: color}}>
+              <div >
                   {author != '' ? 
                     <Typography>
                     In reply to {author}{preview}
