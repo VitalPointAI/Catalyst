@@ -145,8 +145,7 @@ export default function OpportunityProposalDetails(props) {
         applicant,
         proposer,
         contract,
-        contractId,
-        memberStatus
+        contractId
     } = props
   
     const thisPersona = new Persona()
