@@ -263,7 +263,7 @@ export default function ConfigurationProposalDetails(props) {
             }
           }
             return (
-              <div style={{backgroundColor: red}}>
+              <div >
               {author != '' ? 
                    <Typography>
                    In reply to {author}{preview}

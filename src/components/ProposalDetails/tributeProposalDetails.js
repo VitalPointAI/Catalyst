@@ -232,7 +232,7 @@ export default function TributeProposalDetails(props) {
               }
             }
             return (
-              <div style={{backgroundColor: color}}>
+              <div >
               {author != '' ? 
                  <Typography>
                  In reply to {author}{preview}
