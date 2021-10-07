@@ -281,20 +281,24 @@ export default function FundingProposalDetails(props) {
           }
           i++
         }
+        if(element.title=='' && element.deadline =='' && element.payout == '0' && element.briefDescription==''){
+          return null
+        } else {
         return (
           <MilestoneCard 
-            key={element.milestoneId}
-            id={element.milestoneId}
-            name={element[`milestone${element.milestoneId}`]}
-            deadline={element[`deadline${element.milestoneId}`]}
-            payout={element[`payout${element.milestoneId}`]}
-            description={element[`briefDescription${element.milestoneId}`]}
+            key={element.id}
+            id={element.id}
+            name={element.title}
+            deadline={element.deadline}
+            payout={element.payout}
+            description={element.briefDescription}
             proposalId={proposalId}
             proposalStatus={proposalStatus}
             applicant={applicant}
             paid={paid}
           />
         )
+        }
       })
     }
       

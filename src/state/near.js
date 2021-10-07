@@ -1278,13 +1278,14 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId,
             }
         }
 
-        try {
-            await curDaoIdx.set('members', logMembers)
-        } catch (err) {
-            console.log('error adding new member', err)
-        }
-        
-        return true
+        if(duplicates || !exists || update){
+            try {
+                await curDaoIdx.set('members', logMembers)
+                return true
+            } catch (err) {
+                console.log('error adding new member', err)
+            }
+        }   
     }
     return true
 }
