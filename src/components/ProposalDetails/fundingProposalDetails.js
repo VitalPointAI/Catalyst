@@ -130,7 +130,8 @@ export default function FundingProposalDetails(props) {
         contract,
         contractId,
         sponsor,
-        proposalStatus
+        proposalStatus,
+        memberStatus
     } = props
 
     const thisPersona = new Persona()
@@ -280,20 +281,24 @@ export default function FundingProposalDetails(props) {
           }
           i++
         }
+        if(element.title=='' && element.deadline =='' && element.payout == '0' && element.briefDescription==''){
+          return null
+        } else {
         return (
           <MilestoneCard 
-            key={element.milestoneId}
-            id={element.milestoneId}
-            name={element[`milestone${element.milestoneId}`]}
-            deadline={element[`deadline${element.milestoneId}`]}
-            payout={element[`payout${element.milestoneId}`]}
-            description={element[`briefDescription${element.milestoneId}`]}
+            key={element.id}
+            id={element.id}
+            name={element.title}
+            deadline={element.deadline}
+            payout={element.payout}
+            description={element.briefDescription}
             proposalId={proposalId}
             proposalStatus={proposalStatus}
             applicant={applicant}
             paid={paid}
           />
         )
+        }
       })
     }
       
@@ -346,6 +351,7 @@ export default function FundingProposalDetails(props) {
                         commentSubject={comment.subject}
                         accountId={accountId}
                         curUserIdx={curUserIdx}
+                        memberStatus={memberStatus}
                     />
               </div>
                   )
@@ -439,7 +445,7 @@ export default function FundingProposalDetails(props) {
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                   {Comments}
               </Grid>
-              {status != 'Passed' && status != 'Not Passed' ? (
+              {status != 'Passed' && status != 'Not Passed' && memberStatus ? (
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
               <Typography variant="h5" style={{marginLeft: '10px'}}>Leave a Comment/Ask a Question</Typography>
                   <CommentForm

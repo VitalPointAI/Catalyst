@@ -72,7 +72,7 @@ if (process.env.ENV === 'prod') {
         walletUrl: 'https://wallet.near.org',
         explorerUrl: 'https://explorer.mainnet.near.org',
         nameSuffix: '.near',
-        factorySuffix: 'v1.cdao.near',
+        factorySuffix: '.cdao.near',
         contractName: 'near',
         didRegistryContractName: 'did.near',
         factoryContractName: 'cdao.near',

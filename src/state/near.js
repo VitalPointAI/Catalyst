@@ -212,6 +212,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     } catch (err) {
         console.log('error initializing daoFactory', err)
     }
+   
     console.log('signedin')
     let t = 0
     let start = 0
@@ -1183,6 +1184,7 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId,
 
     let exists = false
     let member
+    let duplicates
     console.log('synch accountid', accountId)
     try{
         member = await daoContract.getMemberInfo({member: accountId})
@@ -1199,21 +1201,28 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId,
 
     let i = 0
     let memberIndexesToDelete = []
+    let count = 0
     if(member && member.length > 0){
         // add processed members
         while(i < logMembers.events.length){
             if(logMembers.events[i].delegateKey == member[0].delegateKey){
                 exists = true
-                memberIndexesToDelete.push(i)
+                count++
+                if(count > 1){
+                    memberIndexesToDelete.push(i)
+                }
             }
-            i++
+            i++    
         }
 
         // delete duplicate members from datastream leaving first one
-        let kk = 1
-        while(kk < memberIndexesToDelete.length){
-            logMembers.events.splice(kk, 1)
-            kk++
+        if(memberIndexesToDelete.length > 0){
+            duplicates = true
+            let kk = 1
+            while(kk < memberIndexesToDelete.length){
+                logMembers.events.splice(kk, 1)
+                kk++
+            }
         }
 
         if(!exists){
@@ -1269,13 +1278,14 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId,
             }
         }
 
-        try {
-            await curDaoIdx.set('members', logMembers)
-        } catch (err) {
-            console.log('error adding new member', err)
-        }
-        
-        return true
+        if(duplicates || !exists || update){
+            try {
+                await curDaoIdx.set('members', logMembers)
+                return true
+            } catch (err) {
+                console.log('error adding new member', err)
+            }
+        }   
     }
     return true
 }
@@ -2141,7 +2151,6 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
 
             memberEventRecord.events.push(indivMemberEventRecord)
          
-                
             try {
             await curDaoIdx.set('members', memberEventRecord)
             memberLogged = true
@@ -2149,6 +2158,37 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
             } catch (err) {
                 console.log('error adding new member', err)
             }
+
+            // initiate empty profile
+            let record = {
+                date: '',
+                owner: '',
+                name: '',
+                avatar: '',
+                shortBio: '',
+                email: '',
+                discord: '',
+                twitter: '',
+                reddit: '',
+                birthdate: '',
+                country: '',
+                language: [],
+                familiarity: '',
+                skillSet: {},
+                developerSkillSet: {},
+                personaSkills: [],
+                personaSpecificSkills: [],
+                notifications: []
+            }
+
+            let personaAccount = new nearAPI.Account(near.connection, originalAuthor)
+            let thisCurPersonaIdx
+            try{
+            thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, didRegistryContract)
+            } catch (err) {
+                console.log('error retrieving idx', err)
+            }
+            let result = await thisCurPersonaIdx.set('profile', record)
 
                 // Associated Member Data to Log
 

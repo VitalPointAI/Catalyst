@@ -47,6 +47,7 @@ export default function NotificationCard(props){
     useEffect(() => {
 
         async function fetchData(){
+          
             if(accountId){
                 let result = await thisPersona.getPersona(accountId)
                 console.log("PERSONA", result)
@@ -55,6 +56,7 @@ export default function NotificationCard(props){
                         console.log("RESULT", result.notifications)
                     }
                 }
+
         }
         del(NEW_NOTIFICATIONS)
 
@@ -62,6 +64,7 @@ export default function NotificationCard(props){
         .then((res) => {
       
         })
+
     },[state])
 
     const handleClose = () => {

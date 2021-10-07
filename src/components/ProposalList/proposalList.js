@@ -390,7 +390,7 @@ export default function ProposalList(props) {
   }
 
   async function getUserVote(proposalIdentifier) {
-    
+    console.log('vote proposalid', proposalIdentifier)
     let result = await contract.getMemberProposalVote({memberAddress: accountId, proposalId: parseInt(proposalIdentifier)})
     return result
   }
@@ -809,6 +809,7 @@ function typeFilter(item){
           summoner={summoner} 
           contract={contract} 
           guildBalance={guildBalance}
+          memberStatus={memberStatus}
         />
       )
     })
@@ -851,6 +852,7 @@ function typeFilter(item){
           queueList={queueList}
           contract={contract}
           guildBalance={guildBalance}
+          memberStatus={memberStatus}
         />
       )
     })
@@ -889,6 +891,7 @@ function typeFilter(item){
           summoner={summoner}
           contract={contract} 
           guildBalance={guildBalance}
+          memberStatus={memberStatus}
         />
       )
     })
@@ -928,6 +931,7 @@ function typeFilter(item){
           summoner={summoner}
           contract={contract}
           guildBalance={guildBalance}
+          memberStatus={memberStatus}
         />
       )
     })

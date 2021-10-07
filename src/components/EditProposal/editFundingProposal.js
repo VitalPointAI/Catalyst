@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { flexClass } from '../../App'
 import { contractName, IPFS_PROVIDER } from '../../utils/ceramic'
@@ -32,6 +32,8 @@ import Tooltip from '@material-ui/core/Tooltip'
 import Zoom from '@material-ui/core/Zoom'
 import InfoIcon from '@material-ui/icons/Info'
 import Paper from '@material-ui/core/Paper'
+import DeleteForeverIcon from '@material-ui/icons/DeleteForever'
+import AddBoxIcon from '@material-ui/icons/AddBox'
 
 const useStyles = makeStyles((theme) => ({
     progress: {
@@ -73,19 +75,28 @@ export default function EditFundingProposalForm(props) {
     const [title, setTitle] = useState('')
     const [details, setDetails] = useState(EditorState.createEmpty())
     const [milestones, setMilestones] = useState([{milestoneId: ''}])
-    const [requested, setRequested] = useState(props.funding)
+    const [requested, setRequested] = useState()
     
     const [currentLikes, setCurrentLikes] = useState([])
     const [currentDisLikes, setCurrentDisLikes] = useState([])
     const [currentNeutrals, setCurrentNeutrals] = useState([])
-    const [left, setLeft] = useState(props.funding)
+    const [left, setLeft] = useState()
     const [planned, setPlanned] = useState(0)
     const [disabled, setDisabled] = useState(true)
     const [addDisabled, setAddDisabled] = useState(true)
     const [errorM, setErrorM] = useState(false)
     const [message, setMessage] = useState(false)
     const [max, setMax] = useState(props.funding)
-    const { register, handleSubmit, watch, errors } = useForm()
+    const { register, handleSubmit, watch, errors, control, reset, setValue, getValues } = useForm()
+    const {
+      fields: milestoneFields,
+      append: milestoneAppend,
+      remove: milestoneRemove} = useFieldArray({
+     name: "projectMilestones",
+     control
+    })
+
+    const projectMilestones = watch('projectMilestones', milestoneFields)
   
     const {
         handleUpdate,
@@ -98,8 +109,13 @@ export default function EditFundingProposalForm(props) {
         funding, 
         referenceIds
     } = props
-    
+    console.log('milestonefields', milestoneFields)
     const classes = useStyles()
+
+    useEffect(() => {
+      updatePlanned()
+    }, [milestoneFields]
+    )
 
     useEffect(() => {
         async function fetchData() {
@@ -129,7 +145,7 @@ export default function EditFundingProposalForm(props) {
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == proposalId){
                     propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
-                    propResult.proposals[i].milestones ? setMilestones(propResult.proposals[i].milestones) : setMilestones([{milestoneId: ''}])
+                    propResult.proposals[i].milestones ? setValue('projectMilestones', propResult.proposals[i].milestones): setValue('projectMilestones', {title: '', deadline: '', payout: '0', briefDescription: ''})
                     if (propResult.proposals[i].details){
                       let contentBlock = htmlToDraft(propResult.proposals[i].details)
                       if (contentBlock){
@@ -183,36 +199,36 @@ export default function EditFundingProposalForm(props) {
                   i++
                 }
 
-                let j = 0
-                let totalProgrammed = 0
+                // let j = 0
+                // let totalProgrammed = 0
                
-                while(j < milestones.length){
-                  console.log('xy milestones', milestones)
-              
-                  if(isNaN(milestones[j][`payout${j}`])){
-                    totalProgrammed = 0
-                  }
-          
-                  if(!isNaN(milestones[j][`payout${j}`])){
-                    totalProgrammed = totalProgrammed + milestones[j][`payout${j}`]
-                    console.log('xy totalprogrammed notnan', totalProgrammed)
-                   
-                  }
-          
-                  setPlanned(parseFloat(parseNearAmount(totalProgrammed.toString())))
-                  thisLeft = parseFloat(requested) - parseFloat(parseNearAmount(totalProgrammed.toString()))
-                  console.log('xy this left not nan', thisLeft)
-                  setLeft(thisLeft)
-                 
-                  j++
-                }
+                // while(j < milestones.length){
+                //   console.log('xy milestones', milestones)
+                
+                //     if(isNaN(milestones[j][`payout${j}`])){
+                //       totalProgrammed = 0
+                //     }
+            
+                //     if(!isNaN(milestones[j][`payout${j}`])){
+                //       totalProgrammed = parseFloat(totalProgrammed.toString()) + parseFloat(milestones[i][`payout${i}`])
+                //       console.log('xy totalprogrammed notnan', totalProgrammed)
+                    
+                //     }
+            
+                //     setPlanned(parseFloat(parseNearAmount(totalProgrammed.toLocaleString('fullwide', {useGrouping: false}))))
+                //     thisLeft = parseFloat(requested.toLocaleString('fullwide', {useGrouping: false})) - parseFloat(parseNearAmount(totalProgrammed.toLocaleString('fullwide', {useGrouping: false})))
+                //     console.log('xy this left not nan', thisLeft.toLocaleString('fullwide', {useGrouping: false}))
+                //     setLeft(thisLeft.toLocaleString('fullwide', {useGrouping: false}))
+                  
+                //   j++
+                // }
               }
-           }
-           if(thisLeft == 0){
-            setDisabled(false)
-          } else {
-            setDisabled(true)
-          }
+           } 
+          
+           
+            setLeft(funding)
+            setRequested(funding)
+            
         }
        
         fetchData()
@@ -229,132 +245,174 @@ export default function EditFundingProposalForm(props) {
         handleEditFundingProposalDetailsClickState(false)
         setOpen(false)
     }
-console.log('current likes', currentLikes)
-    const handleMilestonesChange = (i, e) => {
-      console.log('zi', i)
-      console.log('ze', e)
-      let newMilestone = [...milestones]
-      console.log('zi new milestones', newMilestone)
-      newMilestone[i]['milestoneId'] = i
-      // if(e.target.name == [`payout${i}`]){
-      //   newMilestone[i][e.target.name] = parseFloat(e.target.value)
-      // } else {
-         newMilestone[i][e.target.name] = e.target.value
-      // }
-      console.log('newmilestonet', newMilestone[i])
-      setMilestones(newMilestone)
-   
-      setAddDisabled(true)
-      setDisabled(true)
-      let thisLeft
-      if(milestones.length == 1)  {
-        thisLeft = parseFloat(requested)
-        setMax(thisLeft)
+
+    const updatePlanned = async () => {
+      let totalPlanned = 0
+      let i = 0
+      let whatsLeft
+      while(i < milestoneFields.length){
+        console.log('total milestoneFields', milestoneFields)
+        totalPlanned = parseFloat(totalPlanned) + parseFloat(milestoneFields[i].payout)
+        console.log('total i', i)
+        console.log('total payout', parseFloat(milestoneFields[i].payout))
+        console.log('totalplanned', totalPlanned)
+        
+        i++
+      }
+
+      setPlanned(totalPlanned)
+      whatsLeft = parseFloat(funding) - parseFloat(parseNearAmount(totalPlanned.toString()))  
+      setLeft(whatsLeft.toLocaleString('fullwide', {useGrouping: false}))
+      if(whatsLeft != 0) {
+        setAddDisabled(false)
+        setDisabled(true)
       } else {
-        thisLeft = left
-        setMax(thisLeft)
-      }
-
-      if(newMilestone[i][`payout${i}`] && newMilestone[i][`milestone${i}`] && newMilestone[i][`deadline${i}`] && newMilestone[i][`briefDescription${i}`]){
-        if(
-          newMilestone[i][`payout${i}`] != 0 &&
-          newMilestone[i][`milestone${i}`]!='' &&
-          newMilestone[i][`deadline${i}`]!='' &&
-          newMilestone[i][`briefDescription${i}`]!='' &&
-          (parseFloat(parseNearAmount(newMilestone[i][`payout${i}`].toString())) < requested ||
-          parseFloat(parseNearAmount(newMilestone[i][`payout${i}`].toString())) < thisLeft ||
-          thisLeft != 0)
-        ) {
-          setAddDisabled(false)
-        }
-      }
-
-      if(!newMilestone[i]){
-        setAddDisabled(true)
-      }
-       
-    }
-
-
-    const addMilestoneFields = () => {
-     
-      setAddDisabled(true)
-      let i = 0
-      let totalProgrammed = 0
-      let thisLeft
-      while(i < milestones.length){
-        console.log('xy milestones', milestones)
-    
-        if(isNaN(milestones[i][`payout${i}`])){
-          totalProgrammed = 0
-        }
-
-        if(!isNaN(milestones[i][`payout${i}`])){
-          totalProgrammed = totalProgrammed + milestones[i][`payout${i}`]
-          console.log('xy totalprogrammed notnan', totalProgrammed)
-         
-        }
-
-        setPlanned(parseFloat(parseNearAmount(totalProgrammed.toString())))
-        thisLeft = parseFloat(requested) - parseFloat(parseNearAmount(totalProgrammed.toString()))
-        console.log('xy this left not nan', thisLeft)
-        setLeft(thisLeft)
-
-        if(parseFloat(parseNearAmount(totalProgrammed.toString())) == parseFloat(requested)){
+        if(whatsLeft == 0) {
+          setAddDisabled(true)
           setDisabled(false)
         }
-        i++
       }
-      if(thisLeft == 0){
-        return (
-          <Typography variant='body1'>You have planned all the funds you requested.</Typography>
-        )
-       
-      }
-     
-      setMilestones([...milestones, {milestoneId: ''}])
     }
 
-    const removeMilestoneFields = (j) => {
-      let thisLeft
-      let newMilestones = [...milestones]
-      newMilestones.splice(j, 1)
-      setMilestones(newMilestones)
+// console.log('current likes', currentLikes)
+//     const handleMilestonesChange = (i, e) => {
+//       console.log('zi', i)
+//       console.log('ze', e)
+//       let newMilestone = [...milestones]
+//       console.log('zi new milestones', newMilestone)
+//       newMilestone[i]['milestoneId'] = i
+//       // if(e.target.name == [`payout${i}`]){
+//       //   newMilestone[i][e.target.name] = parseFloat(e.target.value)
+//       // } else {
+//          newMilestone[i][e.target.name] = e.target.value
+//       // }
+//       console.log('newmilestonet', newMilestone[i])
+//       setMilestones(newMilestone)
+   
+//       setAddDisabled(true)
+//       setDisabled(true)
+//       let thisLeft
+//       if(milestones.length == 1)  {
+//         thisLeft = parseFloat(requested)
+//         setMax(thisLeft)
+//       } else {
+//         thisLeft = left
+//         setMax(thisLeft)
+//       }
 
-      let i = 0
-      let totalProgrammed = 0
+//       if(newMilestone[i][`payout${i}`] && newMilestone[i][`milestone${i}`] && newMilestone[i][`deadline${i}`] && newMilestone[i][`briefDescription${i}`]){
+//         if(
+//           newMilestone[i][`payout${i}`] != 0 &&
+//           newMilestone[i][`milestone${i}`]!='' &&
+//           newMilestone[i][`deadline${i}`]!='' &&
+//           newMilestone[i][`briefDescription${i}`]!='' &&
+//           (parseFloat(parseNearAmount(newMilestone[i][`payout${i}`].toLocaleString('fullwide', {useGrouping: false}))) < requested ||
+//           parseFloat(parseNearAmount(newMilestone[i][`payout${i}`].toLocaleString('fullwide', {useGrouping: false}))) < thisLeft ||
+//           thisLeft != 0)
+//         ) {
+//           setAddDisabled(false)
+//         }
+//       }
 
-      while(i < newMilestones.length){
-        console.log('xy newMilestones', newMilestones)
-    
-        if(isNaN(newMilestones[i][`payout${i}`])){
-          totalProgrammed = 0
-        }
+//       if(!newMilestone[i]){
+//         setAddDisabled(true)
+//       }
+       
+//     }
 
-        if(!isNaN(newMilestones[i][`payout${i}`])){
-          totalProgrammed = totalProgrammed + newMilestones[i][`payout${i}`]
-          console.log('xy totalprogrammed notnan', totalProgrammed)
-         
-        }
 
-        setPlanned(parseFloat(parseNearAmount(totalProgrammed.toString())))
-        thisLeft = parseFloat(requested) - parseFloat(parseNearAmount(totalProgrammed.toString()))
-        console.log('xy this left not nan', thisLeft)
-        setLeft(thisLeft)
+    // const addMilestoneFields = () => {
+     
+    //   setAddDisabled(true)
+    //   let i = 0
+    //   let totalProgrammed = 0
+    //   let thisLeft
+    //   while(i < milestones.length){
+    //     console.log('xy milestones', milestones)
+       
+    //       if(isNaN(milestones[i][`payout${i}`])){
+    //         totalProgrammed = 0
+    //       }
 
-        if(parseFloat(parseNearAmount(totalProgrammed.toString())) == parseFloat(requested)){
-          setDisabled(false)
-        }
-        i++
-      }
+    //       if(!isNaN(milestones[i][`payout${i}`])){
+    //         totalProgrammed = parseFloat(totalProgrammed.toString()) + parseFloat(milestones[i][`payout${i}`])
+    //         console.log('xy totalprogrammed notnan', totalProgrammed)
+          
+    //       }
 
-      if(
-          thisLeft != 0
-        ) {
-          setAddDisabled(false)
-        }
+    //       setPlanned(parseFloat(parseNearAmount(totalProgrammed.toLocaleString('fullwide', {useGrouping: false}))))
+    //       thisLeft = parseFloat(requested.toLocaleString('fullwide', {useGrouping: false})) - parseFloat(parseNearAmount(totalProgrammed.toLocaleString('fullwide', {useGrouping: false})))
+    //       console.log('xy add this left not nan', thisLeft.toLocaleString('fullwide', {useGrouping: false}))
+    //       setLeft(thisLeft.toLocaleString('fullwide', {useGrouping: false}))
+
+    //       if(parseFloat(parseNearAmount(totalProgrammed.toLocaleString('fullwide', {useGrouping: false}))) == parseFloat(requested)){
+    //         setDisabled(false)
+    //       }
+        
+    //     i++
+    //   }
+    //   if(thisLeft == 0){
+    //     return (
+    //       <Typography variant='body1'>You have planned all the funds you requested.</Typography>
+    //     )
+       
+    //   }
+     
+    //   setMilestones([...milestones, {milestoneId: ''}])
+    // }
+
+    // const removeMilestoneFields = (j) => {
+    //   console.log('xy subtract j', j)
+    //   let thisLeft
+    //   console.log('remove this left', thisLeft)
+    //   let newMilestones = [...milestones]
+    //   newMilestones.splice(j, 1)
       
-    }
+      
+
+
+    //   let i = 0
+    //   let totalProgrammed = 0
+
+    //   while(i < newMilestones.length){
+    //     console.log('xy newMilestones', newMilestones)
+      
+    //       if(isNaN(newMilestones[i][`payout${i}`])){
+    //         totalProgrammed = 0
+    //       }
+
+    //       if(!isNaN(newMilestones[i][`payout${i}`])){
+    //         console.log('remove total programmed', parseFloat(totalProgrammed.toString()))
+    //         totalProgrammed = parseFloat(totalProgrammed.toString()) + parseFloat(milestones[i][`payout${i}`])
+    //         console.log('xy totalprogrammed notnan', totalProgrammed)
+    //       }
+
+    //       setPlanned(parseFloat(parseNearAmount(totalProgrammed.toString())).toLocaleString('fullwide', {useGrouping: false}))
+    //       console.log('xy subtract requested', requested)
+    //       console.log('xy subtract totalProgrmmed', parseFloat(parseNearAmount(totalProgrammed.toString())).toLocaleString('fullwide', {useGrouping: false}))
+    //       thisLeft = requested - parseFloat(parseNearAmount(totalProgrammed.toString())).toLocaleString('fullwide', {useGrouping: false})
+    //       console.log('xy subtract this left not nan', thisLeft.toLocaleString('fullwide', {useGrouping: false}))
+    //       setLeft(thisLeft.toLocaleString('fullwide', {useGrouping: false}))
+    
+    //       if(parseFloat(parseNearAmount(totalProgrammed.toString())) == parseFloat(requested)){
+    //         setDisabled(false)
+    //       }
+        
+      
+    //     i++
+    //   }
+
+     
+
+    //   if(
+    //       thisLeft != 0
+    //     ) {
+    //       setAddDisabled(false)
+    //     }
+
+    //   setMilestones(newMilestones)
+      
+    // }
 
     const handleTitleChange = (event) => {
         let value = event.target.value;
@@ -391,7 +449,7 @@ console.log('current likes', currentLikes)
           details: draftToHtml(convertToRaw(details.getCurrentContent())),
           proposer: proposer,
           submitDate: now,
-          milestones: milestones,
+          milestones: milestoneFields,
           published: true,
           likes: currentLikes,
           dislikes: currentDisLikes,
@@ -424,9 +482,6 @@ console.log('current likes', currentLikes)
       handleClose()
     }
 
-   console.log('left', left)
-   console.log('requested', requested)
-    
         return (
            
             <div>
@@ -451,7 +506,7 @@ console.log('current likes', currentLikes)
                       value={title}
                       onChange={handleTitleChange}
                       inputRef={register({
-                        required: true                              
+                        required: true                             
                       })}
                   />
                   {errors.fundingProposalTitle && <p style={{color: 'red', fontSize:'80%'}}>You must give your proposal a title.</p>}
@@ -470,151 +525,135 @@ console.log('current likes', currentLikes)
                   </Paper>
                   <Typography variant="h6" style={{marginTop: '30px'}}>Milestones</Typography>
                   <Paper style={{padding: '5px'}}>
-                  <Typography variant="body1">You've requested {formatNearAmount(requested, 3)} Ⓝ.  The total amount of all milestones must equal the amount requested.</Typography>
-                  {milestones && milestones.map((element, index) => (
-                  
-                      <React.Fragment key={index}>
-                      <Grid container justifyContent="space-between" alignItems="flex-end" spacing={1}>
-                      <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                      
-                        <TextField
-                          margin="dense"
-                          className={classes.id}
-                          id="milestone-id"
-                          variant="outlined"
-                          name="milestoneId"
-                          label="MilestoneId:"
-                          value={index}
-                          onChange={e => handleMilestonesChange(index, e)}
-                          inputRef={register({
-                              required: true                              
-                          })}
-                        />
-                        </Grid>
-                        <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
-                        <TextField
-                          fullWidth
-                          required
-                          margin="dense"
-                          id="milestone-title"
-                          variant="outlined"
-                          name={`milestone${index}`}
-                          label="Milestone Name"
-                          placeholder="Milestone"
-                          value={element[`milestone${index}`] || ""}
-                          onChange={e => handleMilestonesChange(index, e)}
-                          InputProps={{
-                            endAdornment: <div>
-                            <Tooltip TransitionComponent={Zoom} title="Short title of this milestone.">
-                                <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
-                            </Tooltip>
-                            </div>
-                          }}
-                          inputRef={register({
-                            required: true                              
-                          })}
-                          />
-                          {errors[`milestone${index}`] && <p style={{color: 'red', fontSize:'80%'}}>You must name your milestone.</p>}
-            
-                        </Grid>
-                        <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
-                        <TextField
-                          
-                          margin="dense"
-                          id="milestone-deadline"
-                          type = "date"
-                          name={`deadline${index}`}
-                          required
-                          label="Estimated Completion:"
-                          value={element[`deadline${index}`] || ""}
-                          onChange={e => handleMilestonesChange(index, e)}
-                          InputLabelProps={{shrink: true,}}
-                          InputProps={{
-                            endAdornment: <div>
-                            <Tooltip TransitionComponent={Zoom} title="Proposed deadline for completion of this milestone.">
-                                <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
-                            </Tooltip>
-                            </div>
-                          }}
-                          inputRef={register({
-                            required: true                              
-                          })}
-                          />
-                          {errors[`deadline${index}`] && <p style={{color: 'red', fontSize:'80%'}}>Provide est completion date.</p>}
-            
-                       
-                        </Grid>
-                        <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
-                        <Typography variant="overline">{left ? formatNearAmount(left, 3) : 0} Ⓝ left to plan work for.</Typography>
-                        <TextField
-                          margin="dense"
-                          fullWidth
-                          id="payout-requested"
-                          variant="outlined"
-                          type="number"
-                          name={`payout${index}`}
-                          label="Planned Payout"
-                         
-                          value={element[`payout${index}`] || ''}
-                          onChange={e => handleMilestonesChange(index, e)}
-                          
-                          InputProps={{ 
-                            inputProps: {
-                              required: true, 
-                              min: 0,
-                              max: max
-                            },
-                            endAdornment: <div><InputAdornment position="end">Ⓝ</InputAdornment>
-                            <Tooltip TransitionComponent={Zoom} title="Payout proposed in NEAR that will be paid out for completion of this milestone">
-                                <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
-                            </Tooltip>
-                            </div>
-                          }}
-                         
-                          />
-                          {errors[`payout${index}`] && <p style={{color: 'red', fontSize:'80%'}}>Provide planned payout amount.</p>}
-            
-                   
-                        </Grid>
-                        <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
-                        <TextField
-                          
-                          fullWidth
-                          margin="dense"
-                          id="milestone-description"
-                          variant="outlined"
-                          name={`briefDescription${index}`}
-                          label="Brief Description:"
-                          required
-                          placeholder="Finish ...."
-                          value={element[`briefDescription${index}`] || ""}
-                          onChange={e => handleMilestonesChange(index, e)}
-                          InputProps={{
-                            endAdornment: <div>
-                            <Tooltip TransitionComponent={Zoom} title="Short description of what will be finished by completing this milestone.">
-                                <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
-                            </Tooltip>
-                            </div>
-                          }}
-                          />
-                          {errors[`briefDescription${index}`] && <p style={{color: 'red', fontSize:'80%'}}>Provide milestone description.</p>}
-            
-                        
-                        </Grid>
-                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                  <Typography variant="body1">The total amount of all milestones must equal the amount requested ({formatNearAmount(requested, 3)} Ⓝ).</Typography>
+                  <Typography variant="h6" align="center"> {planned ? parseFloat(formatNearAmount(requested, 3)) - planned : formatNearAmount(requested, 3)} Ⓝ left to plan.</Typography>
+                  <Divider variant="middle" /> 
+                    <Grid container justifyContent="space-between" alignItems="flex-end" spacing={1}>
+                      <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                         {
-                        index ? 
-                          <Button key={element.name} className="button remove" onClick={() => removeMilestoneFields(index)}>Remove Milestone</Button> 
-                        : null
+                          milestoneFields.map((field, index) => {
+                           
+                          return(
+                            <Grid container justifyContent="space-between" alignItems="flex-end" spacing={1} key={field.id}>
+                              
+                              <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                                <TextField
+                                  fullWidth
+                                  margin="dense"
+                                  id={`projectMilestones[${index}].title`}
+                                  variant="outlined"
+                                  name={`projectMilestones[${index}].title`}
+                                  label="Milestone Name"
+                                  placeholder="Milestone"
+                                  defaultValue={field.title}
+                                  InputProps={{
+                                    endAdornment: <div>
+                                    <Tooltip TransitionComponent={Zoom} title="Short title of this milestone.">
+                                        <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                                    </Tooltip>
+                                    </div>
+                                  }}
+                                  inputRef={register({
+                                    required: false                            
+                                  })}
+                                />
+                            
+                              </Grid>
+                              <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                                <TextField
+                                  fullWidth
+                                  margin="dense"
+                                  type="date"
+                                  id={`projectMilestones[${index}].deadline`}
+                                  variant="outlined"
+                                  name={`projectMilestones[${index}].deadline`}
+                                  defaultValue={formatDate(Date.now())}
+                                  InputProps={{
+                                    endAdornment: <div>
+                                    <Tooltip TransitionComponent={Zoom} title="Proposed deadline for completion of this milestone.">
+                                      <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                                    </Tooltip>
+                                    </div>
+                                  }}
+                                  inputRef={register({
+                                    required: false                             
+                                  })}
+                                />
+                              
+                              </Grid>
+                              <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                                <TextField
+                                  fullWidth
+                                  margin="dense"
+                                  type="number"
+                                  id={`projectMilestones[${index}].payout`}
+                                  variant="outlined"
+                                  name={`projectMilestones[${index}].payout`}
+                                  label="Proposed Payout"
+                                  defaultValue={field.payout}
+                                  InputProps={{
+                                    endAdornment: <div><InputAdornment position="end">Ⓝ</InputAdornment>
+                                      <Tooltip TransitionComponent={Zoom} title="Payout proposed in NEAR that will be paid out for completion of this milestone">
+                                          <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                                      </Tooltip>
+                                      </div>
+                                  }}
+                                  inputRef={register({
+                                    required: false                             
+                                  })}
+                                />
+                             
+                              </Grid>
+                              <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                              <TextField
+                                fullWidth
+                                margin="dense"
+                                id={`projectMilestones[${index}].briefDescription`}
+                                variant="outlined"
+                                name={`projectMilestones[${index}].briefDescription`}
+                                label="Brief Description"
+                                defaultValue={field.briefDescription}
+                                InputProps={{
+                                  endAdornment: <div>
+                                    <Tooltip TransitionComponent={Zoom} title="Short description of what will be finished by completing this milestone.">
+                                      <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                                    </Tooltip>
+                                    </div>
+                                }}
+                                inputRef={register({
+                                  required: false                          
+                                })}
+                              />
+                              </Grid>
+                              <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                              <Button type="button" onClick={() => {
+                                milestoneRemove(index) 
+                              }}
+                              style={{float: 'right', marginLeft:'10px'}}>
+                                <DeleteForeverIcon />
+                              </Button>
+                            </Grid>
+                            </Grid>
+                          )
+                        }) 
                         }
-                        </Grid>
+                        {!milestoneFields || milestoneFields.length == 0 ?
+                          <Typography variant="body1" style={{marginLeft: '5px'}}>No project milestones defined yet. Add them to help stay on track and schedule payouts for your proposal.
+                          </Typography>
+                        : null }
+                        <Divider variant="middle" />
+                          <Button
+                            type="button"
+                            onClick={() => {
+                              milestoneAppend({title: '', deadline: '', payout: '0', briefDescription: ''})
+                            
+                              }
+                           } startIcon={<AddBoxIcon />}
+                          >
+                            Add Milestone
+                          </Button>
                       </Grid>
-                        <hr></hr>
-                        </React.Fragment>
-                  ))}
-                  <div>
-                    <Button className="button add" type="button" disabled={addDisabled} onClick={() => addMilestoneFields()}>Add Milestone</Button>
-                  </div>
+                    </Grid>
                   </Paper>
                 </DialogContent>
                

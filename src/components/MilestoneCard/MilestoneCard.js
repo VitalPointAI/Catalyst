@@ -120,7 +120,7 @@ export default function MilestoneCard(props) {
         <Card raised={true} className={classes.card} >
           <Grid container justifyContent="flex-start" alignItems="center" spacing={1}>
             <Grid item xs={1} sm={1} md={1} lg={1} xl={1} align="center">
-              <Typography variant="body2">{id}</Typography>
+              <Typography variant="body2" noWrap="true">{id}</Typography>
             </Grid>
             <Grid item xs={3} sm={3} md={3} lg={3} xl={3} align="left" >
               <Typography variant="body2">{name}</Typography>

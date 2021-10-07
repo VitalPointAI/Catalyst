@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { useLocation } from 'react-router-dom'
-import { useForm} from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { appStore } from '../../../state/app'
 import {get,set,del} from '../../../utils/storage'
 import { makeStyles } from '@material-ui/core/styles'
@@ -8,9 +8,10 @@ import * as nearAPI from 'near-api-js'
 import { ceramic } from '../../../utils/ceramic'
 import { EditorState, convertFromRaw, convertToRaw, ContentState } from 'draft-js'
 import { Editor } from "react-draft-wysiwyg"
-import {NEW_NOTIFICATIONS} from '../../../state/near' 
+import { NEW_NOTIFICATIONS } from '../../../state/near' 
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
 import draftToHtml from 'draftjs-to-html'
+import { getStatus } from '../../../state/near'
 
 
 // Material UI components
@@ -65,6 +66,7 @@ export default function CommentForm(props) {
     const [commentAuthor, setCommentAuthor] = useState(props.accountId)
     const [commentId, setCommentId] = useState()   
     const [submitted, setSubmitted] = useState(false)
+    const [memberStatus, setMemberStatus] = useState(getStatus(props.accountId))
     const { register, handleSubmit, watch, errors } = useForm()
    
     const {
@@ -155,6 +157,7 @@ export default function CommentForm(props) {
         }
         
         if(reply){
+          console.log('original author', originalAuthor)
           let personaAccount = new nearAPI.Account(near.connection, originalAuthor)
           
           let thisCurPersonaIdx
