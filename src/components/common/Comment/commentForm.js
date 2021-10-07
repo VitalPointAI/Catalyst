@@ -61,7 +61,6 @@ export default function CommentForm(props) {
     const [finished, setFinished] = useState(true)
     const [commentSubject, setCommentSubject] = useState('')
     const [commentBody, setCommentBody] = useState(EditorState.createEmpty())
-    const [commentPublished, setCommentPublished] = useState(false)
     const [commentParent, setCommentParent] = useState(props.proposalId.toString())
     const [commentAuthor, setCommentAuthor] = useState(props.accountId)
     const [commentId, setCommentId] = useState()   
@@ -109,18 +108,12 @@ export default function CommentForm(props) {
         setCommentSubject(value)
     }
 
-    const handlePublishToggle = () => {
-        const published = !commentPublished
-        setCommentPublished(published)
-    }
-
      const handleCommentBodyChange = (editorState) => {
       setCommentBody(editorState)
      }
 
     const handleReset = () => {
       setCommentSubject('')
-      setCommentPublished(false)
       setCommentBody(EditorState.createEmpty())
     }
 
@@ -151,7 +144,7 @@ export default function CommentForm(props) {
           body: body,
           author: commentAuthor,
           postDate: new Date().getTime(),
-          published: commentPublished,
+          published: true,
           originalAuthor: originalAuthor,
           originalContent: originalContent
         }
@@ -219,13 +212,11 @@ export default function CommentForm(props) {
                   <div>
                     { !submitted ?
                     <>
+                    {reply ?
                     <div>
-                      <FormControlLabel
-                        control={<Switch checked={commentPublished} onChange={handlePublishToggle} color="primary" />}
-                        label="Published"
-                      />
-                      <Typography>Reply to {originalAuthor}'s comment</Typography>
-                    </div>   
+                      <Typography variant="h6">Reply to {originalAuthor}'s comment</Typography>
+                    </div>
+                    : null }
           
                       <div>
                         { !reply ?
