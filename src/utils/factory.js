@@ -25,7 +25,8 @@ class Factory {
             // Change methods can modify the state. But you don't receive the returned value when called.
             changeMethods: [
                'createDAO',
-               'deleteDAO'
+               'deleteDAO',
+               'inactivateDAO'
             ]
             });
             return factorycontract

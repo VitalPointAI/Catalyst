@@ -20,6 +20,9 @@ import { CardHeader, LinearProgress } from '@material-ui/core'
 import CheckCircleIcon from '@material-ui/icons/CheckCircle'
 import NotInterestedIcon from '@material-ui/icons/NotInterested'
 import Chip from '@material-ui/core/Chip'
+import EditIcon from '@material-ui/icons/Edit'
+import PauseCircleFilledIcon from '@material-ui/icons/PauseCircleFilled'
+import PlayCircleFilledIcon from '@material-ui/icons/PlayCircleFilled'
 
 import { config } from '../../state/config'
 
@@ -81,6 +84,7 @@ export default function DaoCard(props) {
     const { 
       summoner,
       contractId,
+      status,
       makeSearchDaos
    } = props
  
@@ -207,8 +211,13 @@ export default function DaoCard(props) {
             }}>
             </div>
             </Link>
+                
+                <Typography  variant="h6" display="inline" noWrap={false} style={{lineHeight: 0}}>
+                  {sname != '' ? sname : contractId.split('.')[0]}
+                </Typography><br></br>
+                <Chip variant="outlined" label={status} icon={status=='active'? <PlayCircleFilledIcon style={{ color: 'green[500]'}} /> : <PauseCircleFilledIcon style={{color: 'red[500]'}}/>} style={{marginTop: '10px'}}/><br></br>
+                
                 <Typography  variant="overline" display="inline" noWrap={true} style={{lineHeight: 0}}>
-                  {sname != '' ? sname : contractId.split('.')[0]}<br></br>
                   {finished ? (<span style={{fontSize: '80%'}}>Updated: {sdate}</span>) : <LinearProgress />}<br></br>
                   {scategory ? (<span style={{fontSize: '80%'}}>Category: {scategory}</span>): (<span style={{fontSize: '80%'}}>Category: Undefined</span>)}<br></br>
                   {spurpose ? (<Button variant="outlined" style={{textAlign: 'center', fontSize: '80%', marginTop:'5px'}} onClick={handlePurposeClick}>Purpose</Button>) : null }
@@ -224,8 +233,8 @@ export default function DaoCard(props) {
                   </Button>
                 </Link>
                 {state.accountId == summoner ? (
-                <Button color="primary" onClick={handleEditDaoClick} style={{float: 'right'}}>
-                  Edit Details
+                <Button color="primary" onClick={handleEditDaoClick} style={{marginLeft: 45, float: 'right'}}>
+                  <EditIcon />
                 </Button>
                 ) : 
                 <Button color="primary" onClick={handleDetailsClick} style={{marginLeft:45, float: 'right'}}>

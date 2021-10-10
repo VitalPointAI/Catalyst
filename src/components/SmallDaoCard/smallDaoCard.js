@@ -20,6 +20,8 @@ import { CardHeader, LinearProgress } from '@material-ui/core'
 import CheckCircleIcon from '@material-ui/icons/CheckCircle'
 import NotInterestedIcon from '@material-ui/icons/NotInterested'
 import Chip from '@material-ui/core/Chip'
+import PauseCircleFilledIcon from '@material-ui/icons/PauseCircleFilled'
+import PlayCircleFilledIcon from '@material-ui/icons/PlayCircleFilled'
 
 import { config } from '../../state/config'
 
@@ -83,7 +85,8 @@ export default function SmallDaoCard(props) {
       link,
       contract,
       makeSearchDaos,
-      memberStatus
+      memberStatus,
+      status
    } = props
  
    const {
@@ -212,9 +215,12 @@ export default function SmallDaoCard(props) {
             }}>
             </div>
             </Link>
+               
                 <Typography  variant="h6" display="inline" noWrap={true} style={{lineHeight: 0}}>
                   {sname != '' ? sname : contractId.split('.')[0]}
                 </Typography><br></br>
+                <Chip variant="outlined" label={status} icon={status=='active'? <PlayCircleFilledIcon style={{ color: 'green[500]'}} /> : <PauseCircleFilledIcon style={{color: 'red[500]'}}/>} style={{marginTop: '10px'}}/><br></br>
+
                 <Typography  variant="overline" display="inline" noWrap={true} style={{lineHeight: 0}}>
                   {totalMembers} {totalMembers == 1 ? 'Member' : 'Members'}
                 </Typography>

@@ -204,6 +204,7 @@ export default function FundingProposalDetails(props) {
               
               try{
                 let oppResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
+                console.log('payoutproposaldetails', oppResult)
                 let confirmedMilestonePayouts = []
                 let t = 0
                 while (t < oppResult.proposals.length){
@@ -275,7 +276,7 @@ export default function FundingProposalDetails(props) {
         let i = 0
         let paid
         while (i < milestonePayouts.length){
-          if (element.milestoneId == parseInt(milestonePayouts[i])){
+          if (element.id == parseInt(milestonePayouts[i])){
             paid = true
             break
           }

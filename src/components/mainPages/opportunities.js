@@ -51,6 +51,8 @@ export default function Opportunities(props) {
     const [recommendations, setRecommendations] = useState([])
     const [suitabilityScore, setSuitabilityScore] = useState()
     const [finished, setFinished] = useState(false)
+    const [active, setActive] = useState(true)
+    
 
     const classes = useStyles()
 
@@ -60,7 +62,8 @@ export default function Opportunities(props) {
       accountId,
       didRegistryContract, 
       near,
-      appIdx
+      appIdx,
+      currentDaosList
     } = state
 
     const {
@@ -69,6 +72,17 @@ export default function Opportunities(props) {
 
     useEffect(
         () => {
+          if(currentDaosList && currentDaosList.length > 0){
+            let i = 0
+            while (i < currentDaosList.length){
+              if(currentDaosList[i].contractId == contractId){
+                currentDaosList[i].status == 'active' ? setActive(true) : setActive(false)
+                break
+              }
+              i++
+            }
+          }
+
           async function fetchData() {
             setFinished(false)
             if(didRegistryContract && near && contractId){
@@ -86,6 +100,7 @@ export default function Opportunities(props) {
               opportunities = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
               console.log('opportunities', opportunities)
               if(opportunities && opportunities.length > 0){
+                
                 setaOpportunities(opportunities.opportunities)
               }
 
@@ -98,6 +113,7 @@ export default function Opportunities(props) {
                     if(opportunities){
                     while (i < opportunities.opportunities.length){
                       console.log('opportunities', opportunities)
+                      
                       allOpportunities.push(opportunities.opportunities[i])
                       i++
                     }
@@ -277,7 +293,7 @@ export default function Opportunities(props) {
               onChange={(e) => searchData(e.target.value)}
           />
           </Grid>
-          {finished ?
+          {finished && active ?
             recommendations && recommendations.length > 0 ?
               recommendations.map((fr, i) => {
                 console.log('fr', fr)
@@ -306,10 +322,19 @@ export default function Opportunities(props) {
                   return null
                 }
               }) 
-              : <Card className={classes.card}>
+              : 
+              active ?
+                <Card className={classes.card}>
                   <Typography variant="h5">No Opportunities Yet - Please Check Back Soon.</Typography>
                 </Card>
-          : <CircularProgress />}
+              : 
+              finished ?
+              <Card className={classes.card}>
+                <Typography variant="h5">This Community is Inactve. No active opportunities available.</Typography>
+              </Card>
+              : <CircularProgress />
+              : <CircularProgress />
+            }
           
         </Grid>
         </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
-import { submitProposal } from '../../state/near'
+import { submitProposal, STORAGE } from '../../state/near'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -128,13 +128,16 @@ export default function OpportunityProposal(props) {
               />
             </Grid>
             <Grid item xs={10} sm={10} md={10} lg={10} xl={10} style={{margin:'auto'}}>
-              <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{proposalDeposit} Ⓝ</b>:</Typography>
+              <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{parseFloat(proposalDeposit) + parseFloat(STORAGE)} Ⓝ</b>:</Typography>
               <Grid container justifyContent="center" spacing={0}>
                 <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                   <Typography variant="body2"><u>Proposal passes:</u></Typography>
                     <ul style={{paddingInlineStart:'10px', paddingInlineEnd:'10px'}}>
                       <li>
                         <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you</Typography>
+                      </li>
+                      <li>
+                        <Typography variant="body2">{STORAGE} Ⓝ goes to the contract to cover storage cost for this proposal.</Typography>
                       </li>
                     </ul>
                 </Grid>
@@ -143,6 +146,9 @@ export default function OpportunityProposal(props) {
                     <ul style={{paddingInlineStart:'10px', paddingInlineEnd:'10px'}}>
                       <li>
                         <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you.</Typography>
+                      </li>
+                      <li>
+                        <Typography variant="body2">{STORAGE} Ⓝ stays in the contract to cover storage cost for this proposal.</Typography>
                       </li>
                     </ul>
                 </Grid>

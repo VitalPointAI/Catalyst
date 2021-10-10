@@ -48,7 +48,8 @@ const useStyles = makeStyles((theme) => ({
       maxWidth: '250px'
     },
     logoImage: {
-      width: '140px'
+      width: 'fit-content',
+      height: '60px'
     },
     avatar: {
       backgroundColor: red[500],

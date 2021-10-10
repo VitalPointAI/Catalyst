@@ -90,6 +90,7 @@ export default function ActionSelector(props) {
   const [whiteListClicked, setWhiteListClicked] = useState(false)
   const [guildKickClicked, setGuildKickClicked] = useState(false)
   const [stepsEnabled, setStepsEnabled] = useState(false)
+  const [active, setActive] = useState(false)
   const [options, setOptions] = useState({
     doneLabel: 'Next',                                
     showButtons: true,
@@ -119,6 +120,7 @@ export default function ActionSelector(props) {
     contract,
     fairShare,
     memberStatus,
+    currentDaosList,
     loaded } = props
 
   const {
@@ -128,7 +130,16 @@ export default function ActionSelector(props) {
   useEffect(
     () => {
       setStepsEnabled(enable)
-     
+      if(currentDaosList && currentDaosList.length > 0){
+        let i = 0
+        while (i < currentDaosList.length){
+          if(currentDaosList[i].contractId == contractId){
+            currentDaosList[i].status == 'active' ? setActive(true) : setActive(false)
+            break
+          }
+          i++
+        }
+      }
     }, [enable]
   )
 
@@ -283,7 +294,7 @@ export default function ActionSelector(props) {
         options={options}
       />
 
-      {loaded && !memberStatus ? (
+      {loaded && !memberStatus && active ? (
         <Button
 
           style={{ marginRight: 5 }}
@@ -297,6 +308,8 @@ export default function ActionSelector(props) {
         </Button>
       ) : null}
 
+      {loaded && active ? (
+      <>
       <Button
         className='proposalList'
         aria-controls="fade-menu"
@@ -319,8 +332,14 @@ export default function ActionSelector(props) {
       >
         Invite
       </Button>
+      </>
+      ) : 
+      loaded ?
+        <Typography variant="body1">This community has been inactivated and exists here as an archive of its activity.</Typography>
+      : <Typography variant="body1">Setting things up.  Please wait a moment.</Typography>
+      }
 
-      {loaded && memberStatus ? (
+      {loaded && memberStatus && active ? (
         <StyledMenu
           id="customized-menu"
           anchorEl={anchorEl}
@@ -384,7 +403,7 @@ export default function ActionSelector(props) {
           </StyledMenuItem>
         </StyledMenu>
       ) : 
-      loaded ? (
+      loaded && active ? (
         <StyledMenu
           id="customized-menu"
           anchorEl={anchorEl}
@@ -406,7 +425,9 @@ export default function ActionSelector(props) {
           </StyledMenuItem>
         </StyledMenu>
       ) :
+      active ?
     <LinearProgress />
+    : null
     }
 
 

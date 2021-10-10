@@ -47,7 +47,7 @@ import { memberDataSchema } from '../schemas/analytics/memberData'
 import { proposalDataSchema } from '../schemas/analytics/proposalData'
 import { votingDataSchema } from '../schemas/analytics/votingData'
 import { configurationProposalDetailsSchema} from '../schemas/configurationProposals'
-import { daoDeletionSchema } from '../schemas/analytics/deletedDAOs'
+import { daoInactivationSchema } from '../schemas/analytics/inactivatedDAOs'
 import { communityRoleProposalDetailsSchema } from '../schemas/communityRoleProposal'
 import { repFactorProposalDetailsSchema } from '../schemas/repFactorProposal'
 import { waiversSchema } from '../schemas/waivers'
@@ -760,7 +760,7 @@ async makeSeed(account){
     const proposalData = this.getAlias(APP_OWNER_ACCOUNT, 'proposalData', appClient, proposalDataSchema, 'proposal data', contract)
     const votingData = this.getAlias(APP_OWNER_ACCOUNT, 'votingData', appClient, votingDataSchema, 'voting data', contract)
     const configurationProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'configurationProposalDetails', appClient, configurationProposalDetailsSchema, 'configuration proposal details', contract)
-    const daoDeletionData = this.getAlias(APP_OWNER_ACCOUNT, 'daoDeletionData', appClient, daoDeletionSchema, 'dao deletion data', contract)
+    const daoInactivationData = this.getAlias(APP_OWNER_ACCOUNT, 'daoInactivationData', appClient, daoInactivationSchema, 'dao inactivation data', contract)
     const communityRoles = this.getAlias(APP_OWNER_ACCOUNT, 'communityRoles', appClient, communityRoleProposalDetailsSchema, 'community roles', contract)
     const reputationFactors = this.getAlias(APP_OWNER_ACCOUNT, 'reputationFactors', appClient, repFactorProposalDetailsSchema, 'reputation factors', contract)
     const waivers = this.getAlias(APP_OWNER_ACCOUNT, 'Waivers', appClient, waiversSchema, 'waiver records', contract)
@@ -789,7 +789,7 @@ async makeSeed(account){
       proposalData,
       votingData,
       configurationProposalDetails,
-      daoDeletionData,
+      daoInactivationData,
       communityRoles,
       reputationFactors,
       waivers
@@ -818,7 +818,7 @@ async makeSeed(account){
       proposalData: done[20],
       votingData: done[21],
       configurationProposalDetails: done[22],
-      daoDeletionData: done[23],
+      daoInactivationData: done[23],
       communityRoles: done[24],
       reputationFactors: done[25],
       waivers: done[26]

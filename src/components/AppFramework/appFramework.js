@@ -12,8 +12,8 @@ import { logInitEvent,
   logDonationEvent,
   logDelegationEvent,
   logExitEvent,
-  logDeleteCommunity,
-  deleteCommunity,
+  logInactivateCommunity,
+  inactivateCommunity,
   synchProposalEvent, 
   synchMember,
   synchDaos } from '../../state/near'
@@ -34,7 +34,7 @@ import { Steps, Hints } from "intro.js-react"
 
 
 import { NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE, NEW_DONATION, NEW_EXIT, 
-  NEW_DELEGATION, WARNING_FLAG,NEW_REVOCATION, COMMUNITY_DELETE, NEW_DELETE, hasKey } from '../../state/near'
+  NEW_DELEGATION, WARNING_FLAG,NEW_REVOCATION, INACTIVATE_COMMUNITY, NEW_INACTIVATION, hasKey } from '../../state/near'
 
 // Material UI imports
 import { makeStyles } from '@material-ui/core/styles'
@@ -124,6 +124,10 @@ export default function AppFramework(props) {
     const [triggerSteps, setStepsTriggered] = useState(0)
     const [loaded, setLoaded] = useState(false)
     const [remainingDelegates, setRemainingDelegates] = useState()
+    const [votingPeriodLength, setVotingPeriodLength] = useState()
+    const [gracePeriodLength, setGracePeriodLength] = useState()
+    const [neededVotes, setNeededVotes] = useState()
+    const [active, setActive] = useState(false)
     const classes = useStyles()
 
     const {
@@ -195,7 +199,7 @@ export default function AppFramework(props) {
         }
 
         if(wallet && triggersActioned){
-          timer = setInterval(refreshCurrentPeriod, 2000)
+          timer = setInterval(refreshCurrentPeriod, 10000)
           setTimerStarted(true)
           console.log('timer started')
           return () => {
@@ -204,7 +208,18 @@ export default function AppFramework(props) {
             stop()
           }
         }
-      }, [wallet, currentPeriod, triggersActioned, triggerSteps]
+
+        if(currentDaosList && currentDaosList.length > 0){
+          let i = 0
+          while (i < currentDaosList.length){
+            if(currentDaosList[i].contractId == contractId){
+              currentDaosList[i].status == 'active' ? setActive(true) : setActive(false)
+              break
+            }
+            i++
+          }
+        }
+      }, [wallet, triggersActioned, triggerSteps]
     )
     
     useEffect(
@@ -285,27 +300,27 @@ export default function AppFramework(props) {
                       if (loggedExit) {
                         console.log('first part done')
                         del(NEW_EXIT)
-                        // check for and action any community deletions
-                        let deletion = get(COMMUNITY_DELETE, [])
+                        // check for and action any community inactivations
+                        let inactivation = get(INACTIVATE_COMMUNITY, [])
                         
                         let t = 0
-                        while(t < deletion.length){
+                        while(t < inactivation.length){
                           let aa = 0
                           let stillExists = false
                             while(aa < currentDaosList.length){
-                              if(currentDaosList[aa].contractId == deletion[t].contractId){
+                              if(currentDaosList[aa].contractId == inactivation[t].contractId){
                                 stillExists = true
                                 break
                               }
                               aa++
                             }
                           if(!stillExists){
-                            del(COMMUNITY_DELETE)
+                            del(INACTIVATE_COMMUNITY)
                             await renewProposals(curDaoIdx, daoContract)
                             break
                           } else {
-                            if(deletion[t].contractId==contractId && deletion[t].new == true){
-                              let deleted = await deleteCommunity(
+                            if(inactivation[t].contractId==contractId && inactivation[t].new == true){
+                              let inactivated = await inactivateCommunity(
                                 daoFactory,
                                 contractId, 
                                 accountId
@@ -319,21 +334,21 @@ export default function AppFramework(props) {
                     a++
                   }
 
-                  // check for successfully deleted community and log it then redirect to dashboard as contract account is gone
-                  let newDelete = get(NEW_DELETE, [])
-                  console.log('new delete', newDelete)
+                  // check for successfully inactivated community and log it then redirect to dashboard as contract account is gone
+                  let newInactivation = get(NEW_INACTIVATION, [])
+                  console.log('new inactivation', newInactivation)
                   let u = 0
-                  while(u < newDelete.length){
-                    if(newDelete[u].contractId==contractId && newDelete[u].new == true){
-                      let loggedDelete = await logDeleteCommunity(
+                  while(u < newInactivation.length){
+                    if(newInactivation[u].contractId==contractId && newInactivation[u].new == true){
+                      let loggedInactivation = await logInactivateCommunity(
                         contractId,
                         appIdx, 
                         accountId,
                         transactionHash)
                         
-                      if (loggedDelete) {
-                        del(NEW_DELETE)
-                        del(COMMUNITY_DELETE)
+                      if (loggedInactivation) {
+                        del(NEW_INACTIVATION)
+                        del(INACTIVATE_COMMUNITY)
                         window.location.assign('/')
                       }
                     }
@@ -657,6 +672,15 @@ export default function AppFramework(props) {
                       } catch (err) {
                         console.log('no deposit token yet')
                       }
+
+                      try {
+                        let needed = await daoContract.getNeededVotes()
+                        setNeededVotes(needed)
+                        console.log('needed votes', needed)
+                        update('', {neededVotes: needed})
+                      } catch (err) {
+                        console.log('no needed votes yet')
+                      }
                           
                       try {
                         let deposit = await daoContract.getProposalDeposit()
@@ -697,6 +721,15 @@ export default function AppFramework(props) {
                       } catch (err) {
                         console.log('no period duration yet')
                       }
+
+                      try {
+                        let settings = await daoContract.getInitSettings()
+                        console.log('settings', settings)
+                        setVotingPeriodLength(parseFloat(settings[0][2]))
+                        setGracePeriodLength(parseFloat(settings[0][3]))
+                      } catch(err) {
+                        console.log('no settings yet')
+                      }
                     
                       let ebalance
                       let escrowRow
@@ -705,7 +738,7 @@ export default function AppFramework(props) {
                         console.log('ebalance', ebalance)
                         setEscrowBalance(ebalance)
 
-                        if(ebalance) {
+                        if(ebalance && active) {
                           for (let i = 0; i < ebalance.length; i++) {
                             escrowRow = (<>{formatNearAmount(ebalance[i].balance, 3)} {ebalance[i].token}</>)
                           }
@@ -724,7 +757,7 @@ export default function AppFramework(props) {
                         console.log('gbalance', gbalance)
                         setGuildBalance(gbalance)
 
-                        if(gbalance) {
+                        if(gbalance && active) {
                           for (let i = 0; i < gbalance.length; i++) {
                             guildRow = (<>{formatNearAmount(gbalance[i].balance,3)} {gbalance[i].token}</>)
                           }
@@ -907,6 +940,7 @@ export default function AppFramework(props) {
                       memberStatus={memberStatus}
                       fairShare={currentShare}
                       loaded={loaded}
+                      currentDaosList={currentDaosList}
                     />
                   </Grid>
               
@@ -936,6 +970,7 @@ export default function AppFramework(props) {
                   memberStatus={memberStatus}
                   fairShare={currentShare}
                   loaded={loaded}
+                  currentDaosList={currentDaosList}
                 />
               </div>
               </Grid>
@@ -964,10 +999,10 @@ export default function AppFramework(props) {
             <Grid container justifyContent="center" alignItems="center" spacing={1} className={classes.top}>
            
               <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
-                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Fund: {guildBalanceChip} {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 ? '($' + (parseFloat(formatNearAmount(guildBalance[0].balance)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : <LinearProgress /> } </Typography>
+                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Fund: {guildBalanceChip} {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 && active ? '($' + (parseFloat(formatNearAmount(guildBalance[0].balance)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : <LinearProgress /> } </Typography>
               </Grid>
               <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
-                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Escrow: {escrowBalanceChip} {escrowBalance && escrowBalance.length > 0 ? escrowBalance[0].balance > 0 ? '($' + (parseFloat(formatNearAmount(escrowBalance[0].balance)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : <LinearProgress />  }</Typography>
+                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Escrow: {escrowBalanceChip} {escrowBalance && escrowBalance.length > 0 ? escrowBalance[0].balance > 0 && active ? '($' + (parseFloat(formatNearAmount(escrowBalance[0].balance)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : <LinearProgress />  }</Typography>
               </Grid>
               <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
                 <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Total Shares: {totalShares ? totalShares : <LinearProgress />}</Typography>
@@ -1017,6 +1052,8 @@ export default function AppFramework(props) {
                 notificationIndicator = {notificationIndicator}
                 loaded={loaded}
                 remainingDelegates={remainingDelegates}
+                votingPeriodLength={votingPeriodLength}
+                gracePeriodLength={gracePeriodLength}
               />
               : <div style={{margin: 'auto', width: '200px'}}><CircularProgress /></div>}
             </Grid>

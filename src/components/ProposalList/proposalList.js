@@ -147,6 +147,8 @@ export default function ProposalList(props) {
     currentMemberInfo,
     guildBalance,
     remainingDelegates,
+    votingPeriodLength,
+    gracePeriodLength,
 
     tabValue,
     handleTabValueState,
@@ -379,14 +381,32 @@ export default function ProposalList(props) {
       }
   }
 
-  function getVotingPeriod(startPeriod, votePeriod, isFinalized) {
-    let votingPeriod = currentPeriod >= startPeriod && currentPeriod <= votePeriod && !isFinalized
-    return votingPeriod
+  function getVotingPeriod(startPeriod, votePeriod, grPeriod, isFinalized) {
+    console.log('get vp currentPeriod', currentPeriod)
+    console.log('get vp votePeriod', votePeriod)
+    console.log('get vp grperiod', grPeriod)
+    console.log('get vp startPeriod', startPeriod)
+    console.log('get vp isfinalized', isFinalized)
+    console.log('get vp votingperiodlength', votingPeriodLength)
+    //let votingPeriod = currentPeriod >= startPeriod && currentPeriod <= votePeriod && !isFinalized
+    if((currentPeriod >= votePeriod && currentPeriod < grPeriod)){
+      return true
+    }  else {
+      return false
+    }
   }
 
-  function getGracePeriod(votePeriod, grPeriod, isFinalized) {
-      let gracePeriod = currentPeriod > votePeriod && currentPeriod <= grPeriod && isFinalized
-      return gracePeriod
+  function getGracePeriod(grPeriod, isFinalized) {
+    console.log('get gr currentPeriod', currentPeriod)
+    console.log('get gr grPeriod', grPeriod)
+    console.log('get gr isfinalized', isFinalized)
+     // let gracePeriod = currentPeriod > votePeriod && currentPeriod <= grPeriod && isFinalized
+     if(currentPeriod >= grPeriod && currentPeriod <= (grPeriod + gracePeriodLength)){
+      return true
+    } else {
+      return false
+    }
+     return gracePeriod
   }
 
   async function getUserVote(proposalIdentifier) {
@@ -458,10 +478,10 @@ function typeFilter(item){
 
     let streamProposals = await curDaoIdx.get('proposals', curDaoIdx.id)
     console.log('streamProposals', streamProposals)
-    
+    console.log('resolvestatus', requests)
     if (requests.length > 0) {
       requests.map((fr) => {
-     console.log('requests fr', fr)
+        console.log('requests fr', fr)
         status = getStatus(fr.flags)
         console.log('status', status)
         let i = 0
@@ -476,16 +496,20 @@ function typeFilter(item){
         console.log('current stream proposal', currentStreamProposal)
         proposalType = getProposalType(fr.flags)
         let isFinalized = fr.voteFinalized != 0 ? true : false
-        let isVotingPeriod = getVotingPeriod(fr.startingPeriod, fr.votingPeriod, isFinalized)
+        let isVotingPeriod = getVotingPeriod(fr.startingPeriod, fr.votingPeriod, fr.gracePeriod, isFinalized)
         console.log('is voting period', isVotingPeriod)
-        let isGracePeriod = getGracePeriod(fr.votingPeriod, fr.gracePeriod, isFinalized)
+        let isGracePeriod = getGracePeriod(fr.gracePeriod, isFinalized)
         console.log('is grace period', isGracePeriod)
 
-        if (status !== 'Passed' || status !== 'Not Passed'){
-          if (status == 'Sponsored' && currentPeriod > fr.gracePeriod && !isVotingPeriod && !isGracePeriod){
+        if (status != 'Passed' || status != 'Not Passed'){
+          console.log('af isfinalized', isFinalized)
+          console.log('af is grace', isGracePeriod)
+          console.log('af periodduration', periodDuration)
+          if ((status == 'Sponsored' && isFinalized && !isVotingPeriod && !isGracePeriod) || (status=='Sponsored' && currentPeriod > (fr.gracePeriod + gracePeriodLength))){
             status = 'Awaiting Finalization'
           }
         }
+        console.log('vp status top', status)
         
         let disabled
         let isDisabled = isVotingPeriod ? disabled = false : disabled = true       
@@ -523,6 +547,7 @@ function typeFilter(item){
             roleConfiguation: fr.roleConfiguation,
             reputationConfiguration: fr.reputationConfiguration,
             roles: fr.roleNames,
+            isFinalized: isFinalized,
             memberRoleConfiguration: fr.memberRoleConfiguration,
             submitTransactionHash: currentStreamProposal && currentStreamProposal.submitTransactionHash ? currentStreamProposal.submitTransactionHash : '',
             cancelTransactionHash: currentStreamProposal && currentStreamProposal.cancelTransactionHash ? currentStreamProposal.cancelTransactionHash : '',
@@ -532,7 +557,10 @@ function typeFilter(item){
         }
 
    //     if(status == 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && (isVotingPeriod==true || isGracePeriod==true)){
-        if(status == 'Sponsored' && (isVotingPeriod==true || isGracePeriod==true)){
+        if(status == 'Sponsored'){
+          console.log('vp status', status)
+          console.log('vp isvoteperiod', isVotingPeriod)
+          console.log('vp isgraceperiod', isGracePeriod)
           votingProposals.push([{
             blockTimeStamp: fr.proposalSubmission,
             date: makeTime(fr.proposalSubmission), 
@@ -556,6 +584,7 @@ function typeFilter(item){
             proposalType: proposalType,
             isGracePeriod: isGracePeriod,
             isVotingPeriod: isVotingPeriod,
+            isFinalized: isFinalized,
             disabled: isDisabled,
             voted: fr.voted,
             vote: fr.vote,
@@ -573,9 +602,11 @@ function typeFilter(item){
         }
 
     //    if(status == 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && currentPeriod > parseInt(fr.gracePeriod) && !isVotingPeriod && !isGracePeriod){
-        console.log('qstatus', status)  
+        console.log('qstatus', status)
+        console.log('vp status', status)
+        console.log('vp isvoteperiod', isVotingPeriod)
+        console.log('vp isgraceperiod', isGracePeriod)
         if(status == 'Awaiting Finalization'){
-          
             queueProposals.push({
             blockTimeStamp: fr.proposalSubmission,
             date: makeTime(fr.proposalSubmission),
@@ -599,6 +630,7 @@ function typeFilter(item){
             proposalType: proposalType,
             isGracePeriod: isGracePeriod,
             isVotingPeriod: isVotingPeriod,
+            isFinalized: isFinalized,
             disabled: isDisabled,
             voted: fr.voted,
             vote: fr.vote,
@@ -640,6 +672,7 @@ function typeFilter(item){
             proposalType: proposalType,
             isGracePeriod: isGracePeriod,
             isVotingPeriod: isVotingPeriod,
+            isFinalized: isFinalized,
             disabled: isDisabled,
             voted: fr.voted,
             vote: fr.vote,
@@ -712,6 +745,9 @@ function typeFilter(item){
           totalShares={totalShares}
           currentMemberInfo={currentMemberInfo}
           remainingDelegates={remainingDelegates}
+          gracePeriodLength={gracePeriodLength}
+          votingPeriodLength={votingPeriodLength}
+          isFinalized={fr.isFinalized}
         />
       )
     })
@@ -743,7 +779,9 @@ function typeFilter(item){
           funding={fr[0].funding}
           loot={fr[0].loot}
           status={fr[0].status}
+          vote={fr[0].vote}
           referenceIds={fr[0].referenceIds}
+          startingPeriod={fr[0].startingPeriod}
           submitTransactionHash={fr[0].submitTransactionHash}
           cancelTransactionHash={fr[0].cancelTransactionHash}
           processTransactionHash={fr[0].processTransactionHash}
@@ -760,6 +798,11 @@ function typeFilter(item){
           summoner={summoner}
           contract={contract}
           guildBalance={guildBalance}
+          votingPeriod={fr[0].votingPeriod}
+          gracePeriod={fr[0].gracePeriod}
+          gracePeriodLength={gracePeriodLength}
+          votingPeriodLength={votingPeriodLength}
+          isFinalized={fr.isFinalized}
         />
       )
     })
@@ -789,6 +832,7 @@ function typeFilter(item){
           isVotingPeriod={fr[0].isVotingPeriod}
           isGracePeriod={fr[0].isGracePeriod}
           voted={fr[0].voted}
+          vote={fr[0].vote}
           gracePeriod={fr[0].gracePeriod}
           votingPeriod={fr[0].votingPeriod}
           referenceIds={fr[0].referenceIds}
@@ -810,6 +854,10 @@ function typeFilter(item){
           contract={contract} 
           guildBalance={guildBalance}
           memberStatus={memberStatus}
+          startingPeriod={fr[0].startingPeriod}
+          gracePeriodLength={gracePeriodLength}
+          votingPeriodLength={votingPeriodLength}
+          isFinalized={fr.isFinalized}
         />
       )
     })
@@ -836,6 +884,7 @@ function typeFilter(item){
           tribute={fr.tribute}
           loot={fr.loot}
           status={fr.status}
+          vote={fr.vote}
           startingPeriod={fr.startingPeriod}
           currentPeriod={currentPeriod}
           gracePeriod={fr.gracePeriod}
@@ -853,6 +902,10 @@ function typeFilter(item){
           contract={contract}
           guildBalance={guildBalance}
           memberStatus={memberStatus}
+          votingPeriod={fr.votingPeriod}
+          gracePeriodLength={gracePeriodLength}
+          votingPeriodLength={votingPeriodLength}
+          isFinalized={fr.isFinalized}
         />
       )
     })
@@ -878,6 +931,7 @@ function typeFilter(item){
           tribute={fr[0].tribute}
           loot={fr[0].loot}
           status={fr[0].status}
+          vote={fr[0].vote}
           startingPeriod={fr[0].startingPeriod}
           configuration={fr[0].configuration}
           referenceIds={fr[0].referenceIds}
@@ -892,6 +946,11 @@ function typeFilter(item){
           contract={contract} 
           guildBalance={guildBalance}
           memberStatus={memberStatus}
+          votingPeriod={fr[0].votingPeriod}
+          gracePeriod={fr[0].gracePeriod}
+          gracePeriodLength={gracePeriodLength}
+          votingPeriodLength={votingPeriodLength}
+          isFinalized={fr.isFinalized}
         />
       )
     })
@@ -920,6 +979,7 @@ function typeFilter(item){
           tribute={fr[0].tribute}
           loot={fr[0].loot}
           status={fr[0].status}
+          vote={fr[0].vote}
           configuration={fr[0].configuration}
           referenceIds={fr[0].referenceIds}
           submitTransactionHash={fr[0].submitTransactionHash}
@@ -932,6 +992,12 @@ function typeFilter(item){
           contract={contract}
           guildBalance={guildBalance}
           memberStatus={memberStatus}
+          startingPeriod={fr[0].startingPeriod}
+          votingPeriod={fr[0].votingPeriod}
+          gracePeriod={fr[0].gracePeriod}
+          gracePeriodLength={gracePeriodLength}
+          votingPeriodLength={votingPeriodLength}
+          isFinalized={fr.isFinalized}
         />
       )
     })

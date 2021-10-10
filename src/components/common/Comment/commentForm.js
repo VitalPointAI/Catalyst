@@ -11,17 +11,17 @@ import { Editor } from "react-draft-wysiwyg"
 import { NEW_NOTIFICATIONS } from '../../../state/near' 
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
 import draftToHtml from 'draftjs-to-html'
-import { getStatus } from '../../../state/near'
+import { getStatus, generateId } from '../../../state/near'
 
 
 // Material UI components
 import Button from '@material-ui/core/Button'
 import TextField from '@material-ui/core/TextField'
 import LinearProgress from '@material-ui/core/LinearProgress'
-import Switch from '@material-ui/core/Switch'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Typography from '@material-ui/core/Typography'
 import Paper from '@material-ui/core/Paper'
+import AddCommentIcon from '@material-ui/icons/AddComment'
+import { IconButton } from '@material-ui/core'
 
 
 const useStyles = makeStyles((theme) => ({
@@ -123,21 +123,18 @@ export default function CommentForm(props) {
         
         let allComments = await curDaoIdx.get('comments', curDaoIdx.id)
         console.log('all comments', allComments)
-        let nextCommentId
-        if(allComments){
-          nextCommentId = allComments.comments.length
-        } else {
-          nextCommentId = 0
-        }
+
+        let nextCommentId = generateId()
 
         // Load existing array of details
       
         if(!allComments){
           allComments = { comments: [] }
         }
-        let record 
+       
         let body = draftToHtml(convertToRaw(commentBody.getCurrentContent()))
-        record = {
+
+        let record = {
           commentId: nextCommentId.toString(),
           parent: proposalId.toString(),
           subject: commentSubject,
@@ -148,56 +145,68 @@ export default function CommentForm(props) {
           originalAuthor: originalAuthor,
           originalContent: originalContent
         }
-        
-        if(reply){
-          console.log('original author', originalAuthor)
-          let personaAccount = new nearAPI.Account(near.connection, originalAuthor)
-          
-          let thisCurPersonaIdx
-          try{
-           thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, didRegistryContract)
-          } catch (err) {
-            console.log('error retrieving idx', err)
-          }
-          let notificationRecipient = await thisCurPersonaIdx.get('profile', thisCurPersonaIdx.id)
-          console.log('notificationrecipient', notificationRecipient)
-          let preview
-          if(body.length > 27)
-            { 
-              preview = body.substring(3,25) + "..."
-            }
-          else{
-              preview = body.substring(3, body.length - 5) + "..."
-          }
-          if(notificationRecipient.notifications.length > 75){
-            notificationRecipient.notifications.shift()
-          }
-          notificationRecipient.notifications.push(
-            {
-            avatar: avatar,
-            commentAuthor: accountId,
-            commentPreview: preview,
-            type: "comment",
-            link: location,
-            type: location.split('/').slice(1, 2), 
-            proposalId: proposalId, 
-            read: false
-          })
-          await thisCurPersonaIdx.set('profile', notificationRecipient)
-        }
 
-        let notificationFlag = get(NEW_NOTIFICATIONS, [])
-        if(notificationFlag >= 1){
-          let count = notificationFlag.newNotifications + 1
-          set(NEW_NOTIFICATIONS, {newNotifications: count})
-        }
-        else{
-          set(NEW_NOTIFICATIONS, {newNotifications: 1})
-        }
         // Add comment
         allComments.comments.push(record)
         console.log('allComments.comments', allComments.comments)
-        await curDaoIdx.set('comments', allComments)
+        try{
+          await curDaoIdx.set('comments', allComments)
+          if(reply){
+
+            let personaAccount = new nearAPI.Account(near.connection, originalAuthor)
+            
+            let thisCurPersonaIdx
+            try{
+             thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, didRegistryContract)
+            } catch (err) {
+              console.log('error retrieving idx', err)
+            }
+  
+            let notificationRecipient = await thisCurPersonaIdx.get('profile', thisCurPersonaIdx.id)
+            
+            let preview
+            if(body.length > 27)
+              { 
+                preview = body.substring(3,25) + "..."
+              }
+            else{
+                preview = body.substring(3, body.length - 5) + "..."
+            }
+  
+            if(notificationRecipient.notifications.length > 75){
+              notificationRecipient.notifications.shift()
+            }
+  
+            notificationRecipient.notifications.push(
+              {
+              avatar: avatar,
+              commentAuthor: accountId,
+              commentPreview: preview,
+              type: "comment",
+              link: location,
+              type: location.split('/').slice(1, 2), 
+              proposalId: proposalId, 
+              read: false
+            })
+  
+            try{
+              await thisCurPersonaIdx.set('profile', notificationRecipient)
+            } catch (err) {
+              console.log('error setting notifications', err)
+            }
+          }
+  
+          let notificationFlag = get(NEW_NOTIFICATIONS, [])
+          if(notificationFlag >= 1){
+            let count = notificationFlag.newNotifications + 1
+            set(NEW_NOTIFICATIONS, {newNotifications: count})
+          }
+          else{
+            set(NEW_NOTIFICATIONS, {newNotifications: 1})
+          }
+        } catch (err) {
+          console.log('error adding comment', err)
+        }
         
       handleReset()
       setFinished(true)
@@ -231,29 +240,27 @@ export default function CommentForm(props) {
                             value={commentSubject}
                             onChange={handleCommentSubjectChange}
                             inputRef={register({
-                                required: true                              
+                                required: false                              
                             })}
                         />: null}
-                      {errors.commentSubject && <p style={{color: 'red'}}>You must provide a subject/title.</p>}
                       </div>
+
                       <div>
                       <Paper style={{padding: '5px'}}>
-                      <Editor
-                        editorState={commentBody}
-                        toolbarClassName="toolbarClassName"
-                        wrapperClassName="wrapperClassName"
-                        editorClassName="editorClassName"
-                        onEditorStateChange={handleCommentBodyChange}
-                        editorStyle={{minHeight:'200px'}}
-                      />
+                        <Editor
+                          editorState={commentBody}
+                          toolbarClassName="toolbarClassName"
+                          wrapperClassName="wrapperClassName"
+                          editorClassName="editorClassName"
+                          onEditorStateChange={handleCommentBodyChange}
+                          editorStyle={{minHeight:'200px'}}
+                        />
                       </Paper>
-                      
                       </div>
                   
-                    
-                  <Button onClick={handleSubmit(onSubmit)} color="primary" type="submit">
-                    Submit Comment
-                  </Button> 
+                  <IconButton onClick={handleSubmit(onSubmit)} color="primary" type="submit"><AddCommentIcon/>
+                            Submit Comment
+                  </IconButton>  
                   </>
                   : null }     
                 </div>        

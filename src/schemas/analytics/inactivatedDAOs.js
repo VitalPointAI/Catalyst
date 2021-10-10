@@ -1,7 +1,7 @@
-export const daoDeletionSchema = {
+export const daoInactivationSchema = {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
-    "title": "DAODeletion",
+    "title": "DAOInactivation",
     "required": [ "data" ],
     "properties": {
       "data": {

@@ -165,7 +165,7 @@ export default function PayoutProposalDetails(props) {
                   if(propResult.proposals[i].proposalId == proposalId){
                     propResult.proposals[i].title ? setPayoutTitle(propResult.proposals[i].title) : setPayoutTitle('')
                     propResult.proposals[i].details ? setDetailsOfCompletion(propResult.proposals[i].details) : setDetailsOfCompletion('')
-                    propResult.proposals[i].milestones ? setMilestones(propResult.proposals[i].milestones) : setMilestones([{}])
+                    propResult.proposals[i].milestone ? setMilestones(propResult.proposals[i].milestone) : setMilestones([{}])
                     propResult.proposals[i].submitDate ? setCreated(propResult.proposals[i].submitDate) : setCreated()
                     break
                   }
@@ -205,24 +205,29 @@ export default function PayoutProposalDetails(props) {
           
     }, [curDaoIdx]
     )
-         
+
+    
     let Milestones
     if(milestones && milestones.length > 0){
       Milestones = milestones.map((element, index) => {
         console.log('element', element)
+        if(element.title=='' && element.deadline =='' && element.payout == '0' && element.briefDescription==''){
+          return null
+        } else {
         return (
           <MilestoneCard 
-            key={element.milestoneId}
-            id={element.milestoneId}
-            name={element[`milestone${element.milestoneId}`]}
-            deadline={element[`deadline${element.milestoneId}`]}
-            payout={element[`payout${element.milestoneId}`]}
-            description={element[`briefDescription${element.milestoneId}`]}
+            key={element.id}
+            id={element.id}
+            name={element.title}
+            deadline={element.deadline}
+            payout={element.payout}
+            description={element.briefDescription}
             proposalId={proposalId}
             proposalStatus={proposalStatus}
             applicant={applicant}
           />
         )
+        }
       })
     }
 
@@ -324,10 +329,10 @@ export default function PayoutProposalDetails(props) {
                   {milestones && milestones.length > 0 ?
                     <Grid container spacing={1} style={{width: '100%'}}>
                     <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                      <Typography variant="h6" style={{marginBottom: '10px'}}>Completion Plan</Typography>
+                      <Typography variant="h6" style={{marginBottom: '10px'}}>Completed Milestones</Typography>
                     </Grid>
                     <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                    <Paper >
+                    <Paper style={{padding: '5px'}}>
                       <Grid container justifyContent="flex-start" alignItems="center" spacing={1}>
                         <Grid item xs={1} sm={1} md={1} lg={1} xl={1} align="center">
                           <Typography variant="body2">Id</Typography>

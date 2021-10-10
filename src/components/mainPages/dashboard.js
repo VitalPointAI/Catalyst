@@ -431,41 +431,43 @@ export default function Dashboard(props) {
 
                     // Persona Opportunity Recommendations
 
-                    // 1. Build complete list of all opportuntities for all DAOs
+                    // 1. Build complete list of all opportuntities for all active DAOs
                     let allOpportunities = []
                     if(currentDaosList && currentDaosList.length > 0){
                         let i = 0
                         while (i < currentDaosList.length){
-                            let thisCurDaoIdx
-                            let daoAccount
-                            let singleDaoOpportunity
-                            try{
-                              daoAccount = new nearAPI.Account(near.connection, currentDaosList[i].contractId)
-                            } catch (err) {
-                              console.log('no account', err)
-                            }
-                            try{
-                                thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
-                                console.log('curdaoidx here', thisCurDaoIdx)
-                            } catch (err) {
-                                console.log('error getting dao idx', err)
-                            }
-                            if(thisCurDaoIdx){
-                                let daoContract = await dao.initDaoContract(state.wallet.account(), currentDaosList[i].contractId)
-                                let synch = await synchProposalEvent(thisCurDaoIdx, daoContract)
-                                console.log('synch', synch)
+                            if(currentDaosList[i].status == 'active'){
+                                let thisCurDaoIdx
+                                let daoAccount
+                                let singleDaoOpportunity
                                 try{
-                                    singleDaoOpportunity = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
-                                    console.log('singledaoopp', singleDaoOpportunity)
+                                daoAccount = new nearAPI.Account(near.connection, currentDaosList[i].contractId)
                                 } catch (err) {
-                                    console.log('error loading singledao opportunity', err)
+                                console.log('no account', err)
                                 }
+                                try{
+                                    thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+                                    console.log('curdaoidx here', thisCurDaoIdx)
+                                } catch (err) {
+                                    console.log('error getting dao idx', err)
+                                }
+                                if(thisCurDaoIdx){
+                                    let daoContract = await dao.initDaoContract(state.wallet.account(), currentDaosList[i].contractId)
+                                    let synch = await synchProposalEvent(thisCurDaoIdx, daoContract)
+                                    console.log('synch', synch)
+                                    try{
+                                        singleDaoOpportunity = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
+                                        console.log('singledaoopp', singleDaoOpportunity)
+                                    } catch (err) {
+                                        console.log('error loading singledao opportunity', err)
+                                    }
 
-                                if(singleDaoOpportunity && Object.keys(singleDaoOpportunity).length > 0){
-                                    let j = 0
-                                    while (j < singleDaoOpportunity.opportunities.length){
-                                    allOpportunities.push(singleDaoOpportunity.opportunities[j])
-                                    j++
+                                    if(singleDaoOpportunity && Object.keys(singleDaoOpportunity).length > 0){
+                                        let j = 0
+                                        while (j < singleDaoOpportunity.opportunities.length){
+                                        allOpportunities.push(singleDaoOpportunity.opportunities[j])
+                                        j++
+                                        }
                                     }
                                 }
                             }
@@ -555,46 +557,7 @@ export default function Dashboard(props) {
                         }
 
                         let asuitabilityScore = ((skillMatch/combinedOpportunitySkills.length)*100).toFixed(0)
-                   //     setSuitabilityScore(asuitabilityScore)
-                  
-                    // // 3. For each opportunity, compare opportunity skillset requirements to persona skillsets and add to recommendations array if the same
-                    // // calculate a suitability percentage from skills required (true) (total skills possessed / total skills)
-                    // let j = 0
-                   
-                    // while (j < allOpportunities.length){
-                      
-                    //     let developerSkillCount = 0
-                    //     let developerSkillMatch = 0
-                    //     let skillCount = 0
-                    //     let skillMatch = 0
-
-                    //     for (const [key, value] of Object.entries(allOpportunities[j].desiredDeveloperSkillSet)){
-                    //         if(value && currentPersona.developerSkillSet){
-                    //             developerSkillCount++
-                    //             if(currentPersona.developerSkillSet){
-                    //                 for (const [pkey, pvalue] of Object.entries(currentPersona.developerSkillSet)){
-                    //                     if(pkey == key && pvalue == value){
-                    //                         developerSkillMatch ++
-                    //                     }
-                    //                 }
-                    //             }
-                    //         }
-                    //     }
-                    //     for (const [key, value] of Object.entries(allOpportunities[j].desiredSkillSet)){
-                    //         if(value && currentPersona.skillSet){
-                    //             skillCount++
-                    //             if(currentPersona.skillSet){
-                    //                 for (const [pkey, pvalue] of Object.entries(currentPersona.skillSet)){
-                    //                     if(pkey == key && pvalue == value){
-                    //                         skillMatch++
-                    //                     }
-                    //                 }
-                    //             }
-                    //         }
-                    //     }
-                       
-                    //     let asuitabilityScore = parseInt(((skillMatch + developerSkillMatch)/(skillCount + developerSkillCount)*100).toFixed(0))
-                         if (!asuitabilityScore){
+                           if (!asuitabilityScore){
                             asuitabilityScore = 0
                         }
                         setSuitabilityScore(asuitabilityScore)
@@ -627,7 +590,7 @@ export default function Dashboard(props) {
                                     communityLogo: result.logo,
                                     communityName: result.name,
                                     communityPurpose: result.purpose,
-                                    baseReward: parseInt(allOpportunities[j].reward), 
+                                    baseReward: parseFloat(allOpportunities[j].reward), 
                                     skillMatch: skillMatch, 
                                     allSkills: combinedOpportunitySkills.length,
                                     suitabilityScore: asuitabilityScore})
@@ -1130,7 +1093,7 @@ export default function Dashboard(props) {
                         <TableCell align="right">{row.suitabilityScore}</TableCell>
                         <TableCell align="right">{row.baseReward}</TableCell>
                         <TableCell align="right">{row.opportunity.deadline}</TableCell>
-                        <TableCell align="right">{row.opportunity.budget}</TableCell>
+                        <TableCell align="right">{formatNearAmount((row.opportunity.budget).toLocaleString('fullwide', {useGrouping: false}), 2)}</TableCell>
                         </TableRow>
                        
                         </React.Fragment>

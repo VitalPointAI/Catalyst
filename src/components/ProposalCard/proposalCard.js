@@ -89,7 +89,7 @@ const useStyles = makeStyles((theme) => ({
     },
     bottom2: {
       position: 'absolute',
-      bottom: '5px',
+      bottom: '0px',
       left: '0px',
       width: '100%'
     },
@@ -203,6 +203,8 @@ export default function ProposalCard(props) {
     const [configurationProposalDetailsClicked, setConfigurationProposalDetailsClicked] = useState(false)
 
     const [nextToFinalize, setNextToFinalize] = useState()
+    const [voteEnding, setVoteEnding] = useState('calculating')
+    const [rageQuitEnding, setRageQuitEnding] = useState('calculating')
 
     const [daoContract, setDaoContract] = useState()
 
@@ -216,7 +218,9 @@ export default function ProposalCard(props) {
       appIdx,
       accountId,
       wallet,
-      proposalDeposit
+      proposalDeposit,
+      nearPrice,
+      neededVotes
     } = state
 
     const {
@@ -243,9 +247,12 @@ export default function ProposalCard(props) {
         contract,
         summoner,
         queueList,
-        guildBalance
+        guildBalance,
+        gracePeriodLength,
+        votingPeriodLength,
+        isFinalized
     } = props
-
+console.log('vote', vote)
     useEffect(
         () => {
          
@@ -433,7 +440,36 @@ export default function ProposalCard(props) {
           if(mounted){
             fetchData()
                 .then((res) => {
-                  
+                  if(votingPeriod){
+                    let count = parseInt((gracePeriod - currentPeriod) * periodDuration * 0.7)
+                    let counter=setInterval(timer, 1000); //1000 will  run it every 1 second  
+                    function timer()
+                    {
+                      count=count-1;
+                      if (count <= 0)
+                      {
+                        clearInterval(counter);
+                        setVoteEnding('0')
+                        return;
+                      }
+                      setVoteEnding(count)
+                    }
+                  }
+                if(gracePeriod){
+                  let rageCount = parseInt((gracePeriod + gracePeriodLength - currentPeriod) * periodDuration * 0.7)
+                  let rageCounter=setInterval(rageTimer, 1000)
+                  function rageTimer()
+                  {
+                    rageCount=rageCount-1;
+                    if (rageCount <= 0)
+                    {
+                      clearInterval(rageCounter);
+                      setRageQuitEnding('0')
+                      return;
+                    }
+                    setRageQuitEnding(rageCount)
+                  }
+                }
                 })
           return () => mounted = false
           }
@@ -635,7 +671,7 @@ export default function ProposalCard(props) {
               </Button>
             </Grid>
             <CardHeader
-               style={{display: 'block', marginBottom: '20px'}}
+               style={{display: 'block'}}
                align="center"
               
                subheader={
@@ -704,7 +740,7 @@ export default function ProposalCard(props) {
             <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
             <div style={{clear: 'both'}}></div>
             <CardHeader
-               style={{display: 'block', marginBottom: '20px'}}
+               style={{display: 'block'}}
                align="center"
                title={
                  <>
@@ -783,7 +819,7 @@ export default function ProposalCard(props) {
             <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
             <div style={{clear: 'both'}}></div>
             <CardHeader
-               style={{display: 'block', marginBottom: '20px'}}
+               style={{display: 'block'}}
                align="center"
                title={
                  <>
@@ -862,7 +898,7 @@ export default function ProposalCard(props) {
             <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
             <div style={{clear: 'both'}}></div>
             <CardHeader
-               style={{display: 'block', marginBottom: '20px'}}
+               style={{display: 'block'}}
                align="center"
                title={
                  <>
@@ -941,7 +977,7 @@ export default function ProposalCard(props) {
                 <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
             <div style={{clear: 'both'}}></div>
             <CardHeader
-               style={{display: 'block', marginBottom: '20px'}}
+               style={{display: 'block'}}
                align="center"
                title={
                  <>
@@ -1020,7 +1056,7 @@ export default function ProposalCard(props) {
             <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
             <div style={{clear: 'both'}}></div>
             <CardHeader
-               style={{display: 'block', marginBottom: '20px'}}
+               style={{display: 'block'}}
                align="center"
                title={ <>
                 <Button 
@@ -1202,12 +1238,15 @@ export default function ProposalCard(props) {
                 <Typography variant="subtitle2" display="block" align="center" style={{backgroundColor: 'red', color: 'white', padding: '2px', marginTop:'3px'}}>Funds Required</Typography> 
               : status == 'Submitted'  && detailsExist == false ? <Typography variant="subtitle2" display="block" align="center">Awaiting Details</Typography>
               : status == 'Submitted'  && detailsExist == true ? <Typography variant="subtitle2" display="block" align="center">Awaiting Sponsor</Typography> : null}
-                 </div>
+              {status != 'Passed' && status == 'Sponsored' && status != 'Not Passed' && currentPeriod < votingPeriod && !isVotingPeriod && !isGracePeriod ? 
+                <Typography variant="subtitle2" display="block" align="center" style={{backgroundColor: 'red', color: 'white', padding: '2px', marginTop:'3px'}}>Prepare to Vote<br></br>{neededVotes} votes required to pass</Typography>
+               : null}
+              </div>
 
-              {status == 'Sponsored' && isVotingPeriod && !isGracePeriod ? (
+              {status == 'Sponsored' && isVotingPeriod && !isGracePeriod && !isFinalized ? (
                
-                <Grid container alignItems="center" justifyContent="space-between" spacing={1} style={{position: 'absolute', bottom:'5px', right:'1px'}}>
-                  <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="left">
+                <Grid container alignItems="center" justifyContent="space-between" spacing={0} style={{margin: '0px', position: 'absolute', bottom:'5px', right:'1px'}}>
+                  <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="center">
                      {done ? ( <StyledBadge badgeContent={yesVotes} color="primary" max={9999999}>
                         <IconButton onClick={(e) => handleVotingAction(requestId, 'yes')} disabled={voted}>
                           <ThumbUpIcon fontSize='small' color="primary" />
@@ -1229,13 +1268,17 @@ export default function ProposalCard(props) {
                       ) : <CircularProgress /> }
                   </Grid>
                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
-                    <Typography variant="caption" display="block">Voting Ends in {(((votingPeriod - currentPeriod)+1) * periodDuration / 60).toFixed(2)} minutes</Typography>
+                    <Typography variant="overline">{neededVotes} votes required to pass</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '10px'}}>
+                    <Typography variant="subtitle2">
+                      Time Remaining: {voteEnding > 0 ? voteEnding + ' seconds' : 'closing vote'}
+                    </Typography>
                   </Grid>
                 </Grid>
-               
                 ) : null }
 
-              {status == 'Sponsored' && isGracePeriod && !isVotingPeriod && vote != 'yes' ? (
+              {status == 'Sponsored' && isGracePeriod && (vote == 'no' || vote =='no vote yet') ? (
                 <Grid container alignItems="center" justifyContent="space-evenly" spacing={1}>
                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
                     <Button
@@ -1249,14 +1292,28 @@ export default function ProposalCard(props) {
                     </Button>
                   </Grid>
                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                    <Typography variant="caption" display="block" align="center">RageQuit ends in {(((gracePeriod - currentPeriod)+1) * periodDuration / 60).toFixed(2)} {(((gracePeriod - currentPeriod)+1) * periodDuration / 60) > 1 ? 'minutes':'minute'}</Typography>
+                    <Typography variant="caption" display="block" align="center">Rage Quit Period</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '10px'}}>
+                    <Typography variant="subtitle2">
+                      Time Remaining: {rageQuitEnding > 0 ? rageQuitEnding + ' seconds' : 'closing rage quit'}
+                    </Typography>
                   </Grid>
                 </Grid>
-              ) : null }
-              
+              ) : 
+              status == 'Sponsored' && isGracePeriod && vote == 'yes' ?
+              <>
+              <Typography variant="body1">Rage Quit period</Typography>
+              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '10px'}}>
+                    <Typography variant="subtitle2">
+                      Time Remaining: {rageQuitEnding > 0 ? rageQuitEnding + ' seconds' : 'closing rage quit'} 
+                    </Typography>
+              </Grid>
+              </>
+              : null}
               {(status == 'Awaiting Finalization') ? (         
-                <Grid container alignItems="center" justifyContent="space-between" spacing={1}>
-                  <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="left" >
+                <Grid container alignItems="center" justifyContent="space-between" spacing={0} style={{margin: '0px', position: 'absolute', bottom:'60px', right:'1px'}}>
+                  <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="center" >
                     <StyledBadge badgeContent={yesVotes} color="primary" max={9999999}>
                       <IconButton onClick={(e) => handleVotingAction(requestId, 'yes')} disabled={true}>
                         <ThumbUpIcon fontSize='small' color="primary" />
@@ -1264,9 +1321,7 @@ export default function ProposalCard(props) {
                     </StyledBadge>
                   </Grid>
                   <Grid item xs={2} sm={2} md={2} lg={2} xl={2} >
-                    <Typography variant="body2">
-                      Final Vote
-                    </Typography>
+                    <Typography variant="body2">Final Vote</Typography>
                   </Grid>
                   <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="center" >
                     <StyledBadge badgeContent={noVotes} color="secondary" max={9999999}>
@@ -1291,6 +1346,7 @@ export default function ProposalCard(props) {
                     <Typography variant="body2">
                       {status}
                     </Typography>
+                    
                   </Grid>
                   <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center" >
                     <StyledBadge badgeContent={noVotes} color="secondary" max={9999999}>

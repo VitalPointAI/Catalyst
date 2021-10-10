@@ -74,7 +74,7 @@ export default function GuildKickProposal(props) {
   async function handleCancelAction(proposalIdentifier) {
     let finished = await daoContract.cancelProposal({
         proposalId: proposalIdentifier
-        }, GAS, utils.format.parseNearAmount((parseInt(proposalDeposit)).toString()))
+        }, GAS, utils.format.parseNearAmount((parseFloat(proposalDeposit)).toString()))
     try{
       
       } catch (err) {
@@ -93,7 +93,7 @@ export default function GuildKickProposal(props) {
                     memberToKick: memberKick, 
                     proposalDeposit: proposalDeposit,
                     depositToken: depositToken
-                    }, GAS, utils.format.parseNearAmount((parseInt(proposalDeposit)).toString()))
+                    }, GAS, utils.format.parseNearAmount((parseFloat(proposalDeposit)).toString()))
       
     } catch (err) {
       console.log('There was a problem adding the guild kick proposal.', err)

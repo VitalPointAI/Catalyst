@@ -83,6 +83,7 @@ export default function EditPayoutProposalForm(props) {
         funding, 
         referenceIds,
         proposalStatus,
+        paid
     } = props
     
     const classes = useStyles()
@@ -116,7 +117,7 @@ export default function EditPayoutProposalForm(props) {
               while (i < propResult.proposals.length){
                 if(propResult.proposals[i].proposalId == proposalId){
                   propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
-                  propResult.proposals[i].milestones ? setMilestones(propResult.proposals[i].milestones) : setMilestones([{milestoneId: ''}])
+                  propResult.proposals[i].milestones ? setMilestones(propResult.proposals[i].milestones) : setMilestones([{}])
                   if (propResult.proposals[i].details){
                     let contentBlock = htmlToDraft(propResult.proposals[i].details)
                     if (contentBlock){
@@ -146,12 +147,14 @@ export default function EditPayoutProposalForm(props) {
               let milestone
               let thisMilestoneId
               let t = 0
+              console.log('referenceIds', referenceIds)
               while (t < referenceIds.length){
                   if(referenceIds[t].keyName == 'proposal'){
                     let k = 0
                     while(k < oppResult.proposals.length){
                       if(oppResult.proposals[k].proposalId == referenceIds[t].valueSetting){
-                        interimMilestones = oppResult.proposals[k].milestones        
+                        interimMilestones = oppResult.proposals[k].milestones  
+                        console.log('first interim', interimMilestones)      
                         proposal = true                          
                         break
                       }
@@ -164,19 +167,20 @@ export default function EditPayoutProposalForm(props) {
                       if(referenceIds[newT].keyName =='milestone'){                      
                         let m = 0
                         while(m < interimMilestones.length){
-                            if(interimMilestones[m].milestoneId == referenceIds[newT].valueSetting){
-                            setTitle(interimMilestones[m]['milestone'+m])
-                            let newMilestone = []
-                            newMilestone.push(interimMilestones[m])
-                            console.log('newmilestone', newMilestone)
-                            setMilestones(newMilestone)
-                            milestone = true                      
-                            break
-                          }
-                        }
+                          console.log('interimmilestones', interimMilestones)
+                            if(interimMilestones[m].id == referenceIds[newT].valueSetting){
+                              setTitle(interimMilestones[m].title)
+                              let newMilestone = []
+                              newMilestone.push(interimMilestones[m])
+                              console.log('newmilestone', newMilestone)
+                              setMilestones(newMilestone)
+                              milestone = true                      
+                              break
+                            }
                         m++
+                        }
                       }
-                      newT++
+                    newT++
                     }
                   }
                 }
@@ -221,19 +225,24 @@ export default function EditPayoutProposalForm(props) {
       console.log('milestones', milestones)
       Milestones = milestones.map((element, index) => {
         console.log('element', element)
-        return (
-          <MilestoneCard 
-            key={element.milestoneId}
-            id={element.milestoneId}
-            name={element[`milestone${element.milestoneId}`]}
-            deadline={element[`deadline${element.milestoneId}`]}
-            payout={element[`payout${element.milestoneId}`]}
-            description={element[`briefDescription${element.milestoneId}`]}
-            proposalId={proposalId}
-            proposalStatus={proposalStatus}
-            applicant={applicant}
-          />
-        )
+        if(Object.keys(element).length == 0){
+          return null
+        } else {
+          return (
+            <MilestoneCard
+              key={element.id}
+              id={element.id}
+              name={element.title}
+              deadline={element.deadline}
+              payout={element.payout}
+              description={element.briefDescription}
+              proposalId={proposalId}
+              proposalStatus={proposalStatus}
+              applicant={applicant}
+              paid={paid}
+            />
+          )
+        }
       })
     }
 
@@ -326,7 +335,7 @@ export default function EditPayoutProposalForm(props) {
                   ) : null }
                   {errors.payoutProposalTitle && <p style={{color: 'red'}}>You must provide a payout proposal title.</p>}
                  
-                  <Typography variant="h6">Please provide detail for your payout requesting including proof of work completion if applicable:</Typography>
+                  <Typography variant="body1">Please provide detail for your payout request including proof of work completion if applicable:</Typography>
                   <Paper style={{padding: '5px'}}>
                   <Editor
                     name="details"

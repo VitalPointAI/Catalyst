@@ -83,7 +83,7 @@ console.log('share', share)
 
               let balance = await account.getAccountBalance()
               console.log('balance', balance)
-              setBalanceAvailable((balance.available).toString())
+              setBalanceAvailable(balance.available)
           
           
             } catch (err) {
@@ -94,7 +94,7 @@ console.log('share', share)
       fetchData()
     }, [currentMembers]
     )
-
+console.log('balanceAvailable', balanceAvailable)
   const handleClose = () => {
     handleLeaveClickState(false)
   }
@@ -144,9 +144,9 @@ console.log('share', share)
           ) : (
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
               <Typography variant="body1">As you are the last member, the remaining:<br></br>
-              <b>{fairShare} yocto</b><br></br>
-              (~ {formatNearAmount(fairShare, 3)} Ⓝ)<br></br>
-              in the community fund will be sent to your account.</Typography>
+              <b>{balanceAvailable} yocto</b><br></br>
+              (~ {formatNearAmount(balanceAvailable, 3)} Ⓝ)<br></br>
+              in the contract account will be sent to your account.  This may differ slightly from the expected community fund balance as it takes into account funds that must remain locked in the contract to cover its storage costs.</Typography>
             </Grid>
           )}
           
@@ -187,7 +187,7 @@ console.log('share', share)
                   You are leaving the community.  This action is not reversible.  If you decide to rejoin the 
                   community later, you must submit a new member proposal.</Typography>) : (
                   <Typography variant="body1">
-                    Because you are the last member, the community will be dissolved if you leave.
+                    Because you are the last member, the community will be set to inactive if you leave.
                   </Typography>
                 )}
                 <Grid container className={classes.confirmation} spacing={1}>

@@ -150,7 +150,7 @@ export default function AddDaoForm(props) {
           
                           <Grid item xs={11} sm={11} md={11} lg={11} xl={11} style={{margin:'auto'}}>
                               <WarningIcon fontSize='large' className={classes.warning} />
-                              <Typography variant="body2" gutterBottom>Creating a community requires <b>{parseInt(FACTORY_DEPOSIT)} Ⓝ</b>.</Typography>
+                              <Typography variant="body2" gutterBottom>Creating a community requires <b>{parseFloat(FACTORY_DEPOSIT)} Ⓝ</b>.</Typography>
                               <Typography variant="body2">The <b>{FACTORY_DEPOSIT} Ⓝ</b> you are about to transfer covers storage costs on the NEAR chain and is non-refundable.</Typography>     
                           </Grid>
                         </Grid>

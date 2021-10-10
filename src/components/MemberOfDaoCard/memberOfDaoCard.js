@@ -10,6 +10,9 @@ import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
 import Typography from '@material-ui/core/Typography'
 import { LinearProgress } from '@material-ui/core'
+import Chip from '@material-ui/core/Chip'
+import PauseCircleFilledIcon from '@material-ui/icons/PauseCircleFilled'
+import PlayCircleFilledIcon from '@material-ui/icons/PlayCircleFilled'
 
 const useStyles = makeStyles((theme) => ({
     card: {
@@ -41,7 +44,8 @@ export default function MemberOfDaoCard(props) {
     const { state, dispatch, update } = useContext(appStore)
 
     const {
-      contractId
+      contractId,
+      status
      } = props
 
    const Dao = new Persona()
@@ -98,9 +102,12 @@ export default function MemberOfDaoCard(props) {
             }}>
             </div>
             </Link>
+               
                 <Typography  variant="h6" display="inline" noWrap={true} style={{lineHeight: 0}}>
                   {sname != '' ? sname : contractId.split('.')[0]}
                 </Typography><br></br>
+                <Chip variant="outlined" label={status} icon={status=='active'? <PlayCircleFilledIcon style={{ color: 'green[500]'}} /> : <PauseCircleFilledIcon style={{color: 'red[500]'}}/>} style={{marginTop: '10px'}}/><br></br>
+
                 <Typography  variant="overline" display="inline" noWrap={true} style={{lineHeight: 0}}>
                   {totalMembers} {totalMembers == 1 ? 'Member' : 'Members'}
                 </Typography>

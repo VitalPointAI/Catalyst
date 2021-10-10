@@ -531,7 +531,7 @@ export default function EditDaoForm(props) {
                         name="telegram"
                         label="Telegram"
                         placeholder="@someplace"
-                        value={discord}
+                        value={telegram}
                         onChange={handleTelegramChange}
                         InputProps={{
                           startAdornment: (

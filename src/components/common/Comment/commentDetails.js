@@ -17,6 +17,7 @@ import Avatar from '@material-ui/core/Avatar'
 import IconButton from '@material-ui/core/IconButton'
 import ReplyIcon from '@material-ui/icons/Reply';
 import Grid from '@material-ui/core/Grid'
+import { CardActionArea, CardActions, Divider } from '@material-ui/core'
 import { FormControlLabel } from '@material-ui/core'
 import Switch from '@material-ui/core/Switch'
 import TextField from '@material-ui/core/TextField'
@@ -144,25 +145,28 @@ export default function CommentDetails(props) {
     return (
         <div>
        
-            {finished ? (<Card variant="outlined">
+            {finished ? (
+                <>
+                <Card variant="outlined" style={{padding:'5px'}}>
                 <CardHeader title={commentSubject}></CardHeader>
                 <Avatar src={avatar} className={classes.small}/>
-                <Typography className={classes.title} color="textSecondary" gutterBottom>Posted by: {name} ({commentAuthor})</Typography>
-               
+                <Typography className={classes.title} color="textSecondary" gutterBottom>Posted by: {name} ({commentAuthor})</Typography>       
                 <Typography className={classes.title} color="textSecondary" gutterBottom>{formatCommentDate}</Typography>
-                <Grid container>
-                    <Grid item xs={10} sm={10} md={10} lg={10} xl={10}>
                     <CardContent>
-                        <div dangerouslySetInnerHTML={{ __html: commentBody}}></div>
-                    </CardContent>
-                    </Grid>
-                    {memberStatus ?
-                        <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
-                        <IconButton onClick={()=>handleReplyClick()}><ReplyIcon/></IconButton>
+                        <Grid container alignItems="flex-start" justifyContent="space-between" style={{marginBottom: '30px'}}>
+                            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                                <div dangerouslySetInnerHTML={{ __html: commentBody}}></div>
+                            </Grid>
                         </Grid>
+                    </CardContent>
+                    {memberStatus ?
+                    <CardActions>
+                        <IconButton onClick={()=>handleReplyClick()}><ReplyIcon/>Reply</IconButton>
+                    </CardActions>
                         : null }
-                </Grid>
                 </Card>
+                <Divider variant="middle" style={{marginTop:'10px', marginBottom:'10px'}}/>
+                </>
                 )
             : null
             }

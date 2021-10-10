@@ -84,7 +84,7 @@ export default function Communities(props) {
                   </Grid>
                 <Grid container alignItems="center" justifyContent="center" spacing={3} style={{padding: '20px', minHeight: '150px'}}>
                
-                {daos.filter(dao => dao.summoner == accountId).reverse().map(({ contractId, created, summoner }, i) =>
+                {daos.filter(dao => dao.summoner == accountId).reverse().map(({ contractId, created, summoner, status }, i) =>
                     <SmallDaoCard
                         key={i}
                         contractId={contractId}
@@ -94,6 +94,7 @@ export default function Communities(props) {
                         state={state}
                         handleEditDaoClick={handleEditDaoClick}
                         handleUpdate={handleUpdate}
+                        status={status}
                     />   
                     )}
                

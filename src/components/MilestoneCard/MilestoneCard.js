@@ -98,10 +98,11 @@ export default function MilestoneCard(props) {
       return new Date(parseInt(stringDate.slice(0,13))).toLocaleString('en-US', options)
     }
     
-    let referenceIds = {
+    let referenceIds = [{
       proposal: proposalId,
       milestone: id
-    }
+    }]
+
     const handlePayoutProposalClick = () => {
       handleExpanded()
       setPayoutProposalClicked(true)

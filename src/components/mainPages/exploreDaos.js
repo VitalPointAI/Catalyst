@@ -15,7 +15,11 @@ import Typography from '@material-ui/core/Typography'
 import Grid from '@material-ui/core/Grid'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
 import Paper from '@material-ui/core/Paper'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
+import FormLabel from '@material-ui/core/FormLabel';
+import FormControl from '@material-ui/core/FormControl';
+import FormGroup from '@material-ui/core/FormGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormHelperText from '@material-ui/core/FormHelperText'
 import Switch from '@material-ui/core/Switch'
 
 const axios = require('axios').default
@@ -57,6 +61,7 @@ export default function ExploreDaos(props) {
     const [daoCount, setDaoCount] = useState(0)
     const [editDaoClicked, setEditDaoClicked] = useState(false)
     const [membersOnly, setMembersOnly] = useState(false)
+    const [activeOnly, setActiveOnly] = useState(false)
     const [resources, setResources] = useState(0)
     const [nearPrice, setNearPrice] = useState()
     const [searchDaos, setSearchDaos] = useState([])
@@ -106,7 +111,7 @@ export default function ExploreDaos(props) {
                         if(account){
                             console.log('account', account)
                             let formatted = utils.format.formatNearAmount(account.amount, 0)
-                            balance = balance + parseInt(formatted)
+                            balance = balance + parseFloat(formatted)
                             console.log('balance', balance)
                         }
                         i++
@@ -179,6 +184,34 @@ export default function ExploreDaos(props) {
                 i++
             }
             setDaos(memberDaos)
+        }
+    }
+
+    const handleStatusChange = async (event) => {
+        setActiveOnly(event.target.checked)
+        
+        if(event.target.checked){
+            let contract
+            let statusCommunity = []
+            let i = 0
+            while (i < daos.length){
+                let thisCommunityStatus
+                if(daos[i].status == 'active'){
+                    statusCommunity.push(daos[i])
+                } 
+            i++
+            }
+            setDaos(statusCommunity)
+        } else {
+            let statusCommunity = []
+            setDaos(statusCommunity)
+            let i = 0
+            let sortedDaos = _.sortBy(currentDaosList, 'created').reverse()
+            while (i < sortedDaos.length){
+                statusCommunity.push(sortedDaos[i])
+                i++
+            }
+            setDaos(statusCommunity)
         }
     }
 
@@ -255,8 +288,8 @@ export default function ExploreDaos(props) {
                         <Typography align="center" style={{color:'#1341a4', fontSize:'80px',fontWeight:'700', marginTop: '5px', lineHeight:'1em', verticalAlign:'middle'}}>
                             {resources && resources > 0 ? resources + ' Ⓝ' : null}
                         </Typography>
-                        <Typography align="center" style={{color:'#1341a4', fontSize:'30px',fontWeight:'700', marginBottom: '10px', lineHeight:'1em', verticalAlign:'middle'}}>
-                            {resources && resources > 0 ? '$' + Math.round(resources * nearPrice, 2) + ' USD' : null}
+                        <Typography align="center" style={{color:'#b9b9b9', fontSize:'30px', marginBottom: '10px', lineHeight:'1em', verticalAlign:'middle'}}>
+                           ~ {resources && resources > 0 ? '$' + Math.round(resources * nearPrice, 2) + ' USD' : null}
                         </Typography>
                     </Grid>
                 </Grid>
@@ -285,8 +318,8 @@ export default function ExploreDaos(props) {
                             <Typography align="center" style={{color:'#1341a4', fontSize:'40px',fontWeight:'700', marginTop:'10px', lineHeight:'1em', verticalAlign:'middle'}}>
                                 {resources && resources > 0 ? resources + ' Ⓝ' : null}
                             </Typography>
-                            <Typography align="center" style={{color:'#1341a4', fontSize:'20px',fontWeight:'700', lineHeight:'1em', verticalAlign:'middle'}}>
-                                {resources && resources > 0 ? '$' + Math.round(resources * nearPrice, 2) + ' USD' : null}
+                            <Typography align="center" style={{color:'#b9b9b9', fontSize:'20px', lineHeight:'1em', verticalAlign:'middle'}}>
+                               ~ {resources && resources > 0 ? '$' + Math.round(resources * nearPrice, 2) + ' USD' : null}
                             </Typography>
                         </Grid>
                     </Grid>
@@ -296,55 +329,59 @@ export default function ExploreDaos(props) {
             </>
 
         )}
-      
+        
         <Grid container alignItems="center" justifyContent="space-between" spacing={0} >
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-            <FormControlLabel
-            style={{marginLeft: '5px', marginTop: '10px'}}
-            control={
-              <Switch
-                checked={membersOnly}
-                onChange={handleMembersOnlyChange}
-                name="membersOnly"
-                color="primary"
-              />
-            }
-            label="Only show communities you are a member of"
-          />   
             <SearchBar
                 placeholder="Search"
                 onChange={(e) => searchData(e.target.value)}
             />
             </Grid>
         </Grid>
-
-        <Grid container alignItems="center" justifyContent="center" spacing={3} style={{padding: '20px'}}>
-        {daos && daoCount > 0 ? 
-                (<>
-                  
-                {daos.map(({contractId, created, summoner}, i) => {
-                   
-                    return ( 
-                        <DaoCard
-                            key={i}
-                            contractId={contractId}
-                            created={created}
-                            summoner={summoner}
-                            contract={contract}
-                            link={''}
-                            state={state}
-                            handleEditDaoClick={handleEditDaoClick}
-                            handleUpdate={handleUpdate}
-                            makeSearchDaos={makeSearchDaos}
-                        />
-                   )
-                }
-                   
-                    )}
-                </>)
-            : null
+        <Grid container spacing={1} justifyContent="flex-start" alignItems="center" style={{paddingLeft:'40px', paddingRight:'40px'}}>
+        <FormControl component="fieldset" >
+            <FormLabel component="legend">Filter Communities</FormLabel>
+            <FormGroup>
+              <FormControlLabel
+                control={<Switch checked={membersOnly} onChange={handleMembersOnlyChange} name="membersOnly" />}
+                label="Member"
+              />
+              <FormControlLabel
+                control={<Switch checked={activeOnly} onChange={handleStatusChange} name="onlyActiveCommunities" />}
+                label="Active"
+              />
+              
+            </FormGroup>
+            <FormHelperText>Choose community filters.</FormHelperText>
+          </FormControl>
+          {daos && daoCount > 0 ? 
+            (<>
+              
+            {daos.map(({contractId, created, summoner, status}, i) => {
+               console.log('status', status)
+                return ( 
+                    <DaoCard
+                        key={i}
+                        contractId={contractId}
+                        created={created}
+                        summoner={summoner}
+                        contract={contract}
+                        link={''}
+                        state={state}
+                        handleEditDaoClick={handleEditDaoClick}
+                        handleUpdate={handleUpdate}
+                        makeSearchDaos={makeSearchDaos}
+                        status={status}
+                    />
+               )
             }
+               
+                )}
+            </>)
+        : null
+        }
         </Grid>
+       
         </div>
         <Footer />
         </>
