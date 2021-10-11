@@ -183,7 +183,7 @@ export default function FundingProposalDetails(props) {
             // Set Existing Proposal Data       
             if(curDaoIdx && contract){
               let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
-              console.log('propResultt', propResult)
+            
               if(propResult) {
                 let i = 0
                 while (i < propResult.proposals.length){
@@ -204,7 +204,7 @@ export default function FundingProposalDetails(props) {
               
               try{
                 let oppResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
-                console.log('payoutproposaldetails', oppResult)
+             
                 let confirmedMilestonePayouts = []
                 let t = 0
                 while (t < oppResult.proposals.length){
@@ -272,7 +272,7 @@ export default function FundingProposalDetails(props) {
     let Milestones
     if(milestones && milestones.length > 0){
       Milestones = milestones.map((element, index) => {
-        console.log('element', element)
+     
         let i = 0
         let paid
         while (i < milestonePayouts.length){
@@ -308,7 +308,7 @@ export default function FundingProposalDetails(props) {
     let author = '';
     let color;
     let preview = '';
-    console.log('proposalComments', proposalComments)
+  
     if (proposalComments && proposalComments.length > 0) {
         Comments = proposalComments.map(comment => {
           if(comment.originalAuthor && comment.originalContent){

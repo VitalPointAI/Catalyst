@@ -95,7 +95,7 @@ export default function CommentDetails(props) {
        
         fetchData()
           .then((res) => {
-            console.log('res', res)
+            
             setFinished(true)
           })
         
@@ -108,35 +108,13 @@ export default function CommentDetails(props) {
     }
 
     let formatCommentDate
-    console.log('comment post date', commentPostDate)
+
     if(commentPostDate) {
         let intDate = parseInt(commentPostDate)
         formatCommentDate = new Date(intDate).toLocaleString()
-        console.log("formatted comment date", formatCommentDate)
+     
     } else {
         formatCommentDate = 'undefined'
-    }
-
-    // const commentMember = () => {
-    //     comments.filter((comment) => ((comment[2] == commentAuthor) || comment.commentAuthor == commentAuthor))[0]
-    // }
-
-    const deleteComment = () => {
-        handleDelete()
-        if (commentAuthor === accountId) {
-        deleteAppRecord(commentId, 'Comment') 
-        contract.deleteCommentProfile({
-            commentId: commentId
-        }, GAS).then(response => {
-            console.log("[comment].js] comments", response.len)
-            console.log('response', response)
-            let newComments = response.comments
-           //handleChange({ name: "comments", value: newComments })
-            handleDelete()
-        }).catch(err => {
-            console.log(err);
-        })
-        }
     }
 
     function handleReplyClick(){

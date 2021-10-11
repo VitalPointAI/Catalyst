@@ -588,134 +588,6 @@ async makeSeed(account){
     }
   }
 
-  // async aliasSetup(idx, accountId, aliasName, defDesc, schemaFormat, ceramicClient) {
-  //   const currentDefinitions = await idx.get('definitions', idx.id)
-  //   let defExists
-  //   if(currentDefinitions != null){
-  //     let m = 0
-  //       while (m < currentDefinitions.defs.length) {
-  //           if (currentDefinitions.defs[m].accountId == accountId && currentDefinitions.defs[m].alias == aliasName){
-  //             defExists = true
-  //             return true
-  //           }
-  //       m++
-  //     }
-  //   } else {
-  //     defExists = false
-  //   }
-    
-  //   if(!defExists) {
-
-  //     const currentSchemas = await idx.get('schemas', idx.id)
-
-  //     // check for existing schema for this account from it's owner's account idx
-  //     let schemaExists
-  //     if(currentSchemas != null ){
-  //       let k = 0
-  //       while (k < currentSchemas.schemas.length) {
-  //           if (currentSchemas.schemas[k].accountId == accountId && currentSchemas.schemas[k].name == aliasName){
-  //           schemaExists = true
-  //           break
-  //           }
-  //           k++
-  //       }
-  //     } else {
-  //       schemaExists = false
-  //     }
-
-  //     let schemaURL
-  //     if(!schemaExists){
-  //         // create a new Schema
-          
-  //         let schemaURL = await publishSchema(ceramicClient, {content: schemaFormat})
-
-  //         let schemaRecords = await idx.get('schemas', idx.id)
-        
-  
-  //         if(schemaRecords == null){
-  //           schemaRecords = { schemas: [] }
-  //         }
-         
-  //         let record = {
-  //             accountId: accountId,
-  //             name: aliasName,
-  //             url: schemaURL.commitId.toUrl()
-  //           }
-            
-  //         schemaRecords.schemas.push(record)
-  //         let result = await idx.set('schemas', schemaRecords)
-  //     }
-
-  //     let updatedSchemas = await idx.get('schemas', idx.id)
-      
-  //     let n = 0
-  //     while (n < updatedSchemas.schemas.length) {
-  //       if(updatedSchemas.schemas[n].accountId == accountId && updatedSchemas.schemas[n].name == aliasName){
-  //           schemaURL = updatedSchemas.schemas[n].url
-  //           break
-  //       }
-  //       n++
-  //     }
-
-  //     // create a new profile definition
-  //     let definition
-  //     try {
-  //       definition = await createDefinition(ceramicClient, {
-  //         name: aliasName,
-  //         description: defDesc,
-  //         schema: schemaURL
-  //       })
-  //     } catch (err) {
-  //       console.log('definition issue', err)
-  //     }
-      
-  //     if(definition){
-  //       let defRecords = await idx.get('definitions', idx.id)
-  //       if(defRecords == null){
-  //         defRecords = { defs: [] }
-  //       }
-
-  //       let record = {
-  //           accountId: accountId,
-  //           alias: aliasName,
-  //           def: definition.id.toString()
-  //         }
-
-  //       defRecords.defs.push(record)
-
-  //       let result = await idx.set('definitions', defRecords)
-        
-  //       return true
-  //     }
-  //   }
-  //   return true
-  // }
-
-  //async getAliases(idx, accountId) {
-    
-  //   let aliases = {}
-    
-  //   let allAliases = await idx.get('definitions', idx.id)
-    
-  //   if(allAliases != null) {
-
-  //     //retrieve aliases for each definition
-  //     let i = 0
-      
-  //     while (i < allAliases.defs.length) {
-  //         if(allAliases.defs[i].accountId == accountId){
-  //           let alias = {[allAliases.defs[i].alias]: allAliases.defs[i].def}
-  //           aliases = {...aliases, ...alias}
-  //         }
-  //         i++
-  //     }
-  //     return aliases
-  //   } else {
-  //   return {}
-  //   }
-  // }
-
-
   // application IDX - maintains most up to date schemas and definitions ensuring chain always has the most recent commit
   
   async getAppIdx(contract, accountId){
@@ -849,7 +721,7 @@ async makeSeed(account){
 
   // current dao IDX
   async getCurrentDaoIdx(contractAccount, appIdx, contract){
-    console.log('getcurrentdaoidx appidx', appIdx)
+    
     let seed
     let daoKeys =  await this.downloadKeysSecret(appIdx, 'daoKeys')
    

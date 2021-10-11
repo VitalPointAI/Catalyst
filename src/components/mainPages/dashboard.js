@@ -221,18 +221,15 @@ export default function Dashboard(props) {
                 set(DASHBOARD_ARRIVAL, newVisit)
             }
             
-            
-         //   update('dashboardOpenCommand', {command: true})
             if(currentDaosList.length > 0){
                 let i = 0
-                console.log('here i')
-                console.log('length', currentDaosList.length)
+               
                 while (i < currentDaosList.length){
                     if(currentDaosList[i].summoner == accountId){
-                        console.log('here')
+                       
                         let name = currentDaosList[i].contractId.split('.')
                         communities.push({contractId: currentDaosList[i].contractId, communityName: name[0]})
-                        console.log('communities', communities)
+                      
                         setMemberCommunities(communities)
                     }
                 i++
@@ -249,35 +246,35 @@ export default function Dashboard(props) {
                 let thisContractId
                
                 if(contractId == '') {
-                    console.log('maybe')
+                  
                     let mostRecentContractId = communities.length > 0 ? communities[communities.length-1].contractId 
                     : 'vitalpointai.testnet'
                     setContractId(mostRecentContractId)
                     thisContractId = mostRecentContractId
-                    console.log('mostrecent', mostRecentContractId)
+                  
                     memData = await data.getMemberStats(mostRecentContractId)
-                    console.log('memdata', memData)
+                  
                     memData ? setMemberData(memData) : false
                     propData = await data.getProposalStats(mostRecentContractId)
-                    console.log('propdata', propData)
+                  
                     propData && Object.keys(propData).length > 0 ? setProposalData(propData) : false
                 } else {
                     memData = await data.getMemberStats(contractId)
-                    console.log('memdata', memData)
+                
                     memData ? setMemberData(memData) : false
                     propData = await data.getProposalStats(contractId)
-                    console.log('propdata', propData)
+                  
                     propData && Object.keys(propData).length > 0 ? setProposalData(propData) : false
                 }
 
                     // construct new member data frame
                     if(memData && memData.data.length > 0 ){
-                        console.log('next')
+                       
                         let j = 0
                         while (j < memData.data.length){
-                            console.log('datatype', memData.data[j].dataType)
+                        
                             if(memData.data[j].dataType =='newSummoner') {
-                                console.log('formatteddate', formatDateString(memData.data[j].data.summonTime))
+                            
                                 newMemberDataFrame.push({
                                     type: 'Summon',
                                     joined: formatDateString(memData.data[j].data.summonTime), 
@@ -318,7 +315,7 @@ export default function Dashboard(props) {
 
                     // construct proposals data frame
                     if(propData && propData.data.length > 0){
-                        console.log('prop data here', propData)
+                     
                         let k = 0
                         let totalProposals = propData.data.length
                         let communityName = contractId.split('.')[0]
@@ -915,7 +912,7 @@ export default function Dashboard(props) {
             .x((d) => { console.log('d value', d.timeStamp); return x(d.timeStamp); })
             .y((d) => { console.log('y value', d.number); return y(d.number); });
         
-            console.log('valueline', valueLine)
+          
           const svg = d3.select("#d3-activity").append("svg")
             .attr("preserveAspectRatio", "xMinYMin meet")
             .attr("viewBox", "0 0 960 600")

@@ -210,7 +210,7 @@ export default function OpportunityCard(props) {
           let notificationFlag = get(OPPORTUNITY_NOTIFICATION, [])
           if(notificationFlag[0]){
             //open the proposal with the correct id
-            console.log("THIS WORKED", notificationFlag)
+          
             if(opportunityId == notificationFlag[0].proposalId){
               del(OPPORTUNITY_NOTIFICATION)
               handleOpportunityProposalDetailsClick()

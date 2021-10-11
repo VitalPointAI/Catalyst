@@ -131,7 +131,7 @@ export default function EditOpportunityProposalForm(props) {
             // Set Existing Persona Data      
             if(curPersonaIdx){
               let result = await curPersonaIdx.get('profile', curPersonaIdx.id)
-              console.log('result edit', result)
+             
               if(result) {
                 result.date ? setDate(result.date) : setDate('')
                 result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
@@ -142,7 +142,7 @@ export default function EditOpportunityProposalForm(props) {
             // Get Existing Community Skills
             if(curDaoIdx){
               let daoProfileResult = await curDaoIdx.get('daoProfile', curDaoIdx.id)
-              console.log('daoprofile result', daoProfileResult)
+            
               let currentSkills = {...desiredSkillSet}
               let currentSpecificSkills = {...desiredDeveloperSkillSet}
               if(daoProfileResult){
@@ -160,7 +160,7 @@ export default function EditOpportunityProposalForm(props) {
            // Set Existing Proposal Data       
            if(curDaoIdx){
               let propResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
-              console.log('propResult', propResult)
+           
               if(propResult) {
                 let i = 0
                 while (i < propResult.opportunities.length){
@@ -271,7 +271,7 @@ export default function EditOpportunityProposalForm(props) {
     }
 
     const onSubmit = async (values) => {
-      console.log('editor', draftToHtml(convertToRaw(details.getCurrentContent())))
+   
       event.preventDefault()
       setFinished(false)
 
@@ -280,7 +280,7 @@ export default function EditOpportunityProposalForm(props) {
   
       // Load existing array of details
       let detailRecords = await curDaoIdx.get('opportunities', curDaoIdx.id)
-      console.log('opportunity detailRecords', detailRecords)
+   
       if(!detailRecords){
         detailRecords = { opportunities: [] }
       }
@@ -324,7 +324,7 @@ export default function EditOpportunityProposalForm(props) {
       // Add record if it doesn't exist
       if(!exists){
         detailRecords.opportunities.push(proposalRecord)
-        console.log('detailrecords.opportunities', detailRecords.opportunities)
+      
         await curDaoIdx.set('opportunities', detailRecords)
       }
      

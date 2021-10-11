@@ -109,17 +109,17 @@ export default function ExploreDaos(props) {
                             console.log('problem retrieving account', err)
                         }
                         if(account){
-                            console.log('account', account)
+                        
                             let formatted = utils.format.formatNearAmount(account.amount, 0)
                             balance = balance + parseFloat(formatted)
-                            console.log('balance', balance)
+                          
                         }
                         i++
                     }
                     setResources(balance)
                     let getNearPrice = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd')
                     setNearPrice(getNearPrice.data.near.usd)
-                    console.log('nearprice', nearPrice)
+                 
                 }
             }
 
@@ -146,12 +146,12 @@ export default function ExploreDaos(props) {
 
     const handleMembersOnlyChange = async (event) => {
         setMembersOnly(event.target.checked)
-        console.log('checked', event.target.checked)
+     
         if(event.target.checked){
             let contract
             let memberDaos = []
             let i = 0
-            console.log('daos', daos)
+           
             while (i < daos.length){
                 try{
                     contract = await dao.initDaoContract(state.wallet.account(), daos[i].contractId)
@@ -177,7 +177,7 @@ export default function ExploreDaos(props) {
             let memberDaos = []
             setDaos(memberDaos)
             let i = 0
-            console.log('daos', daos)
+         
             let sortedDaos = _.sortBy(currentDaosList, 'created').reverse()
             while (i < sortedDaos.length){
                 memberDaos.push(sortedDaos[i])
@@ -247,7 +247,7 @@ export default function ExploreDaos(props) {
         const fuse = new Fuse(searchDaos, {
             keys: ['category']
         })
-        console.log('fuse', fuse)
+     
 
         const result = fuse.search(pattern)
 

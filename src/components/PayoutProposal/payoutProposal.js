@@ -84,7 +84,7 @@ export default function PayoutProposal(props) {
     milestonePayout
      } = props
 
-console.log('reference', reference)
+
   const handleClose = () => {
     handlePayoutProposalClickState(false)
   };

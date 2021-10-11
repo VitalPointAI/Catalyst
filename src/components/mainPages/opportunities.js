@@ -98,7 +98,7 @@ export default function Opportunities(props) {
               thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
           
               opportunities = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
-              console.log('opportunities', opportunities)
+            
               if(opportunities && opportunities.length > 0){
                 
                 setaOpportunities(opportunities.opportunities)
@@ -109,20 +109,20 @@ export default function Opportunities(props) {
                     // 1. Build complete list of all opportuntities for all DAOs
                     let allOpportunities = []
                     let i = 0
-                    console.log('opportunities here', opportunities)
+                   
                     if(opportunities){
                     while (i < opportunities.opportunities.length){
-                      console.log('opportunities', opportunities)
+                      
                       
                       allOpportunities.push(opportunities.opportunities[i])
                       i++
                     }
                     }
-                    console.log('all opportunities', allOpportunities)
+                 
 
                     // 2. Retrieve current persona data
                     let currentPersona = await Persona.getPersona(accountId)
-                    console.log('xz all opp persona', currentPersona)
+             
 
                     // 3. Initialize recommendations array
                     let currentRecommendations = []
@@ -194,7 +194,7 @@ export default function Opportunities(props) {
                             }
                           })
                         }
-                        console.log('combinedopportunityskills', combinedOpportunitySkills)
+                  
 
                         let k = 0
                         while (k < combinedOpportunitySkills.length){
@@ -234,7 +234,7 @@ export default function Opportunities(props) {
                         j++
                     }
                     setRecommendations(currentRecommendations)
-                    console.log('xz recommendations', currentRecommendations)
+                  
                   }
             }
             setFinished(true)
@@ -296,7 +296,7 @@ export default function Opportunities(props) {
           {finished && active ?
             recommendations && recommendations.length > 0 ?
               recommendations.map((fr, i) => {
-                console.log('fr', fr)
+               
                 if(fr.status == "Passed"){
                 return(
                   <OpportunityCard 

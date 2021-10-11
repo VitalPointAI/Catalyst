@@ -24,9 +24,6 @@ import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import Divider from '@material-ui/core/Divider'
 import { CircularProgress } from '@material-ui/core'
-import Card from '@material-ui/core/Card'
-import CardContent from '@material-ui/core/CardContent'
-import CardActions from '@material-ui/core/CardActions'
 import InputAdornment from '@material-ui/core/InputAdornment'
 import Tooltip from '@material-ui/core/Tooltip'
 import Zoom from '@material-ui/core/Zoom'
@@ -109,7 +106,7 @@ export default function EditFundingProposalForm(props) {
         funding, 
         referenceIds
     } = props
-    console.log('milestonefields', milestoneFields)
+    
     const classes = useStyles()
 
     useEffect(() => {
@@ -137,11 +134,11 @@ export default function EditFundingProposalForm(props) {
            if(curDaoIdx && contract ){
             
               let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
-            console.log('edit propresult', propResult)
+           
               
               if(propResult) {
                 let i = 0
-                console.log('propresult', propResult)
+               
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == proposalId){
                     propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
@@ -166,11 +163,11 @@ export default function EditFundingProposalForm(props) {
                     // set title to opportunity title if it exists
                     if(referenceIds){
                       for(const [key, value] of Object.entries(referenceIds)){
-                        console.log('opp value', value)
+                      
                         if(value['valueSetting']!=''){
                           try{
                             let oppResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
-                            console.log('oppresult', oppResult)
+                         
                             let k = 0
                             while(k < oppResult.opportunities.length){
                               if(oppResult.opportunities[k].opportunityId == value['valueSetting']){
@@ -198,30 +195,6 @@ export default function EditFundingProposalForm(props) {
                   }
                   i++
                 }
-
-                // let j = 0
-                // let totalProgrammed = 0
-               
-                // while(j < milestones.length){
-                //   console.log('xy milestones', milestones)
-                
-                //     if(isNaN(milestones[j][`payout${j}`])){
-                //       totalProgrammed = 0
-                //     }
-            
-                //     if(!isNaN(milestones[j][`payout${j}`])){
-                //       totalProgrammed = parseFloat(totalProgrammed.toString()) + parseFloat(milestones[i][`payout${i}`])
-                //       console.log('xy totalprogrammed notnan', totalProgrammed)
-                    
-                //     }
-            
-                //     setPlanned(parseFloat(parseNearAmount(totalProgrammed.toLocaleString('fullwide', {useGrouping: false}))))
-                //     thisLeft = parseFloat(requested.toLocaleString('fullwide', {useGrouping: false})) - parseFloat(parseNearAmount(totalProgrammed.toLocaleString('fullwide', {useGrouping: false})))
-                //     console.log('xy this left not nan', thisLeft.toLocaleString('fullwide', {useGrouping: false}))
-                //     setLeft(thisLeft.toLocaleString('fullwide', {useGrouping: false}))
-                  
-                //   j++
-                // }
               }
            } 
           
@@ -251,12 +224,7 @@ export default function EditFundingProposalForm(props) {
       let i = 0
       let whatsLeft
       while(i < milestoneFields.length){
-        console.log('total milestoneFields', milestoneFields)
         totalPlanned = parseFloat(totalPlanned) + parseFloat(milestoneFields[i].payout)
-        console.log('total i', i)
-        console.log('total payout', parseFloat(milestoneFields[i].payout))
-        console.log('totalplanned', totalPlanned)
-        
         i++
       }
 
@@ -274,145 +242,6 @@ export default function EditFundingProposalForm(props) {
       }
     }
 
-// console.log('current likes', currentLikes)
-//     const handleMilestonesChange = (i, e) => {
-//       console.log('zi', i)
-//       console.log('ze', e)
-//       let newMilestone = [...milestones]
-//       console.log('zi new milestones', newMilestone)
-//       newMilestone[i]['milestoneId'] = i
-//       // if(e.target.name == [`payout${i}`]){
-//       //   newMilestone[i][e.target.name] = parseFloat(e.target.value)
-//       // } else {
-//          newMilestone[i][e.target.name] = e.target.value
-//       // }
-//       console.log('newmilestonet', newMilestone[i])
-//       setMilestones(newMilestone)
-   
-//       setAddDisabled(true)
-//       setDisabled(true)
-//       let thisLeft
-//       if(milestones.length == 1)  {
-//         thisLeft = parseFloat(requested)
-//         setMax(thisLeft)
-//       } else {
-//         thisLeft = left
-//         setMax(thisLeft)
-//       }
-
-//       if(newMilestone[i][`payout${i}`] && newMilestone[i][`milestone${i}`] && newMilestone[i][`deadline${i}`] && newMilestone[i][`briefDescription${i}`]){
-//         if(
-//           newMilestone[i][`payout${i}`] != 0 &&
-//           newMilestone[i][`milestone${i}`]!='' &&
-//           newMilestone[i][`deadline${i}`]!='' &&
-//           newMilestone[i][`briefDescription${i}`]!='' &&
-//           (parseFloat(parseNearAmount(newMilestone[i][`payout${i}`].toLocaleString('fullwide', {useGrouping: false}))) < requested ||
-//           parseFloat(parseNearAmount(newMilestone[i][`payout${i}`].toLocaleString('fullwide', {useGrouping: false}))) < thisLeft ||
-//           thisLeft != 0)
-//         ) {
-//           setAddDisabled(false)
-//         }
-//       }
-
-//       if(!newMilestone[i]){
-//         setAddDisabled(true)
-//       }
-       
-//     }
-
-
-    // const addMilestoneFields = () => {
-     
-    //   setAddDisabled(true)
-    //   let i = 0
-    //   let totalProgrammed = 0
-    //   let thisLeft
-    //   while(i < milestones.length){
-    //     console.log('xy milestones', milestones)
-       
-    //       if(isNaN(milestones[i][`payout${i}`])){
-    //         totalProgrammed = 0
-    //       }
-
-    //       if(!isNaN(milestones[i][`payout${i}`])){
-    //         totalProgrammed = parseFloat(totalProgrammed.toString()) + parseFloat(milestones[i][`payout${i}`])
-    //         console.log('xy totalprogrammed notnan', totalProgrammed)
-          
-    //       }
-
-    //       setPlanned(parseFloat(parseNearAmount(totalProgrammed.toLocaleString('fullwide', {useGrouping: false}))))
-    //       thisLeft = parseFloat(requested.toLocaleString('fullwide', {useGrouping: false})) - parseFloat(parseNearAmount(totalProgrammed.toLocaleString('fullwide', {useGrouping: false})))
-    //       console.log('xy add this left not nan', thisLeft.toLocaleString('fullwide', {useGrouping: false}))
-    //       setLeft(thisLeft.toLocaleString('fullwide', {useGrouping: false}))
-
-    //       if(parseFloat(parseNearAmount(totalProgrammed.toLocaleString('fullwide', {useGrouping: false}))) == parseFloat(requested)){
-    //         setDisabled(false)
-    //       }
-        
-    //     i++
-    //   }
-    //   if(thisLeft == 0){
-    //     return (
-    //       <Typography variant='body1'>You have planned all the funds you requested.</Typography>
-    //     )
-       
-    //   }
-     
-    //   setMilestones([...milestones, {milestoneId: ''}])
-    // }
-
-    // const removeMilestoneFields = (j) => {
-    //   console.log('xy subtract j', j)
-    //   let thisLeft
-    //   console.log('remove this left', thisLeft)
-    //   let newMilestones = [...milestones]
-    //   newMilestones.splice(j, 1)
-      
-      
-
-
-    //   let i = 0
-    //   let totalProgrammed = 0
-
-    //   while(i < newMilestones.length){
-    //     console.log('xy newMilestones', newMilestones)
-      
-    //       if(isNaN(newMilestones[i][`payout${i}`])){
-    //         totalProgrammed = 0
-    //       }
-
-    //       if(!isNaN(newMilestones[i][`payout${i}`])){
-    //         console.log('remove total programmed', parseFloat(totalProgrammed.toString()))
-    //         totalProgrammed = parseFloat(totalProgrammed.toString()) + parseFloat(milestones[i][`payout${i}`])
-    //         console.log('xy totalprogrammed notnan', totalProgrammed)
-    //       }
-
-    //       setPlanned(parseFloat(parseNearAmount(totalProgrammed.toString())).toLocaleString('fullwide', {useGrouping: false}))
-    //       console.log('xy subtract requested', requested)
-    //       console.log('xy subtract totalProgrmmed', parseFloat(parseNearAmount(totalProgrammed.toString())).toLocaleString('fullwide', {useGrouping: false}))
-    //       thisLeft = requested - parseFloat(parseNearAmount(totalProgrammed.toString())).toLocaleString('fullwide', {useGrouping: false})
-    //       console.log('xy subtract this left not nan', thisLeft.toLocaleString('fullwide', {useGrouping: false}))
-    //       setLeft(thisLeft.toLocaleString('fullwide', {useGrouping: false}))
-    
-    //       if(parseFloat(parseNearAmount(totalProgrammed.toString())) == parseFloat(requested)){
-    //         setDisabled(false)
-    //       }
-        
-      
-    //     i++
-    //   }
-
-     
-
-    //   if(
-    //       thisLeft != 0
-    //     ) {
-    //       setAddDisabled(false)
-    //     }
-
-    //   setMilestones(newMilestones)
-      
-    // }
 
     const handleTitleChange = (event) => {
         let value = event.target.value;
@@ -438,7 +267,7 @@ export default function EditFundingProposalForm(props) {
   
       // Load existing array of details
       let detailRecords = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
-      console.log('funding detailRecords', detailRecords)
+     
       if(!detailRecords){
         detailRecords = { proposals: [] }
       }
@@ -472,7 +301,7 @@ export default function EditFundingProposalForm(props) {
       // Add record if it doesn't exist
       if(!exists){
         detailRecords.proposals.push(proposalRecord)
-        console.log('detailrecords.proposals', detailRecords.proposals)
+      
         await curDaoIdx.set('fundingProposalDetails', detailRecords)
       }
      

@@ -97,7 +97,7 @@ export default function EditInitSettings(props) {
             try {
               
                 let result = await contract.getInitSettings({})
-                console.log('dao settings result', result)
+   
                 result[0][1] ? setPeriodDuration(result[0][1]) : setPeriodDuration('')
                 result[0][2] ? setVotingPeriodLength(result[0][2]) : setVotingPeriodLength('')
                 result[0][3] ? setGracePeriodLength(result[0][3]) : setGracePeriodLength('')
@@ -134,7 +134,7 @@ export default function EditInitSettings(props) {
           
       }, [loaded]
     )
-console.log('init settings', initSettings)
+
     const handleReset = () => {
         initSettings[1] ? setPeriodDuration(initSettings[1]) : setPeriodDuration('')
         initSettings[2] ? setVotingPeriodLength(initSettings[2]) : setVotingPeriodLength('')
@@ -180,7 +180,7 @@ console.log('init settings', initSettings)
   }
   
     const onSubmit = async (values) => {
-       console.log('enter submit')
+ 
         setFinished(false)
         try{
           await changeDao(

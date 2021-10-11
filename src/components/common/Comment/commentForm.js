@@ -122,7 +122,7 @@ export default function CommentForm(props) {
         setFinished(false)
         
         let allComments = await curDaoIdx.get('comments', curDaoIdx.id)
-        console.log('all comments', allComments)
+      
 
         let nextCommentId = generateId()
 
@@ -148,7 +148,7 @@ export default function CommentForm(props) {
 
         // Add comment
         allComments.comments.push(record)
-        console.log('allComments.comments', allComments.comments)
+      
         try{
           await curDaoIdx.set('comments', allComments)
           if(reply){

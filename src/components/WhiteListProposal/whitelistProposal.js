@@ -70,10 +70,10 @@ export default function WhiteListProposal(props) {
 
   const onSubmit = async (values) => {
     event.preventDefault()
-    console.log(errors)
+    
     setFinished(false)
     const { token } = values
-    console.log('values', values)
+  
  
     let finished = await contract.submitWhitelistProposal({
                     tokenToWhitelist: token

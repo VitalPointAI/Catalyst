@@ -142,8 +142,7 @@ export default function PersonaCard(props) {
                    
                       while (i < state.claimed.length) {
                         if(state.claimed[i].accountId == accountId){
-                          console.log('claimed accountid here', state.claimed[i].accountId)
-                          console.log('accountid here', accountId)
+                        
                           setClaimed(true)
                           break
                         }

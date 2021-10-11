@@ -102,12 +102,12 @@ export default function MemberProfile(props) {
           async function fetchData() {
          
             // Get Applicant Persona Information
-           console.log('member', member)
+         
             if(member){     
              
                               
                   let result = await thisPersona.getPersona(member)
-                  console.log('result memberprof', result)
+          
                       if(result){
                         result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                         result.name ? setName(result.name) : setName('')
@@ -123,7 +123,7 @@ export default function MemberProfile(props) {
                         if(result.skillSet){
                           let skillArray = []
                           skillArray.push(result.skillSet)
-                          console.log('skillarray', skillArray)
+                         
                           setSkillSet(skillArray)
                         }
                         if(result.developerSkillSet){
@@ -155,7 +155,7 @@ export default function MemberProfile(props) {
     }, [member, avatar, isUpdated]
     )
 
-    console.log('skillset', skillSet)
+ 
 
     const languages = language.map((item, i) => {
       if (i == language.length -1){
@@ -204,8 +204,7 @@ export default function MemberProfile(props) {
                   {skillSet && skillSet.length > 0 ?
                     skillSet.map((values, index) => {
 
-                      console.log('value', values)
-                      console.log('index', index)
+                   
                       for (const [key, value] of Object.entries(values)) {
                         if(value){
                           return(

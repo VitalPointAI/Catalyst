@@ -98,7 +98,7 @@ export default function Daos(props) {
               someDaos.push(dao)
               setSearchDaos(someDaos)
           }
-          console.log('search daos', searchDaos)
+        
       }
     }
 
@@ -109,17 +109,16 @@ export default function Daos(props) {
         
           return
       }
-      console.log('searchDaos', searchDaos)
+    
       
       const fuse = new Fuse(searchDaos, {
           keys: ['category'],
           findAllMatches: true
       })
-      console.log('fuse', fuse)
+    
 
       const result = fuse.search(pattern)
-      console.log('fuse result', result)
-
+   
       const matches = []
       if (!result.length) {
           setDaos([])
@@ -128,7 +127,7 @@ export default function Daos(props) {
           result.forEach(({item}) => {
               matches.push(item)
       })
-      console.log('matches', matches)
+    
           setDaos(matches)
          
       }

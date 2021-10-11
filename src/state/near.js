@@ -41,11 +41,11 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     });
 
     const isAccountTaken = async (accountId) => {
-        console.log('accountId near', accountId)
+       
         const account = new nearAPI.Account(near.connection, accountId);
         try {
             await account.state()
-            console.log('account state', await account.state())
+         
         } catch(e) {
             console.warn(e)
             if (/does not exist while viewing/.test(e.toString())) {
@@ -204,7 +204,6 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     const appIdx = await ceramic.getAppIdx(didRegistryContract, accountId)
     let appIndex = await appIdx.getIndex()
 
-    console.log('app owner', APP_OWNER_ACCOUNT)
     //** INITIALIZE FACTORY CONTRACT */
     let daoFactory
     try {
@@ -213,7 +212,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         console.log('error initializing daoFactory', err)
     }
 
-    console.log('signedin')
+   
     let t = 0
     let start = 0
     let end = 0
@@ -222,7 +221,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
 
     try {
         let currentDaosLength = await daoFactory.getDaoListLength()
-        console.log('currentdaolength', currentDaosLength)
+     
         
     
         while(t < currentDaosLength){
@@ -247,7 +246,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     } catch (err) {
         console.log('error creating currentDaosList', err)
     }
-    console.log('currentdaos', currentDaosList)
+   
     // Set Current User Ceramic Client
 
     let curUserIdx
@@ -513,7 +512,6 @@ export async function initDao(wallet, contractId, periodDuration, votingPeriodLe
         let firstInit = get(DAO_FIRST_INIT, [])
         firstInit.push({contractId: contractId, shares: shares, init: true })
         set(DAO_FIRST_INIT, firstInit)
-        console.log('platform account', PLATFORM_SUPPORT_ACCOUNT)
        
         await daoContract.init({
             _approvedTokens: ['Ⓝ'],
@@ -833,10 +831,7 @@ export async function processProposal(daoContract, contractId, proposalId, propo
         let proposal = await daoContract.getProposal({proposalId: proposalId})
         let platformPercent = await daoContract.getPlatformPercentage()
         let percentage = parseFloat(formatNearAmount(platformPercent, 5))/100
-        console.log('percentage', percentage)
         let platformPayment = (parseFloat(proposal.paymentRequested) * percentage)
-        console.log('platformpayment', platformPayment)
-        console.log('platform test', platformPayment.toLocaleString('fullwide', {useGrouping: false}))
         let payment = platformPayment.toLocaleString('fullwide', {useGrouping: false})
 
         await daoContract.processProposal({
@@ -1030,17 +1025,17 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
     let exists = false
     let contractProposals
     let proposalEventRecord
-    console.log('curdaoidx synch', curDaoIdx)
+  
     try{
         contractProposals = await daoContract.getProposalsLength()
-        console.log('synch contract proposal length', contractProposals)
+      
     } catch (err) {
         console.log('problem retrieving proposal length', err)
     }
 
     try{
         proposalEventRecord = await curDaoIdx.get('proposals', curDaoIdx.id)
-        console.log('proposal event record', proposalEventRecord)
+       
     } catch (err) {
         console.log('problem retreiving proposal events', err)
     }
@@ -1055,7 +1050,7 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
             while (i < contractProposals){
                 try{
                     let proposal = await daoContract.getProposal({proposalId: i})
-                    console.log('xproposal', proposal)
+                  
                     if(proposal) { 
                         let k = 0
                         while (k < proposalEventRecord.events.length){
@@ -1066,7 +1061,7 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
                             }
                             k++
                         }
-                        console.log('xsynch proposal', proposal)
+                     
                         if(!exists){
                             let indivProposalRecord = {
                                 proposalId: (proposal.proposalId).toString(),
@@ -1101,7 +1096,7 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
                                 }
 
                                 proposalEventRecord.events.push(indivProposalRecord)
-                        console.log('prop record event x', proposalEventRecord)
+                       
                         }
                     }
                 } catch (err) {
@@ -1118,10 +1113,10 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
         } else 
         if(proposalEventRecord.events.length > contractProposals){
             proposalEventRecord = { events: [] }
-            console.log('proposalevent record empty', proposalEventRecord)
+        
             try {
                 let emptied = await curDaoIdx.set('proposals', proposalEventRecord)
-                console.log('emptied', emptied)
+               
             } catch (err) {
                 console.log('error emptying proposals', err)
             }
@@ -1164,7 +1159,7 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
                         }
 
                         proposalEventRecord.events.push(indivProposalRecord)
-                        console.log('iteration proposalEventRecord', proposalEventRecord)
+                      
                 }
             i++
             }
@@ -1186,16 +1181,16 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId,
     let exists = false
     let member
     let duplicates
-    console.log('synch accountid', accountId)
+   
     try{
         member = await daoContract.getMemberInfo({member: accountId})
-        console.log('member here', member)
+     
     } catch (err) {
         console.log('current user does not appear to be a member', err)
     }
 
     let logMembers = await curDaoIdx.get('members', curDaoIdx.id)
-    console.log('cer members', logMembers)
+  
     if(!logMembers){
         logMembers = { events: [] }
     }
@@ -1255,7 +1250,7 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId,
             let i = 0
             while(i < logMembers.events.length){
                 let member = await daoContract.getMemberInfo({member: logMembers.events[i].delegateKey})
-                console.log('all synch member', member)
+              
                 let indivMemberRecord = {
                     memberId: logMembers.events[i].memberId,
                     contractId: logMembers.events[i].contractId,
@@ -1351,7 +1346,6 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
 
     try {
         let result = await daoContract.getInitSettings()
-        console.log('result init', result)
         summoner = result[0][0]
         periodDuration = result[0][1]
         votingPeriodLength = result[0][2]
@@ -1367,7 +1361,6 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
     let totalMembers
     try {
         totalMembers = await daoContract.getTotalMembers()
-        console.log('totalMembers init', totalMembers)
         
     } catch (err) {
         console.log('no members', err)
@@ -1420,7 +1413,7 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
       try{
       await curDaoIdx.set('members', memberEventRecord)
         logged = true
-        console.log('logged init', logged)
+       
       } catch (err) {
           console.log('error logging new member', err)
       }
@@ -1486,9 +1479,7 @@ export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType,
     } catch (err) {
         console.log('error logging summon event', err)
     }
-    console.log('logged', logged)
-    console.log('summonLogged', summonLogged)
-    console.log('memberDataLogged', memberDataLogged)
+    
 
     if(logged && summonLogged && memberDataLogged){
         return true
@@ -1504,7 +1495,7 @@ export async function logExitEvent(contractId, curDaoIdx, daoContract, accountId
     let contractMemberRemoved = false
     try {
         member = await daoContract.getMemberInfo({member: accountId})
-        console.log('ex member', member)
+       
         // member still exists in contract, can't continue deleting from data stream
         if(member.length > 0){
             return false
@@ -1535,25 +1526,6 @@ export async function logExitEvent(contractId, curDaoIdx, daoContract, accountId
         while (i < memberEventRecord.events.length){
             if(memberEventRecord.events[i].delegateKey == accountId){
                 memberEventRecord.events.splice(i,1)
-                // let updatedMemberRecord = {
-                //     memberId: memberEventRecord.events[i].memberId,
-                //     contractId: contractId,
-                //     delegateKey: memberEventRecord.events[i].delegateKey,
-                //     shares: memberEventRecord.events[i].shares,
-                //     delegatedShares: memberEventRecord.events[i].delegatedShares,
-                //     receivedDelegations: memberEventRecord.events[i].receivedDelegations,
-                //     loot: memberEventRecord.events[i].loot,
-                //     existing: memberEventRecord.events[i].existing,
-                //     highestIndexYesVote: memberEventRecord.events[i].highestIndexYesVote,
-                //     roles: memberEventRecord.events[i].roles,
-                //     reputation: memberEventRecord.events[i].reputation,
-                //     jailed: memberEventRecord.events[i].jailed,
-                //     joined: parseInt(memberEventRecord.events[i].joined),
-                //     updated: parseInt(Date.now()),
-                //     active: false
-                //     }
-
-                // memberEventRecord.events[i] = updatedMemberRecord
 
                 try {
                     await curDaoIdx.set('members', memberEventRecord)
@@ -2863,37 +2835,11 @@ export function getStatus(flags) {
     */
     let status
     
-    console.log('status flags', flags)
-        // switch(true){
-        //     case (flags[0] == false && flags[3] == false):
-        //         status = 'Submitted'
-                
-        //     case (flags[0] == true && flags[3] == false):
-        //         status = 'Sponsored'
-                
-        //     case (flags[0] == true && flags[1] == false && flags[3] == false):
-        //         status = 'Awaiting Finalization'
-                
-        //     case (flags[1] == true && flags[2] == true && flags[3] == false):
-        //         status = 'Passed'
-        //         break
-        //     case (flags[1] == true && flags[2] == false && flags[3] == false):
-        //         status = 'Not Passed'
-        //         break
-        //     case (flags[3] == true):
-        //         status = 'Cancelled'
-        //         break
-        //     default:
-        //         status = ''
-        // }
     if(!flags[0] && !flags[1] && !flags[2] && !flags[3]) {
         status = 'Submitted'
     } else
         if(flags[0] && !flags[1] && !flags[3]) {
         status = 'Sponsored'
-    // } else
-    //     if(flags[0] && !flags[1] && (flags[2] || !flags[2]) && !flags[3]) {
-    //     status = 'Awaiting Finalization'
     } else
         if(flags[0] && flags[1] && flags[2] && !flags[3]) {
         status = 'Passed'
@@ -2904,7 +2850,7 @@ export function getStatus(flags) {
         if(flags[3]) {
         status = 'Cancelled'
     }
-    console.log('status status', status)
+    
     return status
   }
 
@@ -2998,11 +2944,7 @@ export function formatDateString(timestamp){
 }
 
 export async function signal(proposalId, signalType, curDaoIdx, accountId, proposalType){
-    console.log('signal proposaltype', proposalType)
-    console.log('signal proposalid', proposalId)
-    console.log('signal curdao', curDaoIdx)
-    console.log('signal accountid', accountId)
-    console.log('signal signalType', signalType)
+  
    
     let currentProperties
     let stream
@@ -3076,9 +3018,7 @@ export async function signal(proposalId, signalType, curDaoIdx, accountId, propo
         default:
             break
     }   
-    console.log('currentproperties', currentProperties)
-    console.log('current proposalid', proposalId)
-    console.log('stream', stream)
+  
     let hasLiked = false
     let hasDisLiked = false
     let hasNeutral = false
@@ -3088,15 +3028,13 @@ export async function signal(proposalId, signalType, curDaoIdx, accountId, propo
         
         if(currentProperties.opportunities[i].opportunityId == proposalId.toString()){
             let proposalToUpdate = currentProperties.opportunities[i]
-            console.log('signal proposaltoupdate', proposalToUpdate)
             hasLiked = proposalToUpdate.likes.includes(accountId)
-            console.log('signal hasliked', hasLiked)
             hasDisLiked = proposalToUpdate.dislikes.includes(accountId)
             hasNeutral = proposalToUpdate.neutrals.includes(accountId)
 
             if(signalType == 'like' && !hasLiked){
                 proposalToUpdate.likes.push(accountId)
-                console.log('signal proposaltoupdte', proposalToUpdate)
+             
                 if(hasDisLiked){
                     let k = 0
                     while (k < proposalToUpdate.dislikes.length){
@@ -3173,7 +3111,6 @@ export async function signal(proposalId, signalType, curDaoIdx, accountId, propo
     }
 
     try{
-        console.log('currentprops end', currentProperties.opportunities)
         await curDaoIdx.set(stream, currentProperties)
     } catch (err) {
         console.log('error with signalling', err)
@@ -3184,15 +3121,13 @@ export async function signal(proposalId, signalType, curDaoIdx, accountId, propo
         
         if(currentProperties.proposals[i].proposalId == proposalId.toString()){
             let proposalToUpdate = currentProperties.proposals[i]
-            console.log('signal proposaltoupdate', proposalToUpdate)
             hasLiked = proposalToUpdate.likes.includes(accountId)
-            console.log('signal hasliked', hasLiked)
             hasDisLiked = proposalToUpdate.dislikes.includes(accountId)
             hasNeutral = proposalToUpdate.neutrals.includes(accountId)
 
             if(signalType == 'like' && !hasLiked){
                 proposalToUpdate.likes.push(accountId)
-                console.log('signal proposaltoupdte', proposalToUpdate)
+               
                 if(hasDisLiked){
                     let k = 0
                     while (k < proposalToUpdate.dislikes.length){
@@ -3269,7 +3204,6 @@ export async function signal(proposalId, signalType, curDaoIdx, accountId, propo
     }
 
     try{
-        console.log('currentprops end', currentProperties.proposals)
         await curDaoIdx.set(stream, currentProperties)
     } catch (err) {
         console.log('error with signalling', err)

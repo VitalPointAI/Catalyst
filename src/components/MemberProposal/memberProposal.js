@@ -82,10 +82,10 @@ export default function MemberProposal(props) {
     () => {
       async function fetchData() {
         // get community information
-        console.log('contractId mem', contractId)
+  
         if(contractId){
           let daoResult = await data.getDao(contractId)
-          console.log('daoResult memb', daoResult)
+         
           if(daoResult){
             daoResult.name ? setCommunityName(daoResult.name) : setCommunityName('')
             daoResult.logo ? setLogo(daoResult.logo) : setLogo(defaultImage)

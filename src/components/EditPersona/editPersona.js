@@ -190,7 +190,7 @@ export default function EditPersonaForm(props) {
                     // Get Existing Community Skills
                     if(thisCurDaoIdx){
                       let daoProfileResult = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
-                      console.log('daoprofile result', daoProfileResult)
+             
                       let currentSkills = {...skillSet}
                       let currentSpecificSkills = {...developerSkillSet}
                       if(daoProfileResult){
@@ -344,7 +344,7 @@ export default function EditPersonaForm(props) {
                   record.get("Skills") ? setSkill(record.get("Skills")): null
                   record.get("Familiarity with Crypto") ? setFamiliarity(record.get('Familiarity with Crypto')): null
                   
-                  console.log("Skills", skill.length)
+                
   
                
                   for(let index = 0; index < skill.length; index++){

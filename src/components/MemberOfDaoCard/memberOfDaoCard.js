@@ -58,7 +58,7 @@ export default function MemberOfDaoCard(props) {
            try{
             let contract = await dao.initDaoContract(state.wallet.account(), contractId)
             let allMembers = await contract.getTotalMembers()
-            console.log('allmembers', allMembers)
+          
             setTotalMembers(allMembers)
            } catch (err) {
              console.log('error retrieving member count', err)

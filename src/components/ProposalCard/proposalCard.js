@@ -252,7 +252,7 @@ export default function ProposalCard(props) {
         votingPeriodLength,
         isFinalized
     } = props
-console.log('vote', vote)
+
     useEffect(
         () => {
          
@@ -282,7 +282,7 @@ console.log('vote', vote)
               // set title to opportunity title if it exists
               if(referenceIds){
               for(const [key, value] of Object.entries(referenceIds)){
-                console.log('opp value', value)
+               
                 if(value['valueSetting'] && value['valueSetting'] != ''){
                   try{
                     let oppResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
@@ -325,7 +325,7 @@ console.log('vote', vote)
             if(curDaoIdx && proposalType=='Commitment'){
              
               let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
-         console.log('card propresult', propResult)
+        
               if(propResult) {
                 let i = 0
                 while (i < propResult.proposals.length){
@@ -416,7 +416,7 @@ console.log('vote', vote)
             return true  
           }
 
-          console.log('PROPOSALTYPE', proposalType)
+       
             let notificationFlag = get(PROPOSAL_NOTIFICATION, [])
             if(notificationFlag[0]){
               del(PROPOSAL_NOTIFICATION)

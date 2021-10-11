@@ -41,13 +41,12 @@ export default function Developers(props) {
           async function fetchData() {
 
           let accountId = 'testing2.testnet'
-          console.log('accountid', accountId)
-
+        
           let Persona = new Personas()
-          console.log(Persona)
+         
           let result = await Persona.getPersona(accountId)
           
-          console.log('dev result', result)
+       
           setResult(result)
           }
 

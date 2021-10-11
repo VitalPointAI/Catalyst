@@ -204,10 +204,10 @@ export default function AppFramework(props) {
         if(wallet && triggersActioned){
           timer = setInterval(refreshCurrentPeriod, 10000)
           setTimerStarted(true)
-          console.log('timer started')
+        
           return () => {
             setTimerStarted(false)
-            console.log('timer stopped')
+          
             stop()
           }
         }
@@ -245,7 +245,7 @@ export default function AppFramework(props) {
                
                 try{
                   curDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
-                  console.log('curdaoIdx essentials', curDaoIdx)
+                
                   setCurDaoIdx(curDaoIdx)
                   
                 } catch (err) {
@@ -255,7 +255,7 @@ export default function AppFramework(props) {
                 
                 try{
                   contract = await dao.initDaoContract(state.wallet.account(), contractId)
-                  console.log('daocontract', contract)
+                
                   setDaoContract(contract)
                 } catch (err) {
                   console.log('problem initializing dao contract', err)
@@ -283,7 +283,7 @@ export default function AppFramework(props) {
           const urlParameters = new URLSearchParams(urlVariables)
           let transactionHash = urlParameters.get('transactionHashes')
 
-          console.log('curdaoidx app', curDaoIdx)
+        
 
             // *********CHECK FOR TRIGGERS AND EXECUTE*************
 
@@ -301,7 +301,7 @@ export default function AppFramework(props) {
                         transactionHash)
                         
                       if (loggedExit) {
-                        console.log('first part done')
+                      
                         del(NEW_EXIT)
                         // check for and action any community inactivations
                         let inactivation = get(INACTIVATE_COMMUNITY, [])
@@ -339,7 +339,7 @@ export default function AppFramework(props) {
 
                   // check for successfully inactivated community and log it then redirect to dashboard as contract account is gone
                   let newInactivation = get(NEW_INACTIVATION, [])
-                  console.log('new inactivation', newInactivation)
+                
                   let u = 0
                   while(u < newInactivation.length){
                     if(newInactivation[u].contractId==contractId && newInactivation[u].new == true){
@@ -364,7 +364,7 @@ export default function AppFramework(props) {
                   let c = 0
                   while(c < firstInit.length){
                     if(firstInit[c].contractId==contractId && firstInit[c].init == true){
-                      console.log('here initd')
+                    
                       let logged = await logInitEvent(
                         contractId, 
                         curDaoIdx, 
@@ -682,7 +682,7 @@ export default function AppFramework(props) {
                       try {
                         let needed = await daoContract.getNeededVotes()
                         setNeededVotes(needed)
-                        console.log('needed votes', needed)
+                    
                         update('', {neededVotes: needed})
                       } catch (err) {
                         console.log('no needed votes yet')
@@ -690,7 +690,7 @@ export default function AppFramework(props) {
                           
                       try {
                         let deposit = await daoContract.getProposalDeposit()
-                        console.log('proposal deposit', deposit)
+                     
                         setProposalDeposit(formatNearAmount(deposit))
                         update('', { proposalDeposit: formatNearAmount(deposit) })
                       } catch (err) {
@@ -699,14 +699,14 @@ export default function AppFramework(props) {
 
                       try{
                         let platformaccount = await daoContract.getPlatformAccount()
-                        console.log('platformAccount', platformaccount)
+                     
                       } catch (err) {
                         console.log('no platformaccount yet')
                       }
 
                       try {
                         let thisCurrentShare = await daoContract.getCurrentShare({member: accountId})
-                        console.log('this current share', thisCurrentShare)
+                     
                         setCurrentShare(thisCurrentShare)
                         setFairShareLabel('Current Share: ' + formatNearAmount(thisCurrentShare, 3) + 'Ⓝ')
                       } catch (err) {
@@ -715,7 +715,7 @@ export default function AppFramework(props) {
 
                       try{
                         let delegates = await daoContract.getRemainingDelegates({member: accountId})
-                        console.log('remaining delegates', delegates)
+                       
                         setRemainingDelegates(delegates)
                       } catch (err) {
                         console.log('no remaining delegates info yet')
@@ -730,7 +730,7 @@ export default function AppFramework(props) {
 
                       try {
                         let settings = await daoContract.getInitSettings()
-                        console.log('settings', settings)
+                    
                         setVotingPeriodLength(parseFloat(settings[0][2]))
                         setGracePeriodLength(parseFloat(settings[0][3]))
                       } catch(err) {
@@ -741,7 +741,7 @@ export default function AppFramework(props) {
                       let escrowRow
                       try {
                         ebalance = await daoContract.getEscrowTokenBalances()
-                        console.log('ebalance', ebalance)
+                      
                         setEscrowBalance(ebalance)
 
                         if(ebalance && active) {
@@ -760,7 +760,7 @@ export default function AppFramework(props) {
                       let guildRow
                       try {
                         gbalance = await daoContract.getGuildTokenBalances()
-                        console.log('gbalance', gbalance)
+                     
                         setGuildBalance(gbalance)
 
                         if(gbalance && active) {

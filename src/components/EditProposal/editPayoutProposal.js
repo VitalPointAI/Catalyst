@@ -106,14 +106,14 @@ export default function EditPayoutProposalForm(props) {
 
             // Set Existing Payout Proposal Data  
            if(curDaoIdx && contract && proposalId){
-            console.log('here pp')
+          
             let propResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
-            console.log('pp here propResult', propResult)
+         
             
             if(propResult) {
              
               let i = 0
-              console.log('propresult', propResult)
+           
               while (i < propResult.proposals.length){
                 if(propResult.proposals[i].proposalId == proposalId){
                   propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
@@ -141,20 +141,20 @@ export default function EditPayoutProposalForm(props) {
             // set title to funding commitment title if it exists
             if(referenceIds){
               let oppResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
-              console.log('oppresult', oppResult)
+           
               let proposal
               let interimMilestones = []
               let milestone
               let thisMilestoneId
               let t = 0
-              console.log('referenceIds', referenceIds)
+            
               while (t < referenceIds.length){
                   if(referenceIds[t].keyName == 'proposal'){
                     let k = 0
                     while(k < oppResult.proposals.length){
                       if(oppResult.proposals[k].proposalId == referenceIds[t].valueSetting){
                         interimMilestones = oppResult.proposals[k].milestones  
-                        console.log('first interim', interimMilestones)      
+                           
                         proposal = true                          
                         break
                       }
@@ -167,12 +167,12 @@ export default function EditPayoutProposalForm(props) {
                       if(referenceIds[newT].keyName =='milestone'){                      
                         let m = 0
                         while(m < interimMilestones.length){
-                          console.log('interimmilestones', interimMilestones)
+                         
                             if(interimMilestones[m].id == referenceIds[newT].valueSetting){
                               setTitle(interimMilestones[m].title)
                               let newMilestone = []
                               newMilestone.push(interimMilestones[m])
-                              console.log('newmilestone', newMilestone)
+                           
                               setMilestones(newMilestone)
                               milestone = true                      
                               break
@@ -222,9 +222,9 @@ export default function EditPayoutProposalForm(props) {
 
     let Milestones
     if(milestones && milestones.length > 0){
-      console.log('milestones', milestones)
+ 
       Milestones = milestones.map((element, index) => {
-        console.log('element', element)
+     
         if(Object.keys(element).length == 0){
           return null
         } else {
@@ -255,7 +255,7 @@ export default function EditPayoutProposalForm(props) {
   
       // Load existing array of details
       let detailRecords = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
-      console.log('funding detailRecords', detailRecords)
+    
       if(!detailRecords){
         detailRecords = { proposals: [] }
       }
@@ -294,7 +294,7 @@ export default function EditPayoutProposalForm(props) {
       // Add record if it doesn't exist
       if(!exists){
         detailRecords.proposals.push(proposalRecord)
-        console.log('detailrecords.proposals', detailRecords.proposals)
+      
         await curDaoIdx.set('payoutProposalDetails', detailRecords)
       }
      

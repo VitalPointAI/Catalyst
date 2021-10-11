@@ -157,9 +157,9 @@ export default function EditDaoForm(props) {
               setCurDaoIdx(thisCurDaoIdx)
 
               let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
-              console.log('daoprofile result', result)
+            
               let webhook = await ceramic.downloadKeysSecret(thisCurDaoIdx, 'apiKeys')
-              console.log("webhook", webhook)
+      
               if(webhook && Object.keys(webhook).length > 0){
                  setWebhook(webhook[0].api) 
               }
@@ -308,7 +308,7 @@ export default function EditDaoForm(props) {
         //ADD WEBHOOK HERE
         let hookArray = await ceramic.downloadKeysSecret(curDaoIdx, 'apiKeys')
    
-        console.log('hookArray', hookArray)
+     
         // let hookArray = []
         hookArray = [
           {

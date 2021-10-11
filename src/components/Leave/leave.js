@@ -65,8 +65,7 @@ export default function Leave(props) {
     handleLeaveClickState,
     fairShare
    } = props
-console.log('fairshare', fairShare)
-console.log('share', share)
+
    useEffect(
     () => {
 
@@ -74,15 +73,13 @@ console.log('share', share)
         if(contractId && daoContract && state){
           let totalMembers = await daoContract.getTotalMembers()
           setCurrentMembers(totalMembers)
-          console.log('fairshare', fairShare)
-          //setShare(fairShare)
           
           let account
           try {
               account = new nearAPI.Account(state.near.connection, contractId);
 
               let balance = await account.getAccountBalance()
-              console.log('balance', balance)
+             
               setBalanceAvailable(balance.available)
           
           
@@ -94,7 +91,7 @@ console.log('share', share)
       fetchData()
     }, [currentMembers]
     )
-console.log('balanceAvailable', balanceAvailable)
+
   const handleClose = () => {
     handleLeaveClickState(false)
   }

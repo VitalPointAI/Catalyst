@@ -104,7 +104,7 @@ export default function EditConfigurationProposalForm(props) {
            // Set Existing Proposal Data       
            if(curDaoIdx){
               let propResult = await curDaoIdx.get('configurationProposalDetails', curDaoIdx.id)
-              console.log('propResult', propResult)
+
               if(propResult) {
                 let i = 0
                 while (i < propResult.proposals.length){
@@ -165,7 +165,7 @@ export default function EditConfigurationProposalForm(props) {
   
       // Load existing array of details
       let detailRecords = await curDaoIdx.get('configurationProposalDetails', curDaoIdx.id)
-      console.log('configuration detailRecords', detailRecords)
+  
       if(!detailRecords){
         detailRecords = { proposals: [] }
       }
@@ -197,7 +197,6 @@ export default function EditConfigurationProposalForm(props) {
       // Add record if it doesn't exist
       if(!exists){
         detailRecords.proposals.push(proposalRecord)
-        console.log('detailrecords.proposals', detailRecords.proposals)
         await curDaoIdx.set('configurationProposalDetails', detailRecords)
       }
      

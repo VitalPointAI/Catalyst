@@ -7,7 +7,6 @@ export const State = (initialState, prefix) => {
 	const { Provider: InnerProvider } = store;
 
 	const updateState = (state, path = '', newState = {}) => {
-		// console.log('updateState', state, path, newState) // debugging
 		
 		if (path.length === 0) {
 			return { ...state, ...newState };

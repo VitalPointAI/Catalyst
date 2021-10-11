@@ -248,7 +248,7 @@ export default function OpportunityProposalDetails(props) {
 
             if(thisCurDaoIdx){
               let propResult = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
-              console.log('propResult', propResult)
+          
           
               if(propResult) {
                 let i = 0
@@ -266,7 +266,7 @@ export default function OpportunityProposalDetails(props) {
                     if(propResult.opportunities[i].desiredSkillSet ){
                       let skillArray = []
                       skillArray.push(propResult.opportunities[i].desiredSkillSet )
-                      console.log('skillarray', skillArray)
+                   
                       setDesiredSkillSet(skillArray)
                     }
                     if(propResult.opportunities[i].desiredDeveloperSkillSet){
@@ -277,7 +277,7 @@ export default function OpportunityProposalDetails(props) {
                     if(propResult.opportunities[i].opportunitySkills){
                       let opportunitySkillSetArray = []
                       opportunitySkillSetArray.push(propResult.opportunities[i].opportunitySkills)
-                      console.log('opportunityskillarray', opportunitySkillSetArray)
+                    
                       setOpportunitySkillSet(opportunitySkillSetArray)
                     }
                     break
@@ -464,8 +464,6 @@ export default function OpportunityProposalDetails(props) {
                           {desiredSkillSet && desiredSkillSet.length > 0 ?
                             desiredSkillSet.map((values, index) => {
 
-                              console.log('value', values)
-                              console.log('index', index)
                               for (const [key, value] of Object.entries(values)) {
                                 if(value){
                                   return(

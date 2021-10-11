@@ -192,12 +192,10 @@ export default function ProposalList(props) {
       let result
       let didVote = false
       while (i < proposalEvents.length) {
-        // let status = await getStatus(proposalEvents[i].flags)
-
-        // if (status == 'Sponsored' || status == 'Not Passed'){
+      
           try{
             result = await getUserVote(proposalEvents[i].proposalId)
-            console.log('proposal: ' + proposalEvents[i].proposalId + 'vote result: ' + result)
+           
             proposalEvents[i].vote = result
             if (result == 'yes' || result == 'no'){
               didVote = true
@@ -209,17 +207,16 @@ export default function ProposalList(props) {
             didVote = false
           }
     
-      //  }
         
-        console.log('didVote', didVote)
+       
         proposalEvents[i].voted = didVote
         i++
       }
       currentPeriod
       if(curDaoIdx){
-        console.log('original proposal events', proposalEvents)
+      
         let newLists = await resolveStatus(proposalEvents)
-        console.log('newlists', newLists)
+      
         setProposalList(newLists.allProposals)
         setVotingList(newLists.votingProposals)
         setQueueList(newLists.queueProposals)
@@ -252,8 +249,6 @@ export default function ProposalList(props) {
     }
 
     let mounted = true
-    // if(proposalEvents && proposalEvents.length > 0){
-    //   console.log('proposalEvents', proposalEvents)
      
       if(mounted){
         fetchData()
@@ -382,14 +377,7 @@ export default function ProposalList(props) {
   }
 
   function getVotingPeriod(startPeriod, votePeriod, grPeriod, isFinalized) {
-    console.log('get vp currentPeriod', currentPeriod)
-    console.log('get vp votePeriod', votePeriod)
-    console.log('get vp grperiod', grPeriod)
-    console.log('get vp startPeriod', startPeriod)
-    console.log('get vp isfinalized', isFinalized)
-    console.log('get vp votingperiodlength', votingPeriodLength)
-    //let votingPeriod = currentPeriod >= startPeriod && currentPeriod <= votePeriod && !isFinalized
-    if((currentPeriod >= votePeriod && currentPeriod < grPeriod)){
+       if((currentPeriod >= votePeriod && currentPeriod < grPeriod)){
       return true
     }  else {
       return false
@@ -397,11 +385,7 @@ export default function ProposalList(props) {
   }
 
   function getGracePeriod(grPeriod, isFinalized) {
-    console.log('get gr currentPeriod', currentPeriod)
-    console.log('get gr grPeriod', grPeriod)
-    console.log('get gr isfinalized', isFinalized)
-     // let gracePeriod = currentPeriod > votePeriod && currentPeriod <= grPeriod && isFinalized
-     if(currentPeriod >= grPeriod && currentPeriod <= (grPeriod + gracePeriodLength)){
+    if(currentPeriod >= grPeriod && currentPeriod <= (grPeriod + gracePeriodLength)){
       return true
     } else {
       return false
@@ -410,7 +394,6 @@ export default function ProposalList(props) {
   }
 
   async function getUserVote(proposalIdentifier) {
-    console.log('vote proposalid', proposalIdentifier)
     let result = await contract.getMemberProposalVote({memberAddress: accountId, proposalId: parseInt(proposalIdentifier)})
     return result
   }
@@ -477,13 +460,12 @@ function typeFilter(item){
     let processedProposals = []
 
     let streamProposals = await curDaoIdx.get('proposals', curDaoIdx.id)
-    console.log('streamProposals', streamProposals)
-    console.log('resolvestatus', requests)
+   
     if (requests.length > 0) {
       requests.map((fr) => {
-        console.log('requests fr', fr)
+       
         status = getStatus(fr.flags)
-        console.log('status', status)
+      
         let i = 0
         let currentStreamProposal
         while (i < streamProposals.events.length){
@@ -493,23 +475,21 @@ function typeFilter(item){
           }
         i++
         }
-        console.log('current stream proposal', currentStreamProposal)
+       
         proposalType = getProposalType(fr.flags)
         let isFinalized = fr.voteFinalized != 0 ? true : false
         let isVotingPeriod = getVotingPeriod(fr.startingPeriod, fr.votingPeriod, fr.gracePeriod, isFinalized)
-        console.log('is voting period', isVotingPeriod)
+      
         let isGracePeriod = getGracePeriod(fr.gracePeriod, isFinalized)
-        console.log('is grace period', isGracePeriod)
+      
 
         if (status != 'Passed' || status != 'Not Passed'){
-          console.log('af isfinalized', isFinalized)
-          console.log('af is grace', isGracePeriod)
-          console.log('af periodduration', periodDuration)
+      
           if ((status == 'Sponsored' && isFinalized && !isVotingPeriod && !isGracePeriod) || (status=='Sponsored' && currentPeriod > (fr.gracePeriod + gracePeriodLength))){
             status = 'Awaiting Finalization'
           }
         }
-        console.log('vp status top', status)
+      
         
         let disabled
         let isDisabled = isVotingPeriod ? disabled = false : disabled = true       
@@ -558,9 +538,7 @@ function typeFilter(item){
 
    //     if(status == 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && (isVotingPeriod==true || isGracePeriod==true)){
         if(status == 'Sponsored'){
-          console.log('vp status', status)
-          console.log('vp isvoteperiod', isVotingPeriod)
-          console.log('vp isgraceperiod', isGracePeriod)
+        
           votingProposals.push([{
             blockTimeStamp: fr.proposalSubmission,
             date: makeTime(fr.proposalSubmission), 
@@ -602,10 +580,7 @@ function typeFilter(item){
         }
 
     //    if(status == 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && currentPeriod > parseInt(fr.gracePeriod) && !isVotingPeriod && !isGracePeriod){
-        console.log('qstatus', status)
-        console.log('vp status', status)
-        console.log('vp isvoteperiod', isVotingPeriod)
-        console.log('vp isgraceperiod', isGracePeriod)
+       
         if(status == 'Awaiting Finalization'){
             queueProposals.push({
             blockTimeStamp: fr.proposalSubmission,
@@ -697,19 +672,6 @@ function typeFilter(item){
       processedProposals: processedProposals
     }
 
-  //   // process queued proposals
-  //   if(propObject.queueProposals && propObject.queueProposals.length > 0){
-  //     console.log('queue', propObject.queueProposals)
-  //     for(let i=0; i < propObject.queueProposals.length; i++) {
-  //       try{
-  //         if(propObject.queueProposals[i].status !== 'Processed' && propObject.queueProposals[i].status !== 'Passed' && propObject.queueProposals[i].status !== 'Not Passed'){
-  //         await handleProcessAction(contract, contractId, propObject.queueProposals[i].requestId, propObject.queueProposals[i].proposalType)
-  //         }
-  //       } catch (err) {
-  //         console.log(err)
-  //       }
-  //    }
-  //   }
     return propObject
   }
 
@@ -757,7 +719,7 @@ function typeFilter(item){
   if (proposalList && proposalList.length > 0 && tabValue == '2') {
  
     Proposals = proposalList.filter(typeFilter).reverse().map((fr) => {
-      console.log('tab 2', fr)
+     
       return (
         <ProposalCard
           curDaoIdx={curDaoIdx}
@@ -1018,7 +980,7 @@ function typeFilter(item){
             dataArray.push(data)
             setSearchArray(dataArray)
         }
-        console.log('search array', searchArray)
+      
     }
   }
 
@@ -1029,16 +991,16 @@ function typeFilter(item){
       
         return
     }
-    console.log('searchData', membersArray)
+   
     
     const fuse = new Fuse(membersArray, {
         keys: ['delegateKey'],
         findAllMatches: true
     })
-    console.log('fuse', fuse)
+   
 
     const result = fuse.search(pattern)
-    console.log('fuse result', result)
+    
 
     const matches = []
     if (!result.length) {
@@ -1048,7 +1010,7 @@ function typeFilter(item){
         result.forEach(({item}) => {
             matches.push(item)
     })
-    console.log('matches', matches)
+  
         setMembersArray(matches)
        
     }

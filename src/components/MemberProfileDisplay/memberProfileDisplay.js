@@ -108,7 +108,7 @@ export default function MemberProfileDisplay(props) {
           async function fetchData() {
          
             // Get Applicant Persona Information
-           console.log('member', member)
+          
             if(member){     
              
                               
@@ -128,7 +128,7 @@ export default function MemberProfileDisplay(props) {
                         if(result.skillSet){
                           let skillArray = []
                           skillArray.push(result.skillSet)
-                          console.log('skillarray', skillArray)
+                      
                           setSkillSet(skillArray)
                         }
                         if(result.developerSkillSet){
@@ -165,7 +165,7 @@ export default function MemberProfileDisplay(props) {
         setOpen(false)
     }
 
-    console.log('skillset', skillSet)
+   
 
         return (
             <div>
@@ -203,8 +203,7 @@ export default function MemberProfileDisplay(props) {
                       {skillSet && skillSet.length > 0 ?
                         skillSet.map((values, index) => {
 
-                          console.log('value', values)
-                          console.log('index', index)
+                      
                           for (const [key, value] of Object.entries(values)) {
                             if(value){
                               return(

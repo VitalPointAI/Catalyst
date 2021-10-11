@@ -91,7 +91,7 @@ export default function ManageDelegations(props) {
             try{
               if(parseInt(allMemberInfo[i].receivedDelegations) > 0){
                 let delegationInfo = await contract.getDelegationInfo({member: state.accountId, delegatee: allMemberInfo[i].delegateKey})
-                console.log('delegationInfo', delegationInfo)
+            
                 if(delegationInfo && (Object.keys(delegationInfo).length > 0 || delegationInfo.length > 0)){
                   let delegations = {
                     delegatedTo: delegationInfo.delegatedTo,
@@ -156,7 +156,7 @@ export default function ManageDelegations(props) {
           <TableBody>
           {delegationInfo && delegationInfo.length > 0 ? (
             delegationInfo.map((row) => {
-              console.log('delegation row', row)
+           
               return (
                 <TableRow key={row.delegatedTo}>
                 <TableCell component="th" scope="row">

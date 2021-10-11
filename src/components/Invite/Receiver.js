@@ -30,7 +30,7 @@ const Receiver = ({state}) => {
     useEffect(() => {
         async function fetchData(){
             let result = await dao.getDao(`${linkArray[0]}` + "." + `${config.factoryContractName}`)
-            console.log('result dao', result)
+           
             if(result){
                    result.name != '' ? setsName(result.name) : setsName('')
             }

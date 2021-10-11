@@ -85,7 +85,7 @@ export default function GuildKickProposal(props) {
 
   const onSubmit = async (values) => {
     setFinish(false)
-    console.log('proposaldeposit', proposalDeposit)
+
     let finished
     try {
      

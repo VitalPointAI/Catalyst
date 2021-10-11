@@ -75,13 +75,13 @@ export default function Logo(props) {
                 }
                     
                 thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
-                console.log('thiscurdaoIdx logo', thisCurDaoIdx)
+           
                 setCurDaoIdx(thisCurDaoIdx)
                 
                 if(thisCurDaoIdx){
                     try{
                         let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
-                        console.log('dao logo result', result)
+                     
                         if(result){
                         result.logo ? setLogo(result.logo) : setLogo(defaultLogo)
                         setLoaded(true)

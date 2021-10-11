@@ -78,7 +78,7 @@ export const onAppMount = () => async ({ update, getState, dispatch }) => {
             const account = wallet.account()
             const loggedInAccountId = account.accountId
             const didRegistryContract = await ceramic.initiateDidRegistryContract(account)
-            console.log('didregistrycontract', didRegistryContract)
+           
             //Initiate App Ceramic Components
     
             const appIdx = await ceramic.getAppIdx(didRegistryContract)

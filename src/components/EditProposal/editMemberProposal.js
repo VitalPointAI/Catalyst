@@ -88,9 +88,7 @@ export default function EditMemberProposalForm(props) {
 
             // Set Existing Persona Data
             let result = await data.getPersona(applicant)     
-            // if(curPersonaIdx){
-            //   let result = await curPersonaIdx.get('profile', curPersonaIdx.id)
-            //   console.log('result edit', result)
+           
               if(result) {
                 result.date ? setDate(result.date) : setDate('')
                 result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
@@ -102,7 +100,7 @@ export default function EditMemberProposalForm(props) {
            // Set Existing Proposal Data       
            if(curDaoIdx){
               let propResult = await curDaoIdx.get('proposalDetails', curDaoIdx.id)
-              console.log('propResult', propResult)
+            
               if(propResult) {
                 let i = 0
                 while (i < propResult.proposals.length){
@@ -168,7 +166,7 @@ export default function EditMemberProposalForm(props) {
   
       // Load existing array of details
       let detailRecords = await curDaoIdx.get('memberProposalDetails', curDaoIdx.id)
-      console.log('detailRecords', detailRecords)
+  
       if(!detailRecords){
         detailRecords = { proposals: [] }
       }
@@ -199,7 +197,7 @@ export default function EditMemberProposalForm(props) {
       // Add record if it doesn't exist
       if(!exists){
         detailRecords.proposals.push(proposalRecord)
-        console.log('detailrecords.proposals', detailRecords.proposals)
+      
         await curDaoIdx.set('memberProposalDetails', detailRecords)
       }
      

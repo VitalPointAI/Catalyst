@@ -30,7 +30,6 @@ export default function FileUpload(props) {
     const classes = useStyles();
 
     const ipfsApi = create('https://infura-ipfs.io:5001')
-    console.log('ipfsapi', ipfsApi)
   
     const captureFile = (event) => {
         event.stopPropagation()
@@ -44,11 +43,11 @@ export default function FileUpload(props) {
     const saveToIpfs = (reader) => {
         let ipfsId
         const buffer = Buffer.from(reader.result)
-        console.log('buffer', buffer)
+      
         ipfsApi.add(buffer)
         .then((response) => {
         ipfsId = response.path
-        console.log('ipfsid', ipfsId)
+      
         setAddedFileHash(ipfsId)
         handleFileHash(ipfsId)
         }).catch((err) => {

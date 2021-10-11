@@ -158,7 +158,7 @@ export default function PayoutProposalDetails(props) {
             // Set Existing Proposal Data       
             if(curDaoIdx){
               let propResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
-              console.log('propresult', propResult)
+           
               if(propResult) {
                 let i = 0
                 while (i < propResult.proposals.length){
@@ -210,7 +210,7 @@ export default function PayoutProposalDetails(props) {
     let Milestones
     if(milestones && milestones.length > 0){
       Milestones = milestones.map((element, index) => {
-        console.log('element', element)
+        
         if(element.title=='' && element.deadline =='' && element.payout == '0' && element.briefDescription==''){
           return null
         } else {
