@@ -1380,9 +1380,25 @@ export default function ProposalCard(props) {
                         </Button>
                       </>
                     ) 
-                    : null
+                : (totalMembers == 1 || accountId == summoner) 
+                  && status=='Submitted' 
+                  && memberStatus == true 
+                  && detailsExist == true
+                  && parseFloat(funding) < parseFloat(guildBalance[0].balance)
+                  ? 
+                    (  
+                      <><Button 
+                          color="primary" 
+                          onClick={(e) => handleSponsorConfirmationClick(requestId, proposalType, funding)}
+                        >
+                        Sponsor
+                        </Button>
+                      </>
+                    ) 
+                  : null
+                
                 :
-                  accountId == summoner 
+                  accountId == summoner
                   && status=='Submitted' 
                   && memberStatus == true 
                   && detailsExist == true

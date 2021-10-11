@@ -601,8 +601,8 @@ export default function EditDaoForm(props) {
                         aria-controls="panel1bh-content"
                         id="panel1bh-header"
                       >
-                      <Typography variant="h6">General Skills and Competencies</Typography>
-                      <Tooltip TransitionComponent={Zoom} title="Here you can add the general skills (leadership, management, teamwork, etc...) that are relevant to what your community does.">
+                      <Typography variant="h6">General Skills, Values and Competencies</Typography>
+                      <Tooltip TransitionComponent={Zoom} title="Here you can add the general skills (leadership, management, teamwork, etc...) and values that are relevant to what your community does.">
                         <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
                       </Tooltip>
                       </AccordionSummary>

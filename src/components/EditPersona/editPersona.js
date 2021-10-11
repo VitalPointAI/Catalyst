@@ -126,8 +126,8 @@ export default function EditPersonaForm(props) {
 
     const countries = ["Afghanistan","Albania","Algeria","Andorra","Angola","Anguilla","Antigua & Barbuda","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bermuda","Bhutan","Bolivia","Bosnia & Herzegovina","Botswana","Brazil","British Virgin Islands","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Cayman Islands","Chad","Chile","China","Colombia","Congo","Cook Islands","Costa Rica","Cote D Ivoire","Croatia","Cruise Ship","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Estonia","Ethiopia","Falkland Islands","Faroe Islands","Fiji","Finland","France","French Polynesia","French West Indies","Gabon","Gambia","Georgia","Germany","Ghana","Gibraltar","Greece","Greenland","Grenada","Guam","Guatemala","Guernsey","Guinea","Guinea Bissau","Guyana","Haiti","Honduras","Hong Kong","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Isle of Man","Israel","Italy","Jamaica","Japan","Jersey","Jordan","Kazakhstan","Kenya","Kuwait","Kyrgyz Republic","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Macau","Macedonia","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Mauritania","Mauritius","Mexico","Moldova","Monaco","Mongolia","Montenegro","Montserrat","Morocco","Mozambique","Namibia","Nepal","Netherlands","Netherlands Antilles","New Caledonia","New Zealand","Nicaragua","Niger","Nigeria","Norway","Oman","Pakistan","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Puerto Rico","Qatar","Reunion","Romania","Russia","Rwanda","Saint Pierre & Miquelon","Samoa","San Marino","Satellite","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","South Africa","South Korea","Spain","Sri Lanka","St Kitts & Nevis","St Lucia","St Vincent","St. Lucia","Sudan","Suriname","Swaziland","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor L'Este","Togo","Tonga","Trinidad & Tobago","Tunisia","Turkey","Turkmenistan","Turks & Caicos","Uganda","Ukraine","United Arab Emirates","United Kingdom","Uruguay","Uzbekistan","Venezuela","Vietnam","Virgin Islands (US)","Yemen","Zambia","Zimbabwe"];
     const languages = ['Abkhazian','Afar','Afrikaans','Akan','Albanian','Amharic','Arabic','Aragonese','Armenian','Assamese','Avaric','Avestan','Aymara','Azerbaijani','Bambara','Bashkir','Basque','Belarusian','Bengali','Bihari languages','Bislama','Bosnian','Breton','Bulgarian','Burmese','Catalan, Valencian','Central Khmer','Chamorro','Chechen','Chichewa, Chewa, Nyanja','Chinese','Church Slavonic, Old Bulgarian, Old Church Slavonic','Chuvash','Cornish','Corsican','Cree','Croatian','Czech','Danish','Divehi, Dhivehi, Maldivian','Dutch, Flemish','Dzongkha','English','Esperanto','Estonian','Ewe','Faroese','Fijian','Finnish','French','Fulah','Gaelic, Scottish Gaelic','Galician','Ganda', 'Georgian','German','Gikuyu, Kikuyu','Greek (Modern)','Greenlandic, Kalaallisut','Guarani','Gujarati','Haitian, Haitian Creole','Hausa','Hebrew','Herero','Hindi','Hiri Motu','Hungarian','Icelandic','Ido','Igbo','Indonesian','Interlingua (International Auxiliary Language Association)','Interlingue','Inuktitut','Inupiaq','Irish','Italian','Japanese','Javanese','Kannada','Kanuri','Kashmiri','Kazakh','Kinyarwanda','Komi','Kongo','Korean','Kwanyama, Kuanyama','Kurdish','Kyrgyz','Lao','Latin','Latvian','Letzeburgesch, Luxembourgish','Limburgish, Limburgan, Limburger','Lingala','Lithuanian','Luba-Katanga','Macedonian','Malagasy','Malay','Malayalam','Maltese','Manx','Maori','Marathi','Marshallese','Moldovan, Moldavian, Romanian','Mongolian','Nauru','Navajo, Navaho','Northern Ndebele','Ndonga','Nepali','Northern Sami','Norwegian','Norwegian Bokmål','Norwegian Nynorsk','Nuosu, Sichuan Yi','Occitan (post 1500)','Ojibwa','Oriya','Oromo','Ossetian, Ossetic','Pali','Panjabi, Punjabi','Pashto, Pushto','Persian','Polish','Portuguese','Quechua','Romansh','Rundi','Russian','Samoan','Sango','Sanskrit','Sardinian','Serbian','Shona','Sindhi','Sinhala, Sinhalese','Slovak','Slovenian','Somali','Sotho, Southern','South Ndebele','Spanish, Castilian','Sundanese','Swahili','Swati','Swedish','Tagalog','Tahitian','Tajik','Tamil','Tatar','Telugu','Thai','Tibetan','Tigrinya','Tonga (Tonga Islands)','Tsonga','Tswana','Turkish','Turkmen','Twi','Uighur, Uyghur','Ukrainian','Urdu','Uzbek','Venda','Vietnamese','Volap_k','Walloon','Welsh','Western Frisian','Wolof','Xhosa','Yiddish','Yoruba','Zhuang, Chuang','Zulu' ]
-    const [skillSet, setSkillSet] = useState({})
-    const [developerSkillSet, setDeveloperSkillSet] = useState({})
+    const [skillSet, setSkillSet] = useState([{}])
+    const [developerSkillSet, setDeveloperSkillSet] = useState([{}])
 
     const { register, handleSubmit, watch, errors, control, reset, setValue, getValues } = useForm()
     const {
@@ -191,17 +191,38 @@ export default function EditPersonaForm(props) {
                     if(thisCurDaoIdx){
                       let daoProfileResult = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
              
-                      let currentSkills = {...skillSet}
-                      let currentSpecificSkills = {...developerSkillSet}
+                      let currentSkills = {...skillSet[0]}
+                      let currentSpecificSkills = {...developerSkillSet[0]}
+                      let currentSkillsArray = []
+                      let currentSpecificSkillsArray = []
                       if(daoProfileResult){
                         const skillsResult = daoProfileResult.skills.map((name, value) => {
-                          currentSkills = ({...currentSkills, [name.name]: false})
+                          let exists
+                          Object.entries(currentSkills).map(([key, value]) => {
+                            if((key).toLowerCase() == (name.name).toLowerCase()){
+                              exists = true
+                            }
+                          })
+                          if(!exists){
+                            currentSkills = ({...currentSkills, [name.name]: false})
+                          }
                         })
+                        currentSkillsArray.push(currentSkills)
+
                         const specificSkillsResult = daoProfileResult.specificSkills.map((name, value) => {
-                          currentSpecificSkills = ({...currentSpecificSkills, [name.name]: false})
+                          let exists
+                          Object.entries(currentSpecificSkills).map(([key, value]) => {
+                            if((key).toLowerCase() == (name.name).toLowerCase()){
+                              exists = true
+                            }
+                          })
+                          if(!exists){
+                            currentSpecificSkills = ({...currentSpecificSkills, [name.name]: false})
+                          }
                         })
-                      setSkillSet(currentSkills)
-                      setDeveloperSkillSet(currentSpecificSkills)
+                        currentSpecificSkillsArray.push(currentSpecificSkills)
+                      setSkillSet(currentSkillsArray)
+                      setDeveloperSkillSet(currentSpecificSkillsArray)
                       }
                     }
                   }
@@ -213,7 +234,7 @@ export default function EditPersonaForm(props) {
            // Set Card Persona Idx       
            if(accountId){
               let result = await curPersonaIdx.get('profile', curPersonaIdx.id)
-
+              console.log('profile', result)
               if(result) {
                 result.date ? setDate(result.date) : setDate('')
                 result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
@@ -227,8 +248,18 @@ export default function EditPersonaForm(props) {
                 result.skill ? setSkill(result.skill): setSkill([])
                 result.familiarity? setFamiliarity(result.familiarity): setFamiliarity('0')
                 result.notifications? setNotifications(result.notifications): setNotifications([])
-                result.skillSet? setSkillSet(result.skillSet): setSkillSet({})
-                result.developerSkillSet? setDeveloperSkillSet(result.developerSkillSet): setDeveloperSkillSet({})
+               // result.skillSet? setSkillSet(result.skillSet): setSkillSet({})
+               // result.developerSkillSet? setDeveloperSkillSet(result.developerSkillSet): setDeveloperSkillSet({})
+               if(result.skillSet){
+                let skillArray = []
+                skillArray.push(result.skillSet)
+                setSkillSet(skillArray)
+              }
+              if(result.developerSkillSet){
+                let developerSkillSetArray = []      
+                developerSkillSetArray.push(result.developerSkillSet)
+                setDeveloperSkillSet(developerSkillSetArray)
+              } 
                 result.personaSkills? setValue('personaSkills', result.personaSkills): setValue('personaSkills', {name: ''})
                 result.personaSpecificSkills? setValue('personaSpecificSkills', result.personaSpecificSkills): setValue('personaSpecificSkills', {name: ''})
               }
@@ -258,7 +289,7 @@ export default function EditPersonaForm(props) {
           .then((res) => {
             setLoaded(true)
           })
-    },[])
+    },[near])
 
     function handleFileHash(hash) {
       setAvatar(IPFS_PROVIDER + hash)
@@ -314,11 +345,17 @@ export default function EditPersonaForm(props) {
       return new Date(intDate).toLocaleString('en-US', options)
     }
     const handleSkillSetChange = (event) => {
-      setSkillSet({ ...skillSet, [event.target.name]: event.target.checked })
+      let tempSkillArray = []
+      let newSkills = { ...skillSet[0], [event.target.name]: event.target.checked }
+      tempSkillArray.push(newSkills)
+      setSkillSet(tempSkillArray)
     }
   
     const handleDeveloperSkillSetChange = (event) => {
-      setDeveloperSkillSet({ ...developerSkillSet, [event.target.name]: event.target.checked })
+      let tempDevArray = []
+      let newSkills = { ...developerSkillSet[0], [event.target.name]: event.target.checked }
+      tempDevArray.push(newSkills)
+      setDeveloperSkillSet(tempDevArray)
     }
 
     const handleOtherSkillsChange = (event) => {
@@ -407,7 +444,7 @@ export default function EditPersonaForm(props) {
       }
     }
     
-    const error = [skillSet.memeCreation].filter((v) => v).length !== 2;
+   // const error = [skillSet.memeCreation].filter((v) => v).length !== 2;
 
     const onSubmit = async (values) => {
         event.preventDefault();
@@ -431,8 +468,8 @@ export default function EditPersonaForm(props) {
             country: country,
             language: language,
             familiarity: familiarity,
-            skillSet: skillSet,
-            developerSkillSet: developerSkillSet,
+            skillSet: skillSet[0],
+            developerSkillSet: developerSkillSet[0],
             personaSkills: personaSkills,
             personaSpecificSkills: personaSpecificSkills,
             notifications: notifications
@@ -447,7 +484,7 @@ export default function EditPersonaForm(props) {
       setOpen(false)
       handleClose()
     }
-    
+
         return (
            
             <div>
@@ -567,36 +604,38 @@ export default function EditPersonaForm(props) {
                       <Grid container spacing={2}>
                       <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                       <FormControl component="fieldset" className={classes.formControl}>
-                        <FormLabel component="legend">General Skills</FormLabel>
+                        <FormLabel component="legend">General Skills, Competencies and Values</FormLabel>
                         <FormGroup>
-                        {loaded && skillSet && (Object.keys(skillSet).length > 0 || skillSet.length > 0) ?
-                            skillSet.map((key) => {
-                              return (
-                                <FormControlLabel
-                                  control={<Checkbox checked={skillSet[key]} onChange={handleSkillSetChange} name={key} />}
-                                  label={key}
-                                />
-                              )
-                            })
+                        {loaded && skillSet && skillSet.length > 0 ? 
+                              Object.entries(skillSet[0]).map(([key, value]) => {
+                               return (
+                                    <FormControlLabel
+                                      control={<Checkbox checked={value} onChange={handleSkillSetChange} name={key} />}
+                                      label={key}
+                                    />
+                                )
+                              })
+                            
                         : null }
                         </FormGroup>
                         
-                        <FormHelperText>Check off the general skills you have.</FormHelperText>
+                        <FormHelperText>Check off as appropriate.</FormHelperText>
                       </FormControl>
                       </Grid>
                       <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                         <FormControl component="fieldset" className={classes.formControl}>
                           <FormLabel component="legend">Specific Skills</FormLabel>
                           <FormGroup>
-                          {loaded && developerSkillSet && (Object.keys(developerSkillSet).length > 0 || developerSkillSet.length > 0) ?
-                            developerSkillSet.map((key) => {
-                              return (
-                                <FormControlLabel
-                                  control={<Checkbox checked={developerSkillSet[key]} onChange={handleDeveloperSkillSetChange} name={key} />}
-                                  label={key}
-                                />
-                              )
-                            })
+                          {loaded && developerSkillSet && developerSkillSet.length > 0 ?
+                            Object.entries(developerSkillSet[0]).map(([key, value]) => {
+                               return (
+                                    <FormControlLabel
+                                      control={<Checkbox checked={value} onChange={handleDeveloperSkillSetChange} name={key} />}
+                                      label={key}
+                                    />
+                                 
+                                )
+                              })
                         : null }
                          
                           

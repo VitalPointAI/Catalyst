@@ -4,7 +4,7 @@ import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { flexClass } from '../../App'
 import { IPFS_PROVIDER } from '../../utils/ceramic'
-import { parseNearAmount } from 'near-api-js/lib/utils/format'
+import { parseNearAmount, formatNearAmount } from 'near-api-js/lib/utils/format'
 import { EditorState, convertFromRaw, convertToRaw, ContentState } from 'draft-js'
 import { Editor } from "react-draft-wysiwyg"
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
@@ -185,7 +185,7 @@ export default function EditOpportunityProposalForm(props) {
                     propResult.opportunities[i].deadline ? setDeadline(propResult.opportunities[i].deadline) : setDeadline('')
                     propResult.opportunities[i].familiarity ? setFamiliarity(propResult.opportunities[i].familiarity) : setFamiliarity('0')
                     propResult.opportunities[i].opportunitySkills ? setValue('opportunitySkills', propResult.opportunities[i].opportunitySkills) : setValue('opportunitySkills', {'name': ''})
-                    propResult.opportunities[i].budget ? setBudget(propResult.opportunities[i].budget) : setBudget()
+                    propResult.opportunities[i].budget ? setBudget(parseFloat(formatNearAmount((propResult.opportunities[i].budget).toLocaleString('fullwide', {useGrouping: false})), 3)) : setBudget()
                     propResult.opportunities[i].desiredSkillSet ? setDesiredSkillSet(propResult.opportunities[i].desiredSkillSet): setDesiredSkillSet({})
                     propResult.opportunities[i].desiredDeveloperSkillSet ? setDesiredDeveloperSkillSet(propResult.opportunities[i].desiredDeveloperSkillSet): setDesiredDeveloperSkillSet({})
                     propResult.opportunities[i].likes ? setCurrentLikes(propResult.opportunities[i].likes) : setCurrentLikes([])
@@ -296,7 +296,7 @@ export default function EditOpportunityProposalForm(props) {
           category: category,
           projectName: projectName,
           deadline: deadline, 
-          budget: parseFloat(parseNearAmount(budget)),
+          budget: parseFloat( parseNearAmount( (budget).toString() ) ),
           status: status,
           permission: permission,
           familiarity: familiarity,
