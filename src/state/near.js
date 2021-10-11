@@ -1953,7 +1953,7 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
 }
 
 // Logs a Process Event
-export async function logProcessEvent(curDaoIdx, daoContract, contractId, proposalId, proposalType, transactionHash) {
+export async function logProcessEvent(near, appIdx, didRegistryContract, curDaoIdx, daoContract, contractId, proposalId, proposalType, transactionHash) {
    
     let processLogged = false
     let memberLogged = false
@@ -2182,9 +2182,10 @@ export async function logProcessEvent(curDaoIdx, daoContract, contractId, propos
                 notifications: []
             }
 
-            let personaAccount = new nearAPI.Account(near.connection, originalAuthor)
+           
             let thisCurPersonaIdx
             try{
+            let personaAccount = new nearAPI.Account(near.connection, proposal.applicant)
             thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, didRegistryContract)
             } catch (err) {
                 console.log('error retrieving idx', err)

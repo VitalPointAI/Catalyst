@@ -64,6 +64,8 @@ const useStyles = makeStyles((theme) => ({
     },
     }));
 
+const imageName = require('../../img/default-profile.png') // default no-image avatar
+
 export default function MemberProfileDisplay(props) {
     const [open, setOpen] = useState(true)
     const [avatar, setAvatar] = useState()

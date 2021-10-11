@@ -159,7 +159,8 @@ export default function EditPersonaForm(props) {
     const {
       near,
       appIdx,
-      didRegistryContract
+      didRegistryContract,
+      currentDaosList
     } = state
 
     const {
@@ -177,29 +178,36 @@ export default function EditPersonaForm(props) {
           setLoaded(false)
 
           // Set Dao Idx
-          if(near && contractId){
-            let daoAccount = new nearAPI.Account(near.connection, contractId)
-              
-            let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
-            
-
-            // Get Existing Community Skills
-            if(thisCurDaoIdx){
-              let daoProfileResult = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
-              console.log('daoprofile result', daoProfileResult)
-              let currentSkills = {...skillSet}
-              let currentSpecificSkills = {...developerSkillSet}
-              if(daoProfileResult){
-                const skillsResult = daoProfileResult.skills.map((name, value) => {
-                  currentSkills = ({...currentSkills, [name.name]: false})
-                })
-                const specificSkillsResult = daoProfileResult.specificSkills.map((name, value) => {
-                  currentSpecificSkills = ({...currentSpecificSkills, [name.name]: false})
-                })
-              setSkillSet(currentSkills)
-              setDeveloperSkillSet(currentSpecificSkills)
+          if(near){
+              if(currentDaosList && currentDaosList.length > 0){
+                let i = 0
+                while (i < currentDaosList.length){
+                  if(currentDaosList[i].status == 'active'){
+                    let daoAccount = new nearAPI.Account(near.connection, currentDaosList[i].contractId)
+                      
+                    let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+                    
+                    // Get Existing Community Skills
+                    if(thisCurDaoIdx){
+                      let daoProfileResult = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
+                      console.log('daoprofile result', daoProfileResult)
+                      let currentSkills = {...skillSet}
+                      let currentSpecificSkills = {...developerSkillSet}
+                      if(daoProfileResult){
+                        const skillsResult = daoProfileResult.skills.map((name, value) => {
+                          currentSkills = ({...currentSkills, [name.name]: false})
+                        })
+                        const specificSkillsResult = daoProfileResult.specificSkills.map((name, value) => {
+                          currentSpecificSkills = ({...currentSpecificSkills, [name.name]: false})
+                        })
+                      setSkillSet(currentSkills)
+                      setDeveloperSkillSet(currentSpecificSkills)
+                      }
+                    }
+                  }
+                i++
+                }
               }
-            }
           }
 
            // Set Card Persona Idx       
@@ -561,8 +569,8 @@ export default function EditPersonaForm(props) {
                       <FormControl component="fieldset" className={classes.formControl}>
                         <FormLabel component="legend">General Skills</FormLabel>
                         <FormGroup>
-                        {loaded && skillSet && Object.keys(skillSet).length > 0 ?
-                            Object.keys(skillSet).map((key) => {
+                        {loaded && skillSet && (Object.keys(skillSet).length > 0 || skillSet.length > 0) ?
+                            skillSet.map((key) => {
                               return (
                                 <FormControlLabel
                                   control={<Checkbox checked={skillSet[key]} onChange={handleSkillSetChange} name={key} />}
@@ -580,8 +588,8 @@ export default function EditPersonaForm(props) {
                         <FormControl component="fieldset" className={classes.formControl}>
                           <FormLabel component="legend">Specific Skills</FormLabel>
                           <FormGroup>
-                          {loaded && developerSkillSet && Object.keys(developerSkillSet).length > 0 ?
-                            Object.keys(developerSkillSet).map((key) => {
+                          {loaded && developerSkillSet && (Object.keys(developerSkillSet).length > 0 || developerSkillSet.length > 0) ?
+                            developerSkillSet.map((key) => {
                               return (
                                 <FormControlLabel
                                   control={<Checkbox checked={developerSkillSet[key]} onChange={handleDeveloperSkillSetChange} name={key} />}

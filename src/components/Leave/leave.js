@@ -50,7 +50,7 @@ const useStyles = makeStyles((theme) => ({
 export default function Leave(props) {
   const [open, setOpen] = useState(true)
   const [finished, setFinished] = useState(true)
-  const [share, setShare] = useState('')
+  const [share, setShare] = useState(props.fairShare)
   const [confirm, setConfirm] = useState(false)
   const [currentMembers, setCurrentMembers] = useState()
   const [balanceAvailable, setBalanceAvailable] = useState('')
@@ -75,7 +75,7 @@ console.log('share', share)
           let totalMembers = await daoContract.getTotalMembers()
           setCurrentMembers(totalMembers)
           console.log('fairshare', fairShare)
-          setShare(fairShare)
+          //setShare(fairShare)
           
           let account
           try {
@@ -207,7 +207,7 @@ console.log('balanceAvailable', balanceAvailable)
                       {currentMembers > 1 ? (<Typography variant="body2" gutterBottom>
                         You understand this request means you will no longer be a member of the community. You are 
                         withdrawing <b>{(share ? share : 0)} yocto (~ {formatNearAmount((share ? share : 0), 3)} Ⓝ)</b> and you are donating <b>
-                        {share ? (parseFloat(fairShare)) - (parseFloat(share)) : 0}</b> yocto (~{formatNearAmount((share ? (parseFloat(fairShare)) - (parseFloat(share)) : 0), 3)} Ⓝ) to the community as you leave.
+                        {share ? (parseFloat(fairShare)) - (parseFloat(share)) : 0}</b> yocto (~{formatNearAmount((share ? (parseFloat(fairShare) - parseFloat(share)).toString() : '0'), 3)} Ⓝ) to the community as you leave.
                         </Typography>) : (
                           <Typography variant="body2" gutterBottom>
                             You understand this action is not reversible.

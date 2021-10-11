@@ -110,6 +110,7 @@ export default function OpportunityProposalDetails(props) {
     const [opportunitySkillSet, setOpportunitySkillSet] = useState([])
     const [thisCurDaoIdx, setThisCurDaoIdx] = useState(props.curDaoIdx)
     const [memberStatus, setMemberStatus] = useState()
+    const [active, setActive] = useState(false)
     
     const [memberProposalClicked, setMemberProposalClicked] = useState(false)
     const [fundingProposalClicked, setFundingProposalClicked] = useState(false)
@@ -135,6 +136,7 @@ export default function OpportunityProposalDetails(props) {
       near,
       appIdx,
       didRegistryContract,
+      currentDaosList
     } = state
 
     const {
@@ -152,7 +154,16 @@ export default function OpportunityProposalDetails(props) {
     
     useEffect(
         () => {
-         
+          if(currentDaosList && currentDaosList.length > 0){
+            let i = 0
+            while (i < currentDaosList.length){
+              if(currentDaosList[i].contractId == contractId){
+                currentDaosList[i].status == 'active' ? setActive(true) : setActive(false)
+                break
+              }
+              i++
+            }
+          }
 
           async function fetchData() {
            
@@ -528,7 +539,7 @@ export default function OpportunityProposalDetails(props) {
                       </Grid>
                       <Grid item xs={12} sm={12} md={6} lg={6} xl={6} className={classes.centered}>
                       
-                      {status == 'Passed' ? 
+                      {status == 'Passed' && active ? 
                        <Button 
                           color="primary" 
                           onClick={handleFundingProposalClick}>
@@ -540,7 +551,7 @@ export default function OpportunityProposalDetails(props) {
                     </>)}
                 </DialogContent>
               <DialogActions>
-              {status == 'Passed' ? 
+              {status == 'Passed' && active ? 
                 <Button 
                     color="primary" 
                     onClick={handleFundingProposalClick}>

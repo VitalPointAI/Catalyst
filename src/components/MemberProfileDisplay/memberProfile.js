@@ -64,6 +64,8 @@ const useStyles = makeStyles((theme) => ({
     },
     }));
 
+const imageName = require('../../img/default-profile.png') // default no-image avatar
+
 export default function MemberProfile(props) {
     const [open, setOpen] = useState(true)
     const [avatar, setAvatar] = useState()
@@ -105,6 +107,7 @@ export default function MemberProfile(props) {
              
                               
                   let result = await thisPersona.getPersona(member)
+                  console.log('result memberprof', result)
                       if(result){
                         result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                         result.name ? setName(result.name) : setName('')
@@ -128,15 +131,15 @@ export default function MemberProfile(props) {
                           developerSkillSetArray.push(result.developerSkillSet)
                           setDeveloperSkillSet(developerSkillSetArray)
                         }
-                        if(result.personaSkillSet){
-                          let personaSkillSetArray = []      
-                          personaSkillSetArray.push(result.personaSkillSet)
-                          setPersonaSkillSet(personaSkillSetArray)
+                        if(result.personaSkills){
+                        //  let personaSkillSetArray = []      
+                        //  personaSkillSetArray.push(result.personaSkillSet)
+                          setPersonaSkillSet(result.personaSkills)
                         }
-                        if(result.personaSpecificSkillSet){
-                          let personaSpecificSkillSetArray = []      
-                          personaSpecificSkillSetArray.push(result.personaSpecificSkillSet)
-                          setPersonaSpecificSkillSet(personaSpecificSkillSetArray)
+                        if(result.personaSpecificSkills){
+                        //  let personaSpecificSkillSetArray = []      
+                        //  personaSpecificSkillSetArray.push(result.personaSpecificSkillSet)
+                          setPersonaSpecificSkillSet(result.personaSpecificSkills)
                         }
                       }
             }         
@@ -223,7 +226,7 @@ export default function MemberProfile(props) {
                   }
                   {personaSkillSet && personaSkillSet.length > 0 ?
                    
-                    personaSkillSet[0].map((values, index) => {
+                    personaSkillSet.map((values, index) => {
                       
                         return (
                           <TableRow key={values.name}>
@@ -268,7 +271,7 @@ export default function MemberProfile(props) {
                   }
                   {personaSpecificSkillSet && personaSpecificSkillSet.length > 0 ?
                    
-                      personaSpecificSkillSet[0].map((values, index) => {
+                      personaSpecificSkillSet.map((values, index) => {
                         
                           return (
                             <TableRow key={values.name}>

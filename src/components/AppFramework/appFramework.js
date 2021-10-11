@@ -186,6 +186,9 @@ export default function AppFramework(props) {
               let contract = await dao.initDaoContract(wallet.account(), contractId)
               let period = await contract.getCurrentPeriod()
               setCurrentPeriod(period)
+              if(curDaoIdx){
+                await renewProposals(curDaoIdx, contract)
+              }
             } catch (err) {
               console.log('get period issue', err)
             }
@@ -219,7 +222,7 @@ export default function AppFramework(props) {
             i++
           }
         }
-      }, [wallet, triggersActioned, triggerSteps]
+      }, [wallet, triggersActioned, curDaoIdx, triggerSteps]
     )
     
     useEffect(
@@ -437,6 +440,9 @@ export default function AppFramework(props) {
                   while(g < newProcess.length){
                     if(newProcess[g].contractId==contractId && newProcess[g].new == true){
                       let loggedProcess = await logProcessEvent(
+                        near,
+                        appIdx,
+                        didRegistryContract,
                         curDaoIdx, 
                         daoContract,
                         contractId,

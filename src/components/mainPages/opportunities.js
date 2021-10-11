@@ -51,7 +51,7 @@ export default function Opportunities(props) {
     const [recommendations, setRecommendations] = useState([])
     const [suitabilityScore, setSuitabilityScore] = useState()
     const [finished, setFinished] = useState(false)
-    const [active, setActive] = useState(true)
+    const [active, setActive] = useState(false)
     
 
     const classes = useStyles()
@@ -327,13 +327,15 @@ export default function Opportunities(props) {
                 <Card className={classes.card}>
                   <Typography variant="h5">No Opportunities Yet - Please Check Back Soon.</Typography>
                 </Card>
-              : 
-              finished ?
+              :
+              finished && !active ?
               <Card className={classes.card}>
-                <Typography variant="h5">This Community is Inactve. No active opportunities available.</Typography>
+                <Typography variant="h5">This Community is Inactive. No active opportunities available.</Typography>
               </Card>
-              : <CircularProgress />
-              : <CircularProgress />
+              : null
+              : <div style={{margin: 'auto', width:'200px', marginTop:'20px'}}>
+                  <CircularProgress />
+                </div>
             }
           
         </Grid>
