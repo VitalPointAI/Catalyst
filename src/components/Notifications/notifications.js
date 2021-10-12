@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext}  from 'react'
 import Persona from '@aluhning/get-personas-js'
 import { appStore, onAppMount } from '../../state/app'
 import { get, set, del } from '../../utils/storage'
-
+import {ceramic} from '../../utils/ceramic'
 //material ui imports
 import { makeStyles } from '@material-ui/core/styles'
 import Dialog from '@material-ui/core/Dialog'
@@ -33,6 +33,7 @@ export default function NotificationCard(props){
     const classes = useStyles()
 
     const {
+        appIdx, 
       accountId
     } = state
 
@@ -47,13 +48,11 @@ export default function NotificationCard(props){
     useEffect(() => {
 
         async function fetchData(){
-          
             if(accountId){
-                let result = await thisPersona.getPersona(accountId)
-                console.log("PERSONA", result)
+                let result = await ceramic.downloadKeysSecret(appIdx, 'notifications')
                     if(result){
-                        setNotifications(result.notifications)
-                        console.log("RESULT", result.notifications)
+                        let notificationMap = new Map(Object.entries(result[0])) 
+                        setNotifications(notificationMap.get(accountId))
                     }
                 }
 
