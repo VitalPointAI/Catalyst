@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useForm, Controller } from 'react-hook-form'
+import { rageQuit } from '../../state/near'
 
 
 // Material UI components

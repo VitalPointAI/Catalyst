@@ -171,46 +171,55 @@ export default function EditPersonaForm(props) {
 
     let base 
 
-   
+    let currentSkillsArray = []
+    let currentSpecificSkillsArray = []
+    let currentSkills = {}
+    let currentSpecificSkills = {}
 
     useEffect(() => {
         async function fetchData() {
           setLoaded(false)
 
           // Set Dao Idx
-          if(near){
+         
               if(currentDaosList && currentDaosList.length > 0){
                 let i = 0
+               
                 while (i < currentDaosList.length){
                   if(currentDaosList[i].status == 'active'){
                     let daoAccount = new nearAPI.Account(near.connection, currentDaosList[i].contractId)
                       
                     let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
-                    
+                    console.log('currentskills', currentSkills)
                     // Get Existing Community Skills
                     if(thisCurDaoIdx){
                       let daoProfileResult = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
-             
-                      let currentSkills = {...skillSet[0]}
-                      let currentSpecificSkills = {...developerSkillSet[0]}
-                      let currentSkillsArray = []
-                      let currentSpecificSkillsArray = []
+                      console.log('daoProfile', daoProfileResult)
+                     // let currentSkills = {...skillSet[0]}
+                     // console.log('currentskills', currentSkills)
+                     // let currentSpecificSkills = {...developerSkillSet[0]}
+                      
                       if(daoProfileResult){
-                        const skillsResult = daoProfileResult.skills.map((name, value) => {
-                          let exists
-                          Object.entries(currentSkills).map(([key, value]) => {
-                            if((key).toLowerCase() == (name.name).toLowerCase()){
-                              exists = true
-                            }
-                          })
+                        daoProfileResult.skills.map((name, value) => {
+                          let exists = false
+                          console.log('name', name.name)
+                          
+                            Object.entries(currentSkills).map(([key, value]) => {
+                              console.log('key', key)
+                              console.log('value', value)
+                              if((key).toLowerCase() == (name.name).toLowerCase()){
+                                console.log('here')
+                                exists = true
+                              }
+                            })
+                          console.log('exists', exists)
                           if(!exists){
                             currentSkills = ({...currentSkills, [name.name]: false})
                           }
                         })
-                        currentSkillsArray.push(currentSkills)
-
-                        const specificSkillsResult = daoProfileResult.specificSkills.map((name, value) => {
-                          let exists
+                      
+                        daoProfileResult.specificSkills.map((name, value) => {
+                          let exists = false
                           Object.entries(currentSpecificSkills).map(([key, value]) => {
                             if((key).toLowerCase() == (name.name).toLowerCase()){
                               exists = true
@@ -220,16 +229,15 @@ export default function EditPersonaForm(props) {
                             currentSpecificSkills = ({...currentSpecificSkills, [name.name]: false})
                           }
                         })
-                        currentSpecificSkillsArray.push(currentSpecificSkills)
-                      setSkillSet(currentSkillsArray)
-                      setDeveloperSkillSet(currentSpecificSkillsArray)
+                        
                       }
                     }
                   }
                 i++
                 }
+                
               }
-          }
+          
 
            // Set Card Persona Idx       
            if(accountId){
@@ -288,8 +296,13 @@ export default function EditPersonaForm(props) {
         fetchData()
           .then((res) => {
             setLoaded(true)
+            currentSkillsArray.push(currentSkills)
+            setSkillSet(currentSkillsArray)
+            console.log('currentskillsarray', currentSkillsArray)
+            currentSpecificSkillsArray.push(currentSpecificSkills)
+            setDeveloperSkillSet(currentSpecificSkillsArray)
           })
-    },[near])
+    },[currentDaosList])
 
     function handleFileHash(hash) {
       setAvatar(IPFS_PROVIDER + hash)
@@ -484,7 +497,8 @@ export default function EditPersonaForm(props) {
       setOpen(false)
       handleClose()
     }
-
+console.log('skillset', skillSet)
+console.log('dev skills', developerSkillSet)
         return (
            
             <div>

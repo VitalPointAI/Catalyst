@@ -106,15 +106,17 @@ export default function PayoutProposal(props) {
     setFinished(false)
 
     let references = []
-    if(reference && Object.keys(reference).length > 0 ){
-      for(const[key, value] of Object.entries(reference)){
+
+    if(reference){
+      Object.entries(reference[0]).map(([key, value]) => {
+        
         references.push({
           'keyName': key,
           'valueSetting': value.toString()
         })
-      }
+      })
     }
-
+   
     let actualPayout
     milestonePayout ? actualPayout = milestonePayout : actualPayout = payout
 
@@ -184,7 +186,7 @@ export default function PayoutProposal(props) {
             />
           ) : (<>
             <Typography variant="h6">Payout Requested: {milestonePayout} {tokenName}</Typography>
-            <Typography variant="body1">For proposal: {reference.proposal}, milestone: {reference.milestone}</Typography>
+            <Typography variant="body1">For proposal: {reference[0].proposal}, milestone: {reference[0].milestone}</Typography>
           </>)}
           </div>
         <Card>

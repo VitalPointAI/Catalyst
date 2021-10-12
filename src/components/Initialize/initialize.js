@@ -4,18 +4,32 @@ import { appStore, onAppMount } from '../../state/app'
 import { useForm } from 'react-hook-form'
 import { useParams } from 'react-router-dom'
 import { initDao } from '../../state/near'
+import CorporateCard from './CommunityCards/corporateCard'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
 import TextField from '@material-ui/core/TextField'
 import InputAdornment from '@material-ui/core/InputAdornment'
 import Grid from '@material-ui/core/Grid'
-import Card from '@material-ui/core/Card'
-import CardContent from '@material-ui/core/CardContent'
-import Typography from '@material-ui/core/Typography'
 import Tooltip from '@material-ui/core/Tooltip'
 import Zoom from '@material-ui/core/Zoom'
 import InfoIcon from '@material-ui/icons/Info'
+
+import clsx from 'clsx';
+import Card from '@material-ui/core/Card';
+import CardHeader from '@material-ui/core/CardHeader';
+import CardMedia from '@material-ui/core/CardMedia';
+import CardContent from '@material-ui/core/CardContent';
+import CardActions from '@material-ui/core/CardActions';
+import Collapse from '@material-ui/core/Collapse';
+import Avatar from '@material-ui/core/Avatar';
+import IconButton from '@material-ui/core/IconButton';
+import Typography from '@material-ui/core/Typography';
+import { red } from '@material-ui/core/colors';
+import FavoriteIcon from '@material-ui/icons/Favorite';
+import ShareIcon from '@material-ui/icons/Share';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import MoreVertIcon from '@material-ui/icons/MoreVert';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -171,6 +185,14 @@ export default function Initialize(props) {
         <>
         {summoner == accountId ? (
         <Grid container className={classes.confirmation} spacing={1}>
+        <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
+          <Typography variant="h3">Choose & Customize Your Community Structure</Typography>
+          <br></br>
+          <Typography variant="subtitle1">Don't worry, you can change this later.</Typography>
+        </Grid>
+        <Grid item xs={12} sm={12} md={4} lg={4} xl={4} align="center">
+        <CorporateCard />
+        </Grid>
         <Grid item xs={12} sm={12} md={6} lg={6} xl={6} style={{textAlign: 'center'}}>
         <Card>
             <CardContent>

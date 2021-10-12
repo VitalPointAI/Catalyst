@@ -295,7 +295,7 @@ export default function ProposalCard(props) {
                       k++
                     }
                   } catch (err) {
-                    console.log('problem retrieving opporunities', err)
+                    console.log('problem retrieving opportunities', err)
                   }
                 }
               }
