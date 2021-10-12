@@ -51,6 +51,7 @@ import { daoInactivationSchema } from '../schemas/analytics/inactivatedDAOs'
 import { communityRoleProposalDetailsSchema } from '../schemas/communityRoleProposal'
 import { repFactorProposalDetailsSchema } from '../schemas/repFactorProposal'
 import { waiversSchema } from '../schemas/waivers'
+import { notificationSchema } from '../schemas/notifications'
 
 import { config } from '../state/config'
 
@@ -603,12 +604,14 @@ async makeSeed(account){
   // let changed3 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'configurationProposalDetails', appClient, configurationProposalDetailsSchema, 'configuration proposal details', contract)
   // let changed4 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'communityRoles', appClient, communityRoleProposalDetailsSchema, 'community roles', contract)
   // let changed5 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'reputationFactors', appClient, repFactorProposalDetailsSchema, 'reputation factors', contract)
+ // let changed6 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'Notifications', appClient, notificationSchema, 'notifications', contract)
   // console.log('changed schema', changed)
   // console.log('changed schema', changed1)
   // console.log('changed schema', changed2)
   // console.log('changed schema', changed3)
   // console.log('changed schema', changed4)
   // console.log('changed schema', changed5)
+  //console.log('changed schema', changed6)
 
     const definitions = this.getAlias(APP_OWNER_ACCOUNT, 'Definitions', appClient, definitionsSchema, 'alias definitions', contract)
     const schemas = this.getAlias(APP_OWNER_ACCOUNT, 'Schemas', appClient, schemaSchema, 'user schemas', contract)
@@ -636,7 +639,7 @@ async makeSeed(account){
     const communityRoles = this.getAlias(APP_OWNER_ACCOUNT, 'communityRoles', appClient, communityRoleProposalDetailsSchema, 'community roles', contract)
     const reputationFactors = this.getAlias(APP_OWNER_ACCOUNT, 'reputationFactors', appClient, repFactorProposalDetailsSchema, 'reputation factors', contract)
     const waivers = this.getAlias(APP_OWNER_ACCOUNT, 'Waivers', appClient, waiversSchema, 'waiver records', contract)
-
+    const notifications = this.getAlias(APP_OWNER_ACCOUNT, 'notifications', appClient, notificationSchema, 'notifications', contract)
     const done = await Promise.all([
       appDid, 
       definitions, 
@@ -664,7 +667,8 @@ async makeSeed(account){
       daoInactivationData,
       communityRoles,
       reputationFactors,
-      waivers
+      waivers,
+      notifications
     ])
     
     let rootAliases = {
@@ -693,7 +697,8 @@ async makeSeed(account){
       daoInactivationData: done[23],
       communityRoles: done[24],
       reputationFactors: done[25],
-      waivers: done[26]
+      waivers: done[26],
+      notifications: done[27]
     }
 
     const appIdx = new IDX({ ceramic: appClient, aliases: rootAliases})

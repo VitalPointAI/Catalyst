@@ -13,7 +13,6 @@ import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
 import draftToHtml from 'draftjs-to-html'
 import { getStatus, generateId } from '../../../state/near'
 
-
 // Material UI components
 import Button from '@material-ui/core/Button'
 import TextField from '@material-ui/core/TextField'
@@ -151,19 +150,7 @@ export default function CommentForm(props) {
       
         try{
           await curDaoIdx.set('comments', allComments)
-          if(reply){
-
-            let personaAccount = new nearAPI.Account(near.connection, originalAuthor)
-            
-            let thisCurPersonaIdx
-            try{
-             thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, didRegistryContract)
-            } catch (err) {
-              console.log('error retrieving idx', err)
-            }
-  
-            let notificationRecipient = await thisCurPersonaIdx.get('profile', thisCurPersonaIdx.id)
-            
+          if(reply){  
             let preview
             if(body.length > 27)
               { 
@@ -172,12 +159,38 @@ export default function CommentForm(props) {
             else{
                 preview = body.substring(3, body.length - 5) + "..."
             }
-  
-            if(notificationRecipient.notifications.length > 75){
-              notificationRecipient.notifications.shift()
+
+            //get notification array from ceramic
+            //then convert the object inside to a map
+            console.log("APP", appIdx)
+            let notificationRecipient
+            let resultArray = await ceramic.downloadKeysSecret(appIdx, 'notifications')
+            if(resultArray){
+              notificationRecipient = new Map(Object.entries(resultArray[0]))
             }
-  
-            notificationRecipient.notifications.push(
+            else{
+              notificationRecipient = new Map()
+            }
+            
+            
+            //create new map to hold the values in above map + new notification
+            let notificationMap = new Map() 
+            
+            //get array of notifications associated with original comment author
+            let notifs
+            if(notificationRecipient){
+              notifs  = notificationRecipient.get(originalAuthor)
+            }
+            else{
+              notifs = []
+            }
+            //boots oldest notification if there are more than 75
+            if(notifs.length > 75){
+              notifs.shift()
+            }
+           
+            //want to then push to that array the new notification
+            notifs.push(
               {
               avatar: avatar,
               commentAuthor: accountId,
@@ -188,9 +201,17 @@ export default function CommentForm(props) {
               proposalId: proposalId, 
               read: false
             })
-  
+
+            //rewrite value at accountId to include new array with added notif
+            notificationMap.set(originalAuthor, notifs)
+            console.log("NOTIFICATIONMAP", notificationMap)
+            
+            //now we need to wrap this in an array to send it to ceramic, which
+            //won't accept the map
+            let notificationArray = []
+            notificationArray.push(notificationMap) 
             try{
-              await thisCurPersonaIdx.set('profile', notificationRecipient)
+               let result2 = await ceramic.storeKeysSecret(appIdx, notificationArray, 'notifications', appIdx.id)
             } catch (err) {
               console.log('error setting notifications', err)
             }
