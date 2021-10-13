@@ -223,14 +223,6 @@ export default function CommentForm(props) {
             }
           }
   
-          let notificationFlag = get(NEW_NOTIFICATIONS, [])
-          if(notificationFlag >= 1){
-            let count = notificationFlag.newNotifications + 1
-            set(NEW_NOTIFICATIONS, {newNotifications: count})
-          }
-          else{
-            set(NEW_NOTIFICATIONS, {newNotifications: 1})
-          }
         } catch (err) {
           console.log('error adding comment', err)
         }
