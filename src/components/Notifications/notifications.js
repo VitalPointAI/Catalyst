@@ -3,6 +3,7 @@ import Persona from '@aluhning/get-personas-js'
 import { appStore, onAppMount } from '../../state/app'
 import { get, set, del } from '../../utils/storage'
 import {ceramic} from '../../utils/ceramic'
+
 //material ui imports
 import { makeStyles } from '@material-ui/core/styles'
 import Dialog from '@material-ui/core/Dialog'
@@ -46,13 +47,15 @@ export default function NotificationCard(props){
     const thisPersona = new Persona()
 
     useEffect(() => {
-
         async function fetchData(){
             if(accountId){
                 let result = await ceramic.downloadKeysSecret(appIdx, 'notifications')
-                    if(result){
+                    console.log("RESULT", result)    
+                if(result){
+                     //   if(result[0]){
                         let notificationMap = new Map(Object.entries(result[0])) 
                         setNotifications(notificationMap.get(accountId))
+                    //
                     }
                 }
 
@@ -88,7 +91,6 @@ export default function NotificationCard(props){
             }
         }
         console.log("NOTIFICATION", notification)
-
     }
 
     let notifs 
@@ -108,7 +110,6 @@ export default function NotificationCard(props){
         })
     }
     
-
     return (
             <div>
             {toolbar ? <>

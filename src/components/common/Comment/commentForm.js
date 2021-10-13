@@ -161,7 +161,7 @@ export default function CommentForm(props) {
             }
 
             //get notification array from ceramic
-            //then convert the object inside to a map
+            //then convert the object 
             console.log("APP", appIdx)
             let notificationRecipient
             let resultArray = await ceramic.downloadKeysSecret(appIdx, 'notifications')
@@ -184,9 +184,15 @@ export default function CommentForm(props) {
             else{
               notifs = []
             }
+          
             //boots oldest notification if there are more than 75
-            if(notifs.length > 75){
-              notifs.shift()
+            if(notifs){
+              if(notifs.length > 75){
+                notifs.shift()
+              }
+            }
+            else{
+              notifs = []
             }
            
             //want to then push to that array the new notification
