@@ -7,6 +7,8 @@ import AddPersonaForm from '../AddPersona/addPersona'
 import AddDaoForm from '../CreateDAO/addDao'
 import { DASHBOARD_DEPARTURE, NEW_NOTIFICATIONS} from '../../state/near'
 import NotificationCard from '../Notifications/notifications'
+import {ceramic} from '../../utils/ceramic'
+
 // Material UI
 import { makeStyles } from '@material-ui/core/styles'
 import Drawer from '@material-ui/core/Drawer'
@@ -71,6 +73,7 @@ const [addDaoClicked, setAddDaoClicked] = useState(false)
 const [notificationsClicked, setNotificationsClicked] = useState(false)
 const [stepsEnabled, setStepsEnabled] = useState(false)
 const [newNotifications, setNewNotifications] = useState(0)
+
 const [drawerState, setDrawerState] = useState({
     top: false,
     left: false,
@@ -78,9 +81,18 @@ const [drawerState, setDrawerState] = useState({
     right: false,
   });
 
+
 const {
     state,
 } = props
+
+
+const {
+  wallet,
+  appIdx,
+  accountId
+} = state
+
 const steps = [
   {
     element: '.toolbar',
@@ -120,12 +132,37 @@ const steps = [
     position: "top"
   }
 ] 
+
+
+
 useEffect(
   () => {
 
-    let notificationFlag = get(NEW_NOTIFICATIONS, [])
-    if(notificationFlag){
-      setNewNotifications(notificationFlag.newNotifications)
+    async function fetchData(){
+    
+      if(accountId){
+        //get the list of all notifications for all accounts
+        let result = await ceramic.downloadKeysSecret(appIdx, 'notifications')
+        if(result){
+
+            //convert the object from ceramic to map in order to more easily
+            //return notifications associated with current account
+            let notificationMap = new Map(Object.entries(result[0])) 
+
+            let notifications = 0;
+
+            //loop thorugh all notifications for user, if the read flag is false, increase the count
+            //for the notification badge
+            for(let i = 0; i < notificationMap.get(accountId).length; i++){
+                if(notificationMap.get(accountId)[i].read == false){
+                    notifications++;
+                }
+            }
+
+            //set the counter for the badge to the amount of unread notifications
+            setNewNotifications(notifications)
+        }
+      }
     }
 
     let intervalController = setInterval(checkDash, 500)
@@ -142,7 +179,12 @@ useEffect(
         clearInterval(intervalController)
       }
     }
-  }
+
+    fetchData()
+    .then((res) => {
+  
+    })
+  }, [state]
 )
 
 const handleClick = (event) => {
@@ -164,6 +206,7 @@ function handleAddDaoClick(property){
 
 function handleNotificationClick(property){
   setNotificationsClicked(property)
+
 }
 
 const addDaoClick = (event) => {

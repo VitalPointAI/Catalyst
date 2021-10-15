@@ -8,6 +8,8 @@ import Logo from '../Logo/logo'
 import {get, set, del} from '../../utils/storage'
 import {NEW_NOTIFICATIONS} from '../../state/near'
 import NotificationCard from '../Notifications/notifications'
+import {ceramic} from '../../utils/ceramic'
+
 // Material UI
 import Grid from '@material-ui/core/Grid'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
@@ -22,21 +24,53 @@ export const Header = ({ state, handleUpdate, isUpdated }) => {
     const [newNotifications, setNewNotifications] = useState(0)
     const [popoverOpen, setPopoverOpen] = useState(false)
     const [anchorEl, setAnchorEl] = useState(null);
+
+
     const {
-        wallet
+        wallet,
+        appIdx,
+        accountId
     } = state
 
     const {
         contractId
     } = useParams()
 
+ 
+
     useEffect(
         () => {
-        let notificationFlag = get(NEW_NOTIFICATIONS, [])
-        if(notificationFlag){
-          setNewNotifications(notificationFlag.newNotifications)
+        async function fetchData(){
+            if(accountId){
+                //get the list of all notifications for all accounts
+       
+                let result = await ceramic.downloadKeysSecret(appIdx, 'notifications')
+                if(result){
+
+                    //convert the object from ceramic to map in order to more easily
+                    //return notifications associated with current account
+                    let notificationMap = new Map(Object.entries(result[0])) 
+
+                    let notifications = 0;
+
+                    //loop thorugh all notifications for user, if the read flag is false, increase the count
+                    //for the notification badge
+                    for(let i = 0; i < notificationMap.get(accountId).length; i++){
+                        if(notificationMap.get(accountId)[i].read == false){
+                            notifications++;
+                        }
+                    }
+
+                    //set the counter for the badge to the amount of unread notifications
+                    setNewNotifications(notifications)
+                }
+            }
         }
-    })
+        fetchData()
+        .then((res) => {
+      
+        })
+    }, [state])
 
     const matches = useMediaQuery('(max-width:500px)')
     
@@ -51,6 +85,7 @@ export const Header = ({ state, handleUpdate, isUpdated }) => {
         setPopoverOpen(false)
     }
     function handleNotificationClick(property){
+     
         return; 
     }
 
