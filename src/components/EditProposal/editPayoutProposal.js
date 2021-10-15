@@ -117,7 +117,7 @@ export default function EditPayoutProposalForm(props) {
               while (i < propResult.proposals.length){
                 if(propResult.proposals[i].proposalId == proposalId){
                   propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
-                  propResult.proposals[i].milestones ? setMilestones(propResult.proposals[i].milestones) : setMilestones([{}])
+                  propResult.proposals[i].milestone ? setMilestones(propResult.proposals[i].milestones) : setMilestones([{}])
                   if (propResult.proposals[i].details){
                     let contentBlock = htmlToDraft(propResult.proposals[i].details)
                     if (contentBlock){
@@ -141,7 +141,8 @@ export default function EditPayoutProposalForm(props) {
             // set title to funding commitment title if it exists
             if(referenceIds){
               let oppResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
-           
+              console.log('oppresult edit payout', oppResult)
+              console.log('referenceIds', referenceIds)
               let proposal
               let interimMilestones = []
               let milestone

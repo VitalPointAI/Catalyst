@@ -187,10 +187,6 @@ export default function MemberProposal(props) {
                 onChange={handleTributeChange}
                 inputRef={register({
                     required: true,
-                    validate: (value) => {
-                      if (value == '') return 'You must make a contribution.'
-                      if (value == '0') return 'Contribution must be greater than zero.'
-                    }
                 })}
                 InputProps={{
                   endAdornment: <><InputAdornment position="end">Ⓝ</InputAdornment>

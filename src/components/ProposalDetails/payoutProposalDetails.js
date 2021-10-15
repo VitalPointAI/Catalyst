@@ -158,7 +158,7 @@ export default function PayoutProposalDetails(props) {
             // Set Existing Proposal Data       
             if(curDaoIdx){
               let propResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
-           
+              console.log('propResult', propResult)
               if(propResult) {
                 let i = 0
                 while (i < propResult.proposals.length){

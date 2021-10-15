@@ -93,10 +93,11 @@ export default function Import(props) {
 
         fetchData()
          
-      }, [recoverSeed])
+      }, [])
 
-      const handleRecoverSeed = (e) => {
-        setRecoverSeed(e.target.value.toLowerCase())
+      const handleRecoverSeed = (event) => {
+        let lowercase = (event.target.value).toLowerCase()
+        setRecoverSeed(event.target.value)
       }
 
       const onSubmit = async (values) => {
@@ -104,8 +105,8 @@ export default function Import(props) {
         let newAccount = { key: (base58.encode(await bip39.mnemonicToSeed(seedPhrase))), accountId: accountId, owner: accountId, keyStored: Date.now() }
         currentAccounts.push(newAccount)
         set(ACCOUNT_LINKS, currentAccounts)
-        window.location.assign('/')
         setExists(true)
+        window.location.assign('/')
       }
 
       const onRecover = async (values) => {
@@ -113,8 +114,8 @@ export default function Import(props) {
         let newAccount = { key: (base58.encode(await bip39.mnemonicToSeed(recoverSeed))), accountId: accountId, owner: accountId, keyStored: Date.now() }
         currentAccounts.push(newAccount)
         set(ACCOUNT_LINKS, currentAccounts)
-        window.location.assign('/')
         setExists(true)
+        window.location.assign('/')
       }
 
       return (
@@ -138,9 +139,7 @@ export default function Import(props) {
                   <TextField
                       fullWidth
                       id="recoverPhrase"
-                      required
                       placeholder="12 word seed phrase"
-                      autoFocus
                       margin="dense"
                       variant="outlined"
                       name="id"

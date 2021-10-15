@@ -204,7 +204,7 @@ export default function FundingProposalDetails(props) {
               
               try{
                 let oppResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
-             
+                console.log('oppResult', oppResult)
                 let confirmedMilestonePayouts = []
                 let t = 0
                 while (t < oppResult.proposals.length){

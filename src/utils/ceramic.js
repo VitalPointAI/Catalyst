@@ -284,11 +284,13 @@ async makeSeed(account){
     // }
     //let existingToken = get(AUTH_TOKEN, [])
     //if(!existingToken){
+      
     let token = await axios.post(TOKEN_CALL, 
       {
       accountId: accountId
       }    
     )
+    
     set(AUTH_TOKEN, token.data.token)
    // }
 
