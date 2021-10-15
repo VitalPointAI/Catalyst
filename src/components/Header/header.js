@@ -55,9 +55,11 @@ export const Header = ({ state, handleUpdate, isUpdated }) => {
 
                     //loop thorugh all notifications for user, if the read flag is false, increase the count
                     //for the notification badge
-                    for(let i = 0; i < notificationMap.get(accountId).length; i++){
-                        if(notificationMap.get(accountId)[i].read == false){
-                            notifications++;
+                    if(notificationMap.get(accountId)){
+                        for(let i = 0; i < notificationMap.get(accountId).length; i++){
+                            if(notificationMap.get(accountId)[i].read == false){
+                                notifications++;
+                            }
                         }
                     }
 

@@ -84,6 +84,7 @@ export default function Leave(props) {
 
    useEffect(() => {
     setValue("memberShare.amount", shareFields[0].amount, {shouldValidate: true})
+    setShare(memberShares[0].amount)
   }, [share]
   )
 
