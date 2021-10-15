@@ -3,6 +3,7 @@ import Persona from '@aluhning/get-personas-js'
 import { appStore, onAppMount } from '../../state/app'
 import { get, set, del } from '../../utils/storage'
 import {ceramic} from '../../utils/ceramic'
+
 //material ui imports
 import { makeStyles } from '@material-ui/core/styles'
 import Dialog from '@material-ui/core/Dialog'
@@ -46,19 +47,39 @@ export default function NotificationCard(props){
     const thisPersona = new Persona()
 
     useEffect(() => {
-
+        
         async function fetchData(){
             if(accountId){
+                
+                //retrieve all notifications for all accounts from ceramic
                 let result = await ceramic.downloadKeysSecret(appIdx, 'notifications')
-                    if(result){
+                   
+                if(result){
+                        //send the object holding notifications to map for easy access
+                        //to specific values
                         let notificationMap = new Map(Object.entries(result[0])) 
+                        
+                        console.log("Pre-processed map", notificationMap.get(accountId))
+
+                        //set the 'read' flag for all notifications to true
+                        for(let i = 0; i < notificationMap.get(accountId).length; i++){
+                            notificationMap.get(accountId)[i].read = true
+                        }
+
+                        //save notificationMap inside of an array so it can be passed to ceramic
+                        let notificationArray = []
+                        notificationArray.push(notificationMap) 
+
+                        //send the revised notifications with 'read' flag true to ceramic
+                        let result2 = await ceramic.storeKeysSecret(appIdx, notificationArray, 'notifications', appIdx.id)
+                        
+                        //set the list of notifications to be displayed
                         setNotifications(notificationMap.get(accountId))
                     }
                 }
 
         }
-        del(NEW_NOTIFICATIONS)
-
+      
         fetchData()
         .then((res) => {
       
@@ -88,7 +109,6 @@ export default function NotificationCard(props){
             }
         }
         console.log("NOTIFICATION", notification)
-
     }
 
     let notifs 
@@ -108,7 +128,6 @@ export default function NotificationCard(props){
         })
     }
     
-
     return (
             <div>
             {toolbar ? <>
