@@ -181,8 +181,6 @@ export default function ProposalCard(props) {
     
     
     const[curPersonaIdx, setCurPersonaIdx] = useState()
-
-    const [totalMembers, setTotalMembers] = useState()
    
     const [editMemberProposalDetailsClicked, setEditMemberProposalDetailsClicked] = useState(false)
     const [memberProposalDetailsClicked, setMemberProposalDetailsClicked] = useState(false)
@@ -207,6 +205,8 @@ export default function ProposalCard(props) {
     const [rageQuitEnding, setRageQuitEnding] = useState('calculating')
 
     const [daoContract, setDaoContract] = useState()
+
+    const [showSponsorButton, setShowSponsorButton] = useState(false)
 
     const [anchorEl, setAnchorEl] = useState(null)
     
@@ -248,9 +248,11 @@ export default function ProposalCard(props) {
         summoner,
         queueList,
         guildBalance,
+        escrowBalance,
         gracePeriodLength,
         votingPeriodLength,
-        isFinalized
+        isFinalized,
+        totalMembers
     } = props
 
     useEffect(
@@ -362,6 +364,27 @@ export default function ProposalCard(props) {
               }
             }
 
+             // Set Existing Payout Proposal Data       
+             if(curDaoIdx && proposalType=='Payout'){
+              let propResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
+              console.log('propResult', propResult)
+              if(propResult) {
+                let i = 0
+                while (i < propResult.proposals.length){
+                  console.log('requestId', requestId)
+                  if(parseInt(propResult.proposals[i].proposalId) == requestId){
+                    propResult.proposals[i].title ? setPayoutTitle(propResult.proposals[i].title) : setPayoutTitle('')
+                    propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
+                    propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
+                    propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
+                    setDetailsExist(true)
+                    break
+                  }
+                  i++
+                }
+              }
+            }
+
             // Set Existing Opportunity Proposal Data       
             if(curDaoIdx && proposalType=='Opportunity'){
               let propResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
@@ -382,37 +405,15 @@ export default function ProposalCard(props) {
               }
             }
 
-            // Set Existing Payout Proposal Data       
-             if(curDaoIdx && proposalType=='Payout'){
-              let propResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
-           
-              if(propResult) {
-                let i = 0
-                while (i < propResult.proposals.length){
-                  if(propResult.proposals[i].proposalId == requestId){
-                    propResult.proposals[i].title ? setPayoutTitle(propResult.proposals[i].title) : setPayoutTitle('')
-                    propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
-                    propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
-                    propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
-                    setDetailsExist(true)
-                    break
-                  }
-                  i++
-                }
-              }
-            }
-
             if(wallet){
               let daoContract = await dao.initDaoContract(wallet.account(), contractId)
-              let members = await daoContract.getTotalMembers()
-              setTotalMembers(members)
               setDaoContract(daoContract)
             }
 
             if(queueList && queueList.length > 0){
               setNextToFinalize(queueList[0].requestId)
             }
-                    
+
             return true  
           }
 
@@ -434,8 +435,9 @@ export default function ProposalCard(props) {
                     case 'Configuration':
                       handleConfigurationProposalDetailsClick()
                       break;
-                  }
-                } 
+               }
+            }
+
           let mounted = true
           if(mounted){
             fetchData()
@@ -470,15 +472,103 @@ export default function ProposalCard(props) {
                     setRageQuitEnding(rageCount)
                   }
                 }
+                checkSponsor()
                 })
           return () => mounted = false
           }
           
-    }, [isUpdated, queueList, guildBalance, curDaoIdx]
+    }, [isUpdated, queueList, guildBalance, escrowBalance, curDaoIdx, detailsExist, wallet]
     )
 
     function handleUpdate(property){
       setIsUpdated(property)
+    }
+
+    const checkSponsor = () => {
+      console.log('proposaltype', proposalType)
+            console.log('totalmembers', totalMembers)
+            console.log('proposer', proposer)
+            console.log('summoner', summoner)
+            console.log('applicant', applicant)
+            console.log('memberStatus', memberStatus)
+            console.log('detailsExist', detailsExist)
+            console.log('funding', funding)
+            console.log('guild balance', guildBalance[0].balance)
+            console.log('escrow balance', escrowBalance[0].balance)
+             // Determine whether to show Sponsor button
+             switch(proposalType){
+              case 'Commitment':
+                if(
+                    totalMembers != 1
+                    && (accountId != proposer && accountId != applicant) 
+                    && status=='Submitted'
+                    && memberStatus == true 
+                    && detailsExist == true
+                    && parseFloat(funding) <= parseFloat(guildBalance[0].balance)
+                  ) {
+                    setShowSponsorButton(true)
+                    break
+                    }
+                
+                if(
+                    (totalMembers == 1 || accountId == summoner)
+                    && status=='Submitted' 
+                    && memberStatus == true 
+                    && detailsExist == true
+                    && parseFloat(funding) <= parseFloat(guildBalance[0].balance)
+                  ) {
+                    setShowSponsorButton(true)
+                    break
+                  }
+              case 'Payout':
+                if(
+                    totalMembers != 1
+                    && (accountId != proposer && accountId != applicant) 
+                    && status=='Submitted'
+                    && referenceIds.length > 0
+                    && memberStatus == true 
+                    && detailsExist == true
+                    && parseFloat(funding) <= parseFloat(escrowBalance[0].balance)
+                  ) {
+                    setShowSponsorButton(true)
+                    break
+                    }
+                
+                if(
+                  totalMembers != 1
+                  && (accountId != proposer && accountId != applicant) 
+                  && status=='Submitted'
+                  && referenceIds.length == 0
+                  && memberStatus == true 
+                  && detailsExist == true
+                  && parseFloat(funding) <= parseFloat(guildBalance[0].balance)
+                ) {
+                  setShowSponsorButton(true)
+                  break
+                  }
+              
+                if(
+                    (totalMembers == 1 || accountId == summoner)
+                    && status=='Submitted' 
+                    && memberStatus == true 
+                    && detailsExist == true
+                    && parseFloat(funding) <= parseFloat(escrowBalance[0].balance)
+                  ) {
+                    setShowSponsorButton(true)
+                    break
+                  }
+              default:
+                if(
+                    accountId == summoner
+                    && status=='Submitted' 
+                    && memberStatus == true 
+                    && detailsExist == true
+                    && parseFloat(funding) <= parseFloat(guildBalance[0].balance)
+                ) {
+                  setShowSponsorButton(true)
+                  break
+                }
+            }
     }
   
     // Member Proposal Functions
@@ -1234,8 +1324,12 @@ export default function ProposalCard(props) {
                 </Grid>
                 </Grid>
                 : null }
-              {status != 'Passed' && status != 'Sponsored' && status != 'Not Passed' && parseFloat(funding) >= parseFloat(guildBalance[0].balance) ? 
+              {status != 'Passed' && status != 'Sponsored' && status != 'Not Passed' && proposalType=='Commitment' && parseFloat(funding) > parseFloat(guildBalance[0].balance) ? 
                 <Typography variant="subtitle2" display="block" align="center" style={{backgroundColor: 'red', color: 'white', padding: '2px', marginTop:'3px'}}>Funds Required</Typography> 
+              :status != 'Passed' && status != 'Sponsored' && status != 'Not Passed' && proposalType=='Payout' && referenceIds.length > 0 && parseFloat(funding) > parseFloat(escrowBalance[0].balance) ? 
+              <Typography variant="subtitle2" display="block" align="center" style={{backgroundColor: 'red', color: 'white', padding: '2px', marginTop:'3px'}}>Funds Required</Typography>
+              :status != 'Passed' && status != 'Sponsored' && status != 'Not Passed' && proposalType=='Payout' && referenceIds.length == 0 && parseFloat(funding) > parseFloat(guildBalance[0].balance) ? 
+              <Typography variant="subtitle2" display="block" align="center" style={{backgroundColor: 'red', color: 'white', padding: '2px', marginTop:'3px'}}>Funds Required</Typography>
               : status == 'Submitted'  && detailsExist == false ? <Typography variant="subtitle2" display="block" align="center">Awaiting Details</Typography>
               : status == 'Submitted'  && detailsExist == true ? <Typography variant="subtitle2" display="block" align="center">Awaiting Sponsor</Typography> : null}
               {status != 'Passed' && status == 'Sponsored' && status != 'Not Passed' && currentPeriod < votingPeriod && !isVotingPeriod && !isGracePeriod ? 
@@ -1363,14 +1457,8 @@ export default function ProposalCard(props) {
                 <Grid container alignItems="center" justifyContent="space-evenly" spacing={1}>
 
                 <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
-                {totalMembers != 1 ?
-                  
-                  (accountId != proposer && accountId != applicant) 
-                  && status=='Submitted' 
-                  && memberStatus == true 
-                  && detailsExist == true
-                  && parseFloat(funding) < parseFloat(guildBalance[0].balance)
-                    ? 
+            
+                {showSponsorButton ?
                     (
                       <><Button 
                           color="primary" 
@@ -1379,42 +1467,8 @@ export default function ProposalCard(props) {
                         Sponsor
                         </Button>
                       </>
-                    ) 
-                : (totalMembers == 1 || accountId == summoner) 
-                  && status=='Submitted' 
-                  && memberStatus == true 
-                  && detailsExist == true
-                  && parseFloat(funding) < parseFloat(guildBalance[0].balance)
-                  ? 
-                    (  
-                      <><Button 
-                          color="primary" 
-                          onClick={(e) => handleSponsorConfirmationClick(requestId, proposalType, funding)}
-                        >
-                        Sponsor
-                        </Button>
-                      </>
-                    ) 
-                  : null
-                
-                :
-                  accountId == summoner
-                  && status=='Submitted' 
-                  && memberStatus == true 
-                  && detailsExist == true
-                  && parseFloat(funding) < parseFloat(guildBalance[0].balance)
-                  ? 
-                    (  
-                      <><Button 
-                          color="primary" 
-                          onClick={(e) => handleSponsorConfirmationClick(requestId, proposalType, funding)}
-                        >
-                        Sponsor
-                        </Button>
-                      </>
-                    ) 
-                  : null
-                }
+                    )
+                  : null}
                 </Grid>
 
                 <Grid item xs={8} sm={8} md={8} lg={8} xl={8} align="center">

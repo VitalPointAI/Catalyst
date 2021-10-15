@@ -182,65 +182,11 @@ export default function EditPersonaForm(props) {
 
           // Set Dao Idx
          
-              if(currentDaosList && currentDaosList.length > 0){
-                let i = 0
-               
-                while (i < currentDaosList.length){
-                  if(currentDaosList[i].status == 'active'){
-                    let daoAccount = new nearAPI.Account(near.connection, currentDaosList[i].contractId)
-                      
-                    let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
-                    console.log('currentskills', currentSkills)
-                    // Get Existing Community Skills
-                    if(thisCurDaoIdx){
-                      let daoProfileResult = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
-                      console.log('daoProfile', daoProfileResult)
-                     // let currentSkills = {...skillSet[0]}
-                     // console.log('currentskills', currentSkills)
-                     // let currentSpecificSkills = {...developerSkillSet[0]}
-                      
-                      if(daoProfileResult){
-                        daoProfileResult.skills.map((name, value) => {
-                          let exists = false
-                          console.log('name', name.name)
-                          
-                            Object.entries(currentSkills).map(([key, value]) => {
-                              console.log('key', key)
-                              console.log('value', value)
-                              if((key).toLowerCase() == (name.name).toLowerCase()){
-                                console.log('here')
-                                exists = true
-                              }
-                            })
-                          console.log('exists', exists)
-                          if(!exists){
-                            currentSkills = ({...currentSkills, [name.name]: false})
-                          }
-                        })
-                      
-                        daoProfileResult.specificSkills.map((name, value) => {
-                          let exists = false
-                          Object.entries(currentSpecificSkills).map(([key, value]) => {
-                            if((key).toLowerCase() == (name.name).toLowerCase()){
-                              exists = true
-                            }
-                          })
-                          if(!exists){
-                            currentSpecificSkills = ({...currentSpecificSkills, [name.name]: false})
-                          }
-                        })
-                        
-                      }
-                    }
-                  }
-                i++
-                }
-                
-              }
+             
           
 
            // Set Card Persona Idx       
-           if(accountId){
+           if(accountId && currentDaosList){
               let result = await curPersonaIdx.get('profile', curPersonaIdx.id)
               console.log('profile', result)
               if(result) {
@@ -259,17 +205,21 @@ export default function EditPersonaForm(props) {
                // result.skillSet? setSkillSet(result.skillSet): setSkillSet({})
                // result.developerSkillSet? setDeveloperSkillSet(result.developerSkillSet): setDeveloperSkillSet({})
                if(result.skillSet){
-                let skillArray = []
-                skillArray.push(result.skillSet)
-                setSkillSet(skillArray)
+                // let skillArray = []
+                // skillArray.push(result.skillSet)
+                setSkillSet(result.skillSet)
+               
               }
               if(result.developerSkillSet){
-                let developerSkillSetArray = []      
-                developerSkillSetArray.push(result.developerSkillSet)
-                setDeveloperSkillSet(developerSkillSetArray)
+                // let developerSkillSetArray = []      
+                // developerSkillSetArray.push(result.developerSkillSet)
+                setDeveloperSkillSet(result.developerSkillSet)
+               
               } 
                 result.personaSkills? setValue('personaSkills', result.personaSkills): setValue('personaSkills', {name: ''})
                 result.personaSpecificSkills? setValue('personaSpecificSkills', result.personaSpecificSkills): setValue('personaSpecificSkills', {name: ''})
+              } else {
+                await refreshSkills(currentDaosList)
               }
 
               let accessVariables = await axios.get('https://vpbackend-apim.azure-api.net/airtable')    
@@ -296,16 +246,75 @@ export default function EditPersonaForm(props) {
         fetchData()
           .then((res) => {
             setLoaded(true)
-            currentSkillsArray.push(currentSkills)
-            setSkillSet(currentSkillsArray)
-            console.log('currentskillsarray', currentSkillsArray)
-            currentSpecificSkillsArray.push(currentSpecificSkills)
-            setDeveloperSkillSet(currentSpecificSkillsArray)
+          //  currentSkillsArray.push(currentSkills)
+          //  setSkillSet(currentSkills)
+          //  console.log('currentskillsarray', currentSkillsArray)
+          //  currentSpecificSkillsArray.push(currentSpecificSkills)
+          //  setDeveloperSkillSet(currentSpecificSkills)
           })
     },[currentDaosList])
 
     function handleFileHash(hash) {
       setAvatar(IPFS_PROVIDER + hash)
+    }
+
+    async function refreshSkills(daos){
+      if(currentDaosList && currentDaosList.length > 0){
+        let i = 0
+       
+        while (i < currentDaosList.length){
+          if(currentDaosList[i].status == 'active'){
+            let daoAccount = new nearAPI.Account(near.connection, currentDaosList[i].contractId)
+              
+            let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+            console.log('currentskills', currentSkills)
+            // Get Existing Community Skills
+            if(thisCurDaoIdx){
+              let daoProfileResult = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
+              console.log('daoProfile', daoProfileResult)
+             // let currentSkills = {...skillSet[0]}
+             // console.log('currentskills', currentSkills)
+             // let currentSpecificSkills = {...developerSkillSet[0]}
+              
+              if(daoProfileResult){
+                daoProfileResult.skills.map((name, value) => {
+                  let exists = false
+                  console.log('name', name.name)
+                  
+                    Object.entries(currentSkills).map(([key, value]) => {
+                      console.log('key', key)
+                      console.log('value', value)
+                      if((key).toLowerCase() == (name.name).toLowerCase()){
+                        console.log('here')
+                        exists = true
+                      }
+                    })
+                  console.log('exists', exists)
+                  if(!exists){
+                    currentSkills = ({...currentSkills, [name.name]: false})
+                  }
+                })
+              
+                daoProfileResult.specificSkills.map((name, value) => {
+                  let exists = false
+                  Object.entries(currentSpecificSkills).map(([key, value]) => {
+                    if((key).toLowerCase() == (name.name).toLowerCase()){
+                      exists = true
+                    }
+                  })
+                  if(!exists){
+                    currentSpecificSkills = ({...currentSpecificSkills, [name.name]: false})
+                  }
+                })
+                
+              }
+            }
+          }
+        i++
+        }
+        setSkillSet(currentSkills)
+        setDeveloperSkillSet(currentSpecificSkills)
+      }
     }
 
     const handleClose = () => {
@@ -358,17 +367,17 @@ export default function EditPersonaForm(props) {
       return new Date(intDate).toLocaleString('en-US', options)
     }
     const handleSkillSetChange = (event) => {
-      let tempSkillArray = []
-      let newSkills = { ...skillSet[0], [event.target.name]: event.target.checked }
-      tempSkillArray.push(newSkills)
-      setSkillSet(tempSkillArray)
+    //  let tempSkillArray = []
+      let newSkills = { ...skillSet, [event.target.name]: event.target.checked }
+    //  tempSkillArray.push(newSkills)
+      setSkillSet(newSkills)
     }
   
     const handleDeveloperSkillSetChange = (event) => {
-      let tempDevArray = []
-      let newSkills = { ...developerSkillSet[0], [event.target.name]: event.target.checked }
-      tempDevArray.push(newSkills)
-      setDeveloperSkillSet(tempDevArray)
+  //    let tempDevArray = []
+      let newSkills = { ...developerSkillSet, [event.target.name]: event.target.checked }
+    //  tempDevArray.push(newSkills)
+      setDeveloperSkillSet(newSkills)
     }
 
     const handleOtherSkillsChange = (event) => {
@@ -481,8 +490,8 @@ export default function EditPersonaForm(props) {
             country: country,
             language: language,
             familiarity: familiarity,
-            skillSet: skillSet[0],
-            developerSkillSet: developerSkillSet[0],
+            skillSet: skillSet,
+            developerSkillSet: developerSkillSet,
             personaSkills: personaSkills,
             personaSpecificSkills: personaSpecificSkills,
             notifications: notifications
@@ -620,8 +629,10 @@ console.log('dev skills', developerSkillSet)
                       <FormControl component="fieldset" className={classes.formControl}>
                         <FormLabel component="legend">General Skills, Competencies and Values</FormLabel>
                         <FormGroup>
-                        {loaded && skillSet && skillSet.length > 0 ? 
-                              Object.entries(skillSet[0]).map(([key, value]) => {
+                        {loaded ? 
+                              Object.entries(skillSet).map(([key, value]) => {
+                                console.log('key', key)
+                                console.log('value', value)
                                return (
                                     <FormControlLabel
                                       control={<Checkbox checked={value} onChange={handleSkillSetChange} name={key} />}
@@ -640,8 +651,10 @@ console.log('dev skills', developerSkillSet)
                         <FormControl component="fieldset" className={classes.formControl}>
                           <FormLabel component="legend">Specific Skills</FormLabel>
                           <FormGroup>
-                          {loaded && developerSkillSet && developerSkillSet.length > 0 ?
-                            Object.entries(developerSkillSet[0]).map(([key, value]) => {
+                          {loaded ?
+                            Object.entries(developerSkillSet).map(([key, value]) => {
+                              console.log('key', key)
+                              console.log('value', value)
                                return (
                                     <FormControlLabel
                                       control={<Checkbox checked={value} onChange={handleDeveloperSkillSetChange} name={key} />}

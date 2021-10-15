@@ -149,6 +149,8 @@ export default function ProposalList(props) {
     remainingDelegates,
     votingPeriodLength,
     gracePeriodLength,
+    escrowBalance,
+    totalMembers,
 
     tabValue,
     handleTabValueState,
@@ -216,7 +218,7 @@ export default function ProposalList(props) {
       if(curDaoIdx){
       
         let newLists = await resolveStatus(proposalEvents)
-      
+      console.log('newLists', newLists)
         setProposalList(newLists.allProposals)
         setVotingList(newLists.votingProposals)
         setQueueList(newLists.queueProposals)
@@ -710,6 +712,7 @@ function typeFilter(item){
           gracePeriodLength={gracePeriodLength}
           votingPeriodLength={votingPeriodLength}
           isFinalized={fr.isFinalized}
+          totalMembers={totalMembers}
         />
       )
     })
@@ -760,11 +763,13 @@ function typeFilter(item){
           summoner={summoner}
           contract={contract}
           guildBalance={guildBalance}
+          escrowBalance={escrowBalance}
           votingPeriod={fr[0].votingPeriod}
           gracePeriod={fr[0].gracePeriod}
           gracePeriodLength={gracePeriodLength}
           votingPeriodLength={votingPeriodLength}
           isFinalized={fr.isFinalized}
+          totalMembers={totalMembers}
         />
       )
     })
@@ -815,11 +820,13 @@ function typeFilter(item){
           summoner={summoner} 
           contract={contract} 
           guildBalance={guildBalance}
+          escrowBalance={escrowBalance}
           memberStatus={memberStatus}
           startingPeriod={fr[0].startingPeriod}
           gracePeriodLength={gracePeriodLength}
           votingPeriodLength={votingPeriodLength}
           isFinalized={fr.isFinalized}
+          totalMembers={totalMembers}
         />
       )
     })
@@ -863,11 +870,13 @@ function typeFilter(item){
           queueList={queueList}
           contract={contract}
           guildBalance={guildBalance}
+          escrowBalance={escrowBalance}
           memberStatus={memberStatus}
           votingPeriod={fr.votingPeriod}
           gracePeriodLength={gracePeriodLength}
           votingPeriodLength={votingPeriodLength}
           isFinalized={fr.isFinalized}
+          totalMembers={totalMembers}
         />
       )
     })
@@ -907,12 +916,14 @@ function typeFilter(item){
           summoner={summoner}
           contract={contract} 
           guildBalance={guildBalance}
+          escrowBalance={escrowBalance}
           memberStatus={memberStatus}
           votingPeriod={fr[0].votingPeriod}
           gracePeriod={fr[0].gracePeriod}
           gracePeriodLength={gracePeriodLength}
           votingPeriodLength={votingPeriodLength}
           isFinalized={fr.isFinalized}
+          totalMembers={totalMembers}
         />
       )
     })
@@ -953,6 +964,7 @@ function typeFilter(item){
           summoner={summoner}
           contract={contract}
           guildBalance={guildBalance}
+          escrowBalance={escrowBalance}
           memberStatus={memberStatus}
           startingPeriod={fr[0].startingPeriod}
           votingPeriod={fr[0].votingPeriod}
@@ -960,6 +972,7 @@ function typeFilter(item){
           gracePeriodLength={gracePeriodLength}
           votingPeriodLength={votingPeriodLength}
           isFinalized={fr.isFinalized}
+          totalMembers={totalMembers}
         />
       )
     })

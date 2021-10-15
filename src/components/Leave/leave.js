@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useFieldArray } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import * as nearAPI from 'near-api-js'
 import { leaveCommunity, formatNearAmount, parseNearAmount } from '../../state/near'
@@ -50,13 +50,29 @@ const useStyles = makeStyles((theme) => ({
 export default function Leave(props) {
   const [open, setOpen] = useState(true)
   const [finished, setFinished] = useState(true)
-  const [share, setShare] = useState(props.fairShare)
+  const [share, setShare] = useState()
   const [confirm, setConfirm] = useState(false)
   const [currentMembers, setCurrentMembers] = useState()
   const [balanceAvailable, setBalanceAvailable] = useState('')
   
   const classes = useStyles()
-  const { register, handleSubmit, watch, errors } = useForm()
+  const { register, handleSubmit, watch, errors, control, reset, setValue, getValues } = useForm({
+    defaultValues: {
+      memberShare: [
+        {
+          amount: (props.fairShare).toLocaleString('fullwide', {useGrouping: false})
+        }
+      ]
+    }
+  })
+      const {
+      fields: shareFields,
+    } = useFieldArray({
+     name: "memberShare",
+     control
+    })
+
+    const memberShares = watch('memberShare', shareFields)
 
   const { 
     daoContract,
@@ -65,6 +81,11 @@ export default function Leave(props) {
     handleLeaveClickState,
     fairShare
    } = props
+
+   useEffect(() => {
+    setValue("memberShare.amount", shareFields[0].amount, {shouldValidate: true})
+  }, [share]
+  )
 
    useEffect(
     () => {
@@ -81,14 +102,15 @@ export default function Leave(props) {
               let balance = await account.getAccountBalance()
              
               setBalanceAvailable(balance.available)
-          
-          
+              
             } catch (err) {
               console.log('problem retrieving account', err)
           }
         }
       }
-      fetchData()
+      fetchData().then((res) => {
+        
+      })
     }, [currentMembers]
     )
 
@@ -104,8 +126,12 @@ export default function Leave(props) {
     setConfirm(event.target.checked)
   }
 
+
+
   const onSubmit = async (values) => {
     setFinished(false)
+    console.log('share', share)
+   // let newShare = share.toLocaleString('fullwide', {useGrouping: false})
     try{
       await leaveCommunity(
                       daoContract,
@@ -122,7 +148,9 @@ export default function Leave(props) {
       handleClose()
     }
 }
-
+console.log('fairshare', fairShare)
+console.log('share', share)
+console.log('membershare', memberShares[0].amount)
   return (
     <div>
       <Dialog open={open} aria-labelledby="form-dialog-title">
@@ -149,32 +177,36 @@ export default function Leave(props) {
           
             {currentMembers > 1 ? (
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '20px'}}>
-              <TextField
-                fullWidth
-                margin="dense"
-                id="share-donation"
-                variant="outlined"
-                name="memberFairShare"
-                label="Withdraw"
-                placeholder="100"
-                value={share}
-                onChange={handleShareChange}
-                inputRef={register({
-                    required: true,
-                })}
-                InputProps={{
-                  endAdornment: <><InputAdornment position="end">yocto</InputAdornment>
-                  <Tooltip TransitionComponent={Zoom} title="The amount of yocto up to their fair share the member is entitled to leave with.  
-                  Anything less than the current fair share will be donated on their behalf to the community fund. g to the community fund.">
-                      <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
-                  </Tooltip>
-                  </>
-                }}
-              />
-              {errors.memberFairShare &&
-                <Typography variant="body1" style={{color: 'red', fontSize:'75%'}}>You must enter an amount to withdraw.</Typography>}
-            </Grid>
-            ) : null }
+             {shareFields.map((field, index) => (
+                <TextField
+                  fullWidth
+                  key={field.id}
+                  margin="dense"
+                  id="memberShareAmount"
+                  variant="outlined"
+                  name={`memberShare[${index}].amount`}
+                  label="Your Share"
+                  defaultValue={field.amount}
+                  onChange={handleShareChange}
+                  InputProps={{
+                    endAdornment: <><InputAdornment position="end">yocto</InputAdornment>
+                    <Tooltip TransitionComponent={Zoom} title="The amount of yocto up to their fair share the member is entitled to leave with.  
+                    Anything less than the current fair share will be donated on their behalf to the community fund. g to the community fund.">
+                        <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
+                    </Tooltip>
+                    </>
+                  }}
+                  inputRef={register({
+                    required: true                          
+                  })}
+                />
+               
+                ))}
+                       </Grid>
+              ) : null }
+            
+              
+            
             </Grid>
           
               <Card>
@@ -203,8 +235,8 @@ export default function Leave(props) {
                   <Grid item xs={10} sm={10} md={10} lg={10} xl={10} style={{margin:'auto'}}>
                       {currentMembers > 1 ? (<Typography variant="body2" gutterBottom>
                         You understand this request means you will no longer be a member of the community. You are 
-                        withdrawing <b>{(share ? share : 0)} yocto (~ {formatNearAmount((share ? share : 0), 3)} Ⓝ)</b> and you are donating <b>
-                        {share ? (parseFloat(fairShare)) - (parseFloat(share)) : 0}</b> yocto (~{formatNearAmount((share ? (parseFloat(fairShare) - parseFloat(share)).toString() : '0'), 3)} Ⓝ) to the community as you leave.
+                        withdrawing <b>{(share ? share : 0)} yocto (~ {formatNearAmount(share ? share.toString() : 0, 3)} Ⓝ)</b> and you are donating <b>
+                        {share ? (parseFloat(fairShare) - parseFloat(share)) : 0}</b> yocto (~ {formatNearAmount(share ? ((parseFloat(fairShare) - parseFloat(share)).toLocaleString('fullwide', {useGrouping: false})) : '0', 3)} Ⓝ) to the community as you leave.
                         </Typography>) : (
                           <Typography variant="body2" gutterBottom>
                             You understand this action is not reversible.

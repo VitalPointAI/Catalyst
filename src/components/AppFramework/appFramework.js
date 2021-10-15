@@ -128,6 +128,7 @@ export default function AppFramework(props) {
     const [gracePeriodLength, setGracePeriodLength] = useState()
     const [neededVotes, setNeededVotes] = useState()
     const [active, setActive] = useState(false)
+    const [totalMembers, setTotalMembers] = useState()
     const classes = useStyles()
 
     const {
@@ -720,6 +721,13 @@ export default function AppFramework(props) {
                       } catch (err) {
                         console.log('no remaining delegates info yet')
                       }
+
+                      try{
+                        let memberCount = await daoContract.getTotalMembers()
+                        setTotalMembers(memberCount)
+                      } catch (err) {
+                        console.log('no members yet')
+                      }
           
                       try {
                         let duration = await daoContract.getPeriodDuration()
@@ -1035,6 +1043,7 @@ export default function AppFramework(props) {
                 totalShares={totalShares}
                 currentMemberInfo={memberInfo}
                 guildBalance={guildBalance}
+                escrowBalance={escrowBalance}
                 handleTabValueState={handleTabValueState}
                 tabValue={tabValue}
                 handleProposalEventChange={handleProposalEventChange}
@@ -1060,6 +1069,7 @@ export default function AppFramework(props) {
                 remainingDelegates={remainingDelegates}
                 votingPeriodLength={votingPeriodLength}
                 gracePeriodLength={gracePeriodLength}
+                totalMembers={totalMembers}
               />
               : <div style={{margin: 'auto', width: '200px'}}><CircularProgress /></div>}
             </Grid>

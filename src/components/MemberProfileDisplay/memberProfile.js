@@ -107,7 +107,7 @@ export default function MemberProfile(props) {
              
                               
                   let result = await thisPersona.getPersona(member)
-          
+                  console.log('result', result)
                       if(result){
                         result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                         result.name ? setName(result.name) : setName('')
@@ -121,24 +121,15 @@ export default function MemberProfile(props) {
                         result.skill ? setSkill(result.skill) : setSkill([])
                         result.familiarity ? setFamiliarity(result.familiarity): setFamiliarity('')
                         if(result.skillSet){
-                          let skillArray = []
-                          skillArray.push(result.skillSet)
-                         
-                          setSkillSet(skillArray)
+                          setSkillSet(result.skillSet)
                         }
                         if(result.developerSkillSet){
-                          let developerSkillSetArray = []      
-                          developerSkillSetArray.push(result.developerSkillSet)
-                          setDeveloperSkillSet(developerSkillSetArray)
+                        setDeveloperSkillSet(result.developerSkillSet)
                         }
                         if(result.personaSkills){
-                        //  let personaSkillSetArray = []      
-                        //  personaSkillSetArray.push(result.personaSkillSet)
                           setPersonaSkillSet(result.personaSkills)
                         }
                         if(result.personaSpecificSkills){
-                        //  let personaSpecificSkillSetArray = []      
-                        //  personaSpecificSkillSetArray.push(result.personaSpecificSkillSet)
                           setPersonaSpecificSkillSet(result.personaSpecificSkills)
                         }
                       }
@@ -201,25 +192,15 @@ export default function MemberProfile(props) {
                   
                   </TableHead>
                   <TableBody>
-                  {skillSet && skillSet.length > 0 ?
-                    skillSet.map((values, index) => {
-
-                   
-                      for (const [key, value] of Object.entries(values)) {
+                  {skillSet ?
+                    Object.entries(skillSet).map(([key, value]) => {
                         if(value){
                           return(
                             <TableRow key={key}>
                             <TableCell>{key}</TableCell>
                             </TableRow>
                           )
-                        } else {
-                          return(
-                            <TableRow key={'none'}>
-                            <TableCell>None</TableCell>
-                            </TableRow>
-                          )
                         }
-                      }
                     })
                     : null
                   }
@@ -251,10 +232,8 @@ export default function MemberProfile(props) {
                   </TableHead>
                   <TableBody>
                   
-                  {developerSkillSet && developerSkillSet.length > 0 ?
-                    developerSkillSet.map((values, index) => {
-
-                      for (const [key, value] of Object.entries(values)) {
+                  {developerSkillSet ?
+                    Object.entries(developerSkillSet).map(([key, value]) => {
                         if(value){
                           return(
                             
@@ -264,7 +243,6 @@ export default function MemberProfile(props) {
                             
                           )
                         }
-                      }
                     })
                     : null
                   }

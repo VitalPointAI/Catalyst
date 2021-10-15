@@ -2159,10 +2159,11 @@ export async function logProcessEvent(near, appIdx, didRegistryContract, curDaoI
             try{
             let personaAccount = new nearAPI.Account(near.connection, proposal.applicant)
             thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, didRegistryContract)
+            let result = await thisCurPersonaIdx.set('profile', record)    
             } catch (err) {
                 console.log('error retrieving idx', err)
             }
-            let result = await thisCurPersonaIdx.set('profile', record)
+            
 
                 // Associated Member Data to Log
 

@@ -126,25 +126,16 @@ export default function MemberProfileDisplay(props) {
                         result.skill ? setSkill(result.skill) : setSkill([])
                         result.familiarity ? setFamiliarity(result.familiarity): setFamiliarity('')
                         if(result.skillSet){
-                          let skillArray = []
-                          skillArray.push(result.skillSet)
-                      
-                          setSkillSet(skillArray)
+                          setSkillSet(result.skillSet)
                         }
                         if(result.developerSkillSet){
-                          let developerSkillSetArray = []      
-                          developerSkillSetArray.push(result.developerSkillSet)
-                          setDeveloperSkillSet(developerSkillSetArray)
+                        setDeveloperSkillSet(result.developerSkillSet)
                         }
-                        if(result.personaSkillSet){
-                          let personaSkillSetArray = []      
-                          personaSkillSetArray.push(result.personaSkillSet)
-                          setPersonaSkillSet(personaSkillSetArray)
+                        if(result.personaSkills){
+                          setPersonaSkillSet(result.personaSkills)
                         }
-                        if(result.personaSpecificSkillSet){
-                          let personaSpecificSkillSetArray = []      
-                          personaSpecificSkillSetArray.push(result.personaSpecificSkillSet)
-                          setPersonaSpecificSkillSet(personaSpecificSkillSetArray)
+                        if(result.personaSpecificSkills){
+                          setPersonaSpecificSkillSet(result.personaSpecificSkills)
                         }
                       }
             }         
@@ -200,31 +191,21 @@ export default function MemberProfileDisplay(props) {
                       
                       </TableHead>
                       <TableBody>
-                      {skillSet && skillSet.length > 0 ?
-                        skillSet.map((values, index) => {
-
-                      
-                          for (const [key, value] of Object.entries(values)) {
+                      {skillSet ?
+                        Object.entries(skillSet).map(([key, value]) => {
                             if(value){
                               return(
                                 <TableRow key={key}>
                                 <TableCell>{key}</TableCell>
                                 </TableRow>
                               )
-                            } else {
-                              return(
-                                <TableRow key={'none'}>
-                                <TableCell>None</TableCell>
-                                </TableRow>
-                              )
                             }
-                          }
                         })
                         : null
                       }
                       {personaSkillSet && personaSkillSet.length > 0 ?
                        
-                        personaSkillSet[0].map((values, index) => {
+                        personaSkillSet.map((values, index) => {
                           
                             return (
                               <TableRow key={values.name}>
@@ -250,10 +231,8 @@ export default function MemberProfileDisplay(props) {
                       </TableHead>
                       <TableBody>
                       
-                      {developerSkillSet && developerSkillSet.length > 0 ?
-                        developerSkillSet.map((values, index) => {
-
-                          for (const [key, value] of Object.entries(values)) {
+                      {developerSkillSet ?
+                        Object.entries(developerSkillSet).map(([key, value]) => {
                             if(value){
                               return(
                                 
@@ -263,13 +242,12 @@ export default function MemberProfileDisplay(props) {
                                 
                               )
                             }
-                          }
                         })
                         : null
                       }
                       {personaSpecificSkillSet && personaSpecificSkillSet.length > 0 ?
                        
-                          personaSpecificSkillSet[0].map((values, index) => {
+                          personaSpecificSkillSet.map((values, index) => {
                             
                               return (
                                 <TableRow key={values.name}>
@@ -280,7 +258,6 @@ export default function MemberProfileDisplay(props) {
                         })
                         : null
                       }
-                      
                       </TableBody>
                     </Table>
                   </TableContainer>

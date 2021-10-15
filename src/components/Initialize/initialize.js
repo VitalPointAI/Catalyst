@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form'
 import { useParams } from 'react-router-dom'
 import { initDao } from '../../state/near'
 import CorporateCard from './CommunityCards/corporateCard'
+import Aaron from '../../img/aaron.png'
+import Emmitt from '../../img/emmitt.jpg'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -14,6 +16,7 @@ import Grid from '@material-ui/core/Grid'
 import Tooltip from '@material-ui/core/Tooltip'
 import Zoom from '@material-ui/core/Zoom'
 import InfoIcon from '@material-ui/icons/Info'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
 
 import clsx from 'clsx';
 import Card from '@material-ui/core/Card';
@@ -56,6 +59,11 @@ const useStyles = makeStyles((theme) => ({
       margin: theme.spacing(1),
     },
   },
+  large: {
+    width: theme.spacing(7),
+    height: theme.spacing(7),
+    float: 'left'
+  },
   progress: {
     width: '100%',
     '& > * + *': {
@@ -87,7 +95,7 @@ export default function Initialize(props) {
 
     const classes = useStyles()
 
-    const { register, handleSubmit, watch, errors } = useForm()
+    const { register, handleSubmit, watch, errors, setValue } = useForm()
 
     const { state, dispatch, update } = useContext(appStore);
 
@@ -190,10 +198,39 @@ export default function Initialize(props) {
           <br></br>
           <Typography variant="subtitle1">Don't worry, you can change this later.</Typography>
         </Grid>
+        <Grid item xs={12} sm={12} md={2} lg={2} xl={2} align="center"></Grid>
         <Grid item xs={12} sm={12} md={4} lg={4} xl={4} align="center">
-        <CorporateCard />
+          <Card>
+            <CardContent>        
+              <Typography variant="body1">Choose one of the community structures
+              below and then customize settings as desired on the right.  When
+              done, click Initialize Community.  Check the info icon for more information
+              about each setting. Less the initial contribution, all can be changed 
+              so don't worry about making a mistake now.
+              </Typography>
+            </CardContent>
+          </Card>
+        
+       <Button variant="outlined" onClick={() => {
+          setValue("periodDuration", "60")
+          setValue("votingPeriodLength", "2880")
+          setValue("gracePeriodLength", "1440")
+          setValue("proposalDeposit", "0.1")
+          setValue("dilutionBound", "3")
+          setValue("voteThreshold", "51")
+          setValue("shareAllocation", "5000")
+          setValue("platformPercent", "0.5")
+        }}>Corporate Structure</Button>
+        <br></br>
+        <Button
+        disabled={state.app.accountTaken || clicked}
+        variant="contained"
+        color="primary"
+        onClick={handleSubmit(onSubmit)}>
+          INITIALIZE COMMUNITY
+        </Button>
         </Grid>
-        <Grid item xs={12} sm={12} md={6} lg={6} xl={6} style={{textAlign: 'center'}}>
+        <Grid item xs={12} sm={12} md={4} lg={4} xl={4} style={{textAlign: 'center'}}>
         <Card>
             <CardContent>
                 <Typography variant="h6">Initialization Settings</Typography>
@@ -344,7 +381,7 @@ export default function Initialize(props) {
                 id="summoner-shares"
                 required={true}
                 variant="outlined"
-                name="summonerContribution"
+                name="shareAllocation"
                 label="Initial Share Allocation"
                 placeholder="e.g. 100000"
                 value={shares}
@@ -385,7 +422,26 @@ export default function Initialize(props) {
                   </>
                 }}
               />
-
+              <Card>
+              <CardContent>
+                <Grid container alignItems="center" justifyContent="flex-end" spacing={0}>
+                  <Grid item xs={2} sm={2} md={2} lg={2} xl={2} align="center">
+                    <Avatar src={Aaron} className={classes.large}  /><br></br>
+                    <Typography variant="caption" color="textSecondary">Aaron</Typography>
+                  </Grid>
+                  <Grid item xs={8} sm={8} md={8} lg={8} xl={8} align="center" style={{padding: '5px', lineHeight:'1em'}}>
+                    <Typography variant="caption" color="textSecondary">
+                    We want to make Catalyst better. You can help by supporting development.<br></br>
+                    Thank you.
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={2} sm={2} md={2} lg={2} xl={2} align="center">
+                      <Avatar src={Emmitt} className={classes.large}  /><br></br>
+                      <Typography variant="caption" color="textSecondary">Emmitt</Typography>
+                  </Grid>
+                </Grid>
+              </CardContent>
+              </Card>
               <TextField
                 fullWidth
                 margin="dense"
@@ -412,32 +468,9 @@ export default function Initialize(props) {
 
               </CardContent>
               </Card>
-        </Grid>
-       
-        <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
-          <Card>
-            <CardContent>
-              <Grid container className={classes.confirmation} spacing={1}>
-         
-              <Typography variant="body1">These are the initial settings that determine various parameters that define how your community functions.
-              Check the info icon for more information about each setting. Less the initial contribution, all can be changed so don't worry about making 
-              a mistake now.
-              </Typography>
-
-               
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{textAlign: 'center', marginTop: '50px'}}>
-                  <Button
-                  disabled={state.app.accountTaken || clicked}
-                  variant="contained"
-                  color="primary"
-                  onClick={handleSubmit(onSubmit)}>
-                    INITIALIZE COMMUNITY DAO
-                  </Button>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
+              
+          </Grid>
+          <Grid item xs={12} sm={12} md={2} lg={2} xl={2} align="center"></Grid>
       </Grid>
         ) : 'Community not initialized yet'}
         </>
