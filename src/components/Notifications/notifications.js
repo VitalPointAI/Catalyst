@@ -35,7 +35,8 @@ export default function NotificationCard(props){
 
     const {
         appIdx, 
-      accountId
+      accountId,
+      isUpdated
     } = state
 
     const{
@@ -49,11 +50,12 @@ export default function NotificationCard(props){
     useEffect(() => {
         
         async function fetchData(){
+            isUpdated
             if(accountId){
                 
                 //retrieve all notifications for all accounts from ceramic
                 let result = await ceramic.downloadKeysSecret(appIdx, 'notifications')
-                   
+                console.log('result', result)
                 if(result){
                         //send the object holding notifications to map for easy access
                         //to specific values

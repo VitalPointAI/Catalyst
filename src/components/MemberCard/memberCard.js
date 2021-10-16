@@ -180,6 +180,8 @@ export default function MemberCard(props) {
     function handleExpanded() {
       setAnchorEl(null)
     }
+
+    const votingPower = Math.round(((allShares - parseInt(delegatedShares)) / totalShares)*100, 2)
       
 
     return(
@@ -236,8 +238,13 @@ export default function MemberCard(props) {
       
                   <TableRow>
                   <TableCell component="th" scope="row" colSpan={2} align="center">
-                   <Typography variant="overline">Voting Power: <b>{allShares && totalShares && Math.round(((allShares - parseInt(delegatedShares)) / totalShares)*100, 2) < 100 ? 
-                  Math.round(((allShares - parseInt(delegatedShares)) / totalShares)*100, 2) : '100'}%</b></Typography>
+                   <Typography variant="overline">Voting Power: <b>
+                  {allShares && totalShares && votingPower < 100 && votingPower && votingPower > 1 ? votingPower :
+                    votingPower && votingPower > 0 && votingPower < 1 ? '<1%':
+                    votingPower && votingPower > 100 ? '100%':
+                    '0%'
+                  }
+                  </b></Typography>
                   </TableCell>
                   </TableRow>
                   

@@ -269,34 +269,41 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
 
          //synch local links with what's stored for the account in ceramic
         let allAccounts = await ceramic.downloadKeysSecret(curUserIdx, 'accountsKeys')
-    
+       
         let storageLinks = get(ACCOUNT_LINKS, [])
-     
-        if(allAccounts.length != storageLinks.length){
+       
+      //  if(allAccounts.length != storageLinks.length){
         
-            if(allAccounts.length <= storageLinks.length){
+        //    if(allAccounts.length <= storageLinks.length){
            
                 let k = 0
+                let didMakeChange = false
                 while(k < allAccounts.length){
                     // ensure all the existing online accounts and offline accounts match
                     let j = 0
                     while (j < storageLinks.length){
                         if(allAccounts[k].accountId == storageLinks[j].accountId){
-                         
-                            allAccounts[k].key = storageLinks[j].key
-                            allAccounts[k].owner = storageLinks[j].owner
-                            allAccounts[k].keyStored = storageLinks[j].keyStored
-                            break
+                            if(allAccounts[k].key != storageLinks[j].key){
+                                allAccounts[k].key = storageLinks[j].key
+                                didMakeChange = true
+                            }
+                            if(allAccounts[k].owner != storageLinks[j].owner){
+                                allAccounts[k].owner = storageLinks[j].owner
+                                didMakeChange = true
+                            }
+                            if(allAccounts[k].keyStored != storageLinks[j].keyStored){
+                                allAccounts[k].keyStored = storageLinks[j].keyStored
+                                didMakeChange = true
+                            }
                         }
                         j++
                     }
                 k++
                 }
-                let test = await ceramic.storeKeysSecret(curUserIdx, allAccounts, 'accountsKeys')
-             
-
+                
                 // add any accounts that are missing
                 let p = 0
+                let wasMissing = false
                 while(p < storageLinks.length){
                     let q = 0
                     let exists = false
@@ -308,16 +315,39 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
                     }
                     if(!exists){
                         allAccounts.push(storageLinks[p])
+                        wasMissing = true
                     }
                     p++
                 }
-                await ceramic.storeKeysSecret(curUserIdx, allAccounts, 'accountsKeys')
+                
+            //    }
+            // remove duplicates
+            let copyArray = allAccounts
+            let z = 0
+            let wasDuplicate = false
+            while(z < allAccounts.length){
+                let r = 0
+                let count = 0
+                while(r < copyArray.length){
+                    if(copyArray[r].accountId == allAccounts[z].accountId){
+                        count++
+                        if(count > 1) copyArray.splice(r,1)
+                        wasDuplicate = true
+                    }
+                    r++
+                }
+                z++
             }
-            
-            if(allAccounts.length > storageLinks.length){
+
+            if(didMakeChange || wasMissing || wasDuplicate){
+                await ceramic.storeKeysSecret(curUserIdx, allAccounts, 'accountsKeys')
                 set(ACCOUNT_LINKS, allAccounts)
             }
-        }
+            
+            // if(allAccounts.length > storageLinks.length){
+                
+            // }
+     //   }
         
         const localLinks = get(ACCOUNT_LINKS, []).sort((a) => a.claimed ? 1 : -1)
         let changed = false
@@ -401,6 +431,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         }
 
         avgBlockTime = parseFloat(Math.fround(totalTime/count / 1000000000).toFixed(3)) // Time in seconds
+        console.log('avgblocktime', avgBlockTime)
     } catch (err) {
         console.log("problem retrieving blockTime", err)
     }
@@ -459,7 +490,7 @@ export const keyRotation = () => async ({ update, getState, dispatch }) => {
 
     const didContract = await ceramic.initiateDidRegistryContract(account)
 
-    const appIdx = await ceramic.getAppIdx(didContract)
+    const appIdx = await ceramic.getAppIdx(didContract, accountId)
 
 
     let upLinks = await ceramic.downloadKeysSecret(curUserIdx, 'accountsKeys')
@@ -1201,6 +1232,7 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId,
     if(member && member.length > 0){
         // add processed members
         while(i < logMembers.events.length){
+            console.log('members', logMembers)
             if(logMembers.events[i].delegateKey == member[0].delegateKey){
                 exists = true
                 count++
@@ -1214,9 +1246,9 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId,
         // delete duplicate members from datastream leaving first one
         if(memberIndexesToDelete.length > 0){
             duplicates = true
-            let kk = 1
+            let kk = 0
             while(kk < memberIndexesToDelete.length){
-                logMembers.events.splice(kk, 1)
+                logMembers.events.splice(memberIndexesToDelete[kk], 1)
                 kk++
             }
         }

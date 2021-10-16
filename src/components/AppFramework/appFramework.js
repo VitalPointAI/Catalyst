@@ -129,6 +129,7 @@ export default function AppFramework(props) {
     const [neededVotes, setNeededVotes] = useState()
     const [active, setActive] = useState(false)
     const [totalMembers, setTotalMembers] = useState()
+    const [synchComplete, setSynchComplete] = useState(false)
     const classes = useStyles()
 
     const {
@@ -568,36 +569,7 @@ export default function AppFramework(props) {
                     m++
                   }
 
-                  //************SYNCH PROPOSALS AND CONTRACT AND MEMBERS */
-                  // has to occur after all triggers so everything is logged
-                  // otherwise will erase transaction hashes as they aren't
-                  // retrievable from the contract
-                  let daosynch = false
-                  try {
-                    daosynch = await synchDaos(state)
-                  } catch (err) {
-                    console.log('dao synch error', err)
-                  }
-
-                  if(daosynch){
-                    try {
-                      let synched = await synchProposalEvent(curDaoIdx, daoContract)
-                      setAllProposals(synched.events)
-                    } catch (err) {
-                      console.log('no proposals yet', err)
-                    }
-
-                    try {
-                      let synched = await synchMember(curDaoIdx, daoContract, contractId, accountId, false)
-                      
-                      if(synched){
-                        let members = await curDaoIdx.get('members', curDaoIdx.id)
-                        setAllMemberInfo(members.events)
-                      }
-                    } catch (err) {
-                      console.log('no members yet', err)
-                    }
-                  }
+                  
                 
                 return true
         }
@@ -607,11 +579,56 @@ export default function AppFramework(props) {
           actionTriggers()
           .then((res) => {
             res ? setTriggersActioned(true) : setTriggersActioned(false)
-            setLoaded(true)
           })
         }
 
       }, [essentialsInitialized]
+    )
+
+    useEffect(
+      () => {
+        async function actionSynch() {
+          //************SYNCH PROPOSALS AND CONTRACT AND MEMBERS */
+          // has to occur after all triggers so everything is logged
+          // otherwise will erase transaction hashes as they aren't
+          // retrievable from the contract
+          let daosynch = false
+          try {
+            daosynch = await synchDaos(state)
+          } catch (err) {
+            console.log('dao synch error', err)
+          }
+
+          if(daosynch){
+            try {
+              let synched = await synchProposalEvent(curDaoIdx, daoContract)
+              setAllProposals(synched.events)
+            } catch (err) {
+              console.log('no proposals yet', err)
+            }
+
+            try {
+              let synched = await synchMember(curDaoIdx, daoContract, contractId, accountId, false)
+              
+              if(synched){
+                let members = await curDaoIdx.get('members', curDaoIdx.id)
+                setAllMemberInfo(members.events)
+              }
+            } catch (err) {
+              console.log('no members yet', err)
+            }
+          }
+          return true
+        }
+
+        if(triggersActioned){
+          actionSynch()
+          .then((res) => {
+            res ? setSynchComplete(true) : setSynchComplete(false)
+            setLoaded(true)
+          })
+        }
+      }, [triggersActioned]
     )
 
     useEffect(

@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { appStore, onAppMount } from '../../state/app'
-import { useForm } from 'react-hook-form'
+import { useForm, useFieldArray } from 'react-hook-form'
 import { useParams } from 'react-router-dom'
 import { initDao } from '../../state/near'
-import CorporateCard from './CommunityCards/corporateCard'
 import Aaron from '../../img/aaron.png'
 import Emmitt from '../../img/emmitt.jpg'
 
@@ -27,12 +26,24 @@ import CardActions from '@material-ui/core/CardActions';
 import Collapse from '@material-ui/core/Collapse';
 import Avatar from '@material-ui/core/Avatar';
 import IconButton from '@material-ui/core/IconButton';
-import Typography from '@material-ui/core/Typography';
 import { red } from '@material-ui/core/colors';
 import FavoriteIcon from '@material-ui/icons/Favorite';
 import ShareIcon from '@material-ui/icons/Share';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import Accordion from '@material-ui/core/Accordion';
+import AccordionSummary from '@material-ui/core/AccordionSummary';
+import AccordionDetails from '@material-ui/core/AccordionDetails';
+import Typography from '@material-ui/core/Typography';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import PersonIcon from '@material-ui/icons/Person';
+import PeopleOutlineIcon from '@material-ui/icons/PeopleOutline';
+import HowToVoteIcon from '@material-ui/icons/HowToVote'
+import RecentActorsIcon from '@material-ui/icons/RecentActors';
+import VerifiedUserIcon from '@material-ui/icons/VerifiedUser';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -42,6 +53,10 @@ const useStyles = makeStyles((theme) => ({
     float: 'left',
     paddingRight: '10px',
     paddingBottom: '10px'
+  },
+  heading: {
+    fontSize: theme.typography.pxToRem(15),
+    fontWeight: theme.typography.fontWeightRegular,
   },
   paper: {
     padding: theme.spacing(2),
@@ -95,8 +110,6 @@ export default function Initialize(props) {
 
     const classes = useStyles()
 
-    const { register, handleSubmit, watch, errors, setValue } = useForm()
-
     const { state, dispatch, update } = useContext(appStore);
 
     const {
@@ -108,7 +121,21 @@ export default function Initialize(props) {
       contractId
     } = useParams()
 
-    
+    const { register, handleSubmit, watch, errors, control, reset, setValue, getValues } = useForm({
+      defaultValues: {
+            periodDuration: periodDuration,
+            votingPeriodLength: votingPeriodLength,
+            gracePeriodLength: gracePeriodLength,
+            proposalDeposit: proposalDeposit,
+            dilutionBound: dilutionBound,
+            voteThreshold: voteThreshold,
+            shareAllocation: shares,
+            summonerContribution: summonerContribution,
+            platformPercent: platformPercent
+        }
+    })
+
+   
     useEffect(
       () => {
        // let daoOwner = get(DAO_LINKS, [])
@@ -164,6 +191,30 @@ export default function Initialize(props) {
         setConfirm(event.target.checked);
       }
 
+      function formatTime(seconds) {
+        let minutes = (seconds / 60).toFixed(0)
+        let hours = (seconds / 3600).toFixed(0)
+        let days = (seconds / 86400).toFixed(0)
+        let weeks = (seconds / 604800).toFixed(0)
+        let blocks = (seconds * state.avgBlockTime).toFixed(0)
+
+        let secondString = seconds > 0 ? seconds + ' sec | ' : ''
+        let minuteString = minutes > 0 ? minutes + ' min | ' : ''
+        let hourString = hours > 0 ? hours + ' hr | ' : ''
+        let dayString = days > 0 ? days + 'd | ' : ''
+        let weekString = weeks > 0 ? weeks + ' wk | ' : ''
+        let blockString = blocks > 0 ? blocks + ' blocks' : ''
+
+        return {
+          seconds: secondString,
+          minutes: minuteString,
+          hours: hourString,
+          days: dayString,
+          weeks: weekString,
+          blocks: blockString
+        }
+      }
+
       const onSubmit = async (values) => {
         try{
         
@@ -188,6 +239,10 @@ export default function Initialize(props) {
         }
         setFinished(false)
       }
+    
+      let periodDurationTime = formatTime(periodDuration)
+      let votingPeriodLengthTime = formatTime(periodDuration * votingPeriodLength)
+      let gracePeriodLengthTime = formatTime(periodDuration * gracePeriodLength)
 
       return (
         <>
@@ -201,41 +256,253 @@ export default function Initialize(props) {
         <Grid item xs={12} sm={12} md={2} lg={2} xl={2} align="center"></Grid>
         <Grid item xs={12} sm={12} md={4} lg={4} xl={4} align="center">
           <Card>
-            <CardContent>        
-              <Typography variant="body1">Choose one of the community structures
-              below and then customize settings as desired on the right.  When
-              done, click Initialize Community.  Check the info icon for more information
-              about each setting. Less the initial contribution, all can be changed 
-              so don't worry about making a mistake now.
-              </Typography>
-            </CardContent>
+            <CardContent>
+              <Typography variant="h6">Getting Started</Typography>  
+              <Typography variant="body1">Choose one of the example community structures
+              below and then customize settings as desired.</Typography><br></br>
+              <Typography variant="body1">Catalyst enables your community's governance to evolve to meet its
+              governance needs. Everything can be changed so don't worry about making a mistake now.</Typography><br></br>
+              <Typography variant="body1">When done customizing, click Initialize Community.</Typography>
+              </CardContent>
           </Card>
+          <Accordion>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+              <Typography className={classes.heading}>Corporate Structure</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography>
+                <List>
+                  <ListItem>
+                    <ListItemIcon><PersonIcon /></ListItemIcon>
+                    <ListItemText>Power vested in one person (CEO)</ListItemText>
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><PeopleOutlineIcon /></ListItemIcon>
+                    <ListItemText>CEO can delegate voting power to a Board of Directors</ListItemText>
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><HowToVoteIcon /></ListItemIcon>
+                    <ListItemText>Simple majority vote (51% of total voting power)</ListItemText>
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><RecentActorsIcon /></ListItemIcon>
+                    <ListItemText>Anyone can apply to be a member</ListItemText>
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><VerifiedUserIcon /></ListItemIcon>
+                    <ListItemText>Great for: traditional business, council controlled communities</ListItemText>
+                  </ListItem>
+                </List>
+              </Typography>
+              <Button variant="outlined" onClick={() => {
+                setPeriodDuration('60')
+                setVotingPeriodLength('2880')
+                setGracePeriodLength('1440')
+                setProposalDeposit('0.1')
+                setDilutionBound('3')
+                setVoteThreshold('51')
+                setShares('5000')
+                setPlatformPercent('0.5')
+              }}>Choose Corporate Settings</Button>
+            </AccordionDetails>
+          </Accordion>
+          <Accordion>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+              <Typography className={classes.heading}>Democratic Structure</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography>
+                <List>
+                  <ListItem>
+                    <ListItemIcon><PersonIcon /></ListItemIcon>
+                    <ListItemText>One person, one vote</ListItemText>
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><PeopleOutlineIcon /></ListItemIcon>
+                    <ListItemText>Votes can be delegated</ListItemText>
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><HowToVoteIcon /></ListItemIcon>
+                    <ListItemText>Majority vote (51% of total voting power)</ListItemText>
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><RecentActorsIcon /></ListItemIcon>
+                    <ListItemText>Anyone can join</ListItemText>
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><VerifiedUserIcon /></ListItemIcon>
+                    <ListItemText>Great for: government, collectives, and cooperatives</ListItemText>
+                  </ListItem>
+                </List>
+              </Typography>
+              <Button variant="outlined" onClick={() => {
+                setPeriodDuration('60')
+                setVotingPeriodLength('2880')
+                setGracePeriodLength('1440')
+                setProposalDeposit('0.1')
+                setDilutionBound('3')
+                setVoteThreshold('51')
+                setShares('1')
+                setPlatformPercent('0.5')
+              }}>Choose Democratic Settings</Button>
+            </AccordionDetails>
+          </Accordion>
+          <Accordion>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="panel1a-content"
+            id="panel1a-header"
+          >
+            <Typography className={classes.heading}>Representative Structure</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Typography>
+              <List>
+                <ListItem>
+                  <ListItemIcon><PersonIcon /></ListItemIcon>
+                  <ListItemText>One person, one vote</ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon><PeopleOutlineIcon /></ListItemIcon>
+                  <ListItemText>Hold elections and delegate votes to representatives (or a continuous election process)</ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon><HowToVoteIcon /></ListItemIcon>
+                  <ListItemText>Majority vote (51% of total voting power)</ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon><RecentActorsIcon /></ListItemIcon>
+                  <ListItemText>Anyone can join</ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon><VerifiedUserIcon /></ListItemIcon>
+                  <ListItemText>Great for: clubs, government, collectives, and cooperatives</ListItemText>
+                </ListItem>
+              </List>
+            </Typography>
+            <Button variant="outlined" onClick={() => {
+              setPeriodDuration('60')
+              setVotingPeriodLength('2880')
+              setGracePeriodLength('1440')
+              setProposalDeposit('0.1')
+              setDilutionBound('3')
+              setVoteThreshold('51')
+              setShares('1')
+              setPlatformPercent('0.5')
+            }}>Choose Representative Settings</Button>
+          </AccordionDetails>
+        </Accordion>
+        <Accordion>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="panel1a-content"
+          id="panel1a-header"
+        >
+          <Typography className={classes.heading}>Autocratic Structure</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Typography>
+            <List>
+              <ListItem>
+                <ListItemIcon><PersonIcon /></ListItemIcon>
+                <ListItemText>One person holds absolute power</ListItemText>
+              </ListItem>
+              <ListItem>
+                <ListItemIcon><PeopleOutlineIcon /></ListItemIcon>
+                <ListItemText>Votes are not delegated</ListItemText>
+              </ListItem>
+              <ListItem>
+                <ListItemIcon><HowToVoteIcon /></ListItemIcon>
+                <ListItemText>Leader controls all the voting power</ListItemText>
+              </ListItem>
+              <ListItem>
+                <ListItemIcon><RecentActorsIcon /></ListItemIcon>
+                <ListItemText>Anyone can join but no one but leader makes any decisions</ListItemText>
+              </ListItem>
+              <ListItem>
+                <ListItemIcon><VerifiedUserIcon /></ListItemIcon>
+                <ListItemText>Great for: dictatorships, sole-propietorships</ListItemText>
+              </ListItem>
+            </List>
+          </Typography>
+          <Button variant="outlined" onClick={() => {
+            setPeriodDuration('60')
+            setVotingPeriodLength('2880')
+            setGracePeriodLength('1440')
+            setProposalDeposit('0.1')
+            setDilutionBound('3')
+            setVoteThreshold('51')
+            setShares('1000000')
+            setPlatformPercent('0.5')
+          }}>Choose Autocratic Settings</Button>
+        </AccordionDetails>
+      </Accordion>
+      <Accordion>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="panel1a-content"
+          id="panel1a-header"
+        >
+          <Typography className={classes.heading}>Plutocratic Structure</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Typography>
+            <List>
+              <ListItem>
+                <ListItemIcon><PersonIcon /></ListItemIcon>
+                <ListItemText>One NEAR, one vote (power is bought)</ListItemText>
+              </ListItem>
+              <ListItem>
+                <ListItemIcon><PeopleOutlineIcon /></ListItemIcon>
+                <ListItemText>Votes can be delegated and bought</ListItemText>
+              </ListItem>
+              <ListItem>
+                <ListItemIcon><HowToVoteIcon /></ListItemIcon>
+                <ListItemText>Majority vote (51% of voting power)</ListItemText>
+              </ListItem>
+              <ListItem>
+                <ListItemIcon><RecentActorsIcon /></ListItemIcon>
+                <ListItemText>Anyone can contribute in return for voting power</ListItemText>
+              </ListItem>
+              <ListItem>
+                <ListItemIcon><VerifiedUserIcon /></ListItemIcon>
+                <ListItemText>Great for: fundraising, crowdsourcing, memberships</ListItemText>
+              </ListItem>
+            </List>
+          </Typography>
+          <Button variant="outlined" onClick={() => {
+            setPeriodDuration('60')
+            setVotingPeriodLength('2880')
+            setGracePeriodLength('1440')
+            setProposalDeposit('0.1')
+            setDilutionBound('3')
+            setVoteThreshold('51')
+            setShares('1')
+            setPlatformPercent('0.5')
+          }}>Choose Autocratic Settings</Button>
+        </AccordionDetails>
+      </Accordion>
         
-       <Button variant="outlined" onClick={() => {
-          setValue("periodDuration", "60")
-          setValue("votingPeriodLength", "2880")
-          setValue("gracePeriodLength", "1440")
-          setValue("proposalDeposit", "0.1")
-          setValue("dilutionBound", "3")
-          setValue("voteThreshold", "51")
-          setValue("shareAllocation", "5000")
-          setValue("platformPercent", "0.5")
-        }}>Corporate Structure</Button>
-        <br></br>
-        <Button
-        disabled={state.app.accountTaken || clicked}
-        variant="contained"
-        color="primary"
-        onClick={handleSubmit(onSubmit)}>
-          INITIALIZE COMMUNITY
-        </Button>
         </Grid>
         <Grid item xs={12} sm={12} md={4} lg={4} xl={4} style={{textAlign: 'center'}}>
         <Card>
             <CardContent>
-                <Typography variant="h6">Initialization Settings</Typography>
+                <Typography variant="h6">Customize Community Settings</Typography>
+                <Typography variant="overline">~ {periodDurationTime != '' ? 
+                periodDurationTime.seconds + periodDurationTime.minutes + periodDurationTime.hours + periodDurationTime.weeks + periodDurationTime.days + periodDurationTime.blocks
+                : ''}
+                </Typography>
                 <TextField
                 fullWidth
+                margin="dense"
                 id="period-duration"
                 variant="outlined"
                 name="periodDuration"
@@ -257,9 +524,13 @@ export default function Initialize(props) {
                 }}
                 style={{marginBottom: '10px'}}
               />
-
+              <Typography variant="overline">~ {votingPeriodLengthTime != '' ? 
+              votingPeriodLengthTime.seconds + votingPeriodLengthTime.minutes + votingPeriodLengthTime.hours + votingPeriodLengthTime.weeks + votingPeriodLengthTime.days + votingPeriodLengthTime.blocks
+              : ''}
+              </Typography>
               <TextField
                 fullWidth
+                margin="dense"
                 id="voting-period-length"
                 variant="outlined"
                 required={true}
@@ -281,9 +552,13 @@ export default function Initialize(props) {
                 }}
                 style={{marginBottom: '10px'}}
               />
-
+              <Typography variant="overline">~ {gracePeriodLengthTime != '' ? 
+              gracePeriodLengthTime.seconds + gracePeriodLengthTime.minutes + gracePeriodLengthTime.hours + gracePeriodLengthTime.weeks + gracePeriodLengthTime.days + gracePeriodLengthTime.blocks
+              : ''}
+              </Typography>
               <TextField
                 fullWidth
+                margin="dense"
                 id="grace-period-length"
                 variant="outlined"
                 required={true}
@@ -308,6 +583,7 @@ export default function Initialize(props) {
 
               <TextField
                 fullWidth
+                margin="dense"
                 id="proposal-deposit"
                 variant="outlined"
                 required={true}
@@ -332,6 +608,7 @@ export default function Initialize(props) {
 
               <TextField
                 fullWidth
+                margin="dense"
                 id="dilution-bound"
                 variant="outlined"
                 required={true}
@@ -355,6 +632,7 @@ export default function Initialize(props) {
 
               <TextField
               fullWidth
+              margin="dense"
               id="vote-threshold"
               variant="outlined"
               required={true}
@@ -416,7 +694,7 @@ export default function Initialize(props) {
                 })}
                 InputProps={{
                   endAdornment: <><InputAdornment position="end">Ⓝ</InputAdornment>
-                  <Tooltip TransitionComponent={Zoom} title="The amount of Ⓝ the community creator is contributing. This will allocate 1 voting share per 1 Ⓝ contributed.">
+                  <Tooltip TransitionComponent={Zoom} title="The amount of Ⓝ you want to seed the community fund with. Can be 0.">
                       <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
                   </Tooltip>
                   </>
@@ -431,7 +709,7 @@ export default function Initialize(props) {
                   </Grid>
                   <Grid item xs={8} sm={8} md={8} lg={8} xl={8} align="center" style={{padding: '5px', lineHeight:'1em'}}>
                     <Typography variant="caption" color="textSecondary">
-                    We want to make Catalyst better. You can help by supporting development.<br></br>
+                    We want to make Catalyst better.<br></br>You can help by designating a small percentage of each successful payout to supporting future development.<br></br>
                     Thank you.
                     </Typography>
                   </Grid>
@@ -465,10 +743,17 @@ export default function Initialize(props) {
                   </>
                 }}
               />
-
+             
               </CardContent>
               </Card>
-              
+              <br></br>
+              <Button
+              disabled={state.app.accountTaken || clicked}
+              variant="contained"
+              color="primary"
+              onClick={handleSubmit(onSubmit)}>
+                INITIALIZE COMMUNITY
+              </Button>
           </Grid>
           <Grid item xs={12} sm={12} md={2} lg={2} xl={2} align="center"></Grid>
       </Grid>

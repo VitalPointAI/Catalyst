@@ -30,8 +30,9 @@ import CodeIcon from '@material-ui/icons/Code'
 import SchoolIcon from '@material-ui/icons/School'
 import ContactSupportIcon from '@material-ui/icons/ContactSupport'
 import PieChartIcon from '@material-ui/icons/PieChart'
-import NotificationsIcon from '@material-ui/icons/Notifications';
+import NotificationsIcon from '@material-ui/icons/Notifications'
 import Badge from '@material-ui/core/Badge'
+import LocalHospitalIcon from '@material-ui/icons/LocalHospital'
 
 const useStyles = makeStyles((theme) => ({
     list: {
@@ -147,22 +148,25 @@ useEffect(
 
             //convert the object from ceramic to map in order to more easily
             //return notifications associated with current account
-            let notificationMap = new Map(Object.entries(result[0])) 
+            if(result[0]){
+              let notificationMap = new Map(Object.entries(result[0])) 
 
-            let notifications = 0;
+              let notifications = 0;
 
-            //loop thorugh all notifications for user, if the read flag is false, increase the count
-            //for the notification badge
-            if(notificationMap.get(accountId)){
-              for(let i = 0; i < notificationMap.get(accountId).length; i++){
-                  if(notificationMap.get(accountId)[i].read == false){
-                      notifications++;
-                  }
+              //loop thorugh all notifications for user, if the read flag is false, increase the count
+              //for the notification badge
+              if(notificationMap.get(accountId)){
+                for(let i = 0; i < notificationMap.get(accountId).length; i++){
+                    if(notificationMap.get(accountId)[i].read == false){
+                        notifications++;
+                    }
+                }
               }
-            }
+            
 
             //set the counter for the badge to the amount of unread notifications
             setNewNotifications(notifications)
+            }
         }
       }
     }
@@ -282,6 +286,12 @@ const list = (anchor) => (
         <ListItemIcon><AddBoxIcon /></ListItemIcon>
         <ListItemText primary='Create Persona'/>
       </ListItem>
+      <Link to='/newkey'>
+        <ListItem className='recoverKey' button key={2}>
+        <ListItemIcon><LocalHospitalIcon /></ListItemIcon>
+        <ListItemText primary='Recover Persona'/>
+      </ListItem>
+    </Link>
     </List>
     <Divider />
     <Typography variant='h6'>Communities</Typography>

@@ -74,21 +74,8 @@ export default function Import(props) {
 
         async function fetchData() {
          
-          let currentAccounts = get(ACCOUNT_LINKS, [])
-          let i = 0
-          let exists = false
-          while (i < currentAccounts.length) {
-            if(currentAccounts[i].accountId == accountId){
-              exists = true
-              break
-            }
-            i++
-          }
-          if(exists){
-            setExists(true)
-          } else {
-            setExists(false)
-          }
+         
+         
         }
 
         fetchData()
@@ -100,28 +87,44 @@ export default function Import(props) {
         setRecoverSeed(event.target.value)
       }
 
+      // replaces existing key complete - no recover
       const onSubmit = async (values) => {
         let currentAccounts = get(ACCOUNT_LINKS, [])
+        let i = 0
+        while (i < currentAccounts.length) {
+          if(currentAccounts[i].accountId == accountId){
+            currentAccounts.splice[i,1]
+            break
+          }
+          i++
+        }
         let newAccount = { key: (base58.encode(await bip39.mnemonicToSeed(seedPhrase))), accountId: accountId, owner: accountId, keyStored: Date.now() }
         currentAccounts.push(newAccount)
         set(ACCOUNT_LINKS, currentAccounts)
-        setExists(true)
         window.location.assign('/')
       }
 
+      // recovers an existing key
       const onRecover = async (values) => {
         let currentAccounts = get(ACCOUNT_LINKS, [])
+        let i = 0
+        while (i < currentAccounts.length) {
+          if(currentAccounts[i].accountId == accountId){
+            currentAccounts.splice[i,1]
+            break
+          }
+          i++
+        }
         let newAccount = { key: (base58.encode(await bip39.mnemonicToSeed(recoverSeed))), accountId: accountId, owner: accountId, keyStored: Date.now() }
         currentAccounts.push(newAccount)
         set(ACCOUNT_LINKS, currentAccounts)
-        setExists(true)
         window.location.assign('/')
       }
 
       return (
         <>
-        {!exists ?
-        (<Grid container spacing={1}>
+       
+        <Grid container spacing={1}>
           <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
             <Typography variant="h5" style={{marginTop:'20px', marginBottom: '20px'}}>Oops, Looks Like This Account is Missing it's Seed!</Typography>
           </Grid>
@@ -182,7 +185,7 @@ export default function Import(props) {
           </CardContent>
           </Card>
           </Grid>
-        </Grid>) : null }
+        </Grid>
         </>
     )
   

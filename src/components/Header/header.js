@@ -49,22 +49,25 @@ export const Header = ({ state, handleUpdate, isUpdated }) => {
 
                     //convert the object from ceramic to map in order to more easily
                     //return notifications associated with current account
-                    let notificationMap = new Map(Object.entries(result[0])) 
+                    if(result[0]){
+                        let notificationMap = new Map(Object.entries(result[0])) 
 
-                    let notifications = 0;
+                        let notifications = 0;
 
-                    //loop thorugh all notifications for user, if the read flag is false, increase the count
-                    //for the notification badge
-                    if(notificationMap.get(accountId)){
-                        for(let i = 0; i < notificationMap.get(accountId).length; i++){
-                            if(notificationMap.get(accountId)[i].read == false){
-                                notifications++;
+                        //loop thorugh all notifications for user, if the read flag is false, increase the count
+                        //for the notification badge
+                        if(notificationMap.get(accountId)){
+                            for(let i = 0; i < notificationMap.get(accountId).length; i++){
+                                if(notificationMap.get(accountId)[i].read == false){
+                                    notifications++;
+                                }
                             }
                         }
-                    }
+                    
 
                     //set the counter for the badge to the amount of unread notifications
                     setNewNotifications(notifications)
+                    }
                 }
             }
         }
