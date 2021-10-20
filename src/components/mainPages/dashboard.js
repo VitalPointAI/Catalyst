@@ -1099,7 +1099,7 @@ export default function Dashboard(props) {
                 }) :
                 !recommendations || recommendations.length == 0 ? (
                     <TableRow key={'na'} style={{ height: 33 * emptyRows }}>
-                    <TableCell colSpan={7}><Typography variant="body1">Currently no opportunites available. Please check back.</Typography></TableCell>
+                    <TableCell colSpan={7}><Typography variant="body1">Currently no opportunities available. Please check back.</Typography></TableCell>
                   </TableRow>
                 ) :
               emptyRows > 0 && (
