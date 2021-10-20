@@ -1036,48 +1036,48 @@ function typeFilter(item){
   function onStepsExit(){
     setStepsEnabled(false)
   }
-  let steps=[
-    {
-      element: '.members',
-      intro: <>
-             <Typography>The community page is split into several tabs. The first of which is this one: the members tab.</Typography>
-            <br/>
-             <Typography>Here you can find all the members in a community, sorted by their respective voting shares. Clicking on any member’s card will reveal their Persona details.</Typography>
-            </>,
-      position:'top'
-    },
-    {
-      element: '.proposals',
-      intro:<> 
-            <Typography>The proposals tab is where all new proposals end up. Here you can add details to your proposals, and engage in discussion.</Typography>
-            <br/>
-            <Typography>Members can also sponsor proposals here to move them into voting. </Typography>
-            </>,
-      position:'top'
-    },
-    {
-      element: '.voting',
-      intro: <>
-             <Typography>Once sponsored, proposals move to this tab.</Typography>
-             <br/>
-             <Typography>Here, community members can vote on the proposals to pass or fail.</Typography>
-             </>,
-      position:'top'
-    },
-    {
-      element: '.finalization',
-      intro: <Typography>Here proposals will sit as they wait for a user to click ‘Finalize,’ which records it on the NEAR blockchain.</Typography>,
-      position:'bottom'
-    },
-    {
-      element: '.processed',    
-      intro: <Typography>This is the final destination of all proposals. Whether they pass or fail, proposals which have completed voting and finalization will appear under this tab. </Typography>,
-      position:'bottom'
-    },
-    {
-      intro: <Typography>You can find more information about the proposal life cycle <a href=''>here</a></Typography>
-    }
-  ]
+  // let steps=[
+  //   {
+  //     element: '.members',
+  //     intro: <>
+  //            <Typography>The community page is split into several tabs. The first of which is this one: the members tab.</Typography>
+  //           <br/>
+  //            <Typography>Here you can find all the members in a community, sorted by their respective voting shares. Clicking on any member’s card will reveal their Persona details.</Typography>
+  //           </>,
+  //     position:'top'
+  //   },
+  //   {
+  //     element: '.proposals',
+  //     intro:<> 
+  //           <Typography>The proposals tab is where all new proposals end up. Here you can add details to your proposals, and engage in discussion.</Typography>
+  //           <br/>
+  //           <Typography>Members can also sponsor proposals here to move them into voting. </Typography>
+  //           </>,
+  //     position:'top'
+  //   },
+  //   {
+  //     element: '.voting',
+  //     intro: <>
+  //            <Typography>Once sponsored, proposals move to this tab.</Typography>
+  //            <br/>
+  //            <Typography>Here, community members can vote on the proposals to pass or fail.</Typography>
+  //            </>,
+  //     position:'top'
+  //   },
+  //   {
+  //     element: '.finalization',
+  //     intro: <Typography>Here proposals will sit as they wait for a user to click ‘Finalize,’ which records it on the NEAR blockchain.</Typography>,
+  //     position:'bottom'
+  //   },
+  //   {
+  //     element: '.processed',    
+  //     intro: <Typography>This is the final destination of all proposals. Whether they pass or fail, proposals which have completed voting and finalization will appear under this tab. </Typography>,
+  //     position:'bottom'
+  //   },
+  //   {
+  //     intro: <Typography>You can find more information about the proposal life cycle <a href=''>here</a></Typography>
+  //   }
+  // ]
 
   function handleStepsChange(index){
     if(index==1){
@@ -1096,7 +1096,7 @@ function typeFilter(item){
 
   return (
     <>
-    <Steps 
+    {/* <Steps 
       enabled={stepsEnabled}
       steps={steps}
       options={options}
@@ -1104,7 +1104,7 @@ function typeFilter(item){
       onComplete = {()=>onStepsComplete()}
       onExit = {()=>onStepsExit()}
       onChange = {(index)=>handleStepsChange(index)}  
-    / >
+    / > */}
     <Paper square className={classes.root}>
     {!matches && loaded ? (
       <Tabs

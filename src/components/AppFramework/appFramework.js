@@ -160,17 +160,17 @@ export default function AppFramework(props) {
 
     const matches = useMediaQuery('(max-width:500px)')
 
-    let steps=[{
-      intro:
-      <> 
-      <Typography>Welcome to the Community Page! Here you can join the community, create, and vote on proposals.</Typography>
-      <br/>
-      <Typography>You can also find community specific opportunities by visitng the communities opportunity page.</Typography>
-      </>
-    },
-  {
-    intro: "This is a phantom step to denote the end of steps in this component. If it is displayed, there is an error"
-  }]
+  //   let steps=[{
+  //     intro:
+  //     <> 
+  //     <Typography>Welcome to the Community Page! Here you can join the community, create, and vote on proposals.</Typography>
+  //     <br/>
+  //     <Typography>You can also find community specific opportunities by visitng the communities opportunity page.</Typography>
+  //     </>
+  //   },
+  // {
+  //   intro: "This is a phantom step to denote the end of steps in this component. If it is displayed, there is an error"
+  // }]
 
     useEffect(
       () => {
@@ -931,7 +931,7 @@ export default function AppFramework(props) {
             </div> :
             initialized == 'done' ? (
               <>
-                <Steps
+                {/* <Steps
             enabled={stepsEnabled}
             initialStep={0}
             onBeforeChange={(index)=> 
@@ -943,7 +943,7 @@ export default function AppFramework(props) {
             onExit={()=>onStepsExit()}
             steps={steps}
             options={options}
-            />
+            /> */}
               {matches ? (<>
                 <Grid container justifyContent="space-evenly" alignItems="center" style={{marginBottom:'15px'}} spacing={0}>
                   <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" style={{marginBottom: '15px'}}>                    
