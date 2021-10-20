@@ -143,21 +143,21 @@ export default function ActionSelector(props) {
     }, [enable]
   )
 
-  let steps = [
-    { 
-      element: '.proposalList',
-      intro: <>
-             <Typography>Clicking this button will display a list of proposals that you can submit.</Typography>
-             <br />
-             <Typography>If you are not a member of this community, you can click the join button, and submit a member proposal to gain access to all proposals types.</Typography>
-             <br />
-             <Typography>For more information about the various proposal types, you can find them (here)</Typography>
-            </>
-    }, {
-      element: '.invite',
-      intro: <Typography>Here you can invite your friends to join a community on a variety of social media platforms.</Typography>
-    }                       
-]
+//   let steps = [
+//     { 
+//       element: '.proposalList',
+//       intro: <>
+//              <Typography>Clicking this button will display a list of proposals that you can submit.</Typography>
+//              <br />
+//              <Typography>If you are not a member of this community, you can click the join button, and submit a member proposal to gain access to all proposals types.</Typography>
+//              <br />
+//              <Typography>For more information about the various proposal types, you can find them (here)</Typography>
+//             </>
+//     }, {
+//       element: '.invite',
+//       intro: <Typography>Here you can invite your friends to join a community on a variety of social media platforms.</Typography>
+//     }                       
+// ]
 
   const handleDonationProposalClick = () => {
     handleExpanded()
@@ -285,14 +285,14 @@ export default function ActionSelector(props) {
 
   return (
     <>
-      <Steps
+      {/* <Steps
         steps={steps}
         initialStep={0}
         onComplete={() => onStepsComplete()}
         onExit={() => onStepsExit()}
         enabled={stepsEnabled}
         options={options}
-      />
+      /> */}
 
       {loaded && !memberStatus && active ? (
         <Button
