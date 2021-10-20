@@ -71,7 +71,7 @@ export default function MemberProfile(props) {
     const [avatar, setAvatar] = useState()
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
-    const [isUpdated, setIsUpdated] = useState(false)
+   // const [isUpdated, setIsUpdated] = useState(false)
     const [finished, setFinished] = useState(false)
     const [twitter, setTwitter] = useState('')
     const [reddit, setReddit] = useState('')
@@ -91,6 +91,10 @@ export default function MemberProfile(props) {
     const { state, dispatch, update } = useContext(appStore)
 
     const {
+      isUpdated
+    } = state
+
+    const {
         member,
     } = props
 
@@ -100,7 +104,7 @@ export default function MemberProfile(props) {
         () => {
  
           async function fetchData() {
-         
+            if(isUpdated){}
             // Get Applicant Persona Information
          
             if(member){     

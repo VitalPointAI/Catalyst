@@ -483,7 +483,7 @@ export default function OpportunityCard(props) {
           </CardContent>
           <CardActions>
           {status == 'Passed' ? 
-          dateValid ? (
+          dateValid && budget != 0 ? (
             memberStatus ? (
             <>
            <Button 
@@ -576,6 +576,7 @@ export default function OpportunityCard(props) {
           handleUpdate={handleUpdate}
           opportunityId={opportunityId}
           contractId={thisContractId}
+          status={status}
           /> : null }
 
           {editOpportunityProposalDetailsClicked ? <EditOpportunityProposalForm

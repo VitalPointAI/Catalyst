@@ -20,7 +20,7 @@ import IconButton from '@material-ui/core/IconButton'
 import Popover from '@material-ui/core/Popover'
 import '../../App.css'
 
-export const Header = ({ state, handleUpdate, isUpdated }) => {
+export const Header = ({ state, handleUpdate }) => {
     const [newNotifications, setNewNotifications] = useState(0)
     const [popoverOpen, setPopoverOpen] = useState(false)
     const [anchorEl, setAnchorEl] = useState(null);
@@ -29,6 +29,7 @@ export const Header = ({ state, handleUpdate, isUpdated }) => {
     const {
         wallet,
         appIdx,
+        isUpdated,
         accountId
     } = state
 
@@ -41,6 +42,7 @@ export const Header = ({ state, handleUpdate, isUpdated }) => {
     useEffect(
         () => {
         async function fetchData(){
+            if(isUpdated){}
             if(accountId){
                 //get the list of all notifications for all accounts
        

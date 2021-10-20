@@ -113,7 +113,7 @@ export default function AppFramework(props) {
     const [initialized, setInitialized] = useState()
     const [initLoad, setInitLoad] = useState(false)
     const [started, setStarted] = useState(false)
-    const [isUpdated, setIsUpdated] = useState(false)
+  //  const [isUpdated, setIsUpdated] = useState(false)
     const [stepsEnabled, setStepsEnabled] = useState(false)
     const [appbarStepsEnabled, setAppbarStepsEnabled] = useState(false)
     const [tabTutorialEnabled, setTabTutorialEnabled] = useState(false)
@@ -150,6 +150,7 @@ export default function AppFramework(props) {
       accountId,
       daoFactory,
       wallet,
+      isUpdated,
       currentDaosList
     } = state
     
@@ -173,7 +174,7 @@ export default function AppFramework(props) {
 
     useEffect(
       () => {
-
+        if(isUpdated){}
         let newVisit = get(COMMUNITY_ARRIVAL, [])
         let warningFlag = get(WARNING_FLAG, [])
         if(!newVisit[0] && warningFlag[0]){

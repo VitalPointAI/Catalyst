@@ -501,13 +501,12 @@ export default function EditPersonaForm(props) {
      
       setIsUpdated(true)
       setFinished(true)
-      update('', { isUpdated })
+      update('', { isUpdated: !isUpdated })
       handleUpdate(true)
       setOpen(false)
       handleClose()
     }
-console.log('skillset', skillSet)
-console.log('dev skills', developerSkillSet)
+
         return (
            
             <div>

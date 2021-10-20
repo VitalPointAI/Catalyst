@@ -270,6 +270,10 @@ export default function EditOpportunityProposalForm(props) {
       setDetails(editorState)
     }
 
+    const handleProjectNameChange = (event) => {
+      setProjectName(event)
+    }
+
     const onSubmit = async (values) => {
    
       event.preventDefault()
@@ -329,8 +333,8 @@ export default function EditOpportunityProposalForm(props) {
       }
      
       setFinished(true)
-      update('', { isUpdated })
-      handleUpdate(true)
+      update('', { isUpdated: !isUpdated })
+      //handleUpdate(true)
       setOpen(false)
       handleClose()
     }
@@ -349,6 +353,23 @@ export default function EditOpportunityProposalForm(props) {
                   
                   </DialogContentText>
                   <Grid container justifyContent="center" alignItems="center" spacing={1}>
+                  <Grid item xs={12} sm={12} md={6} lg={6} xl={6} style={{marginBottom: '10px'}}>
+                    <TextField
+                              autoFocus
+                              fullWidth
+                              margin="dense"
+                              id="opportunity-projectName"
+                              variant="outlined"
+                              name="projectName"
+                              label="Project Name"
+                              placeholder="Project X"
+                              value={projectName}
+                              onChange={handleProjectNameChange}
+                              inputRef={register({
+                                  required: false                              
+                              })}
+                            />
+                  </Grid>
                   <Grid item xs={12} sm={12} md={7} lg={7} xl={7}>
                     <TextField
                         autoFocus

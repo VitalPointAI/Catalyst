@@ -71,7 +71,7 @@ export default function MemberProfileDisplay(props) {
     const [avatar, setAvatar] = useState()
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
-    const [isUpdated, setIsUpdated] = useState(false)
+   // const [isUpdated, setIsUpdated] = useState(false)
     const [finished, setFinished] = useState(false)
     const [twitter, setTwitter] = useState('')
     const [reddit, setReddit] = useState('')
@@ -92,7 +92,8 @@ export default function MemberProfileDisplay(props) {
 
     const {
       accountId,
-      curUserIdx
+      curUserIdx,
+      isUpdated
     } = state
 
     const {
@@ -106,7 +107,7 @@ export default function MemberProfileDisplay(props) {
         () => {
  
           async function fetchData() {
-         
+            if(isUpdated){}
             // Get Applicant Persona Information
           
             if(member){     

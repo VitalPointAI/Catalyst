@@ -8,12 +8,14 @@ import { Ed25519Provider } from 'key-did-provider-ed25519'
 import KeyDidResolver from 'key-did-resolver'
 import ThreeIdResolver from '@ceramicnetwork/3id-did-resolver'
 import ThreeIdProvider from '3id-did-provider'
+import { ThreeIdConnect } from '@3id/connect'
 import  { Caip10Link } from '@ceramicnetwork/stream-caip10-link'
 import { EthereumAuthProvider, NearAuthProvider } from '@ceramicnetwork/blockchain-utils-linking'
 import { hash } from '@stablelib/sha256'
 import { DID } from 'dids'
 import { getConsentMessage } from '@ceramicnetwork/blockchain-utils-linking'
-
+import { randomBytes } from '@stablelib/random'
+import { generateId } from '../state/near'
 import crypto from 'crypto'
 import nacl from 'tweetnacl'
 
@@ -67,7 +69,7 @@ export const {
 
 const {
   keyStores: { InMemoryKeyStore },
-  Near, Account, Contract, KeyPair,
+  Near, Account, Contract, KeyPair, InMemorySigner,
   utils: {
     format: {
       parseNearAmount
@@ -223,6 +225,159 @@ async makeSeed(account){
     await ceramic.did.authenticate()
     return ceramic
   }
+
+  // async getCeramic3ID(near, accountId, idxKey) {
+  //   //const connectAuthProvider = new NearAuthProvider(near, accountId, near.connection.networkId)
+  //   // const threeIdConnect = new ThreeIdConnect()
+  //   // await threeIdConnect.connect(connectAuthProvider)
+
+  //   // const getPermission = async (request) => {
+  //   //        return request.payload.paths
+  //   //      }
+
+  //   // const ceramic = new CeramicClient(CERAMIC_API_URL)
+  //   // threeId = await ThreeIdProvider.create({
+  //   //          ceramic,
+  //   //          getPermission,
+  //   //          authSecret,
+  //   //          authId
+  //   //        })
+  //   // const did = new DID({
+  //   //   provider: threeId.getDidProvider(),
+  //   //   resolver: ThreeIdResolver.getResolver(ceramic)
+  //   // })
+  //   // await did.authenticate()
+  //   // console.log('3idconnect did', did.id)
+  //   const ceramic = new CeramicClient(CERAMIC_API_URL)
+  //   const resolver = {...KeyDidResolver.getResolver(), ...ThreeIdResolver.getResolver(ceramic)}
+    
+  //   const account = new nearApiJs.Account(near.connection, accountId)
+  //   const accessKeys = await account.getAccessKeys()
+  //   console.log('accessKeys', accessKeys)
+
+  //   if(idxKey){
+  //     // Step 1:  get the keypair from the contract's full access private key
+  //     let keyPair = KeyPair.fromString(idxKey)
+
+  //     // Step 2:  load up an inMemorySigner using the keyPair for the account
+  //     let signer = await InMemorySigner.fromKeyPair(networkId, accountId, keyPair)
+  //     console.log('signer', signer)
+  //     // Step 3:  create a connection to the network using the signer's keystore and default config for testnet
+  //     near = await nearApiJs.connect({
+  //       networkId, nodeUrl, walletUrl, deps: { keyStore: signer.keyStore },
+  //     })
+  //   }
+  //   let threeId
+  //   let authProvider = new NearAuthProvider(near, accountId, near.connection.networkId)
+  //       console.log('authprovider', authProvider)
+  //       let currentAccountId = await authProvider.accountId()
+  //       console.log('currentAccountId', currentAccountId)
+      
+
+  //       let authSig = await authProvider.authenticate('this message')
+  //       let authSecret = uint8arrays.fromString(authSig.slice(0, 32))
+  //       console.log('authSecret', authSecret)
+
+  //       let getPermission = async (request) => {
+  //         return request.payload.paths
+  //       }
+  //       let authId = 'NearAuthProvider'
+  //   threeId = await ThreeIdProvider.create({
+  //     ceramic,
+  //     getPermission,
+  //     authSecret,
+  //     authId
+  //   })
+
+  //   let x = 0
+  //   let existingDid
+    
+  //   while(x < accessKeys.length){
+  //     if(accessKeys[x].access_key.permission != 'FullAccess'){
+  //       let key = accessKeys[x].public_key
+  //       let keyString = key.split(':')[1]
+  //       let formedString
+  //       if(near.connection.networkId == 'testnet'){
+  //         formedString = keyString+'@near:testnet'
+  //       }
+  //       if(near.connection.networkId == 'mainnet'){
+  //         formedString = keyString+'@near:mainnet'
+  //       }
+  //       console.log('formedstring', formedString)
+  //       let authProvider = new NearAuthProvider(near, keyString, near.connection.networkId)
+  //       console.log('authprovider', authProvider)
+  //       let currentAccountId = await authProvider.accountId()
+  //       console.log('currentAccountId', currentAccountId)
+      
+
+  //       let authSig = await authProvider.authenticate('this message')
+  //       let authSecret = uint8arrays.fromString(authSig.slice(0, 32))
+  //       console.log('authSecret', authSecret)
+
+  //       let getPermission = async (request) => {
+  //         return request.payload.paths
+  //       }
+  //       let authId = keyString
+  //       if(threeId){
+  //         threeId.keychain.add(authId, authSecret)
+  //       } else {
+  //         threeId = await ThreeIdProvider.create({
+  //           ceramic,
+  //           getPermission,
+  //           authSecret,
+  //           authId
+  //         })
+  //         console.log('threeid', threeId)
+  //       }
+  //       //let link2 = await Caip10Link.fromAccount(ceramic, formedString)
+  //       //let link2 = Caip10Link.
+  //       // console.log('link2', link2)
+  //       // if(link2.n._context.did.id){
+  //       //   existingDid = link2.n._context.did.id
+  //       //   console.log('existingDid', existingDid)
+  //       //   break
+  //       // }
+  //     }
+  //   x++
+  //   }
+    
+  //   // let threeId
+  //   // if(!existingDid){
+  //   //   const did = new DID({ resolver })
+  //   //   ceramic.setDID(did)
+  //   //   const authId = 'NearAuthProvider:' + generateId()
+  //   //   await authProvider.createLink(did)
+  //   //   threeId = await ThreeIdProvider.create({
+  //   //     ceramic,
+  //   //     getPermission,
+  //   //     authSecret,
+  //   //     authId
+  //   //   })
+  //   //   console.log('threeid', threeId)
+  //   // } else {
+  //   //   ceramic.setDID(existingDid)
+  //   //   const authId = 'NearAuthProvider:' + generateId()
+  //   //   threeId = await ThreeIdProvider.create({
+  //   //     ceramic,
+  //   //     getPermission,
+  //   //     authSecret,
+  //   //     authId
+  //   //   })
+  //   //   console.log('existing threeid', threeId)
+  //   // }
+    
+  //  // const provider = threeId.getDidProvider()
+  //   const did = new DID({
+  //        provider: threeId.getDidProvider(),
+  //        resolver: ThreeIdResolver.getResolver(ceramic)
+  //      })
+  //   ceramic.setDID(did)
+  //   //ceramic.did.setProvider(provider)
+  //   await ceramic.did.authenticate()
+  //   console.log('keychain', await threeId.keychain.list())
+  //   return ceramic
+  // }
+
 
   makeUint8 = (str) => {
     const utf8Encode = new TextEncoder()
@@ -419,6 +574,184 @@ async makeSeed(account){
     
     return ceramic
   }
+
+//   async getAppCeramic3ID(near, accountId) {
+
+//     // const threeIdConnect = new ThreeIdConnect()
+//     // const authProvider = new NearAuthProvider(near, accountId, near.networkId)
+//     // await threeIdConnect.connect(authProvider)
+//     // const provider = await threeIdConnect.getDidProvider()
+//     // console.log('provider', provider)
+//     // ceramic.did.setProvider(provider)
+//     // await ceramic.did.authenticate()
+//     // const key = await near.connection.signer.keyStore.getKey(networkId, accountId)
+//     // console.log('key', key)
+
+//     // const signer = await InMemorySigner.fromKeyPair(networkId, accountId, key)
+//     // console.log('signer', signer)
+
+//     // const publicKey = await signer.getPublicKey(accountId, networkId)
+//     // console.log('publickey', publicKey)
+
+//     // const stringEncode = (str) => {
+//     //   return uint8arrays.fromString((str), 'base64pad')
+//     // }
+//     console.log('accountId', accountId)
+//     let existingToken = get(AUTH_TOKEN, [])
+//     if(!existingToken.length > 0){
+    
+//     let token = await axios.post(TOKEN_CALL, 
+//       {
+//       accountId: accountId
+//       }    
+//     )
+    
+//     set(AUTH_TOKEN, token.data.token)
+//     }
+
+//     let authToken = get(AUTH_TOKEN, [])   
+//     let retrieveSeed = await axios.post(APPSEED_CALL, {
+//       // ...data
+//     },{
+//       headers: {
+//         'Authorization': `Basic ${authToken}`
+//       }
+//     })
+ 
+//      const ceramic = new CeramicClient(CERAMIC_API_URL)
+//      //const provider = new Ed25519Provider(retrieveSeed.data.seed)
+//     // let authSecret = retrieveSeed.data.seed
+//     //const authSecret = randomBytes(32)
+//     const authProvider = new NearAuthProvider(near, accountId, near.connection.networkId)
+//     console.log('authProvider', authProvider)
+//     let authSig = await authProvider.authenticate('this message')
+//     let authSecret = uint8arrays.fromString(authSig.slice(0, 32))
+//     console.log('authSecret', authSecret)
+//     const resolver = {...KeyDidResolver.getResolver(), ...ThreeIdResolver.getResolver(ceramic)}
+//     console.log('resolver', resolver)
+//     const did = new DID({ resolver })
+//     console.log('did', did)
+//   //  let link = await authProvider.createLink(did)
+//   //  console.log('link', link)
+//      const authId = 'NearAuthProvider:' + generateId()
+
+//      const getPermission = async (request) => {
+//        return request.payload.paths
+//      }
+
+//     //  const threeId = await ThreeIdProvider.create({
+//     //    ceramic,
+//     //    getPermission,
+//     //    authSecret,
+//     //    authId
+//     //  })
+
+//      const threeId = await ThreeIdProvider.create({
+//       ceramic,
+//       getPermission,
+//       authSecret,
+//       authId
+//     })
+
+//      console.log('threeid', threeId)
+  
+//     const provider = threeId.getDidProvider()
+//     console.log('provider', provider)
+
+//     // const resolver = {...KeyDidResolver.getResolver(), ...ThreeIdResolver.getResolver()}
+//     // console.log('resolver', resolver)
+//     // const did = new DID({ resolver })
+//     // console.log('did', did)
+//     ceramic.setDID(did)
+//     ceramic.did.setProvider(provider)
+//     await ceramic.did.authenticate()
+
+//     // const link = await Caip10Link.fromAccount(ceramic, accountId)
+//     // console.log('link', link)
+
+//     // const streamId = link.id.toString()
+//     // console.log('streamId', streamId)
+  
+  
+//   // const { signature } = keyPair.sign(encodedMsg)
+//  //  console.log('signature', signature)
+//     // const digest = hash(signature)
+//     // console.log('digest', digest)
+//     // let result = `0x${uint8arrays.toString(digest, 'base16')}`
+//     // console.log('result', result)
+
+//    // console.log('near', near)
+//     // let prefix = 'near-api-js:keystore:crustykitty.testnet:testnet'
+//     // let keyString = get(prefix, [])
+//     // console.log('keystring', keyString)
+//     // const keyPair = KeyPair.fromString(keyString)
+   
+    
+//   //   let thisAddress = uint8arrays.toString(publicKey.data, 'base58btc')
+//   //   const nearAuthProvider = new NearAuthProvider(
+//   //     key,
+//   //     thisAddress,
+//   //     'testnet'
+//   //   )
+//   //   console.log('nearprovider', nearAuthProvider)
+
+//   //   let authMessage = 'this message'
+//   //   const hash = crypto.createHash('sha256').update(authMessage).digest();
+//   //   console.log('getSignature hash', hash)
+//   //   const hashString = uint8arrays.toString(hash, 'base16')
+//   //   console.log('getSignature hashString', hashString)
+//   //   const { signature } = await key.sign(hash)
+//   //   console.log('authenticate', uint8arrays.toString(signature, 'base16'))
+    
+//   //   const { message, timestamp } = getConsentMessage(ceramic.did.id, true)
+//   //  // const altered = makeUint8(message)
+//   //   //const { signature } = await keyPair.sign(altered)
+   
+//   //   const { messageSignature } = await this.getSignature(signer, accountId, message)
+
+//   //   const account = await nearAuthProvider.accountId()
+//   //   console.log('account', account)
+
+//   //   const proof = {
+//   //       version: 2,
+//   //       type: 'near',
+//   //       message,
+//   //       signature: messageSignature,
+//   //       account: account.toString(),
+//   //       timestamp,
+//   //   }
+    
+//   //   console.log('proof', proof)
+
+//   //   const address = account.address
+//   //   console.log('address', address)
+
+//   //   const msg = proof.message
+//   //   console.log('msg', msg)
+    
+//   //   const siga = uint8arrays.fromString(proof.signature, 'base64')
+//   //   console.log('siga', siga)
+
+//   //   const is_sig_valid = await this.verifySignature(publicKey, msg, siga);
+//   //   console.log('valid proof', is_sig_valid)
+
+//   //   const accountLink = await Caip10Link.fromAccount(
+//   //     ceramic,
+//   //     account
+//   //   )
+//   //   console.log('accountLink', accountLink)
+//   //   console.log('cer did', ceramic.did.id)
+
+//   //   await accountLink.setDid(
+//   //     ceramic.did.id,
+//   //     nearAuthProvider
+//   //   )
+    
+//   //   console.log('accountLink2', accountLink)
+//   //   console.log('ceramic', ceramic)
+    
+//     return ceramic
+//   }
 
   async associateDID(accountId, contract, ceramic) {
 
@@ -709,6 +1042,14 @@ async makeSeed(account){
     return appIdx
   }
 
+//    // current user IDX (account currently logged in)
+//    async getCurrentUserIdx3ID(near, accountId, appIdx, idxKey){
+//     let currentUserCeramicClient = await this.getCeramic3ID(near, accountId, idxKey)
+//     console.log('currentUserCeramicClient', currentUserCeramicClient)
+//     let curUserIdx = new IDX({ ceramic: currentUserCeramicClient, aliases: appIdx._aliases})
+//     return curUserIdx
+// }
+
   // current user IDX (account currently logged in)
   async getCurrentUserIdx(account, appIdx, contract){
    
@@ -750,6 +1091,7 @@ async makeSeed(account){
     let curDaoIdx = new IDX({ceramic: currentDaoCeramicClient, aliases: appIdx._aliases})
     return curDaoIdx
 }
+
 
   async getCurrentUserIdxNoDid(appIdx, contract, account, keyPair, owner) {
     

@@ -489,15 +489,16 @@ export default function Dashboard(props) {
                     // Get complete list of Persona Skills
                     let combinedPersonaSkills = []
                     if(currentPersona && Object.keys(currentPersona).length > 0){
-                    for (const [key, value] of Object.entries(currentPersona.developerSkillSet)){
-                      if(value){
-                        combinedPersonaSkills.push(key)
-                      }
-                    }
-                    for (const [key, value] of Object.entries(currentPersona.skillSet)){
-                      if(value){
-                        combinedPersonaSkills.push(key)
-                      }
+                        for (const [key, value] of Object.entries(currentPersona.developerSkillSet)){
+                        if(value){
+                            combinedPersonaSkills.push(key)
+                        }
+                        }
+                        for (const [key, value] of Object.entries(currentPersona.skillSet)){
+                        if(value){
+                            combinedPersonaSkills.push(key)
+                        }
+                        }
                     }
                     if (currentPersona && currentPersona.personaSkills.length > 0){
                       currentPersona.personaSkills.map((values, index) => {
@@ -580,7 +581,7 @@ export default function Dashboard(props) {
                             let status = getStatus(propFlags)
                             let data = new Persona()
                             let result = await data.getDao(allOpportunities[j].contractId)
-                            if(status == 'Passed'){
+                            if(status == 'Passed' && allOpportunities[j].budget > 0 && Date.now() > allOpportunities[j].deadline){
                                 currentRecommendations.push({
                                     opportunity: allOpportunities[j],
                                     status: status,
@@ -599,7 +600,7 @@ export default function Dashboard(props) {
                     setRecommendations(currentRecommendations)
                     setRecommendationsLoaded(true)
                     console.log('recommendations', currentRecommendations)
-            }
+            
         }
         
         let mounted = true

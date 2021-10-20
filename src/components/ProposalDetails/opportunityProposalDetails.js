@@ -119,8 +119,6 @@ export default function OpportunityProposalDetails(props) {
     const [proposalComments, setProposalComments] = useState([])
     const [finished, setFinished] = useState(false)
 
-    const [loaded, setLoaded] = useState(false)
-
     const [anchorEl, setAnchorEl] = useState(null)
 
     const [thisProposalDeposit, setThisProposalDeposit] = useState()
@@ -285,7 +283,7 @@ export default function OpportunityProposalDetails(props) {
                   i++
                 }
               }
-              setLoaded(true)
+             
             }
 
             // Set Existing Proposal Comments      
@@ -409,8 +407,7 @@ export default function OpportunityProposalDetails(props) {
            
          
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-            {loaded ? 
-            finished ? (<>
+            {finished ? (<>
               <DialogTitle id="form-dialog-title">Opportunity Proposal Details</DialogTitle>
               
                 <DialogContent>
@@ -419,10 +416,12 @@ export default function OpportunityProposalDetails(props) {
                   This proposal has no details yet.
                   </DialogContentText>) 
                   : (<>
-                   
                       <Grid container alignItems="flex-start" justifyContent="space-between" style={{marginBottom: '30px'}}>
                         <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
                            <Typography variant="h4">{title}</Typography>
+                        </Grid>
+                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
+                           <Typography variant="h6">{projectName}</Typography>
                         </Grid>
                         <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
                            <Typography variant="overline">Proposed: {formatDate(created)}</Typography>
@@ -535,33 +534,26 @@ export default function OpportunityProposalDetails(props) {
                       <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                         <Typography variant="overline">Level of crypto/blockchain familiarity: <Rating readOnly value={parseInt(familiarity)} /> </Typography>
                       </Grid>
-                      <Grid item xs={12} sm={12} md={6} lg={6} xl={6} className={classes.centered}>
-                      
-                      {status == 'Passed' && active ? 
-                       <Button 
-                          color="primary" 
-                          onClick={handleFundingProposalClick}>
-                            Accept
-                        </Button>                        
-                      : null }
-                        </Grid>
                       </Grid>
-                    </>)}
+                  </>)}
                 </DialogContent>
               <DialogActions>
-              {status == 'Passed' && active ? 
-                <Button 
-                    color="primary" 
-                    onClick={handleFundingProposalClick}>
-                      Accept
-                </Button>
-              : null }
-                <Button onClick={handleClose} color="primary">
-                  Close
-                </Button>
-              </DialogActions>
-              <Divider style={{marginBottom: 10}}/>
-              
+
+                {status == 'Passed' && active ? 
+                  <Button 
+                      color="primary" 
+                      onClick={handleFundingProposalClick}>
+                        Accept
+                  </Button>
+                : null }
+
+                  <Button onClick={handleClose} color="primary">
+                    Close
+                  </Button>
+                  </DialogActions>
+                  <Divider style={{marginBottom: 10}}/>
+                 
+              {memberStatus ? (
               <Accordion>
               <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
@@ -575,7 +567,7 @@ export default function OpportunityProposalDetails(props) {
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                   {Comments}
               </Grid>
-              {status != 'Passed' && status != 'Not Passed' && memberStatus ? (
+            
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
               <Typography variant="h5" style={{marginLeft: '10px'}}>Leave a Comment/Ask a Question</Typography>
                   <CommentForm
@@ -589,19 +581,18 @@ export default function OpportunityProposalDetails(props) {
                     curDaoIdx={curDaoIdx}
                   />
               </Grid>
-              ) : null }
               </Grid>
               </AccordionDetails>
-            </Accordion>
-              </>)
-              : (
-                    <div className={classes.progress}>
-                        <CircularProgress size={100} color="primary"  />
-                   </div>
-              )
-               : <div style={{minWidth: '150px', minHeight: '150px', margin: 'auto'}}>
-               <CircularProgress style={{position: 'fixed', top: '50%', left: '50%', marginLeft:'-20px', marginTop: '-20px'}}/>
-               </div> }
+              </Accordion>
+              ) : null }
+              
+            </>)
+            : (
+              <div style={{minWidth: '150px', minHeight: '150px', margin: 'auto'}}>
+              <CircularProgress style={{position: 'fixed', top: '50%', left: '50%', marginLeft:'-20px', marginTop: '-20px'}}/>
+              </div>
+            )}
+              
               {fundingProposalClicked ? <FundingProposal
                 contractId={contractId}
                 handleFundingProposalClickState={handleFundingProposalClickState}

@@ -82,8 +82,11 @@ export const onAppMount = () => async ({ update, getState, dispatch }) => {
             //Initiate App Ceramic Components
     
             const appIdx = await ceramic.getAppIdx(didRegistryContract)
-        
-            // Set Current User Ceramic Client
+
+            // let curUserIdx = await ceramic.getCurrentUserIdx3ID(near, loggedInAccountId, appIdx)
+            // console.log('curUserIdx app', curUserIdx)
+            // update('accountData', { curUserIdx })
+            
 
             let curUserIdx
             if(didRegistryContract) {

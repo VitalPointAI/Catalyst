@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { get, set, del } from '../utils/storage'
+import { appStore, onAppMount } from '../state/app';
 import { flexClass } from '../App'
 import Footer from '../components/common/Footer/footer'
 import Dashboard from '../components/mainPages/dashboard'
@@ -50,21 +51,23 @@ const useStyles = makeStyles((theme) => ({
     }
   }));
 
-export const Home = ({ children, state }) => {
-
-    const [key, setKey] = useState(false)
+export const Home = ({ children }) => {
+    const { state, update } = useContext(appStore);
+   // const [key, setKey] = useState(false)
     const classes = useStyles();
    
     const {
-        app, wallet, links, claimed, accountId, curInfo, finished
+        app, wallet, links, claimed, accountId, curInfo, finished, key
     } = state
 
     useEffect(
         () => {
             let needsKey = get(KEY_REDIRECT, [])
             if(needsKey.action == true){
-                setKey(true)
-            }
+                update('', {key: true})
+            } else (
+                update('', {key: false})
+            )
     }, [finished]
     )
 
@@ -77,15 +80,16 @@ export const Home = ({ children, state }) => {
                         <Header state={state}/>
                             <Import />
                         <Footer />
-                        </div>) : (
+                        </div>) 
+                    : (
                         <div className={classes.root}>
                         <Header state={state}/>
                             <Dashboard />
                         <Footer />
                         </div>)
 
-            : window.location.replace('https://vitalpoint.ai/catalyst')
-            //:  (<div className={classes.root}><Header state={state}/><FrontPage /> <Footer /></div>)
+            //: window.location.replace('https://vitalpoint.ai/catalyst')
+            :  (<div className={classes.root}><Header state={state}/><FrontPage /> <Footer /></div>)
             : state.accountData ? (
                 <div className={classes.root}>
                 <Header state={state}/>

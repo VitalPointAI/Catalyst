@@ -69,6 +69,7 @@ export default function CommentForm(props) {
    
     const {
       appIdx,
+      isUpdated,
       didRegistryContract,
       near
     } = state
@@ -230,6 +231,7 @@ export default function CommentForm(props) {
       handleReset()
       setFinished(true)
       setSubmitted(true)
+      update('', {isUpdated: !isUpdated})
       handleUpdate(true)
     }
     

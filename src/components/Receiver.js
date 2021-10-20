@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { Redirect } from 'react-router-dom'
-import { keyRotation, walletUrl, SEED_PHRASE_LOCAL_COPY } from '../state/near';
+import { keyRotation, walletUrl, SEED_PHRASE_LOCAL_COPY, logoutToWallet } from '../state/near';
 import { appStore, onAppMount } from '../state/app';
 
 import { makeStyles } from '@material-ui/core/styles';
@@ -68,7 +68,7 @@ export const Receiver = ({ dispatch }) => {
         )
     }
 
-    if (!keyExists || success === 1) {  window.location.assign('/personas') }
+    if (!keyExists || success === 1) { window.location.assign('/personas') }
 
     return (<>
         <Grid container spacing={1} style={{textAlign: 'center'}}>

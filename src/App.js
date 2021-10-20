@@ -9,7 +9,7 @@ import {
     useParams
   } from "react-router-dom"
 import RandomPhrase from './components/common/RandomPhrase/randomPhrase'
-
+import { KEY_REDIRECT } from './utils/ceramic'
 import { Container } from './components/Container'
 import { Receiver } from './components/Receiver'
 import { PersonaPage } from './components/mainPages/personas'

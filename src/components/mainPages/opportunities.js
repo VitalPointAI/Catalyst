@@ -98,152 +98,143 @@ export default function Opportunities(props) {
               thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
           
               opportunities = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
-            
-              if(opportunities && opportunities.length > 0){
-                
+              console.log('opportunities', opportunities)
+              if(opportunities && opportunities.opportunities.length > 0){
                 setaOpportunities(opportunities.opportunities)
               }
 
               // Suitability Score
 
-                    // 1. Build complete list of all opportuntities for all DAOs
-                    let allOpportunities = []
-                    let i = 0
-                   
-                    if(opportunities){
-                    while (i < opportunities.opportunities.length){
-                      
-                      
-                      allOpportunities.push(opportunities.opportunities[i])
-                      i++
-                    }
-                    }
-                 
+              // 1. Build complete list of all opportuntities for all DAOs
+              let allOpportunities = []
+              let i = 0
+              
+              if(opportunities){
+                while (i < opportunities.opportunities.length){
+                  allOpportunities.push(opportunities.opportunities[i])
+                  i++
+                }
+              }
+              console.log('allopps', allOpportunities)
 
-                    // 2. Retrieve current persona data
-                    let currentPersona = await Persona.getPersona(accountId)
-             
+              // 2. Retrieve current persona data
+              let currentPersona = await Persona.getPersona(accountId)
 
-                    // 3. Initialize recommendations array
-                    let currentRecommendations = []
-                  
-                    // 3. For each opportunity, compare opportunity skillset requirements to persona skillsets and add to recommendations array if the same
-                    // calculate a suitability percentage from skills required (true) (total skills possessed / total skills)
-                    
-                    
-                    let developerSkillCount
-                    let developerSkillMatch
-                    let skillCount
-                    let skillMatch
-                    let personaSkillCount
-                    let personaSkillMatch
-                    let personaSpecificSkillCount
-                    let personaSpecificSkillMatch
-                    let combinedOpportunitySkills = []
+              // 3. Initialize recommendations array
+              let currentRecommendations = []
+            
+              // 4. For each opportunity, compare opportunity skillset requirements to persona skillsets and add to recommendations array if the same
+              // calculate a suitability percentage from skills required (true) (total skills possessed / total skills)
+              let skillMatch
+              let combinedOpportunitySkills = []
 
-                    // Get complete list of Persona Skills
-                    let combinedPersonaSkills = []
-                    if(currentPersona && Object.keys(currentPersona).length > 0){
-                    for (const [key, value] of Object.entries(currentPersona.developerSkillSet)){
-                      if(value){
-                        combinedPersonaSkills.push(key)
-                      }
-                    }
-                    for (const [key, value] of Object.entries(currentPersona.skillSet)){
-                      if(value){
-                        combinedPersonaSkills.push(key)
-                      }
-                    }
-                    if (currentPersona && currentPersona.personaSkills.length > 0){
-                      currentPersona.personaSkills.map((values, index) => {
-                        if(values.name){
-                          combinedPersonaSkills.push(values.name)
-                        }
-                      })
-                    }
-                    if (currentPersona && currentPersona.personaSpecificSkills.length > 0){
-                      currentPersona.personaSpecificSkills.map((values, index) => {
-                        if(values.name){
-                          combinedPersonaSkills.push(values.name)
-                        }
-                      })
-                    }
-                    console.log('combinedpersonaskills', combinedPersonaSkills)
-
-                    let j = 0
-
-                    while (j < allOpportunities.length){
-                        //reset counters for each iteration through loop
-
-                        skillMatch = 0
-
-                        for (const [key, value] of Object.entries(allOpportunities[j].desiredDeveloperSkillSet)){
-                          if(value){
-                            combinedOpportunitySkills.push(key)
-                          }
-                        }
-                        for (const [key, value] of Object.entries(allOpportunities[j].desiredSkillSet)){
-                          if(value){
-                            combinedOpportunitySkills.push(key)
-                          }
-                        }
-                        if (allOpportunities && allOpportunities[j].opportunitySkills.length > 0){
-                         allOpportunities[j].opportunitySkills.map((values, index) => {
-                            if(values.name){
-                              combinedOpportunitySkills.push(values.name)
-                            }
-                          })
-                        }
-                  
-
-                        let k = 0
-                        while (k < combinedOpportunitySkills.length){
-                          let n = 0
-                          while (n < combinedPersonaSkills.length){
-                            if (combinedPersonaSkills[n] == combinedOpportunitySkills[k]){
-                              skillMatch++
-                            }
-                            n++
-                          }
-                          k++
-                        }
-
-                        let asuitabilityScore = ((skillMatch/combinedOpportunitySkills.length)*100).toFixed(0)
-                        setSuitabilityScore(asuitabilityScore)
-
-                        let thisContract = await dao.initDaoContract(state.wallet.account(), allOpportunities[j].contractId)
-                          // confirm proposal exists
-                        let exists
-                        try{
-                          let index = await thisContract.getProposal({proposalId: parseInt(allOpportunities[j].opportunityId)})
-                            if (index){
-                                exists = true
-                            } else {
-                                exists = false
-                            }
-                          
-                        } catch (err) {
-                            console.log('error getting proposal', err)
-                            exists = false
-                        }
-                        if(exists){
-                          let propFlags = await thisContract.getProposalFlags({proposalId: parseInt(allOpportunities[j].opportunityId)})
-                          let status = getStatus(propFlags)
-                          currentRecommendations.push({opportunity: allOpportunities[j], status: status, skillMatch: skillMatch, allSkills: combinedOpportunitySkills.length, suitabilityScore: asuitabilityScore})
-                         }
-                        j++
-                    }
-                    setRecommendations(currentRecommendations)
-                  
+              // Get complete list of Persona Skills
+              let combinedPersonaSkills = []
+              if(currentPersona && Object.keys(currentPersona).length > 0){
+                for (const [key, value] of Object.entries(currentPersona.developerSkillSet)){
+                  if(value){
+                    combinedPersonaSkills.push(key)
                   }
+                }
+                for (const [key, value] of Object.entries(currentPersona.skillSet)){
+                  if(value){
+                    combinedPersonaSkills.push(key)
+                  }
+                }
+              }
+
+              if (currentPersona && currentPersona.personaSkills.length > 0){
+                currentPersona.personaSkills.map((values, index) => {
+                  if(values.name){
+                    combinedPersonaSkills.push(values.name)
+                  }
+                })
+              }
+
+              if (currentPersona && currentPersona.personaSpecificSkills.length > 0){
+                currentPersona.personaSpecificSkills.map((values, index) => {
+                  if(values.name){
+                    combinedPersonaSkills.push(values.name)
+                  }
+                })
+              }
+
+              console.log('combinedpersonaskills', combinedPersonaSkills)
+
+              let j = 0
+
+              while (j < allOpportunities.length){
+                  //reset counters for each iteration through loop
+
+                  skillMatch = 0
+
+                  for (const [key, value] of Object.entries(allOpportunities[j].desiredDeveloperSkillSet)){
+                    if(value){
+                      combinedOpportunitySkills.push(key)
+                    }
+                  }
+                  for (const [key, value] of Object.entries(allOpportunities[j].desiredSkillSet)){
+                    if(value){
+                      combinedOpportunitySkills.push(key)
+                    }
+                  }
+                  if (allOpportunities && allOpportunities[j].opportunitySkills.length > 0){
+                    allOpportunities[j].opportunitySkills.map((values, index) => {
+                      if(values.name){
+                        combinedOpportunitySkills.push(values.name)
+                      }
+                    })
+                  }
+            
+
+                  let k = 0
+                  while (k < combinedOpportunitySkills.length){
+                    let n = 0
+                    while (n < combinedPersonaSkills.length){
+                      if (combinedPersonaSkills[n] == combinedOpportunitySkills[k]){
+                        skillMatch++
+                      }
+                      n++
+                    }
+                    k++
+                  }
+
+                  let asuitabilityScore = ((skillMatch/combinedOpportunitySkills.length)*100).toFixed(0)
+                  setSuitabilityScore(asuitabilityScore)
+
+                  let thisContract = await dao.initDaoContract(state.wallet.account(), allOpportunities[j].contractId)
+                    // confirm proposal exists
+                  let exists
+                  try{
+                    let index = await thisContract.getProposal({proposalId: parseInt(allOpportunities[j].opportunityId)})
+                      if (index){
+                          exists = true
+                      } else {
+                          exists = false
+                      }
+                    
+                  } catch (err) {
+                      console.log('error getting proposal', err)
+                      exists = false
+                  }
+
+                  if(exists){
+                    let propFlags = await thisContract.getProposalFlags({proposalId: parseInt(allOpportunities[j].opportunityId)})
+                    let status = getStatus(propFlags)
+                    currentRecommendations.push({opportunity: allOpportunities[j], status: status, skillMatch: skillMatch, allSkills: combinedOpportunitySkills.length, suitabilityScore: asuitabilityScore})
+                    }
+                  j++
+              }
+              console.log('currentrecs', currentRecommendations)
+              setRecommendations(currentRecommendations)      
             }
-            setFinished(true)
           }
+
           let mounted = true
           if(mounted){
             fetchData()
             .then((res) => {
-             
+              setFinished(true)
             })
           return() => mounted = false
           }
@@ -296,7 +287,7 @@ export default function Opportunities(props) {
           {finished && active ?
             recommendations && recommendations.length > 0 ?
               recommendations.map((fr, i) => {
-               
+               console.log('fr', fr)
                 if(fr.status == "Passed"){
                 return(
                   <OpportunityCard 

@@ -96,6 +96,37 @@ export default function PersonaCard(props) {
                 setDisplay(true)
               }
               setFinished(false)
+
+              if(accountId && near){
+                //let personaAccount = new nearAPI.Account(near.connection, accountId)
+                // let thisCurPersonaIdx
+                // try{
+                //   thisCurPersonaIdx = await ceramic.getCurrentUserIdx3ID(near, accountId, appIdx)
+                //   console.log('thiscurpersonaidx', thisCurPersonaIdx)
+                //   setCurUserIdx(thisCurPersonaIdx)
+                // } catch (err) {
+                //   console.log('error retrieving idx', err)
+                // }
+                // let i = 0
+                //     while (i < state.claimed.length) {
+                //       if(state.claimed[i].accountId == accountId && state.claimed[i].owner == state.accountId){
+                //         let personaAccount = new nearAPI.Account(near.connection, accountId)
+                //         let keys = get(ACCOUNT_LINKS, [])
+                //         let j = 0
+                //         let pkey
+                //         while (j < keys.length){
+                //           if(keys[j].accountId == accountId){
+                //             pkey = keys[j].key
+                //             break
+                //           }
+                //           j++
+                //         }
+                //         await ceramic.getCurrentUserIdx3ID(near, personaAccount.accountId, appIdx)
+                //       break
+                //       }
+                //     i++
+                //     }
+              
              
               // Set Card Persona Idx
               if(accountId && near && didRegistryContract){
@@ -142,26 +173,25 @@ export default function PersonaCard(props) {
                    
                       while (i < state.claimed.length) {
                         if(state.claimed[i].accountId == accountId){
-                        
+                          let result = await thisCurPersonaIdx.get('profile', thisCurPersonaIdx.id)
+                    
+                          if(result){
+                            result.date ? setDate(result.date) : setDate('')
+                            result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
+                            result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
+                            result.name ? setName(result.name) : setName('')
+                          }
                           setClaimed(true)
                           break
                         }
                         i++
                       }
-                  
-                      let result = await thisCurPersonaIdx.get('profile', thisCurPersonaIdx.id)
-                    
-                      if(result){
-                        result.date ? setDate(result.date) : setDate('')
-                        result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-                        result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
-                        result.name ? setName(result.name) : setName('')
-                        return true
-                      }
+
                       return true
                   }
-              }
+                }
             }
+          }
 
       fetchData()
           .then((res) => {
@@ -203,18 +233,14 @@ export default function PersonaCard(props) {
                 <Avatar src={avatar}  />
               }
               action={
-                <IconButton aria-label="edit" onClick={handleEditPersonaClick}>
-                  <EditIcon />
-                </IconButton>
+                <Link color="primary" href={link}>
+                  Claim
+                </Link>
               }
               title={name ? name : accountId}
               subheader={<>{finished ? (<span style={{fontSize: '80%'}}>{date}</span>) : <LinearProgress />}</>}
               />
-              <CardActions>
-                 <Link color="primary" href={link}>
-                  Claim
-                </Link>
-              </CardActions>
+              
             </Card>
           ) 
           : 

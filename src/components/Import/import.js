@@ -101,6 +101,7 @@ export default function Import(props) {
         let newAccount = { key: (base58.encode(await bip39.mnemonicToSeed(seedPhrase))), accountId: accountId, owner: accountId, keyStored: Date.now() }
         currentAccounts.push(newAccount)
         set(ACCOUNT_LINKS, currentAccounts)
+        update('', {key: false})
         window.location.assign('/')
       }
 
@@ -118,6 +119,7 @@ export default function Import(props) {
         let newAccount = { key: (base58.encode(await bip39.mnemonicToSeed(recoverSeed))), accountId: accountId, owner: accountId, keyStored: Date.now() }
         currentAccounts.push(newAccount)
         set(ACCOUNT_LINKS, currentAccounts)
+        update('', {key: false})
         window.location.assign('/')
       }
 
