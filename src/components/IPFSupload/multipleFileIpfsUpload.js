@@ -19,13 +19,12 @@ const useStyles = makeStyles((theme) => ({
     },
   }));
 
-export default function FileUpload(props) {
+export default function MultiFileUpload(props) {
 
     const[addedFileHash, setAddedFileHash] = useState('QmZsKcVEwj9mvGfA7w7wUS1f2fLqcfzqdCnEGtdq6MBR7P')
 
     const {
-        handleFileHash,
-        register
+        handleFileHash
     } = props
 
     const classes = useStyles();
@@ -68,7 +67,7 @@ export default function FileUpload(props) {
     return (
         <div>
         <form id="captureMedia" onSubmit={handleSubmit} style={{textAlign: 'center', marginTop: '10px'}}>
-            <input type="file" name="file" onChange={captureFile} {...register("file")} />
+            <input type="file" onChange={captureFile} />
         </form>
       </div>
     )

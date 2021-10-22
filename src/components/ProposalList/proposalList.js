@@ -360,10 +360,10 @@ export default function ProposalList(props) {
     }
   }
 
-  async function handleProcessAction(proposalId, proposalType) {
+  async function handleProcessAction(proposalId, proposalType, applicant) {
     setProcessFinish(false)
     try{
-      await processProposal(contract, contractId, proposalId, proposalType, curDaoIdx) 
+      await processProposal(contract, contractId, proposalId, proposalType, curDaoIdx, applicant) 
     } catch (err) {
         console.log('problem processing proposal', err)
     }

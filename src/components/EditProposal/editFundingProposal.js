@@ -396,7 +396,7 @@ export default function EditFundingProposalForm(props) {
                                   id={`projectMilestones[${index}].deadline`}
                                   variant="outlined"
                                   name={`projectMilestones[${index}].deadline`}
-                                  defaultValue={formatDate(Date.now())}
+                                  defaultValue={field.deadline}
                                   InputProps={{
                                     endAdornment: <div>
                                     <Tooltip TransitionComponent={Zoom} title="Proposed deadline for completion of this milestone.">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, useFieldArray } from 'react-hook-form'
+const { create } = require('ipfs-http-client')
 import { makeStyles } from '@material-ui/core/styles'
 import { flexClass } from '../../App'
 import { IPFS_PROVIDER } from '../../utils/ceramic'
@@ -10,6 +11,7 @@ import draftToHtml from 'draftjs-to-html'
 import htmlToDraft from 'html-to-draftjs'
 import Persona from '@aluhning/get-personas-js'
 import MilestoneCard from '../MilestoneCard/MilestoneCard'
+import FileUpload from '../IPFSupload/ipfsUpload'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -25,6 +27,14 @@ import Typography from '@material-ui/core/Typography'
 import Divider from '@material-ui/core/Divider'
 import { CircularProgress } from '@material-ui/core'
 import Paper from '@material-ui/core/Paper'
+import DeleteForeverIcon from '@material-ui/icons/DeleteForever'
+import AddBoxIcon from '@material-ui/icons/AddBox'
+import { InputAdornment } from '@material-ui/core'
+import Zoom from '@material-ui/core/Zoom'
+import Tooltip from '@material-ui/core/Tooltip'
+import InfoIcon from '@material-ui/icons/Info'
+
+import './editPayout.css'
 
 const useStyles = makeStyles((theme) => ({
     progress: {
@@ -37,6 +47,10 @@ const useStyles = makeStyles((theme) => ({
         width: theme.spacing(7),
         height: theme.spacing(7),
         textAlign: 'center'
+    },
+    textField: {
+      marginLeft: theme.spacing(1),
+      marginRight: theme.spacing(1),
     },
     waiting: {
       minWidth: '100%',
@@ -52,6 +66,7 @@ export default function EditPayoutProposalForm(props) {
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
     const [loaded, setLoaded] = useState(false)
+    const [addedFileHash, setAddedFileHash] = useState('QmZsKcVEwj9mvGfA7w7wUS1f2fLqcfzqdCnEGtdq6MBR7P')
 
      // Persona Fields
      const [date, setDate] = useState('')
@@ -69,8 +84,26 @@ export default function EditPayoutProposalForm(props) {
     const [refFundingId, setRefFundingId] = useState('')
     const [milestones, setMilestones] = useState([{}])
     const [details, setDetails] = useState(EditorState.createEmpty())
+    const [attachedFiles, setAttachedFiles] = useState([])
 
-    const { register, handleSubmit, watch, errors } = useForm()
+    const { register, handleSubmit, watch, errors, control, reset, setValue, getValues } = useForm()
+    const {
+      fields: fileFields,
+      append: fileFieldsAppend,
+      remove: fileFieldsRemove} = useFieldArray({
+     name: "files",
+     control
+    })
+
+    const files = watch('files', fileFields)
+    let controlledFields = fileFields.map((field, index) => {
+      return {
+        ...field,
+        ...files[index]
+      }
+    })
+
+    console.log('controlledfields', controlledFields)
 
     const {
         handleUpdate,
@@ -87,6 +120,8 @@ export default function EditPayoutProposalForm(props) {
     } = props
     
     const classes = useStyles()
+
+  
 
     useEffect(() => {
         async function fetchData() {
@@ -108,7 +143,7 @@ export default function EditPayoutProposalForm(props) {
            if(curDaoIdx && contract && proposalId){
           
             let propResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
-         
+         console.log('payout propresult', propResult)
             
             if(propResult) {
              
@@ -118,6 +153,7 @@ export default function EditPayoutProposalForm(props) {
                 if(propResult.proposals[i].proposalId == proposalId){
                   propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
                   propResult.proposals[i].milestone ? setMilestones(propResult.proposals[i].milestones) : setMilestones([{}])
+                  propResult.proposals[i].attachedFiles ? setValue('files', propResult.proposals[i].attachedFiles) : null
                   if (propResult.proposals[i].details){
                     let contentBlock = htmlToDraft(propResult.proposals[i].details)
                     if (contentBlock){
@@ -201,6 +237,53 @@ export default function EditPayoutProposalForm(props) {
           })
     },[])
 
+    function handleFileHash(hash, name) {
+      let fullHash = IPFS_PROVIDER + hash
+      let newAttachedFiles = { name: name, hash: fullHash }
+      attachedFiles.push(newAttachedFiles)
+      setAttachedFiles(attachedFiles)
+    }
+
+    const ipfsApi = create('https://infura-ipfs.io:5001')
+  
+    const captureFile = (i) => {
+      console.log('here', i)
+        event.stopPropagation()
+        event.preventDefault()
+        //const file = event.target.files[0]
+        const file = controlledFields[i].hash[0]
+        let name = controlledFields[i].hash[0].name
+        let reader = new window.FileReader()
+        console.log('reader', reader)
+        reader.onloadend = () => saveToIpfs(reader, name)
+        reader.readAsArrayBuffer(file)
+    }
+
+    const saveToIpfs = (reader, name) => {
+        let ipfsId
+        const buffer = Buffer.from(reader.result)
+      
+        ipfsApi.add(buffer)
+        .then((response) => {
+        ipfsId = response.path
+        console.log('ipfsId', ipfsId)
+        setAddedFileHash(ipfsId)
+        handleFileHash(ipfsId, name)
+        }).catch((err) => {
+        console.error(err)
+        })
+    }
+
+  const arrayBufferToString = (arrayBuffer) => {
+    return String.fromCharCode.apply(null, new Uint16Array(arrayBuffer))
+  }
+
+    const handleAttachedFilesChange = (event) => {
+       let tempArray = []
+        let newAttachedFiles = { ...attachedFiles, [event.target.name]: event.target.value }
+        tempArray.push(newAttachedFiles)
+        setSkillSet(tempArray)
+      }
 
     const handleClose = () => {
         handleEditPayoutProposalDetailsClickState(false)
@@ -276,7 +359,8 @@ export default function EditPayoutProposalForm(props) {
           referenceIds: references,
           likes: currentLikes,
           dislikes: currentDisLikes,
-          neutrals: currentNeutrals
+          neutrals: currentNeutrals,
+          attachedFiles: attachedFiles
       }
 
       // Update existing records
@@ -304,7 +388,8 @@ export default function EditPayoutProposalForm(props) {
       setOpen(false)
       handleClose()
     }
-    
+    console.log('filefields', fileFields)
+    console.log('attachedFiles', attachedFiles)
         return (
            
             <div>
@@ -349,7 +434,65 @@ export default function EditPayoutProposalForm(props) {
                   />
                   </Paper>
                   {errors.details && <p style={{color: 'red'}}>You must provide the details showing proof of project completion.</p>}
-                   
+                  
+                  <Grid container justifyContent="space-between" alignItems="flex-end" spacing={1}>
+                    <Typography variant="body1" style={{marginTop: '10px', marginBottom:'10px'}}>Attach Files</Typography>
+     
+                            <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
+                               
+                            </Grid>
+                            {
+                              fileFields.map((field, index) => {
+                              
+                                return(
+                                  <Grid container spacing={1} style={{marginBottom: '5px'}} key={field.id}>
+                                    <Grid item xs={10} sm={10} md={10} lg={10} xl={10} >
+                                      <div>
+                                      <TextField
+                                        fullWidth
+                                        type="file"
+                                        margin="normal"
+                                        className={classes.textField}
+                                        id={`files[${index}].hash`}
+                                        variant="outlined"
+                                        name={`files[${index}].hash`}
+                                        label={field.name}
+                                      
+                                        onChange={() => captureFile(index, event)}
+                                        InputProps={{
+                                          endAdornment: <div>
+                                          <Tooltip TransitionComponent={Zoom} title="Select file to attach.">
+                                              <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                                          </Tooltip>
+                                          </div>
+                                        }}
+                                        inputRef={register({
+                                          required: false                            
+                                        })}
+                                      />
+                                    
+                                    </div>
+                                   
+                                    </Grid>
+                        
+                                    <Button type="button" onClick={() => fileFieldsRemove(index)} style={{float: 'right', marginLeft:'10px'}}>
+                                      <DeleteForeverIcon />
+                                    </Button>
+                                  </Grid>
+                                )
+                              }) 
+                            }
+                    {!fileFields || fileFields.length == 0 ?
+                      <Typography variant="body1" style={{marginLeft: '5px'}}>No attached files.</Typography>
+                    : null }
+                      <Button
+                        type="button"
+                        onClick={() => fileFieldsAppend({hash: ''})}
+                        startIcon={<AddBoxIcon />}
+                      >
+                        Add File
+                      </Button>
+                    </Grid>
                 </DialogContent>
                
               {!finished ? <LinearProgress className={classes.progress} style={{marginBottom: '25px' }}/> : (

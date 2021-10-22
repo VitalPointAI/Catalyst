@@ -68,6 +68,7 @@ export default function TributeProposal(props) {
   const [applicant, setApplicant] = useState(props.accountId)
   const [tribute, setTribute] = useState('')
   const [confirm, setConfirm] = useState(false)
+  const [shares, setShares] = useState('')
 
   const classes = useStyles()
 
@@ -97,6 +98,10 @@ export default function TributeProposal(props) {
     setConfirm(event.target.checked)
   }
 
+  const handleSharesChange = (event) => {
+    setShares(event.target.value)
+  }
+
   const onSubmit = async (values) => {
     event.preventDefault()
     setFinished(false)
@@ -109,7 +114,7 @@ export default function TributeProposal(props) {
         applicant,
         '0',
         tribute,
-        parseInt(tribute).toString(), //first parse to eliminate any decimal (always down)
+        shares,
         '0'
         )
       } catch (err) {
@@ -120,7 +125,7 @@ export default function TributeProposal(props) {
   return (
     <div>
       <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Make a Tribute</DialogTitle>
+        <DialogTitle id="form-dialog-title">Make a Contribution and/or Buy Voting Shares</DialogTitle>
         <DialogContent className={classes.rootForm}>  
           <div>
             <TextField
@@ -146,7 +151,7 @@ export default function TributeProposal(props) {
               id="tribute-proposal-tribute-amount"
               variant="outlined"
               name="tribute"
-              label="Tribute Offered"
+              label="Contribution"
               placeholder="e.g. 100000"
               value={tribute}
               onChange={handleTributeChange}
@@ -163,10 +168,32 @@ export default function TributeProposal(props) {
               }}
             />
           </div>
+
+          <TextField
+            margin="dense"
+            id="member-proposal-loot"
+            variant="outlined"
+            name="memberShares"
+            label="Voting Shares"
+            placeholder="100"
+            value={shares}
+            onChange={handleSharesChange}
+            inputRef={register({
+                required: false,
+            })}
+            InputProps={{
+              endAdornment: <><InputAdornment position="end">shares</InputAdornment>
+              <Tooltip TransitionComponent={Zoom} title="The number of voting shares being requested.">
+                  <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
+              </Tooltip>
+              </>
+            }}
+          />
+
         <Card>
         <CardContent>
           <WarningIcon fontSize='large' className={classes.warning} />
-          <Typography variant="body1" gutterBottom>You are proposing a tribute of {tribute} Ⓝ which will give <b>{applicant}</b> {parseInt(tribute)} additional voting shares. After submitting
+          <Typography variant="body1" gutterBottom>You are proposing a contribution of {tribute} Ⓝ which will give <b>{applicant}</b> {shares ? shares : '0'} additional voting shares. After submitting
           this proposal, you must provide enough supporting detail to help other members vote on and decide whether to approve your proposal or not.</Typography> 
           <Grid container className={classes.confirmation} spacing={1}>
             <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
@@ -187,7 +214,7 @@ export default function TributeProposal(props) {
                   <Typography variant="body2"><u>Proposal passes:</u></Typography>
                     <ul style={{paddingInlineStart:'10px', paddingInlineEnd:'10px'}}>
                       <li>
-                        <Typography variant="body2">Applicant receives additional {parseInt(tribute)} voting shares.</Typography>
+                        <Typography variant="body2">Applicant receives additional {shares ? shares : '0'} voting shares.</Typography>
                       </li>
                       <li>
                         <Typography variant="body2">Community fund will increase by {tribute} Ⓝ.</Typography>

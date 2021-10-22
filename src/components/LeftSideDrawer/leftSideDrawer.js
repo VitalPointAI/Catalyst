@@ -366,31 +366,33 @@ const list = (anchor) => (
     <Divider />
     </>
     ) : null }
+    
+    <Typography variant='h6'>Catalyst Support</Typography>
     <List>
-    <Link to='/about'>
+    <a href='https://vitalpoint.ai/catalyst'>
       <ListItem button key={7}>
         <ListItemIcon><InfoIcon /></ListItemIcon>
         <ListItemText primary='About Catalyst'/>
       </ListItem>
-    </Link>
-    <Link to='/developer'>
+    </a>
+    <a href='https://vitalpoint.ai/catalyst-for-developers'>
       <ListItem button key={8}>
         <ListItemIcon><CodeIcon /></ListItemIcon>
         <ListItemText primary='Developers'/>
       </ListItem>
-    </Link>
-    <Link to='/learn'>
+    </a>
+    <a href='https://vitalpoint.ai/docs-catalyst/'>
       <ListItem button key={9}>
         <ListItemIcon><SchoolIcon /></ListItemIcon>
         <ListItemText primary='Learn'/>
       </ListItem>
-    </Link>
-    <Link to='/contact'>
+    </a>
+    <a href='https://vitalpoint.ai/catalyst-contact/'>
       <ListItem button key={10}>
         <ListItemIcon><ContactSupportIcon /></ListItemIcon>
         <ListItemText primary='Contact'/>
       </ListItem>
-    </Link>
+    </a>
     </List>
 </div>
 )

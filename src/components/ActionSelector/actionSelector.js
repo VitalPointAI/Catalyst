@@ -363,7 +363,7 @@ export default function ActionSelector(props) {
             <ListItemIcon>
               <HowToVoteIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Tribute (add Voting Shares)" />
+            <ListItemText primary="Add Funds (get Voting Shares)" />
           </StyledMenuItem>
           <StyledMenuItem button onClick={handleOpportunityProposalClick}>
             <ListItemIcon>
@@ -377,12 +377,6 @@ export default function ActionSelector(props) {
             </ListItemIcon>
             <ListItemText primary="Funding Commitment" />
           </StyledMenuItem>
-          <StyledMenuItem button onClick={handleCommunityRoleProposalClick}>
-          <ListItemIcon>
-            <EnhancedEncryptionIcon fontSize="small" />
-          </ListItemIcon>
-            <ListItemText primary="Community Role" />
-          </StyledMenuItem>
           <StyledMenuItem button onClick={handlePayoutProposalClick}>
             <ListItemIcon>
               <MonetizationOnIcon fontSize="small" />
@@ -393,7 +387,7 @@ export default function ActionSelector(props) {
             <ListItemIcon>
               <RemoveCircleIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Remove Member" />
+            <ListItemText primary="Remove Voting Rights" />
           </StyledMenuItem>
           <StyledMenuItem button onClick={handleLeaveClick}>
             <ListItemIcon>
@@ -449,6 +443,8 @@ export default function ActionSelector(props) {
         proposalDeposit={proposalDeposit}
         daoContract={daoContract}
         didsContract={didsContract}
+        contractId={contractId}
+        state={state}
         idx={idx}
         handleTabValueState={handleTabValueState} /> : null}
 

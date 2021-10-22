@@ -25,6 +25,10 @@ import ConfigurationProposalDetails from '../ProposalDetails/configurationPropos
 import EditOpportunityProposalForm from '../EditProposal/editOpportunityProposal'
 import OpportunityProposalDetails from '../ProposalDetails/opportunityProposalDetails'
 
+import EditGuildKickProposalForm from '../EditProposal/editGuildKickProposal'
+import GuildKickProposalDetails from '../ProposalDetails/guildKickProposalDetails'
+
+
 // Material UI Components
 import { makeStyles, withStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
@@ -162,8 +166,9 @@ export default function ProposalCard(props) {
     const [proposerAvatar, setProposerAvatar] = useState(imageName)
     const [proposerName, setProposerName] = useState('')
 
-    const[title, setTitle] = useState('Funding Proposal Details')
-    const [tributeTitle, setTributeTitle] = useState('Tribute Proposal Details')
+    const [guildKickTitle, setGuildKickTitle] = useState('Member Kick Details')
+    const [title, setTitle] = useState('Funding Proposal Details')
+    const [tributeTitle, setTributeTitle] = useState('Contribution Proposal Details')
     const [opportunityTitle, setOpportunityTitle] = useState('Opportunity Proposal Details')
 
     const[payoutTitle, setPayoutTitle] = useState('Payout Details')
@@ -199,6 +204,9 @@ export default function ProposalCard(props) {
 
     const [editConfigurationProposalDetailsClicked, setEditConfigurationProposalDetailsClicked] = useState(false)
     const [configurationProposalDetailsClicked, setConfigurationProposalDetailsClicked] = useState(false)
+
+    const [editGuildKickProposalDetailsClicked, setEditGuildKickProposalDetailsClicked] = useState(false)
+    const [guildKickProposalDetailsClicked, setGuildKickProposalDetailsClicked] = useState(false)
 
     const [nextToFinalize, setNextToFinalize] = useState()
     const [voteEnding, setVoteEnding] = useState('calculating')
@@ -405,6 +413,25 @@ export default function ProposalCard(props) {
               }
             }
 
+            // Set Existing GuildKick Proposal Data       
+            if(curDaoIdx && proposalType=='GuildKick'){
+              let propResult = await curDaoIdx.get('guildKickProposalDetails', curDaoIdx.id)
+          
+              if(propResult) {
+                let i = 0
+                while (i < propResult.proposals.length){
+                  if(parseInt(propResult.proposals[i].proposalId) == requestId){
+                    propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
+                    propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
+                    propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
+                    setDetailsExist(true)
+                    break
+                  }
+                  i++
+                }
+              }
+            }
+
             if(wallet){
               let daoContract = await dao.initDaoContract(wallet.account(), contractId)
               setDaoContract(daoContract)
@@ -435,6 +462,9 @@ export default function ProposalCard(props) {
                     case 'Configuration':
                       handleConfigurationProposalDetailsClick()
                       break;
+                    case 'GuildKick':
+                      handleGuildKickProposalDetailsClick()
+                    break;
                }
             }
 
@@ -589,6 +619,26 @@ export default function ProposalCard(props) {
   
     function handleMemberProposalDetailsClickState(property){
       setMemberProposalDetailsClicked(property)
+    }
+
+    // GuildKick Proposal Functions
+
+    const handleEditGuildKickProposalDetailsClick = () => {
+      handleExpanded()
+      handleEditGuildKickProposalDetailsClickState(true)
+    }
+  
+    function handleEditGuildKickProposalDetailsClickState(property){
+      setEditGuildKickProposalDetailsClicked(property)
+    }
+
+    const handleGuildKickProposalDetailsClick = () => {
+      handleExpanded()
+      handleGuildKickProposalDetailsClickState(true)
+    }
+  
+    function handleGuildKickProposalDetailsClickState(property){
+      setGuildKickProposalDetailsClicked(property)
     }
 
     // Funding Commitment Proposal Functions
@@ -783,6 +833,7 @@ export default function ProposalCard(props) {
              /></>
            ) : null }
 
+
           {proposalType === 'Commitment' ? (
             <> 
             
@@ -905,7 +956,7 @@ export default function ProposalCard(props) {
                   </Tooltip>
                   </>
                 ) : null }
-            <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px', marginTop: '12px'}} color="textSecondary">{proposalType} Proposal</Typography>
+            <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px', marginTop: '12px'}} color="textSecondary">Contribution Proposal</Typography>
             <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
             <div style={{clear: 'both'}}></div>
             <CardHeader
@@ -1219,12 +1270,13 @@ export default function ProposalCard(props) {
                   </Tooltip>
                   </>
                 ) : null }
-                <Typography variant="h6" align="center" color="textSecondary">{proposalType} Proposal</Typography>
+                <Typography variant="h6" align="center" color="textSecondary">Remove Member Proposal</Typography>
              <CardHeader
                title={<Chip
                  avatar={<Avatar alt="Member" src="../../../images/default-profile.png" />}
                  label={applicant}
                  variant="outlined"
+                 onclick={handleGuildKickProposalDetailsClick}
                />}
                subheader={
                  <Grid container alignItems="center" justifyContent="space-evenly">
@@ -1256,9 +1308,7 @@ export default function ProposalCard(props) {
             {proposalType == 'GuildKick' ? (
               <Grid container alignItems="center" justifyContent="space-evenly" style={{marginTop: '-20px', marginBottom:'20px'}}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                  <Typography variant="h6" noWrap={true} style={{border: '1px solid', padding: '2px', textAlign: 'center', fontWeight: '800', color: 'black'}}
-                  onClick={(e) => handleMemberProposalDetailsClick(requestId, applicant, status, proposer, proposalType, e)}
-                  >{title}</Typography>
+                 
                 </Grid>  
               </Grid>
             ) : null}
@@ -1280,7 +1330,7 @@ export default function ProposalCard(props) {
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-20px'}}>
                   <Typography variant="overline">Shares: {shares}</Typography><br></br>
                   <Typography variant="overline">Non-Voting Shares: {loot ? loot : '0'}</Typography><br></br>
-                  <Typography variant="overline" style={{fontSize:'100%'}}>{`Tribute: ${formatNearAmount(tribute, 3)} Ⓝ`}</Typography>
+                  <Typography variant="overline" style={{fontSize:'100%'}}>Contribution<br></br>{formatNearAmount(tribute, 3)} Ⓝ</Typography>
                 </Grid>
               </Grid>
             ) : null }
@@ -1477,7 +1527,7 @@ export default function ProposalCard(props) {
                     variant="contained"
                     align="left"                    
                     startIcon={<SendIcon />}
-                    onClick={(e) => handleProcessAction(requestId, proposalType)}
+                    onClick={(e) => handleProcessAction(requestId, proposalType, applicant)}
                   >
                   Finalize
                   </Button>
@@ -1488,10 +1538,18 @@ export default function ProposalCard(props) {
                     <DeleteForeverIcon />
                   </Button>
                  
-                  {proposalType === 'Member' || proposalType === 'GuildKick' ? (
+                  {proposalType === 'Member' ? (
                     <><Button 
                         color="primary" 
                         onClick={handleEditMemberProposalDetailsClick}>
+                        <EditIcon />
+                      </Button>
+                    </>)
+                  : null }
+                  {proposalType === 'GuildKick' ? (
+                    <><Button 
+                        color="primary" 
+                        onClick={handleEditGuildKickProposalDetailsClick}>
                         <EditIcon />
                       </Button>
                     </>)
@@ -1619,12 +1677,34 @@ export default function ProposalCard(props) {
           contractId={contractId}
           /> : null }
 
+          {editGuildKickProposalDetailsClicked ? <EditGuildKickProposalForm
+            state={state}
+            handleEditGuildKickProposalDetailsClickState={handleEditGuildKickProposalDetailsClickState}
+            curDaoIdx={curDaoIdx}
+            applicant={applicant}
+            proposer={proposer}
+            handleUpdate={handleUpdate}
+            accountId={accountId}
+            proposalId={requestId}
+            contractId={contractId}
+            /> : null }
+
 
         {memberProposalDetailsClicked ? <MemberProposalDetails
           proposer={proposer}
           handleMemberProposalDetailsClickState={handleMemberProposalDetailsClickState}
           curDaoIdx={curDaoIdx}
           curPersonaIdx={curPersonaIdx}
+          applicant={applicant}
+          handleUpdate={handleUpdate}
+          proposalId={requestId}
+          memberStatus={memberStatus}
+          /> : null }
+
+        {guildKickProposalDetailsClicked ? <GuildKickProposalDetails
+          proposer={proposer}
+          handleGuildKickProposalDetailsClickState={handleGuildKickProposalDetailsClickState}
+          curDaoIdx={curDaoIdx}
           applicant={applicant}
           handleUpdate={handleUpdate}
           proposalId={requestId}

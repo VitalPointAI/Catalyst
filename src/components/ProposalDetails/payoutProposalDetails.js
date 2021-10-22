@@ -26,8 +26,14 @@ import Chip from '@material-ui/core/Chip'
 import Divider from '@material-ui/core/Divider'
 import Card from '@material-ui/core/Card'
 import Paper from '@material-ui/core/Paper'
+import List from '@material-ui/core/List'
+import ListItem from '@material-ui/core/ListItem'
+import ListItemIcon from '@material-ui/core/ListItemIcon'
+import ListItemText from '@material-ui/core/ListItemText'
+import AttachFileIcon from '@material-ui/icons/AttachFile'
 
 // CSS Styles
+
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -38,6 +44,9 @@ const useStyles = makeStyles((theme) => ({
     },
     card: {
       margin: 'auto',
+    },
+    detailsCard: {
+      padding: '5px'
     },
     progress: {
         display: 'flex',
@@ -84,6 +93,7 @@ export default function PayoutProposalDetails(props) {
     const [payoutTitle, setPayoutTitle] = useState()
     const [detailsOfCompletion, setDetailsOfCompletion] = useState()
     const [milestones, setMilestones] = useState()
+    const [attachedFiles, setAttachedFiles] = useState()
     const [created, setCreated] = useState()
   
     const [isUpdated, setIsUpdated] = useState(false)
@@ -167,6 +177,7 @@ export default function PayoutProposalDetails(props) {
                     propResult.proposals[i].details ? setDetailsOfCompletion(propResult.proposals[i].details) : setDetailsOfCompletion('')
                     propResult.proposals[i].milestone ? setMilestones(propResult.proposals[i].milestone) : setMilestones([{}])
                     propResult.proposals[i].submitDate ? setCreated(propResult.proposals[i].submitDate) : setCreated()
+                    propResult.proposals[i].attachedFiles ? setAttachedFiles(propResult.proposals[i].attachedFiles) : setAttachedFiles([{}])
                     break
                   }
                   i++
@@ -230,6 +241,28 @@ export default function PayoutProposalDetails(props) {
         }
       })
     }
+
+    let Files
+    if(attachedFiles && attachedFiles.length > 0){
+      Files = attachedFiles.map((element, index) => {
+        console.log('attachedfiles', attachedFiles)
+        console.log('element', element)
+        if(element.hash==''){
+          return null
+        } else {
+        return (
+          <a href={element.hash} target="_blank">
+            <ListItem button key={element.id}>
+              <ListItemIcon><AttachFileIcon /></ListItemIcon>
+              <ListItemText primary={element.name} />
+            </ListItem>
+          </a>
+         
+        )
+        }
+      })
+    }
+
 
     const handleClose = () => {
         handlePayoutProposalDetailsClickState(false)
@@ -361,7 +394,21 @@ export default function PayoutProposalDetails(props) {
                       </Grid>
                     </Grid>
                   : null }
-                    </>)}
+                  {attachedFiles && attachedFiles.length > 0 ? (
+                    <Grid container spacing={1} style={{width: '100%'}}>
+                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                    <Paper style={{marginTop:'20px', padding: '10px'}}>
+                      <Typography variant="h6" style={{marginTop: '20px', marginBottom: '20px'}}>Attached Files</Typography>
+                      <List>
+                      {Files}
+                      </List>
+                    </Paper>
+                    </Grid>
+                    </Grid>
+                    
+                    )
+                  :null }
+                  </>)}
                 </DialogContent>
               <DialogActions>
                 <Button onClick={handleClose} color="primary">

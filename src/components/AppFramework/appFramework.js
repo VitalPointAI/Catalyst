@@ -453,8 +453,15 @@ export default function AppFramework(props) {
                         newProcess[g].type,
                         transactionHash
                         )
-                        
+                      
                       if (loggedProcess) {
+                        if(newProcess[g].type == 'GuildKick' || newProcess[g].type == 'Tribute') {
+                          try {
+                            let synched = await synchMember(curDaoIdx, daoContract, contractId, newProcess[g].applicant, true)
+                          } catch (err) {
+                            console.log('no members yet', err)
+                          }
+                        }
                         del(NEW_PROCESS)
                         await renewProposals(curDaoIdx, daoContract)
                       }

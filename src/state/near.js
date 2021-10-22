@@ -659,6 +659,9 @@ export async function submitProposal(
     paymentRequested,
     configuration,
     references) {
+
+    console.log('proposalType', proposalType)
+    console.log('applicant', applicant)
    
     const daoContract = await dao.initDaoContract(wallet.account(), contractId)
     const proposalId = await daoContract.getProposalsLength()
@@ -732,6 +735,17 @@ export async function submitProposal(
                     }, GAS, parseNearAmount((parseFloat(proposalDeposit) + parseFloat(STORAGE)).toString()))
                 } catch (err) {
                     console.log('submit configuration proposal failed', err)
+                    return false
+                }
+                break
+        case 'GuildKick':
+            try{
+                await daoContract.submitGuildKickProposal({
+                    memberToKick: applicant,
+                    contractId: contractId
+                }, GAS, parseNearAmount((parseFloat(proposalDeposit) + parseFloat(STORAGE)).toString()))
+                } catch (err) {
+                    console.log('submit guild kick proposal failed', err)
                     return false
                 }
                 break
@@ -870,12 +884,12 @@ export async function revokeDelegatedVotes(wallet, contractId, delegator, receiv
 }
 
 // Process Queued Proposal
-export async function processProposal(daoContract, contractId, proposalId, proposalType, curDaoIdx) {
+export async function processProposal(daoContract, contractId, proposalId, proposalType, curDaoIdx, applicant) {
 
     try {
         // set trigger for to log new proposal
         let newProcess = get(NEW_PROCESS, [])
-        newProcess.push({contractId: contractId, proposalId: proposalId, new: true, type: proposalType})
+        newProcess.push({contractId: contractId, proposalId: proposalId, new: true, type: proposalType, applicant: applicant})
         set(NEW_PROCESS, newProcess)
 
         let proposal = await daoContract.getProposal({proposalId: proposalId})
@@ -3026,6 +3040,14 @@ export async function signal(proposalId, signalType, curDaoIdx, accountId, propo
                 break
             } catch (err) {
                 console.log('problem retrieving member proposal details', err)
+            }
+        case 'GuildKick':
+            try{
+                currentProperties = await curDaoIdx.get('guildKickProposalDetails', curDaoIdx.id)
+                stream = 'guildKickProposalDetails'
+                break
+            } catch (err) {
+                console.log('problem retrieving guild kick proposal details', err)
             }
         case 'Payout':
             try{

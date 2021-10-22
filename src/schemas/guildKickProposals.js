@@ -1,4 +1,4 @@
-export const payoutProposalDetailsSchema = {
+export const guildKickProposalDetailsSchema = {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "title": "ProposalDetails",
@@ -16,32 +16,18 @@ export const payoutProposalDetailsSchema = {
       "required": ["proposalId"],
       "properties": {
         "proposalId": {
-          type: 'string',
-        },
-        "title": {
-          type: 'string',
+          "type": "string",
         },
         "details": {
-          type: 'string',
+          "type": "string",
+          "title": "text",
+          "maxLength": 4000,
         },
-        "proposer": {
-          type: 'string',
+        "memberToKick": {
+          "type": "string",
         },
-        "submitDate": {
-          type: 'number',
-          minimum: 0,
-        },
-        "published": {
-          type: 'boolean'
-        },
-        "milestone": {
-          type: 'array'
-        },
-        "attachedFiles": {
-          type: "array"
-        },
-        "referenceIds": {
-          type: 'array'
+        "updated": {
+          "type": "string",
         },
         "likes": {
           type: 'array'
@@ -52,7 +38,7 @@ export const payoutProposalDetailsSchema = {
         "neutrals": {
           type: 'array'
         },
-      },
+      }
     }
   }
 }

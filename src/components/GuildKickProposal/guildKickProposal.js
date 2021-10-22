@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
-import { utils } from 'near-api-js'
-import { GAS } from '../../utils/ceramic'
+import { submitProposal } from '../../state/near'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -52,63 +51,39 @@ export default function GuildKickProposal(props) {
   const classes = useStyles()
   const { register, handleSubmit, watch, errors } = useForm()
 
-  const { 
-    handleGuildKickClickState, 
-    handleProposalEventChange,
-    handleGuildBalanceChanges,
-    handleEscrowBalanceChanges,  
-    accountId,
-    proposalDeposit,
-    depositToken,
-    daoContract,
-    contract } = props
+  const {
+    state,
+    handleGuildKickClickState,
+    contractId
+    } = props
 
   const handleClose = () => {
     handleGuildKickClickState(false)
   }
 
   const handleMemberToKickChange = (event) => {
-    setMemberToKick(event.target.value.toString())
+    setMemberToKick(event.target.value)
   }
-
-  async function handleCancelAction(proposalIdentifier) {
-    let finished = await daoContract.cancelProposal({
-        proposalId: proposalIdentifier
-        }, GAS, utils.format.parseNearAmount((parseFloat(proposalDeposit)).toString()))
-    try{
-      
-      } catch (err) {
-        console.log('error processig guild kick proposal', err)
-      }
-  }
-
 
   const onSubmit = async (values) => {
+    event.preventDefault()
     setFinish(false)
-
-    let finished
-    try {
-     
-      finished = await contract.submitGuildKickProposal({
-                    memberToKick: memberKick, 
-                    proposalDeposit: proposalDeposit,
-                    depositToken: depositToken
-                    }, GAS, utils.format.parseNearAmount((parseFloat(proposalDeposit)).toString()))
-      
-    } catch (err) {
-      console.log('There was a problem adding the guild kick proposal.', err)
-      
-    }
-
-    if(finished) {
-      setFinish(true)
-      await handleProposalEventChange()
-      await handleGuildBalanceChanges()
-      await handleEscrowBalanceChanges()
-      setOpen(false)
-      handleClose()
-    }
-}
+    
+    try{
+      await submitProposal(
+        state.wallet,
+        contractId,
+        'GuildKick',
+        memberKick,
+        '0',
+        '0',
+        '0',
+        '0'
+        )
+      } catch (err) {
+        console.log('problem submitting guildKick proposal', err)
+      }
+  }
 
   return (
     <div>
@@ -132,7 +107,7 @@ export default function GuildKickProposal(props) {
                   required: true,                        
               })}
             />
-        {errors.memberToKick && <p style={{color: 'red'}}>You must provide a valid NEAR account.</p>}
+        {errors.memberKick && <p style={{color: 'red'}}>You must provide a valid NEAR account.</p>}
         </div>
         </DialogContent>
         <DialogActions>

@@ -131,7 +131,7 @@ export default function OpportunityCard(props) {
     const [curUserIdx, setCurUserIdx] = useState()
     const [joined, setJoined] = useState(props.joined)
     const [contribution, setDonation] = useState()
-    const [isUpdated, setIsUpdated] = useState()
+   // const [isUpdated, setIsUpdated] = useState()
     const [curDaoIdx, setCurDaoIdx] = useState()
     const [status, setStatus] = useState()
     const [proposalDeposit, setProposalDeposit] = useState()
@@ -165,7 +165,8 @@ export default function OpportunityCard(props) {
       appIdx,
       accountId,
       wallet,
-      deposit
+      deposit,
+      isUpdated
     } = state
 
     const classes = useStyles();
@@ -204,9 +205,9 @@ export default function OpportunityCard(props) {
 
     useEffect(
         () => {
-       
+          if(isUpdated){}
         async function fetchData() {
-          
+         
           let notificationFlag = get(OPPORTUNITY_NOTIFICATION, [])
           if(notificationFlag[0]){
             //open the proposal with the correct id
@@ -460,7 +461,7 @@ export default function OpportunityCard(props) {
           </Grid>
           <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
             <Chip label={status == 'Passed' && opportunityStatus ? 'Active' : 'Inactive'} style={{marginRight: '10px'}}/>
-            <Chip color="primary" label={category}/>
+            <Chip color="primary" label={category} style={{width: '100%', marginTop:'5px'}}/>
           </Grid>
           </Grid>
           </>}
@@ -577,6 +578,8 @@ export default function OpportunityCard(props) {
           opportunityId={opportunityId}
           contractId={thisContractId}
           status={status}
+          dateValid={dateValid}
+          budget={budget}
           /> : null }
 
           {editOpportunityProposalDetailsClicked ? <EditOpportunityProposalForm

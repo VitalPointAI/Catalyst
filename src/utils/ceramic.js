@@ -54,6 +54,7 @@ import { communityRoleProposalDetailsSchema } from '../schemas/communityRoleProp
 import { repFactorProposalDetailsSchema } from '../schemas/repFactorProposal'
 import { waiversSchema } from '../schemas/waivers'
 import { notificationSchema } from '../schemas/notifications'
+import { guildKickProposalDetailsSchema } from '../schemas/guildKickProposals'
 
 import { config } from '../state/config'
 
@@ -935,7 +936,7 @@ async makeSeed(account){
 
   // uncomment below to change a definition
   // let changed = await this.changeDefinition(APP_OWNER_ACCOUNT, 'proposals', appClient, proposalSchema, 'proposal events', contract)
-  // let changed1 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'payoutProposalDetails', appClient, payoutProposalDetailsSchema, 'payout proposal details', contract)
+  //let changed1 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'payoutProposalDetails', appClient, payoutProposalDetailsSchema, 'payout proposal details', contract)
   // let changed2 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'tributeProposalDetails', appClient, tributeProposalDetailsSchema, 'tribute proposal details', contract)
   // let changed3 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'configurationProposalDetails', appClient, configurationProposalDetailsSchema, 'configuration proposal details', contract)
   // let changed4 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'communityRoles', appClient, communityRoleProposalDetailsSchema, 'community roles', contract)
@@ -976,6 +977,7 @@ async makeSeed(account){
     const reputationFactors = this.getAlias(APP_OWNER_ACCOUNT, 'reputationFactors', appClient, repFactorProposalDetailsSchema, 'reputation factors', contract)
     const waivers = this.getAlias(APP_OWNER_ACCOUNT, 'Waivers', appClient, waiversSchema, 'waiver records', contract)
     const notifications = this.getAlias(APP_OWNER_ACCOUNT, 'notifications', appClient, notificationSchema, 'notifications', contract)
+    const guildKickProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'guildKickProposalDetails', appClient, guildKickProposalDetailsSchema, 'guild kick proposal details', contract)
     const done = await Promise.all([
       appDid, 
       definitions, 
@@ -1004,7 +1006,8 @@ async makeSeed(account){
       communityRoles,
       reputationFactors,
       waivers,
-      notifications
+      notifications,
+      guildKickProposalDetails
     ])
     
     let rootAliases = {
@@ -1034,7 +1037,8 @@ async makeSeed(account){
       communityRoles: done[24],
       reputationFactors: done[25],
       waivers: done[26],
-      notifications: done[27]
+      notifications: done[27],
+      guildKickProposalDetails: done[28]
     }
 
     const appIdx = new IDX({ ceramic: appClient, aliases: rootAliases})

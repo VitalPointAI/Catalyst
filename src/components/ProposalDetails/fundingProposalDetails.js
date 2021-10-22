@@ -183,7 +183,7 @@ export default function FundingProposalDetails(props) {
             // Set Existing Proposal Data       
             if(curDaoIdx && contract){
               let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
-            
+            console.log('fundingproposaldetails', propResult)
               if(propResult) {
                 let i = 0
                 while (i < propResult.proposals.length){

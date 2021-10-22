@@ -145,7 +145,9 @@ export default function OpportunityProposalDetails(props) {
         applicant,
         proposer,
         contract,
-        contractId
+        contractId,
+        dateValid,
+        budget
     } = props
   
     const thisPersona = new Persona()
@@ -539,7 +541,7 @@ export default function OpportunityProposalDetails(props) {
                 </DialogContent>
               <DialogActions>
 
-                {status == 'Passed' && active ? 
+                {status == 'Passed' && active && dateValid && budget != 0 ? 
                   <Button 
                       color="primary" 
                       onClick={handleFundingProposalClick}>
