@@ -541,13 +541,21 @@ export default function OpportunityProposalDetails(props) {
                 </DialogContent>
               <DialogActions>
 
-                {status == 'Passed' && active && dateValid && budget != 0 ? 
+                {status == 'Passed' && memberStatus && active && dateValid && budget != 0 ? 
                   <Button 
                       color="primary" 
                       onClick={handleFundingProposalClick}>
                         Accept
                   </Button>
-                : null }
+                : (
+                  <>
+                  <Button 
+                     color="primary" 
+                     onClick={handleMemberProposalClick}>
+                      Join Community
+                   </Button>
+                   </>
+                )  }
 
                   <Button onClick={handleClose} color="primary">
                     Close

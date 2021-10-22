@@ -643,8 +643,8 @@ export default function AppFramework(props) {
       () => {
        
           async function fetchData() {
-
-                  //************ LOAD COMMUNITY SETTINGS AND INFORMATION */
+           
+            //************ LOAD COMMUNITY SETTINGS AND INFORMATION */
                      
                   try{
                     let result = await curDaoIdx.get('daoProfile', curDaoIdx.id)
@@ -669,6 +669,7 @@ export default function AppFramework(props) {
                       
                       try {
                         thisMemberInfo = await daoContract.getMemberInfo({member: accountId})
+                       
                         thisMemberStatus = await daoContract.getMemberStatus({member: accountId})
                       
                         setMemberInfo(thisMemberInfo)

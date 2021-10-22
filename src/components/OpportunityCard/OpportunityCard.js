@@ -483,7 +483,7 @@ export default function OpportunityCard(props) {
             </Grid>
           </CardContent>
           <CardActions>
-          {status == 'Passed' ? 
+          {status == 'Passed' && memberStatus ? 
           dateValid && budget != 0 ? (
             memberStatus ? (
             <>
