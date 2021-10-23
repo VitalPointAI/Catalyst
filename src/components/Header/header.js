@@ -84,7 +84,9 @@ export const Header = ({ state, handleUpdate }) => {
 
     const handleClick = (event) => {
         setAnchorEl(event.currentTarget);
+        update('', {isUpdated: !isUpdated})
         setPopoverOpen(true)
+
     }
 
     const handleClose = () => {

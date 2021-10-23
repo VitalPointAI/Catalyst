@@ -62,7 +62,6 @@ export default function OpportunityProposal(props) {
   const [open, setOpen] = useState(true)
   const [finished, setFinished] = useState(true)
   const [confirm, setConfirm] = useState(false)
-  const [budget, setBudget] = useState()
 
   const classes = useStyles()
 

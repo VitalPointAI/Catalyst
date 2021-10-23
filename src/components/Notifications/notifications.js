@@ -56,7 +56,7 @@ export default function NotificationCard(props){
                 //retrieve all notifications for all accounts from ceramic
                 let result = await ceramic.downloadKeysSecret(appIdx, 'notifications')
                 console.log('result', result)
-                if(result){
+                if(result && result.length > 0){
                         //send the object holding notifications to map for easy access
                         //to specific values
                         let notificationMap = new Map(Object.entries(result[0])) 

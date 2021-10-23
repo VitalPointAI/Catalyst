@@ -185,7 +185,7 @@ export default function EditOpportunityProposalForm(props) {
                     propResult.opportunities[i].deadline ? setDeadline(propResult.opportunities[i].deadline) : setDeadline('')
                     propResult.opportunities[i].familiarity ? setFamiliarity(propResult.opportunities[i].familiarity) : setFamiliarity('0')
                     propResult.opportunities[i].opportunitySkills ? setValue('opportunitySkills', propResult.opportunities[i].opportunitySkills) : setValue('opportunitySkills', {'name': ''})
-                    propResult.opportunities[i].budget ? setBudget(parseFloat(formatNearAmount((propResult.opportunities[i].budget).toLocaleString('fullwide', {useGrouping: false})), 3)) : setBudget()
+                    propResult.opportunities[i].budget ? setBudget(propResult.opportunities[i].budget) : setBudget()
                     propResult.opportunities[i].desiredSkillSet ? setDesiredSkillSet(propResult.opportunities[i].desiredSkillSet): setDesiredSkillSet({})
                     propResult.opportunities[i].desiredDeveloperSkillSet ? setDesiredDeveloperSkillSet(propResult.opportunities[i].desiredDeveloperSkillSet): setDesiredDeveloperSkillSet({})
                     propResult.opportunities[i].likes ? setCurrentLikes(propResult.opportunities[i].likes) : setCurrentLikes([])

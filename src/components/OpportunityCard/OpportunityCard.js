@@ -347,6 +347,7 @@ export default function OpportunityCard(props) {
       }
     }, [])
     
+   
 
     function formatDate(timestamp) {
       let stringDate = timestamp.toString()
@@ -483,34 +484,42 @@ export default function OpportunityCard(props) {
             </Grid>
           </CardContent>
           <CardActions>
-          {status == 'Passed' && memberStatus ? 
-          dateValid && budget != 0 ? (
+          {status == 'Passed' ? (
             memberStatus ? (
-            <>
-           <Button 
-              color="primary" 
-              onClick={handleFundingProposalClick}>
-                Accept
-            </Button>
-            </>
-            ) : (
+              dateValid ? (  
+                budget > 0 ? (
+                  <>
+                  <Button 
+                    color="primary" 
+                    onClick={handleFundingProposalClick}>
+                      Accept
+                  </Button>
+                  </>
+                ) : 
+                  <>
+                  <Button 
+                    color="primary" 
+                    disabled>
+                      Out of Budget
+                  </Button>
+                  </>            
+              ) :
+                <>
+                <Button 
+                  color="primary" 
+                  disabled>
+                    Expired
+                </Button>
+                </>
+            ) :
               <>
               <Button 
-                 color="primary" 
-                 onClick={handleMemberProposalClick}>
+                color="primary" 
+                onClick={handleMemberProposalClick}>
                   Join Community
-               </Button>
-               </>
-            ) 
-          ) : (
-            <>
-            <Button 
-               color="primary" 
-               disabled>
-                Expired
-             </Button>
-             </>
-          ): null}
+              </Button>
+              </>
+          ) : null }
           
             <Button 
               color="primary"

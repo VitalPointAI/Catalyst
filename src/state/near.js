@@ -1084,6 +1084,53 @@ export async function synchDaos(state){
     return true
 }
 
+// Synch Opportunity Budgets
+export async function synchBudgets(curDaoIdx, allProposals) {
+    let opportunities
+    let oppBudget
+    let budgetChange = false
+    
+    try{
+        opportunities = await curDaoIdx.get('opportunities', curDaoIdx.id)
+    } catch (err) {
+        console.log('problem retreiving opportunities', err)
+    }
+ 
+    let j=0
+    while (j < opportunities.opportunities.length){
+        let i = 0
+        while (i < allProposals.length){
+            if(allProposals[i].proposalType=='Commitment' && (allProposals[i].status == 'Passed' || allProposals[i].status == 'Sponsored')){
+                let k = 0
+                while (k < allProposals[i].referenceIds.length){
+                    if(allProposals[i].referenceIds[k].keyName=='proposal'
+                        && allProposals[i].referenceIds[k].valueSetting == opportunities.opportunities[j].opportunityId){
+                            oppBudget += opportunities.opportunities[j].budget
+                        }
+                    k++
+                }
+            }
+            i++
+        }
+        if(opportunities.opportunities[j].budget != oppBudget){
+            opportunities.opportunities[j].budget = oppBudget
+            opportunities.opportunities[j] = opportunities.opportunities[j]
+            budgetChange = true
+        }
+        j++
+    }
+
+    if(budgetChange){
+        try {
+            await curDaoIdx.set('opportunities', opportunities)
+            return true
+        } catch (err) {
+            console.log('error logging proposal', err)
+        }
+    }
+    return false
+}
+
 // Synch Proposals
 export async function synchProposalEvent(curDaoIdx, daoContract) {
     let exists = false
@@ -2028,7 +2075,7 @@ export async function logProcessEvent(near, appIdx, didRegistryContract, curDaoI
                 while (i < opportunitiesList.opportunities.length){
                     if(opportunitiesList.opportunities[i].opportunityId == opportunityId){
                         let opportunity = opportunitiesList.opportunities[i]
-                        opportunity['budget'] = opportunity['budget'] + parseFloat(proposal.paymentRequested)
+                        opportunity.budget = opportunity.budget + parseFloat(proposal.paymentRequested)
                         opportunitiesList.opportunities[i] = opportunity
                         break
                     }
@@ -2526,7 +2573,7 @@ export async function logSponsorEvent (curDaoIdx, daoContract, contractId, propo
                 while (i < opportunitiesList.opportunities.length){
                     if(opportunitiesList.opportunities[i].opportunityId == opportunityId){
                         let opportunity = opportunitiesList.opportunities[i]
-                        opportunity['budget'] = parseFloat(opportunity['budget']) - parseFloat(proposal.paymentRequested)
+                        opportunity.budget = opportunity.budget - parseFloat(proposal.paymentRequested)
                         opportunitiesList.opportunities[i] = opportunity
                         break
                     }

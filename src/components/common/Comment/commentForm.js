@@ -166,7 +166,8 @@ export default function CommentForm(props) {
             console.log("APP", appIdx)
             let notificationRecipient
             let resultArray = await ceramic.downloadKeysSecret(appIdx, 'notifications')
-            if(resultArray){
+            
+            if(resultArray && resultArray.length > 0){
               notificationRecipient = new Map(Object.entries(resultArray[0]))
             }
             else{

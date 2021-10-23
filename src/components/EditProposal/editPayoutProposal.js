@@ -34,7 +34,7 @@ import Zoom from '@material-ui/core/Zoom'
 import Tooltip from '@material-ui/core/Tooltip'
 import InfoIcon from '@material-ui/icons/Info'
 
-import './editPayout.css'
+import './payout.css'
 
 const useStyles = makeStyles((theme) => ({
     progress: {
@@ -51,6 +51,7 @@ const useStyles = makeStyles((theme) => ({
     textField: {
       marginLeft: theme.spacing(1),
       marginRight: theme.spacing(1),
+      marginTop: '25px'
     },
     waiting: {
       minWidth: '100%',
@@ -447,13 +448,13 @@ export default function EditPayoutProposalForm(props) {
                                 return(
                                   <Grid container spacing={1} style={{marginBottom: '5px'}} key={field.id}>
                                     <Grid item xs={10} sm={10} md={10} lg={10} xl={10} >
-                                      <div>
+                                     
                                       <TextField
                                         fullWidth
                                         type="file"
                                         margin="normal"
                                         className={classes.textField}
-                                        id={`files[${index}].hash`}
+                                        id="fileName"
                                         variant="outlined"
                                         name={`files[${index}].hash`}
                                         label={field.name}
@@ -471,7 +472,7 @@ export default function EditPayoutProposalForm(props) {
                                         })}
                                       />
                                     
-                                    </div>
+                                
                                    
                                     </Grid>
                         

@@ -103,7 +103,7 @@ export default function FundingProposal(props) {
 
   const onSubmit = async (values) => {
 
-    if(parseFloat(funding) > parseFloat(budget)){
+    if(parseFloat(funding) > budget){
       alert("Not enough funds in opportunity budget")
       handleClose()
       return

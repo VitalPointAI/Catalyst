@@ -541,7 +541,7 @@ export default function OpportunityProposalDetails(props) {
                 </DialogContent>
               <DialogActions>
 
-                {status == 'Passed' && memberStatus && active && dateValid && budget != 0 ? 
+                {status == 'Passed' && memberStatus && active && dateValid && budget > 0 ? 
                   <Button 
                       color="primary" 
                       onClick={handleFundingProposalClick}>

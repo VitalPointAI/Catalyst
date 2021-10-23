@@ -14,9 +14,10 @@ import { logInitEvent,
   logExitEvent,
   logInactivateCommunity,
   inactivateCommunity,
-  synchProposalEvent, 
+  synchProposalEvent,
   synchMember,
-  synchDaos } from '../../state/near'
+  synchDaos, 
+  synchBudgets} from '../../state/near'
 
 import ActionSelector from '../ActionSelector/actionSelector'
 import ProposalList from '../ProposalList/proposalList'
@@ -626,6 +627,7 @@ export default function AppFramework(props) {
               console.log('no members yet', err)
             }
           }
+         
           return true
         }
 
@@ -856,6 +858,8 @@ export default function AppFramework(props) {
       try {
         let synched = await synchProposalEvent(curDaoIdx, contract)
         setAllProposals(synched.events)
+        let budgetSynch = await synchBudgets(curDaoIdx, synched.events)
+        console.log('budget synch', budgetSynch)
       } catch (err) {
         console.log('no proposals yet', err)
       }
