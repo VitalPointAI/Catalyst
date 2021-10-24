@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, useContext} from 'react'
 import { useParams} from 'react-router-dom'
 import LeftSideDrawer from '../LeftSideDrawer/leftSideDrawer'
 import LogoutButton from '../LogoutButton/logoutButton'
@@ -9,7 +9,7 @@ import {get, set, del} from '../../utils/storage'
 import {NEW_NOTIFICATIONS} from '../../state/near'
 import NotificationCard from '../Notifications/notifications'
 import {ceramic} from '../../utils/ceramic'
-
+import { appStore, onAppMount } from '../../state/app';
 // Material UI
 import Grid from '@material-ui/core/Grid'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
@@ -24,7 +24,7 @@ export const Header = ({ state, handleUpdate }) => {
     const [newNotifications, setNewNotifications] = useState(0)
     const [popoverOpen, setPopoverOpen] = useState(false)
     const [anchorEl, setAnchorEl] = useState(null);
-
+    const { update } = useContext(appStore);
 
     const {
         wallet,
@@ -132,20 +132,15 @@ export const Header = ({ state, handleUpdate }) => {
                     anchorEl={anchorEl}
                     onClose={handleClose}
                     anchorOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'center',
-                    }}
-                    transformOrigin={{
-                        vertical: 'top',
-                        horizontal: 'center',
-                    }}
-                    style={{maxWidth: '100%', maxHeight: '80%'}} 
+                         vertical: 'bottom',
+                         horizontal: 'center',
+                     }}
+                    style={{maxWidth: '20%', maxHeight: '80%'}} 
                     open={popoverOpen}
                     >
                         <NotificationCard
                             handleNotificationClick={handleNotificationClick}
                             toolbar={false}
-                            style={{minWidth: '100%'}}
                         />
                     </Popover>
 

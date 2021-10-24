@@ -76,6 +76,7 @@ export default function CommentForm(props) {
 
     const {
         reply,
+        proposalApplicant,
         originalAuthor, 
         originalContent, 
         proposalId,
@@ -151,7 +152,7 @@ export default function CommentForm(props) {
       
         try{
           await curDaoIdx.set('comments', allComments)
-          if(reply){  
+         
             let preview
             if(body.length > 27)
               { 
@@ -160,7 +161,7 @@ export default function CommentForm(props) {
             else{
                 preview = body.substring(3, body.length - 5) + "..."
             }
-
+          
             //get notification array from ceramic
             //then convert the object 
             console.log("APP", appIdx)
@@ -180,12 +181,24 @@ export default function CommentForm(props) {
             
             //get array of notifications associated with original comment author
             let notifs
-            if(notificationRecipient){
-              notifs  = notificationRecipient.get(originalAuthor)
+            if(reply){
+              if(notificationRecipient){
+                notifs  = notificationRecipient.get(originalAuthor)
+              }
+              else{
+                notifs = []
+              }
             }
+            //if it isn't a reply, we want proposal applicant, not original comment author
             else{
-              notifs = []
+              if(notificationRecipient){
+                notifs  = notificationRecipient.get(proposalApplicant)
+              }
+              else{
+                notifs = []
+              }
             }
+      
           
             //boots oldest notification if there are more than 75
             if(notifs){
@@ -197,15 +210,16 @@ export default function CommentForm(props) {
               notifs = []
             }
            
+            if(reply){
             //want to then push to that array the new notification
             notifs.push(
               {
               avatar: avatar,
               commentAuthor: accountId,
               commentPreview: preview,
-              type: "comment",
               link: location,
               type: location.split('/').slice(1, 2), 
+              reply: true, 
               proposalId: proposalId, 
               read: false
             })
@@ -213,7 +227,23 @@ export default function CommentForm(props) {
             //rewrite value at accountId to include new array with added notif
             notificationMap.set(originalAuthor, notifs)
             console.log("NOTIFICATIONMAP", notificationMap)
-            
+            }
+            else{
+              notifs.push(
+                {
+                avatar: avatar,
+                commentAuthor: accountId,
+                commentPreview: preview,
+                link: location,
+                type: location.split('/').slice(1, 2), 
+                proposalId: proposalId, 
+                reply: false, 
+                read: false
+              })
+              notificationMap.set(proposalApplicant, notifs)
+              console.log("NOTIFICATIONMAP", notificationMap)
+           }
+
             //now we need to wrap this in an array to send it to ceramic, which
             //won't accept the map
             let notificationArray = []
@@ -223,7 +253,7 @@ export default function CommentForm(props) {
             } catch (err) {
               console.log('error setting notifications', err)
             }
-          }
+          
   
         } catch (err) {
           console.log('error adding comment', err)

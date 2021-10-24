@@ -239,6 +239,7 @@ export default function TributeProposalDetails(props) {
                  </Typography>: null}
                     <CommentDetails
                         proposalId={proposalId}
+                        proposalApplicant={applicant}
                         accountId={accountId}
                         handleUpdate={handleUpdate}
                         curDaoIdx={curDaoIdx}
@@ -312,6 +313,7 @@ export default function TributeProposalDetails(props) {
               <Typography variant="h5" style={{marginLeft: '10px'}}>Leave a Comment/Ask a Question</Typography>
                   <CommentForm
                     reply={false}
+                    proposalApplicant={applicant}
                     avatar={curUserAvatar}
                     name={curUserName}
                     proposalId={proposalId}

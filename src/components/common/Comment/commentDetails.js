@@ -63,6 +63,7 @@ export default function CommentDetails(props) {
 
     const {
         curDaoIdx,
+        proposalApplicant,
         proposalId,
         handleUpdate,
         commentId,
@@ -152,6 +153,7 @@ export default function CommentDetails(props) {
             { replyEnabled ? 
                 <CommentForm
                     reply={true}
+                    proposalApplicant={proposalApplicant}
                     avatar={avatar}
                     originalAuthor={commentAuthor}
                     originalContent={commentBody}

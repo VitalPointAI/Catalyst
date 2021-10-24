@@ -15,14 +15,11 @@ import Avatar from '@material-ui/core/Avatar'
 import ReplyIcon from '@material-ui/icons/Reply';
 import Button from '@material-ui/core/Button'
 import {OPPORTUNITY_NOTIFICATION, PROPOSAL_NOTIFICATION, NEW_NOTIFICATIONS} from '../../state/near' 
+import CommentIcon from '@material-ui/icons/Comment';
 
 const useStyles = makeStyles((theme) => ({
     root: {
-      maxWidth: 800,
-      minWidth: 700,
-      minHeight: 325,
-      maxHeight: 800,
-      margin: 'auto'
+      Width: 700
     }
 }));
 
@@ -77,6 +74,8 @@ export default function NotificationCard(props){
                         
                         //set the list of notifications to be displayed
                         setNotifications(notificationMap.get(accountId))
+
+                      
                     }
                 }
 
@@ -110,6 +109,7 @@ export default function NotificationCard(props){
                 set(PROPOSAL_NOTIFICATION, notificationFlag)
             }
         }
+     
         console.log("NOTIFICATION", notification)
     }
 
@@ -117,12 +117,24 @@ export default function NotificationCard(props){
     console.log('notifications', notifications)
 
     if (notifications && notifications.length > 0) {
+        let replyFlag; 
         notifs = notifications.slice().reverse().map(notification => {
+            if(notification.reply == true){
+                replyFlag = true;  
+            }
+            else{
+                replyFlag = false; 
+            }
+            console.log("avatar", notification.avatar)
             return(
                 <Button href={notification.link} onClick={()=>{handleClick(notification)}} style={{minWidth: '100%'}}>
                 <Card style={{minWidth: '100%', marginTop: 10}}>
                     <Avatar src={notification.avatar} style={{float:'left', marginRight: '10px'}}/>
-                    <ReplyIcon fontSize='large'/>
+                    <>
+                    { replyFlag ?  
+                    <ReplyIcon fontSize='large'/>: <CommentIcon fontSize='large' />
+                    }
+                    </>
                     <Typography style={{display: 'inline-block', marginTop: 15}}>{notification.commentAuthor}: {notification.commentPreview}</Typography>
                 </Card>
                 </Button>
@@ -139,7 +151,7 @@ export default function NotificationCard(props){
               {notifs ? (<>{notifs}</>) : (<Typography>no notifications yet</Typography>)}
               </DialogContent>
             </Dialog>
-            </>: <div style={{maxWidth: '100%'}}>{notifs ? (<>{notifs}</>) :
+            </>: <div>{notifs ? (<>{notifs}</>) :
                 (
                 <Card>
                 <Typography>no notifications yet</Typography>
