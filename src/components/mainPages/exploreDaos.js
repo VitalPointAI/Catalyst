@@ -61,7 +61,7 @@ export default function ExploreDaos(props) {
     const [daoCount, setDaoCount] = useState(0)
     const [editDaoClicked, setEditDaoClicked] = useState(false)
     const [membersOnly, setMembersOnly] = useState(false)
-    const [activeOnly, setActiveOnly] = useState(false)
+    const [activeOnly, setActiveOnly] = useState(true)
     const [resources, setResources] = useState(0)
     const [nearPrice, setNearPrice] = useState()
     const [searchDaos, setSearchDaos] = useState([])
@@ -91,10 +91,17 @@ export default function ExploreDaos(props) {
                 if(currentDaosList && near){
                     setDaoCount(currentDaosList.length)
                     sortedDaos = _.sortBy(currentDaosList, 'created').reverse()
-                    setDaos(sortedDaos)
+                   
+                    let statusCommunity = []
+                    let j = 0
+                    while (j < sortedDaos.length){
+                        if(sortedDaos[j].status == 'active'){
+                            statusCommunity.push(sortedDaos[j])
+                        } 
+                    j++
+                    }
+                    setDaos(statusCommunity)
 
-
-                    
                     let i = 0
                     let balance = 0
                     while (i < currentDaosList.length){
@@ -338,7 +345,7 @@ export default function ExploreDaos(props) {
             />
             </Grid>
         </Grid>
-        <Grid container spacing={1} justifyContent="flex-start" alignItems="center" style={{paddingLeft:'40px', paddingRight:'40px'}}>
+        <Grid container spacing={1} justifyContent="center" alignItems="center" style={{paddingLeft:'40px', paddingRight:'40px'}}>
         <FormControl component="fieldset" >
             <FormLabel component="legend">Filter Communities</FormLabel>
             <FormGroup>

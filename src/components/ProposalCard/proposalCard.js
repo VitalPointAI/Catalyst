@@ -502,12 +502,14 @@ export default function ProposalCard(props) {
                     setRageQuitEnding(rageCount)
                   }
                 }
-                checkSponsor()
+              
+                  checkSponsor()
+                
                 })
           return () => mounted = false
           }
           
-    }, [isUpdated, queueList, guildBalance, escrowBalance, curDaoIdx, detailsExist, wallet]
+    }, [isUpdated, funding, queueList, guildBalance, escrowBalance, curDaoIdx, detailsExist, wallet]
     )
 
     function handleUpdate(property){
@@ -515,20 +517,11 @@ export default function ProposalCard(props) {
     }
 
     const checkSponsor = () => {
-      console.log('proposaltype', proposalType)
-            console.log('totalmembers', totalMembers)
-            console.log('proposer', proposer)
-            console.log('summoner', summoner)
-            console.log('applicant', applicant)
-            console.log('memberStatus', memberStatus)
-            console.log('detailsExist', detailsExist)
-            console.log('funding', funding)
-            console.log('guild balance', guildBalance[0].balance)
-            console.log('escrow balance', escrowBalance[0].balance)
-             // Determine whether to show Sponsor button
+               // Determine whether to show Sponsor button
              switch(proposalType){
               case 'Commitment':
                 if(
+                  
                     totalMembers != 1
                     && (accountId != proposer && accountId != applicant) 
                     && status=='Submitted'
@@ -536,6 +529,7 @@ export default function ProposalCard(props) {
                     && detailsExist == true
                     && parseFloat(funding) <= parseFloat(guildBalance[0].balance)
                   ) {
+                    console.log('here1')
                     setShowSponsorButton(true)
                     break
                     }
@@ -547,9 +541,11 @@ export default function ProposalCard(props) {
                     && detailsExist == true
                     && parseFloat(funding) <= parseFloat(guildBalance[0].balance)
                   ) {
+                    console.log('here2')
                     setShowSponsorButton(true)
                     break
                   }
+                break
               case 'Payout':
                 if(
                     totalMembers != 1
@@ -560,10 +556,10 @@ export default function ProposalCard(props) {
                     && detailsExist == true
                     && parseFloat(funding) <= parseFloat(escrowBalance[0].balance)
                   ) {
+                    console.log('here3')
                     setShowSponsorButton(true)
                     break
                     }
-                
                 if(
                   totalMembers != 1
                   && (accountId != proposer && accountId != applicant) 
@@ -573,6 +569,7 @@ export default function ProposalCard(props) {
                   && detailsExist == true
                   && parseFloat(funding) <= parseFloat(guildBalance[0].balance)
                 ) {
+                  console.log('here4')
                   setShowSponsorButton(true)
                   break
                   }
@@ -584,9 +581,11 @@ export default function ProposalCard(props) {
                     && detailsExist == true
                     && parseFloat(funding) <= parseFloat(escrowBalance[0].balance)
                   ) {
+                    console.log('here5')
                     setShowSponsorButton(true)
                     break
                   }
+                break
               default:
                 if(
                     accountId == summoner
@@ -595,9 +594,11 @@ export default function ProposalCard(props) {
                     && detailsExist == true
                     && parseFloat(funding) <= parseFloat(guildBalance[0].balance)
                 ) {
+                  console.log('here6')
                   setShowSponsorButton(true)
                   break
                 }
+              break
             }
     }
   

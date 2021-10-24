@@ -91,6 +91,7 @@ export const Header = ({ state, handleUpdate }) => {
 
     const handleClose = () => {
         setAnchorEl(null);
+        update('', {isUpdated: !isUpdated})
         setPopoverOpen(false)
     }
     function handleNotificationClick(property){
