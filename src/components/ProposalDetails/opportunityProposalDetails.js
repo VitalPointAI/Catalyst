@@ -383,6 +383,7 @@ export default function OpportunityProposalDetails(props) {
                       </Typography>: null}
                     <CommentDetails
                         proposalId={opportunityId}
+                        proposalApplicant={applicant}
                         accountId={accountId}
                         handleUpdate={handleUpdate}
                         curDaoIdx={curDaoIdx}
@@ -582,6 +583,7 @@ export default function OpportunityProposalDetails(props) {
               <Typography variant="h5" style={{marginLeft: '10px'}}>Leave a Comment/Ask a Question</Typography>
                   <CommentForm
                     reply={false}
+                    proposalApplicant={applicant}
                     avatar={curUserAvatar}
                     name={curUserName}
                     proposalId={opportunityId}
