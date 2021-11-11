@@ -62,13 +62,12 @@ const useStyles = makeStyles((theme) => ({
   }));
 
 
-export default function TributeProposal(props) {
+export default function CancelCommitmentProposal(props) {
   const [open, setOpen] = useState(true)
   const [finished, setFinished] = useState(true)
   const [applicant, setApplicant] = useState(props.accountId)
-  const [tribute, setTribute] = useState('')
+  const [payout, setPayout] = useState('')
   const [confirm, setConfirm] = useState(false)
-  const [shares, setShares] = useState('')
 
   const classes = useStyles()
 
@@ -76,127 +75,125 @@ export default function TributeProposal(props) {
 
   const { 
     state,
-    handleTributeProposalClickState,
+    handlePayoutProposalClickState,
     proposalDeposit,
     tokenName,
     depositToken,
-    contractId } = props
+    reference,
+    contractId,
+    milestonePayout
+     } = props
+
 
   const handleClose = () => {
-    handleTributeProposalClickState(false)
+    handlePayoutProposalClickState(false)
   };
   
   const handleApplicantChange = (event) => {
     setApplicant(event.target.value);
   };
 
-  const handleTributeChange = (event) => {
-    setTribute(event.target.value)
+  const handlePayoutChange = (event) => {
+    setPayout(event.target.value);
   };
 
   const handleConfirmChange = (event) => {
-    setConfirm(event.target.checked)
-  }
-
-  const handleSharesChange = (event) => {
-    setShares(event.target.value)
+    setConfirm(event.target.checked);
   }
 
   const onSubmit = async (values) => {
     event.preventDefault()
     setFinished(false)
-    
+
+    let references = []
+
+    if(reference){
+      Object.entries(reference[0]).map(([key, value]) => {
+        
+        references.push({
+          'keyName': key,
+          'valueSetting': value.toString()
+        })
+      })
+    }
+   
+    let actualPayout
+    milestonePayout ? actualPayout = milestonePayout : actualPayout = payout
+
     try{
       await submitProposal(
         state.wallet,
         contractId,
-        'Tribute',
+        'Payout',
         applicant,
         '0',
-        tribute,
-        shares,
         '0',
-        [],
-        []
+        '0',
+        actualPayout.toString(),
+        [''],
+        references
         )
       } catch (err) {
-        console.log('problem submitting funding proposal', err)
+        console.log('problem submitting cancel commit proposal', err)
       }
   } 
 
   return (
     <div>
       <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Make a Contribution and/or Buy Voting Shares</DialogTitle>
+        <DialogTitle id="form-dialog-title">Cancel Commitment Payout</DialogTitle>
         <DialogContent className={classes.rootForm}>  
           <div>
             <TextField
               autoFocus
               margin="dense"
-              id="tribute-proposal-applicant-receiver"
+              id="payout-proposal-applicant-receiver"
               variant="outlined"
-              name="tributeProposalApplicant"
+              name="payoutProposalApplicant"
               label="Applicant Account"
               value={applicant}
               onChange={handleApplicantChange}
               inputRef={register({
                   required: true,
-                  validate: value => value != '' || <p style={{color:'red'}}>You must specify the account that will receive the shares.</p>
+                  validate: value => value != '' || <p style={{color:'red'}}>You must specify the account requesting the cancellation.</p>
               })}
               placeholder={applicant}
             />
-            {errors.tributeProposalApplicant && <p style={{color: 'red'}}>You must provide a valid NEAR account.</p>}
+            {errors.payoutProposalApplicant && <p style={{color: 'red'}}>You must provide a valid NEAR account.</p>}
           </div>
           <div>
+          {!milestonePayout ? (
             <TextField
               margin="dense"
-              id="tribute-proposal-tribute-amount"
+              id="payout-proposal-funds-requested"
               variant="outlined"
-              name="tribute"
-              label="Contribution"
+              name="payout"
+              label="Payout Requested"
               placeholder="e.g. 100000"
-              value={tribute}
-              onChange={handleTributeChange}
+              value={milestonePayout ? milestonePayout : payout}
+              onChange={handlePayoutChange}
               inputRef={register({
                   required: true,
-                  validate: value => value != '' || <p style={{color:'red'}}>You must specify the amount of the tribute you are offering.</p>
+                  validate: value => value != '' || <p style={{color:'red'}}>You must specify the amount of the payout.</p>
               })}
               InputProps={{
                 endAdornment: <><InputAdornment position="end">{tokenName}</InputAdornment>
-                <Tooltip TransitionComponent={Zoom} title="The amount of NEAR the applicant is providing as a tribute.  It will be matched in voting shares but always rounded down. E.g. 1.5 = 1 voting share.">
+                <Tooltip TransitionComponent={Zoom} title="The amount of NEAR the applicant is requesting to receive. The payout must be an amount already committed for this project.">
                     <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
                 </Tooltip>
                 </>
               }}
             />
+          ) : (<>
+            <Typography variant="h6">Payout Requested: {milestonePayout} {tokenName}</Typography>
+            <Typography variant="body1">For proposal: {reference[0].proposal}, milestone: {reference[0].milestone}</Typography>
+          </>)}
           </div>
-
-          <TextField
-            margin="dense"
-            id="member-proposal-loot"
-            variant="outlined"
-            name="memberShares"
-            label="Voting Shares"
-            placeholder="100"
-            value={shares}
-            onChange={handleSharesChange}
-            inputRef={register({
-                required: false,
-            })}
-            InputProps={{
-              endAdornment: <><InputAdornment position="end">shares</InputAdornment>
-              <Tooltip TransitionComponent={Zoom} title="The number of voting shares being requested.">
-                  <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
-              </Tooltip>
-              </>
-            }}
-          />
-
         <Card>
         <CardContent>
           <WarningIcon fontSize='large' className={classes.warning} />
-          <Typography variant="body1" gutterBottom>You are proposing a contribution of {tribute} Ⓝ which will give <b>{applicant}</b> {shares ? shares : '0'} additional voting shares. After submitting
-          this proposal, you must provide enough supporting detail to help other members vote on and decide whether to approve your proposal or not.</Typography> 
+          <Typography variant="body1">You are requesting to cancel the {milestonePayout ? milestonePayout : payout} Ⓝ reserved for this milestone. After submitting
+          this proposal, you must provide enough supporting detail help other members consider whether to approve your proposal or not.</Typography>
           <Grid container className={classes.confirmation} spacing={1}>
             <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
               <Checkbox
@@ -210,22 +207,19 @@ export default function TributeProposal(props) {
               />
             </Grid>
             <Grid item xs={10} sm={10} md={10} lg={10} xl={10} style={{margin:'auto'}}>
-              <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{parseFloat(tribute) + parseFloat(proposalDeposit) + parseFloat(STORAGE)} Ⓝ</b>:</Typography>
+              <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{parseFloat(proposalDeposit) + parseFloat(STORAGE)} Ⓝ</b>:</Typography>
               <Grid container justifyContent="center" spacing={0}>
                 <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                   <Typography variant="body2"><u>Proposal passes:</u></Typography>
                     <ul style={{paddingInlineStart:'10px', paddingInlineEnd:'10px'}}>
                       <li>
-                        <Typography variant="body2">Applicant receives additional {shares ? shares : '0'} voting shares.</Typography>
+                        <Typography variant="body2">Community escrow fund will decrease by {milestonePayout ? milestonePayout : payout} Ⓝ.</Typography>
                       </li>
                       <li>
-                        <Typography variant="body2">Community fund will increase by {tribute} Ⓝ.</Typography>
+                        <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you</Typography>
                       </li>
                       <li>
-                        <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you.</Typography>
-                      </li>
-                      <li>
-                        <Typography variant="body2">{STORAGE} Ⓝ is put in the contract to cover storage cost for this proposal.</Typography>
+                        <Typography variant="body2">{STORAGE} Ⓝ goes to the contract to cover storage cost for this proposal.</Typography>
                       </li>
                     </ul>
                 </Grid>
@@ -233,10 +227,7 @@ export default function TributeProposal(props) {
                   <Typography variant="body2"><u>Proposal fails or is cancelled:</u></Typography>
                     <ul style={{paddingInlineStart:'10px', paddingInlineEnd:'10px'}}>
                       <li>
-                        <Typography variant="body2">Applicant receives no voting shares.</Typography>
-                      </li>
-                      <li>
-                        <Typography variant="body2">Community fund does not change.</Typography>
+                        <Typography variant="body2">Community escrow fund does not change.</Typography>
                       </li>
                       <li>
                         <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you.</Typography>
@@ -258,5 +249,5 @@ export default function TributeProposal(props) {
       </DialogActions>
       </Dialog>
     </div>
-  )
+  );
 }

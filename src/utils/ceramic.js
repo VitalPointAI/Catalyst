@@ -55,6 +55,11 @@ import { repFactorProposalDetailsSchema } from '../schemas/repFactorProposal'
 import { waiversSchema } from '../schemas/waivers'
 import { notificationSchema } from '../schemas/notifications'
 import { guildKickProposalDetailsSchema } from '../schemas/guildKickProposals'
+import { whitelistProposalDetailsSchema } from '../schemas/whitelistProposals'
+import { cancelCommitmentProposalDetailsSchema } from '../schemas/cancelCommitmentProposals'
+import { ftKeysSchema } from '../schemas/ftKeys'
+import { ftProfileSchema } from '../schemas/ftProfile'
+import { ftSummonSchema } from '../schemas/ftSummonEvent'
 
 import { config } from '../state/config'
 
@@ -935,7 +940,7 @@ async makeSeed(account){
     const appDid = this.associateAppDID(APP_OWNER_ACCOUNT, contract, appClient)
 
   // uncomment below to change a definition
-  // let changed = await this.changeDefinition(APP_OWNER_ACCOUNT, 'proposals', appClient, proposalSchema, 'proposal events', contract)
+   //let changed = await this.changeDefinition(APP_OWNER_ACCOUNT, 'proposals', appClient, proposalSchema, 'proposal events', contract)
   //let changed1 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'payoutProposalDetails', appClient, payoutProposalDetailsSchema, 'payout proposal details', contract)
   // let changed2 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'tributeProposalDetails', appClient, tributeProposalDetailsSchema, 'tribute proposal details', contract)
   // let changed3 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'configurationProposalDetails', appClient, configurationProposalDetailsSchema, 'configuration proposal details', contract)
@@ -978,6 +983,11 @@ async makeSeed(account){
     const waivers = this.getAlias(APP_OWNER_ACCOUNT, 'Waivers', appClient, waiversSchema, 'waiver records', contract)
     const notifications = this.getAlias(APP_OWNER_ACCOUNT, 'notifications', appClient, notificationSchema, 'notifications', contract)
     const guildKickProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'guildKickProposalDetails', appClient, guildKickProposalDetailsSchema, 'guild kick proposal details', contract)
+    const whitelistProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'whitelistProposalDetails', appClient, whitelistProposalDetailsSchema, 'whitelist proposal details', contract)
+    const cancelCommitmentProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'cancelCommitmentProposalDetails', appClient, cancelCommitmentProposalDetailsSchema, 'cance commitment proposal details', contract)
+    const ftKeys = this.getAlias(APP_OWNER_ACCOUNT, 'ftKeys', appClient, ftKeysSchema, 'ft account info', contract)
+    const ftProfile = this.getAlias(APP_OWNER_ACCOUNT, 'ftProfile', appClient, ftProfileSchema, 'ft details', contract)
+    const ftSummonEvent = this.getAlias(APP_OWNER_ACCOUNT, 'ftSummonEvent', appClient, ftSummonSchema, 'ft summon events', contract)
     const done = await Promise.all([
       appDid, 
       definitions, 
@@ -1007,7 +1017,12 @@ async makeSeed(account){
       reputationFactors,
       waivers,
       notifications,
-      guildKickProposalDetails
+      guildKickProposalDetails,
+      whitelistProposalDetails,
+      cancelCommitmentProposalDetails,
+      ftKeys,
+      ftProfile,
+      ftSummonEvent
     ])
     
     let rootAliases = {
@@ -1038,7 +1053,12 @@ async makeSeed(account){
       reputationFactors: done[25],
       waivers: done[26],
       notifications: done[27],
-      guildKickProposalDetails: done[28]
+      guildKickProposalDetails: done[28],
+      whitelistProposalDetails: done[29],
+      cancelCommitmentProposalDetails: done[30],
+      ftKeys: done[31],
+      ftProfile: done[32],
+      ftSummonEvent: done[33]
     }
 
     const appIdx = new IDX({ ceramic: appClient, aliases: rootAliases})
@@ -1094,6 +1114,30 @@ async makeSeed(account){
     this.associateDID(contractAccount.accountId, contract, currentDaoCeramicClient)
     let curDaoIdx = new IDX({ceramic: currentDaoCeramicClient, aliases: appIdx._aliases})
     return curDaoIdx
+}
+
+// current dao IDX
+async getCurrentFTIdx(contractAccount, appIdx, contract){
+    
+  let seed
+  let ftKeys =  await this.downloadKeysSecret(appIdx, 'ftKeys')
+ 
+  if(ftKeys && ftKeys.length > 0){
+    let i = 0
+    while(i < ftKeys.length){
+      if(ftKeys[i].contractId == contractAccount.accountId){
+        seed = Buffer.from((ftKeys[i].key).slice(0,32))
+      }
+      i++
+    }
+  }
+  if(seed == undefined){
+    return false
+  }
+  let currentFTCeramicClient = await this.getCeramic(contractAccount, seed)
+  this.associateDID(contractAccount.accountId, contract, currentFTCeramicClient)
+  let curFTIdx = new IDX({ceramic: currentFTCeramicClient, aliases: appIdx._aliases})
+  return curFTIdx
 }
 
 

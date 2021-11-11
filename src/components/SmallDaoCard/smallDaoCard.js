@@ -66,7 +66,7 @@ export default function SmallDaoCard(props) {
     const [claimed, setClaimed] = useState(false)
     const [curDaoIdx, setCurDaoIdx] = useState()
     const [display, setDisplay] = useState(true)
-    const [isUpdated, setIsUpdated] = useState()
+   // const [isUpdated, setIsUpdated] = useState()
     const [anchorEl, setAnchorEl] = useState(null)
     const [anchorE2, setAcnhorE2] = useState(null)
     const [did, setDid] = useState()
@@ -93,7 +93,9 @@ export default function SmallDaoCard(props) {
      near,
      didRegistryContract,
      appIdx, 
-     accountId
+     accountId,
+     wallet,
+     isUpdated
    } = state
 
    const Dao = new Persona()
@@ -102,14 +104,14 @@ export default function SmallDaoCard(props) {
       () => {
 
       async function fetchData() {
-        
-         if(contractId){
+         if(isUpdated){}
+         if(contractId && wallet){
           
-           let result = await Dao.getDao(contractId)
+           let result = await Dao.getDao(contractId, appIdx)
           
            let memberStatus
            try{
-            let contract = await dao.initDaoContract(state.wallet.account(), contractId)
+            let contract = await dao.initDaoContract(wallet.account(), contractId)
             memberStatus = await contract.getMemberStatus({member: accountId})
             setaMemberStatus(memberStatus)
             memberStatus ? setMemberIcon(<CheckCircleIcon />) : setMemberIcon(<NotInterestedIcon />)

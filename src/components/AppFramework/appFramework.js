@@ -15,9 +15,16 @@ import { logInitEvent,
   logInactivateCommunity,
   inactivateCommunity,
   synchProposalEvent,
+  logProposalChange,
   synchMember,
   synchDaos, 
-  synchBudgets} from '../../state/near'
+  synchBudgets,
+  networkId,
+  tokenFactoryContractName} from '../../state/near'
+
+import FungibleTokens from '../../utils/fungibleTokens'
+
+const { getMetadata, getBalanceOf } = FungibleTokens;
 
 import ActionSelector from '../ActionSelector/actionSelector'
 import ProposalList from '../ProposalList/proposalList'
@@ -25,17 +32,19 @@ import RightSideDrawer from './RightSideDrawer'
 import Footer from '../../components/common/Footer/footer'
 import { Header } from '../Header/header'
 import Initialize from '../Initialize/initialize'
+import FTInitialize from '../Initialize/ftInitialize'
 import RandomPhrase from '../common/RandomPhrase/randomPhrase'
 import WarningConfirmation from '../Confirmation/warningConfirmation';
 import { formatNearAmount } from 'near-api-js/lib/utils/format'
 import { dao } from '../../utils/dao'
+import { ft } from '../../utils/ft'
 import { ceramic } from '../../utils/ceramic'
 import { COMMUNITY_ARRIVAL } from '../../state/near'
 import { Steps, Hints } from "intro.js-react"
 
 
-import { NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE, NEW_DONATION, NEW_EXIT, 
-  NEW_DELEGATION, WARNING_FLAG,NEW_REVOCATION, INACTIVATE_COMMUNITY, NEW_INACTIVATION, hasKey } from '../../state/near'
+import { ACCOUNT_HELPER_URL, NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, FT_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE, NEW_DONATION, NEW_EXIT, 
+  NEW_DELEGATION, WARNING_FLAG, NEW_REVOCATION, NEW_CHANGE_PROPOSAL, INACTIVATE_COMMUNITY, NEW_INACTIVATION, hasKey } from '../../state/near'
 
 // Material UI imports
 import { makeStyles } from '@material-ui/core/styles'
@@ -49,6 +58,19 @@ import CircularProgress from '@material-ui/core/CircularProgress'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
 import Card from '@material-ui/core/Card'
 import LinearProgress from '@material-ui/core/LinearProgress'
+import Accordion from '@material-ui/core/Accordion'
+import AccordionSummary from '@material-ui/core/AccordionSummary'
+import AccordionDetails from '@material-ui/core/AccordionDetails'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import List from '@material-ui/core/List'
+import ListItem from '@material-ui/core/ListItem'
+import ListItemIcon from '@material-ui/core/ListItemIcon'
+import ListItemText from '@material-ui/core/ListItemText'
+import InboxIcon from '@material-ui/icons/Inbox'
+import DraftsIcon from '@material-ui/icons/Drafts'
+import Avatar from '@material-ui/core/Avatar'
+import ListItemAvatar from '@material-ui/core/ListItemAvatar'
+import { ListItemSecondaryAction } from '@material-ui/core'
 
 const axios = require('axios').default
 
@@ -68,6 +90,10 @@ const useStyles = makeStyles((theme) => ({
     left: '50%',
     marginTop: '-100px',
     marginLeft: '-100px'
+  },
+  heading: {
+    fontSize: theme.typography.pxToRem(15),
+    fontWeight: theme.typography.fontWeightRegular,
   },
     top: {
       marginBottom: '10px',
@@ -131,6 +157,12 @@ export default function AppFramework(props) {
     const [active, setActive] = useState(false)
     const [totalMembers, setTotalMembers] = useState()
     const [synchComplete, setSynchComplete] = useState(false)
+    const [currentDaoAccount, setCurrentDaoAccount] = useState()
+    const [approvedTokens, setApprovedTokens] = useState([])
+    const [ftContract, setFTContract] = useState()
+    const [contractType, setContractType] = useState()
+    const [currentTreasuryTotal, setCurrentTreasuryTotal] = useState()
+    const [escrowCurrentTreasuryTotal, setEscrowCurrentTreasuryTotal] = useState()
     const classes = useStyles()
 
     const {
@@ -158,6 +190,32 @@ export default function AppFramework(props) {
     const {
       contractId
     } = useParams()
+
+    useEffect(
+      () => {
+        // Determine type of contract - DAO or FT
+        let type = contractId.split('.')
+        console.log('type', type)
+        if(networkId == 'testnet'){
+          let combined = type[1]+'.'+type[2]+'.'+type[3]
+          console.log('combined', combined)
+          if(combined == tokenFactoryContractName){
+            setContractType('ft')
+          } else {
+            setContractType('dao')
+          }
+        }
+        if(networkId == 'mainnet'){
+          let combined = type[1]+'.'+type[2]
+          if(combined == tokenFactoryContractName){
+            setContractType('ft')
+          } else {
+            setContractType('dao')
+          }
+        }
+    }, [contractId]
+    )
+    
 
     const matches = useMediaQuery('(max-width:500px)')
 
@@ -226,7 +284,7 @@ export default function AppFramework(props) {
             i++
           }
         }
-      }, [wallet, triggersActioned, curDaoIdx, triggerSteps]
+      }, [wallet, triggersActioned, curDaoIdx, triggerSteps, isUpdated]
     )
     
     useEffect(
@@ -236,12 +294,13 @@ export default function AppFramework(props) {
            
             if(didRegistryContract && near){
 
-              if(contractId){
+              if(contractId && contractType == 'dao'){
                 let curDaoIdx
                 let daoAccount
                 let contract
                 try{
                   daoAccount = new nearAPI.Account(near.connection, contractId)
+                  setCurrentDaoAccount(daoAccount)
                 } catch (err) {
                   console.log('no account', err)
                   return false
@@ -249,7 +308,6 @@ export default function AppFramework(props) {
                
                 try{
                   curDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
-                
                   setCurDaoIdx(curDaoIdx)
                   
                 } catch (err) {
@@ -266,6 +324,16 @@ export default function AppFramework(props) {
                   return false
                 }
               }
+
+              if(contractId && contractType == 'ft'){
+                try{
+                  ftContract = await ft.initFTContract(state.wallet.account(), contractId)
+                  setFTContract(ftContract)
+                } catch (err) {
+                  console.log('problem initializing ft contract', err)
+                }
+              }
+              
               return true
             }
           }
@@ -275,7 +343,7 @@ export default function AppFramework(props) {
             res ? setEssentialsInitialized(true) : setEssentialsInitialized(false)
           })
 
-        }, [state]
+        }, [didRegistryContract, near]
     )
     
 
@@ -286,6 +354,8 @@ export default function AppFramework(props) {
           let urlVariables = window.location.search
           const urlParameters = new URLSearchParams(urlVariables)
           let transactionHash = urlParameters.get('transactionHashes')
+          let errorCode = urlParameters.get('errorCode')
+          console.log('errorCode', errorCode)
 
         
 
@@ -361,6 +431,7 @@ export default function AppFramework(props) {
                     }
                     u++
                   }
+
 
                   // check for first init to log summon and member events
                   let firstInit = get(DAO_FIRST_INIT, [])
@@ -468,6 +539,32 @@ export default function AppFramework(props) {
                       }
                     }
                     g++
+                  }
+
+                  // check for proposal change event to log it
+                  let newChange = get(NEW_CHANGE_PROPOSAL, [])
+                
+                  let aa = 0
+                  while(aa < newChange.length){
+                    if(newChange[aa].contractId==contractId && newChange[aa].new == true){
+                      if(!transactionHash){
+                        del(NEW_CHANGE_PROPOSAL)
+                      } else {
+                        let loggedChange = await logProposalChange(
+                          curDaoIdx, 
+                          daoContract,
+                          contractId,
+                          newChange[aa].fundingRequested,
+                          newChange[aa].fundingToken,
+                          transactionHash)
+                          
+                        if (loggedChange) {
+                        del(NEW_CHANGE_PROPOSAL)
+                        await renewProposals(curDaoIdx, daoContract)
+                        }
+                      }
+                    }
+                    aa++
                   }
    
                   // check for new votes
@@ -645,9 +742,9 @@ export default function AppFramework(props) {
       () => {
        
           async function fetchData() {
-           
+            if(isUpdated){}
             //************ LOAD COMMUNITY SETTINGS AND INFORMATION */
-                     
+                    
                   try{
                     let result = await curDaoIdx.get('daoProfile', curDaoIdx.id)
                     if(result){
@@ -696,6 +793,14 @@ export default function AppFramework(props) {
                         setTotalShares(shares)
                       } catch (err) {
                         console.log('no total shares yet')
+                      }
+
+                      try {
+                        let tokens = await daoContract.getApprovedTokens()
+                        setApprovedTokens(tokens)
+                        console.log('approved tokens', tokens)
+                      } catch (err) {
+                        console.log('no approved tokens yet')
                       }
           
                       try {
@@ -772,6 +877,10 @@ export default function AppFramework(props) {
                       } catch(err) {
                         console.log('no settings yet')
                       }
+
+                      let getNearPrice = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd')
+                      setNearPrice(getNearPrice.data.near.usd)
+                      update('', nearPrice)
                     
                       let ebalance
                       let escrowRow
@@ -780,12 +889,67 @@ export default function AppFramework(props) {
                       
                         setEscrowBalance(ebalance)
 
-                        if(ebalance && active) {
-                          for (let i = 0; i < ebalance.length; i++) {
-                            escrowRow = (<>{formatNearAmount(ebalance[i].balance, 3)} {ebalance[i].token}</>)
-                          }
+                        let EscrowAccounts
+                        let escrowResult
+                        let escrowTokenUSDValue
+                        if(ebalance && ebalance.length > 0){
+                          EscrowAccounts = await Promise.all(ebalance.map(async(element, index) => {
+                            if(element.token == 'Ⓝ'){
+                              escrowTokenUSDValue = (parseFloat(formatNearAmount(element.balance, 3))*getNearPrice.data.near.usd).toFixed(2)
+                              setEscrowCurrentTreasuryTotal(escrowTokenUSDValue)
+                             
+                              return (
+                                <ListItem alignItems="space-between" key={element.id}>
+                                    <ListItemAvatar>
+                                      <Avatar>Ⓝ</Avatar>
+                                    </ListItemAvatar>
+                                    <ListItemText primary={`${formatNearAmount(element.balance, 3)} ($${escrowTokenUSDValue} USD)`} 
+                                    secondary={element.token} />
+                                </ListItem>
+                              )
+                            } else {
+                            escrowResult = await getMetadata(element.token)
+                            return (
+                              <ListItem key={element.id}>
+                                <ListItemAvatar>
+                                  <Avatar src={escrowResult.icon} />
+                                </ListItemAvatar>
+                                <ListItemText primary={`${formatNearAmount(element.balance, 3)}`} 
+                                    secondary={escrowResult.symbol}/>
+                              </ListItem>
+                            )
+                            }
+                          }))
                         } else {
-                          escrowRow = '0 Ⓝ'
+                          EscrowAccounts = (
+                            <ListItem alignItems="space-between" key={element.id}>
+                              <ListItemAvatar>
+                                <Avatar>Ⓝ</Avatar>
+                              </ListItemAvatar>
+                              <ListItemText primary="0 ($0.00 USD)" 
+                              secondary="Ⓝ" />
+                            </ListItem>
+                          )
+                        }
+
+                        if(active) {
+                          escrowRow = (
+                            <Accordion>
+                            <AccordionSummary
+                              expandIcon={<ExpandMoreIcon />}
+                              aria-controls="panel1a-content"
+                              id="panel1a-header"
+                            >
+                              <Typography className={classes.heading}>Escrow</Typography>
+                              <Typography className={classes.heading} style={{marginLeft: '15px'}}>${escrowTokenUSDValue} USD</Typography>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                              <List dense="true">
+                              {EscrowAccounts}
+                              </List>
+                            </AccordionDetails>
+                          </Accordion>
+                           )
                         }
                         setEscrowBalanceChip(<>{escrowRow}</>)
                       } catch (err) {
@@ -795,17 +959,78 @@ export default function AppFramework(props) {
                       let gbalance
                       let guildRow
                       try {
-                        gbalance = await daoContract.getGuildTokenBalances()
-                     
+                        gbalance = await daoContract.getGuildTokenBalances()  
+                      
+                        console.log('guild balance', gbalance)
+                        
+                       // gbalance = balance.available
                         setGuildBalance(gbalance)
 
-                        if(gbalance && active) {
-                          for (let i = 0; i < gbalance.length; i++) {
-                            guildRow = (<>{formatNearAmount(gbalance[i].balance,3)} {gbalance[i].token}</>)
-                          }
+                        let Accounts
+                        let result
+                        let tokenUSDValue
+                        if(gbalance && gbalance.length > 0){
+                          Accounts = await Promise.all(gbalance.map(async(element, index) => {
+                         //   const element = await elements
+                            console.log('element', element)
+                            if(element.token == 'Ⓝ'){
+                              tokenUSDValue = (parseFloat(formatNearAmount(element.balance, 3))*getNearPrice.data.near.usd).toFixed(2)
+                              setCurrentTreasuryTotal(tokenUSDValue)
+                             
+                              return (
+                                <ListItem alignItems="space-between" key={element.id}>
+                                    <ListItemAvatar>
+                                      <Avatar>Ⓝ</Avatar>
+                                    </ListItemAvatar>
+                                    <ListItemText primary={`${formatNearAmount(element.balance, 3)} ($${tokenUSDValue} USD)`} 
+                                    secondary={element.token} />
+                                </ListItem>
+                              )
+                            } else {
+                            result = await getMetadata(element.token)
+                            return (
+                              <ListItem key={element.id}>
+                                <ListItemAvatar>
+                                  <Avatar src={result.icon} />
+                                </ListItemAvatar>
+                                <ListItemText primary={`${formatNearAmount(element.balance, 3)}`} 
+                                    secondary={result.symbol}/>
+                              </ListItem>
+                            )
+                            }
+                          }))
                         } else {
-                          guildRow = '0 Ⓝ'
+                          Accounts = (
+                            <ListItem alignItems="space-between" key={element.id}>
+                              <ListItemAvatar>
+                                <Avatar>Ⓝ</Avatar>
+                              </ListItemAvatar>
+                              <ListItemText primary="0 ($0.00 USD)" 
+                              secondary="Ⓝ" />
+                            </ListItem>
+                          )
                         }
+
+                        if(active) {
+                         guildRow = (
+                           <Accordion>
+                           <AccordionSummary
+                             expandIcon={<ExpandMoreIcon />}
+                             aria-controls="panel1a-content"
+                             id="panel1a-header"
+                           >
+                             <Typography className={classes.heading}>Treasury</Typography>
+                             <Typography className={classes.heading} style={{marginLeft: '15px'}}>${tokenUSDValue} USD</Typography>
+                           </AccordionSummary>
+                           <AccordionDetails>
+                             <List dense="true">
+                             {Accounts}
+                             </List>
+                           </AccordionDetails>
+                         </Accordion>
+                          )
+                         }
+                        
                         setGuildBalanceChip(<>{guildRow}</>)
                         setNotificationIndicator(true)
                       } catch (err) {
@@ -818,9 +1043,7 @@ export default function AppFramework(props) {
                         setLootLabel('Loot: ' + thisMemberInfo[0].loot)
                       }
   
-                      let getNearPrice = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd')
-                      setNearPrice(getNearPrice.data.near.usd)
-                      update('', nearPrice)
+                     
                       
                       if(currentPeriod == undefined || currentPeriod == 0){
                         try {
@@ -831,7 +1054,8 @@ export default function AppFramework(props) {
                         }
                       }
                   }
-                }
+                
+              }
               
       //      }  
        //   }
@@ -847,19 +1071,26 @@ export default function AppFramework(props) {
           mounted = false
         } 
       }
-}, [essentialsInitialized]
+}, [essentialsInitialized, isUpdated]
     )
 
     function handleTabValueState(value) {
       setTabValue(value)
     }
 
+    async function getLikelyTokenContracts(accountId) {
+      //let result = await axios.get(`${ACCOUNT_HELPER_URL}/account/${accountId}/likelyTokens`)
+      let result = await axios.get('https://near-contract-helper.onrender.com/account/${accountId}/likelyTokens')
+      return result
+    }
+
     async function renewProposals(curDaoIdx, contract){
       try {
         let synched = await synchProposalEvent(curDaoIdx, contract)
         setAllProposals(synched.events)
-        let budgetSynch = await synchBudgets(curDaoIdx, synched.events)
-        console.log('budget synch', budgetSynch)
+        console.log('all proposals', synched.events)
+     //   let budgetSynch = await synchBudgets(curDaoIdx, synched.events)
+     //  console.log('budget synch', budgetSynch)
       } catch (err) {
         console.log('no proposals yet', err)
       }
@@ -927,7 +1158,7 @@ export default function AppFramework(props) {
       }
     }
 
-
+   // <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Fund: {guildBalanceChip} {guildBalance ? guildBalance > 0 && active ? '($' + (parseFloat(formatNearAmount(guildBalance)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : <LinearProgress /> } </Typography>
     return (
       <>
             <div className={classes.root}>
@@ -936,178 +1167,199 @@ export default function AppFramework(props) {
             /> 
             <Header state={state} />
             <Grid container style={{padding:'20px'}}>
-            {initLoad == false ? <div className={classes.centered}>
-            <CircularProgress/><br></br>
-            <Typography variant="h6">Setting Things Up...</Typography>
-            <RandomPhrase />
-            </div> :
-            initialized == 'done' ? (
-              <>
-                {/* <Steps
-            enabled={stepsEnabled}
-            initialStep={0}
-            onBeforeChange={(index)=> 
-              {
-                if(index == 1){onStepsComplete()}
-              }
-            }
-            onComplete={()=>onStepsComplete()}
-            onExit={()=>onStepsExit()}
-            steps={steps}
-            options={options}
-            /> */}
-              {matches ? (<>
-                <Grid container justifyContent="space-evenly" alignItems="center" style={{marginBottom:'15px'}} spacing={0}>
-                  <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" style={{marginBottom: '15px'}}>                    
-                    <Chip variant="outlined" label="Member" icon={memberIcon} />
-                    <Chip variant="outlined" label={sharesLabel}  />
-                    <Chip variant="outlined" label={fairShareLabel}  />
-                  </Grid>
-                  <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
-                    <ActionSelector 
-                      enable={appbarStepsEnabled}
-                      returnFunction={handleReturn}
-                      handleProposalEventChange={handleProposalEventChange}
-                      handleEscrowBalanceChanges={handleEscrowBalanceChanges}
-                      handleGuildBalanceChanges={handleGuildBalanceChanges}
-                      handleUserBalanceChanges={handleUserBalanceChanges}
-                      handleTabValueState={handleTabValueState}
-                      accountId={state.accountId}
-                      tokenName={tokenName}
-                      depositToken={depositToken}
-                      minSharePrice={minSharePrice}
-                      daoContract={daoContract}
-                      proposalDeposit={proposalDeposit}
-                      didsContract={didsContract}
-                      contractIdx={contractIdx}
-                      curUserIdx={curUserIdx}
-                      memberStatus={memberStatus}
-                      fairShare={currentShare}
-                      loaded={loaded}
-                      currentDaosList={currentDaosList}
-                    />
-                  </Grid>
-              
-            </Grid></>
-              )
-              : (<>
-            <Grid container justifyContent="space-evenly" alignItems="center" style={{marginBottom:'15px'}} spacing={0}>
-              <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
-              <div style={{marginLeft: '10px'}}>
-                <ActionSelector
-                  enable={appbarStepsEnabled} 
-                  returnFunction={handleReturn}
-                  handleProposalEventChange={handleProposalEventChange}
-                  handleEscrowBalanceChanges={handleEscrowBalanceChanges}
-                  handleGuildBalanceChanges={handleGuildBalanceChanges}
-                  handleUserBalanceChanges={handleUserBalanceChanges}
-                  handleTabValueState={handleTabValueState}
-                  accountId={state.accountId}
-                  tokenName={tokenName}
-                  depositToken={depositToken}
-                  minSharePrice={minSharePrice}
-                  daoContract={daoContract}
-                  proposalDeposit={proposalDeposit}
-                  didsContract={didsContract}
-                  contractIdx={contractIdx}
-                  curUserIdx={curUserIdx}
-                  memberStatus={memberStatus}
-                  fairShare={currentShare}
-                  loaded={loaded}
-                  currentDaosList={currentDaosList}
-                />
-              </div>
-              </Grid>
-              <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="right">                
-                <Chip variant="outlined" label="Member" icon={memberIcon} />
-                <Chip variant="outlined" label={sharesLabel}  />
-                <Chip variant="outlined" label={fairShareLabel}  />
-              </Grid>
-            </Grid></>
-              )}
-          <Card align="center" style={{width: '100%'}}>
-          <div style={{float:'right', marginBottom: '-30px'}}>
-            <RightSideDrawer
-              state={state}
-              currentPeriod={currentPeriod}
-              accountId={state.accountId} 
-              contract={daoContract}
-             
-              summoner={summoner}
-              totalMembers={allMemberInfo.length}
-              proposalDeposit={proposalDeposit}
-              tokenName={tokenName}
-              depositToken={depositToken}
-            />
-          </div>
-            <Grid container justifyContent="center" alignItems="center" spacing={1} className={classes.top}>
-           
-              <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
-                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Fund: {guildBalanceChip} {guildBalance && guildBalance.length > 0 ? guildBalance[0].balance > 0 && active ? '($' + (parseFloat(formatNearAmount(guildBalance[0].balance)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : <LinearProgress /> } </Typography>
-              </Grid>
-              <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
-                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Escrow: {escrowBalanceChip} {escrowBalance && escrowBalance.length > 0 ? escrowBalance[0].balance > 0 && active ? '($' + (parseFloat(formatNearAmount(escrowBalance[0].balance)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : <LinearProgress />  }</Typography>
-              </Grid>
-              <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
-                <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Total Shares: {totalShares ? totalShares : <LinearProgress />}</Typography>
-              </Grid>
-            </Grid>
-          </Card>
-          <Divider variant="middle" align="center" style={{width:'75%', margin: 'auto'}}/>
 
-          <Grid container justifyContent="space-evenly" alignItems="center" spacing={1} >
-            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
-            {loaded ?
-              <ProposalList
-                returnFunction={handleReturn}
-                enable={tabTutorialEnabled}
-                contractId={contractId}
-                curDaoIdx={curDaoIdx}
-                proposalEvents={allProposals}
-                allMemberInfo={allMemberInfo}
-                contract={daoContract}
-                memberStatus={memberStatus}
-                proposalDeposit={proposalDeposit}
-                handleUpdate={handleUpdate}
-                isUpdated={isUpdated}
-                totalShares={totalShares}
-                currentMemberInfo={memberInfo}
-                guildBalance={guildBalance}
-                escrowBalance={escrowBalance}
-                handleTabValueState={handleTabValueState}
-                tabValue={tabValue}
-                handleProposalEventChange={handleProposalEventChange}
-                handleGuildBalanceChanges={handleGuildBalanceChanges}
-                handleEscrowBalanceChanges={handleEscrowBalanceChanges}
-                memberStatus={memberStatus}
-                depositToken={depositToken}
-                tributeToken={tributeToken}
-                tributeOffer={tributeOffer}
-                processingReward={processingReward}
-                currentPeriod={currentPeriod}
-                periodDuration={periodDuration}
-                proposalComments={proposalComments}
-                summoner={summoner}
-                contractIdx={contractIdx}
-                curUserIdx={curUserIdx}
-                didsContract={didsContract}
-                contractId={contractId}
-                appIdx={appIdx}
-                appClient={appClient}
-                notificationIndicator = {notificationIndicator}
-                loaded={loaded}
-                remainingDelegates={remainingDelegates}
-                votingPeriodLength={votingPeriodLength}
-                gracePeriodLength={gracePeriodLength}
-                totalMembers={totalMembers}
-              />
-              : <div style={{margin: 'auto', width: '200px'}}><CircularProgress /></div>}
-            </Grid>
-          </Grid>
-          </>
-          ) : <Initialize 
-                summoner={summoner}
-              />
+            {initLoad == false ? (
+              <div className={classes.centered}>
+                <CircularProgress/><br></br>
+                <Typography variant="h6">Setting Things Up...</Typography>
+                <RandomPhrase />
+              </div> 
+            ) :
+            
+               initialized == 'done' ? (
+                <>
+                  {/* <Steps
+                      enabled={stepsEnabled}
+                      initialStep={0}
+                      onBeforeChange={(index)=> 
+                        {
+                          if(index == 1){onStepsComplete()}
+                        }
+                      }
+                      onComplete={()=>onStepsComplete()}
+                      onExit={()=>onStepsExit()}
+                      steps={steps}
+                      options={options}
+                      /> 
+                  */}
+
+                {matches ? (
+                  <>
+                  <Grid container justifyContent="space-evenly" alignItems="center" style={{marginBottom:'15px'}} spacing={0}>
+                    <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" style={{marginBottom: '15px'}}>                    
+                      <Chip variant="outlined" label="Member" icon={memberIcon} />
+                      <Chip variant="outlined" label={sharesLabel}  />
+                      <Chip variant="outlined" label={fairShareLabel}  />
+                    </Grid>
+                    <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
+                      <ActionSelector 
+                        enable={appbarStepsEnabled}
+                        returnFunction={handleReturn}
+                        handleProposalEventChange={handleProposalEventChange}
+                        handleEscrowBalanceChanges={handleEscrowBalanceChanges}
+                        handleGuildBalanceChanges={handleGuildBalanceChanges}
+                        handleUserBalanceChanges={handleUserBalanceChanges}
+                        handleTabValueState={handleTabValueState}
+                        accountId={state.accountId}
+                        tokenName={tokenName}
+                        depositToken={depositToken}
+                        minSharePrice={minSharePrice}
+                        daoContract={daoContract}
+                        proposalDeposit={proposalDeposit}
+                        didsContract={didsContract}
+                        contractIdx={contractIdx}
+                        curUserIdx={curUserIdx}
+                        memberStatus={memberStatus}
+                        fairShare={currentShare}
+                        loaded={loaded}
+                        currentDaosList={currentDaosList}
+                        approvedTokens={approvedTokens}
+                      />
+                    </Grid>
+                  </Grid>
+                  </>
+                ) : (
+                  <>
+                  <Grid container justifyContent="space-evenly" alignItems="center" style={{marginBottom:'15px'}} spacing={0}>
+                    <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                    <div style={{marginLeft: '10px'}}>
+                      <ActionSelector
+                        enable={appbarStepsEnabled} 
+                        returnFunction={handleReturn}
+                        handleProposalEventChange={handleProposalEventChange}
+                        handleEscrowBalanceChanges={handleEscrowBalanceChanges}
+                        handleGuildBalanceChanges={handleGuildBalanceChanges}
+                        handleUserBalanceChanges={handleUserBalanceChanges}
+                        handleTabValueState={handleTabValueState}
+                        accountId={state.accountId}
+                        tokenName={tokenName}
+                        depositToken={depositToken}
+                        minSharePrice={minSharePrice}
+                        daoContract={daoContract}
+                        proposalDeposit={proposalDeposit}
+                        didsContract={didsContract}
+                        contractIdx={contractIdx}
+                        curUserIdx={curUserIdx}
+                        memberStatus={memberStatus}
+                        fairShare={currentShare}
+                        loaded={loaded}
+                        currentDaosList={currentDaosList}
+                        approvedTokens={approvedTokens}
+                      />
+                    </div>
+                    </Grid>
+                    <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="right">                
+                      <Chip variant="outlined" label="Member" icon={memberIcon} />
+                      <Chip variant="outlined" label={sharesLabel}  />
+                      <Chip variant="outlined" label={fairShareLabel}  />
+                    </Grid>
+                  </Grid>
+                  </>
+                  )
+                }
+              
+                <Card align="center" style={{width: '100%'}}>
+                <div style={{float:'right', marginBottom: '-30px'}}>
+                  <RightSideDrawer
+                    state={state}
+                    currentPeriod={currentPeriod}
+                    accountId={state.accountId} 
+                    contract={daoContract}
+                  
+                    summoner={summoner}
+                    totalMembers={allMemberInfo.length}
+                    proposalDeposit={proposalDeposit}
+                    tokenName={tokenName}
+                    depositToken={depositToken}
+                  />
+                </div>
+                  <Grid container justifyContent="center" alignItems="center" spacing={1} className={classes.top}>
+                
+                    <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
+                      <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">{guildBalanceChip} </Typography>
+                      
+                      </Grid>
+                    <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
+                      <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">{escrowBalanceChip} </Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
+                      <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Total Shares: {totalShares ? totalShares : <LinearProgress />}</Typography>
+                    </Grid>
+                  </Grid>
+                </Card>
+                <Divider variant="middle" align="center" style={{width:'75%', margin: 'auto'}}/>
+
+                <Grid container justifyContent="space-evenly" alignItems="center" spacing={1} >
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
+                
+                {loaded ?
+                  <ProposalList
+                    returnFunction={handleReturn}
+                    enable={tabTutorialEnabled}
+                    contractId={contractId}
+                    curDaoIdx={curDaoIdx}
+                    proposalEvents={allProposals}
+                    allMemberInfo={allMemberInfo}
+                    contract={daoContract}
+                    memberStatus={memberStatus}
+                    proposalDeposit={proposalDeposit}
+                    handleUpdate={handleUpdate}
+                    isUpdated={isUpdated}
+                    totalShares={totalShares}
+                    currentMemberInfo={memberInfo}
+                    guildBalance={guildBalance}
+                    escrowBalance={escrowBalance}
+                    handleTabValueState={handleTabValueState}
+                    tabValue={tabValue}
+                    handleProposalEventChange={handleProposalEventChange}
+                    handleGuildBalanceChanges={handleGuildBalanceChanges}
+                    handleEscrowBalanceChanges={handleEscrowBalanceChanges}
+                    memberStatus={memberStatus}
+                    depositToken={depositToken}
+                    tributeToken={tributeToken}
+                    tributeOffer={tributeOffer}
+                    processingReward={processingReward}
+                    currentPeriod={currentPeriod}
+                    periodDuration={periodDuration}
+                    proposalComments={proposalComments}
+                    summoner={summoner}
+                    contractIdx={contractIdx}
+                    curUserIdx={curUserIdx}
+                    didsContract={didsContract}
+                    contractId={contractId}
+                    appIdx={appIdx}
+                    appClient={appClient}
+                    notificationIndicator = {notificationIndicator}
+                    loaded={loaded}
+                    remainingDelegates={remainingDelegates}
+                    votingPeriodLength={votingPeriodLength}
+                    gracePeriodLength={gracePeriodLength}
+                    totalMembers={totalMembers}
+                    approvedTokens={approvedTokens}
+                  />
+                  : (
+                    <div style={{margin: 'auto', width: '200px'}}>
+                    <CircularProgress />
+                    </div>
+                    )
+                }
+
+                </Grid>
+                </Grid>
+                </>
+              ) : <Initialize summoner={summoner} />
+
+              
           }
         </Grid>
        

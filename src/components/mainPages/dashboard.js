@@ -559,6 +559,7 @@ export default function Dashboard(props) {
                             asuitabilityScore = 0
                         }
                         setSuitabilityScore(asuitabilityScore)
+                        console.log('suitability score', asuitabilityScore)
                         let thisContract = await dao.initDaoContract(state.wallet.account(), allOpportunities[j].contractId)
                         let propFlags
                         // confirm proposal exists
@@ -576,12 +577,16 @@ export default function Dashboard(props) {
                             exists = false
                         }
                         if(exists){
+                            console.log('here all ops', allOpportunities[j])
                             propFlags = await thisContract.getProposalFlags({proposalId: parseInt(allOpportunities[j].opportunityId)})
                             
                             let status = getStatus(propFlags)
                             let data = new Persona()
+                            console.log('status', status)
                             let result = await data.getDao(allOpportunities[j].contractId)
-                            if(status == 'Passed' && allOpportunities[j].budget > 0 && Date.now() > allOpportunities[j].deadline){
+                            console.log('dao result', result)
+                            
+                            if(status == 'Passed' && allOpportunities[j].budget > 0 && Date.now() <= new Date(allOpportunities[j].deadline)){
                                 currentRecommendations.push({
                                     opportunity: allOpportunities[j],
                                     status: status,
@@ -1091,7 +1096,7 @@ export default function Dashboard(props) {
                         <TableCell align="right">{row.suitabilityScore}</TableCell>
                         <TableCell align="right">{row.baseReward}</TableCell>
                         <TableCell align="right">{row.opportunity.deadline}</TableCell>
-                        <TableCell align="right">{formatNearAmount((row.opportunity.budget).toLocaleString('fullwide', {useGrouping: false}), 2)}</TableCell>
+                        <TableCell align="right">{row.opportunity.budget}</TableCell>
                         </TableRow>
                        
                         </React.Fragment>

@@ -6,7 +6,6 @@ import { makeStyles } from '@material-ui/core/styles'
 import { flexClass } from '../../App'
 import { ceramic, IPFS_PROVIDER } from '../../utils/ceramic'
 import * as nearAPI from 'near-api-js'
-import DOMPurify from "dompurify"
 
 
 // Material UI components
@@ -124,7 +123,7 @@ export default function DaoProfileDisplay(props) {
                 result.name ? setName(result.name) : setName('')
                 result.date ? setDate(result.date) : setDate('')
                 result.logo ? setLogo(result.logo) : setLogo(imageName)
-                result.purpose ? setPurpose(DOMPurify.sanitize(result.purpose)) : setPurpose('')
+                result.purpose ? setPurpose(result.purpose) : setPurpose('')
                 result.category ? setCategory(result.category) : setCategory('')
                 result.discordActivation ? setDiscordActivated(true) : setDiscordActivated(false)
                 result.proposalActivation ? setProposalsActivated(true) : setProposalsActivated(false)

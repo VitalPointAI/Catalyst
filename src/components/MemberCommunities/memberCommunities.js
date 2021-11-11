@@ -42,7 +42,7 @@ const useStyles = makeStyles((theme) => ({
 export default function MemberCommunities(props) {
    
     const[daos, setDaos] = useState([])
-    const [isUpdated, setIsUpdated] = useState(false)
+  //  const [isUpdated, setIsUpdated] = useState(false)
 
     const classes = useStyles()
 
@@ -51,12 +51,14 @@ export default function MemberCommunities(props) {
     const {
       accountId,
       currentDaosList,
+      isUpdated
     } = state
 
     
     useEffect(
         () => {
             async function fetchData() {
+              if(isUpdated){}
             if(currentDaosList && state){
                 let sortedDaos = _.sortBy(currentDaosList, 'created')
                 let contract
@@ -87,7 +89,7 @@ export default function MemberCommunities(props) {
         }
         fetchData()
            
-    }, [currentDaosList, state, isUpdated]
+    }, [currentDaosList, isUpdated]
     )
 
     return (

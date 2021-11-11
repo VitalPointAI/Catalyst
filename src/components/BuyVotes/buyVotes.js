@@ -62,7 +62,7 @@ const useStyles = makeStyles((theme) => ({
   }));
 
 
-export default function TributeProposal(props) {
+export default function BuyVotesProposal(props) {
   const [open, setOpen] = useState(true)
   const [finished, setFinished] = useState(true)
   const [applicant, setApplicant] = useState(props.accountId)
@@ -127,7 +127,7 @@ export default function TributeProposal(props) {
   return (
     <div>
       <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Make a Contribution and/or Buy Voting Shares</DialogTitle>
+        <DialogTitle id="form-dialog-title">Buy Voting Shares</DialogTitle>
         <DialogContent className={classes.rootForm}>  
           <div>
             <TextField

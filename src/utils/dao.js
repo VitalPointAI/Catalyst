@@ -41,7 +41,8 @@ class DAO {
                 'getNeededVotes',
                 'getRemainingDelegates',
                 'getPlatformAccount',
-                'getPlatformPercentage'
+                'getPlatformPercentage',
+                'getApprovedTokens'
             ],
             // Change methods can modify the state. But you don't receive the returned value when called.
             changeMethods: [
@@ -69,7 +70,9 @@ class DAO {
                 'makeDonation',
                 'leave',
                 'delegate',
-                'undelegate'
+                'undelegate',
+                'changeAmount'
+
             ]
             });
 

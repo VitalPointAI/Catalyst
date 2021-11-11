@@ -106,6 +106,7 @@ export default function ProposalList(props) {
   })
   const [onlyFundingCommitmentProposals, setOnlyFundingCommitmentProposals] = useState(true)
   const [onlyPayoutProposals, setOnlyPayoutProposals] = useState(true)
+  const [onlyCancelCommitmentProposals, setOnlyCancelCommitmentProposals] = useState(true)
   const [onlyMemberProposals, setOnlyMemberProposals] = useState(true)
   const [onlyOpportunityProposals, setOnlyOpportunityProposals] = useState(true)
   const [onlyWhiteListProposals, setOnlyWhiteListProposals] = useState(true)
@@ -193,6 +194,7 @@ export default function ProposalList(props) {
       let i = 0
       let result
       let didVote = false
+      console.log('proposalEvents', proposalEvents)
       while (i < proposalEvents.length) {
       
           try{
@@ -218,7 +220,7 @@ export default function ProposalList(props) {
       if(curDaoIdx){
       
         let newLists = await resolveStatus(proposalEvents)
-      console.log('newLists', newLists)
+     
         setProposalList(newLists.allProposals)
         setVotingList(newLists.votingProposals)
         setQueueList(newLists.queueProposals)
@@ -282,6 +284,10 @@ export default function ProposalList(props) {
 
   const handleOnlyPayoutProposalChange = (event) => {
     setOnlyPayoutProposals(event.target.checked)
+  }
+
+  const handleOnlyCancelCommitmentProposalChange = (event) => {
+    setOnlyCancelCommitmentProposals(event.target.checked)
   }
 
   const handleOnlyConfigurationProposalChange = (event) => {
@@ -425,6 +431,7 @@ function typeFilter(item){
   if(onlyYourProposals){
     if(item[0].proposalType == 'Member' && onlyMemberProposals && item[0].applicant == accountId) return true
     if(item[0].proposalType == 'Payout' && onlyPayoutProposals && item[0].applicant == accountId) return true
+    if(item[0].proposalType == 'CancelCommit' && onlyCancelCommitmentProposals && item[0].applicant == accountId) return true
     if(item[0].proposalType == 'Commitment' && onlyFundingCommitmentProposals && item[0].applicant == accountId) return true
     if(item[0].proposalType == 'Opportunity' && onlyOpportunityProposals && item[0].applicant == accountId) return true
     if(item[0].proposalType == 'Tribute' && onlyTributeProposals && item[0].applicant == accountId) return true
@@ -438,6 +445,7 @@ function typeFilter(item){
   } else {
     if(item[0].proposalType == 'Member' && onlyMemberProposals) return true
     if(item[0].proposalType == 'Payout' && onlyPayoutProposals) return true
+    if(item[0].proposalType == 'CancelCommit' && onlyCancelCommitmentProposals) return true
     if(item[0].proposalType == 'Commitment' && onlyFundingCommitmentProposals) return true
     if(item[0].proposalType == 'Opportunity' && onlyOpportunityProposals) return true
     if(item[0].proposalType == 'Tribute' && onlyTributeProposals) return true
@@ -534,7 +542,11 @@ function typeFilter(item){
             submitTransactionHash: currentStreamProposal && currentStreamProposal.submitTransactionHash ? currentStreamProposal.submitTransactionHash : '',
             cancelTransactionHash: currentStreamProposal && currentStreamProposal.cancelTransactionHash ? currentStreamProposal.cancelTransactionHash : '',
             processTransactionHash: currentStreamProposal && currentStreamProposal.processTransactionHash ? currentStreamProposal.processTransactionHash : '',
-            sponsorTransactionHash: currentStreamProposal && currentStreamProposal.sponsorTransactionHash ? currentStreamProposal.sponsorTransactionHash : ''
+            sponsorTransactionHash: currentStreamProposal && currentStreamProposal.sponsorTransactionHash ? currentStreamProposal.sponsorTransactionHash : '',
+            changeTransactionHash: currentStreamProposal && currentStreamProposal.changeTransactionHash ? currentStreamProposal.changeTransactionHash : '',
+            functionName: fr.functionName,
+            parameters: fr.parameters,
+            tributeToken: fr.tributeToken
           }])
         }
 
@@ -577,7 +589,11 @@ function typeFilter(item){
             submitTransactionHash: currentStreamProposal && currentStreamProposal.submitTransactionHash ? currentStreamProposal.submitTransactionHash : '',
             cancelTransactionHash: currentStreamProposal && currentStreamProposal.cancelTransactionHash ? currentStreamProposal.cancelTransactionHash : '',
             processTransactionHash: currentStreamProposal && currentStreamProposal.processTransactionHash ? currentStreamProposal.processTransactionHash : '',
-            sponsorTransactionHash: currentStreamProposal && currentStreamProposal.sponsorTransactionHash ? currentStreamProposal.sponsorTransactionHash : ''
+            sponsorTransactionHash: currentStreamProposal && currentStreamProposal.sponsorTransactionHash ? currentStreamProposal.sponsorTransactionHash : '',
+            changeTransactionHash: currentStreamProposal && currentStreamProposal.changeTransactionHash ? currentStreamProposal.changeTransactionHash : '',
+            functionName: fr.functionName,
+            parameters: fr.parameters,
+            tributeToken: fr.tributeToken
           }])
         }
 
@@ -620,7 +636,11 @@ function typeFilter(item){
             submitTransactionHash: currentStreamProposal && currentStreamProposal.submitTransactionHash ? currentStreamProposal.submitTransactionHash : '',
             cancelTransactionHash: currentStreamProposal && currentStreamProposal.cancelTransactionHash ? currentStreamProposal.cancelTransactionHash : '',
             processTransactionHash: currentStreamProposal && currentStreamProposal.processTransactionHash ? currentStreamProposal.processTransactionHash : '',
-            sponsorTransactionHash: currentStreamProposal && currentStreamProposal.sponsorTransactionHash ? currentStreamProposal.sponsorTransactionHash : ''
+            sponsorTransactionHash: currentStreamProposal && currentStreamProposal.sponsorTransactionHash ? currentStreamProposal.sponsorTransactionHash : '',
+            changeTransactionHash: currentStreamProposal && currentStreamProposal.changeTransactionHash ? currentStreamProposal.changeTransactionHash : '',
+            functionName: fr.functionName,
+            parameters: fr.parameters,
+            tributeToken: fr.tributeToken
           })
         }
 
@@ -662,7 +682,11 @@ function typeFilter(item){
             submitTransactionHash: currentStreamProposal && currentStreamProposal.submitTransactionHash ? currentStreamProposal.submitTransactionHash : '',
             cancelTransactionHash: currentStreamProposal && currentStreamProposal.cancelTransactionHash ? currentStreamProposal.cancelTransactionHash : '',
             processTransactionHash: currentStreamProposal && currentStreamProposal.processTransactionHash ? currentStreamProposal.processTransactionHash : '',
-            sponsorTransactionHash: currentStreamProposal && currentStreamProposal.sponsorTransactionHash ? currentStreamProposal.sponsorTransactionHash : ''
+            sponsorTransactionHash: currentStreamProposal && currentStreamProposal.sponsorTransactionHash ? currentStreamProposal.sponsorTransactionHash : '',
+            changeTransactionHash: currentStreamProposal && currentStreamProposal.changeTransactionHash ? currentStreamProposal.changeTransactionHash : '',
+            functionName: fr.functionName,
+            parameters: fr.parameters,
+            tributeToken: fr.tributeToken
           }])
         }
       }) 
@@ -751,13 +775,14 @@ function typeFilter(item){
           cancelTransactionHash={fr[0].cancelTransactionHash}
           processTransactionHash={fr[0].processTransactionHash}
           sponsorTransactionHash={fr[0].sponsorTransactionHash}
+          changeTransactionHash={fr[0].changeTransactionHash}
           configuration={fr[0].configuration}
+          functionName={fr[0].functionName}
+          parameters={fr[0].parameters}
           accountId={accountId}
           cancelFinish={cancelFinish}
-          tributeToken={tributeToken}
+          tributeToken={fr[0].tributeToken}
           currentPeriod={currentPeriod}
-          // handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
-          // handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
           summoner={summoner}
@@ -768,7 +793,7 @@ function typeFilter(item){
           gracePeriod={fr[0].gracePeriod}
           gracePeriodLength={gracePeriodLength}
           votingPeriodLength={votingPeriodLength}
-          isFinalized={fr.isFinalized}
+          isFinalized={fr[0].isFinalized}
           totalMembers={totalMembers}
         />
       )
@@ -803,16 +828,17 @@ function typeFilter(item){
           gracePeriod={fr[0].gracePeriod}
           votingPeriod={fr[0].votingPeriod}
           referenceIds={fr[0].referenceIds}
+          functionName={fr[0].functionName}
+          parameters={fr[0].parameters}
           currentPeriod={currentPeriod}
           periodDuration={periodDuration}
           submitTransactionHash={fr[0].submitTransactionHash}
           cancelTransactionHash={fr[0].cancelTransactionHash}
           processTransactionHash={fr[0].processTransactionHash}
           sponsorTransactionHash={fr[0].sponsorTransactionHash}
+          changeTransactionHash={fr[0].changeTransactionHash}
           done={done}
           configuration={fr[0].configuration}
-          // handleMemberProposalDetailsClick={handleMemberProposalDetailsClick}
-          // handleFundingProposalDetailsClick={handleFundingProposalDetailsClick}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
           handleVotingAction={handleVotingAction}
@@ -827,6 +853,7 @@ function typeFilter(item){
           votingPeriodLength={votingPeriodLength}
           isFinalized={fr.isFinalized}
           totalMembers={totalMembers}
+          tributeToken={fr[0].tributeToken}
         />
       )
     })
@@ -862,8 +889,11 @@ function typeFilter(item){
           cancelTransactionHash={fr.cancelTransactionHash}
           processTransactionHash={fr.processTransactionHash}
           sponsorTransactionHash={fr.sponsorTransactionHash}
+          changeTransactionHash={fr.changeTransactionHash}
           handleProcessAction={handleProcessAction}
           configuration={fr.configuration}
+          functionName={fr.functionName}
+          parameters={fr.parameters}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
           summoner={summoner}
@@ -877,6 +907,7 @@ function typeFilter(item){
           votingPeriodLength={votingPeriodLength}
           isFinalized={fr.isFinalized}
           totalMembers={totalMembers}
+          tributeToken={fr.tributeToken}
         />
       )
     })
@@ -906,10 +937,13 @@ function typeFilter(item){
           startingPeriod={fr[0].startingPeriod}
           configuration={fr[0].configuration}
           referenceIds={fr[0].referenceIds}
+          functionName={fr[0].functionName}
+          parameters={fr[0].parameters}
           submitTransactionHash={fr[0].submitTransactionHash}
           cancelTransactionHash={fr[0].cancelTransactionHash}
           processTransactionHash={fr[0].processTransactionHash}
           sponsorTransactionHash={fr[0].sponsorTransactionHash}
+          changeTransactionHash={fr[0].changeTransactionHash}
           handleProcessAction={handleProcessAction}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
@@ -922,8 +956,9 @@ function typeFilter(item){
           gracePeriod={fr[0].gracePeriod}
           gracePeriodLength={gracePeriodLength}
           votingPeriodLength={votingPeriodLength}
-          isFinalized={fr.isFinalized}
+          isFinalized={fr[0].isFinalized}
           totalMembers={totalMembers}
+          tributeToken={fr[0].tributeToken}
         />
       )
     })
@@ -955,10 +990,13 @@ function typeFilter(item){
           vote={fr[0].vote}
           configuration={fr[0].configuration}
           referenceIds={fr[0].referenceIds}
+          functionName={fr[0].functionName}
+          parameters={fr[0].parameters}
           submitTransactionHash={fr[0].submitTransactionHash}
           cancelTransactionHash={fr[0].cancelTransactionHash}
           processTransactionHash={fr[0].processTransactionHash}
           sponsorTransactionHash={fr[0].sponsorTransactionHash}
+          changeTransactionHash={fr[0].changeTransactionHash}
           handleSponsorConfirmationClick={handleSponsorConfirmationClick}
           handleCancelAction={handleCancelAction}
           summoner={summoner}
@@ -971,8 +1009,9 @@ function typeFilter(item){
           gracePeriod={fr[0].gracePeriod}
           gracePeriodLength={gracePeriodLength}
           votingPeriodLength={votingPeriodLength}
-          isFinalized={fr.isFinalized}
+          isFinalized={fr[0].isFinalized}
           totalMembers={totalMembers}
+          tributeToken={fr[0].tributeToken}
         />
       )
     })
@@ -1329,6 +1368,10 @@ function typeFilter(item){
             <FormControlLabel
               control={<Switch checked={onlyGuildKickProposals} onChange={handleOnlyGuildKickProposalChange} name="onlyGuildKickProposals" />}
               label="GuildKick"
+            /> 
+            <FormControlLabel
+              control={<Switch checked={onlyCancelCommitmentProposals} onChange={handleOnlyCancelCommitmentProposalChange} name="onlyCancelCommitmentProposals" />}
+              label="Cancel Commitments"
             />
           </FormGroup>
           <FormHelperText>Choose the proposal types you want.</FormHelperText>
@@ -1395,6 +1438,10 @@ function typeFilter(item){
               control={<Switch checked={onlyGuildKickProposals} onChange={handleOnlyGuildKickProposalChange} name="onlyGuildKickProposals" />}
               label="GuildKick"
             />
+            <FormControlLabel
+              control={<Switch checked={onlyCancelCommitmentProposals} onChange={handleOnlyCancelCommitmentProposalChange} name="onlyCancelCommitmentProposals" />}
+              label="Cancel Commitments"
+            />
           </FormGroup>
           <FormHelperText>Choose the proposal types you want.</FormHelperText>
         </FormControl>
@@ -1407,9 +1454,7 @@ function typeFilter(item){
       </div>}
     </TabContext>
 
-       
-   
-
+ 
     {sponsorConfirmationClicked ? <SponsorConfirmation
       contract={contract}
       contractId={contractId}

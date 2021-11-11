@@ -63,7 +63,7 @@ const useStyles = makeStyles((theme) => ({
 
 const imageName = require('../../img/default-profile.png') // default no-image avatar
 
-export default function EditPayoutProposalForm(props) {
+export default function EditCancelCommitmentProposalForm(props) {
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
     const [loaded, setLoaded] = useState(false)
@@ -108,7 +108,7 @@ export default function EditPayoutProposalForm(props) {
 
     const {
         handleUpdate,
-        handleEditPayoutProposalDetailsClickState,
+        handleEditCancelCommitmentProposalDetailsClickState,
         applicant,
         proposer,
         curDaoIdx,
@@ -143,8 +143,7 @@ export default function EditPayoutProposalForm(props) {
             // Set Existing Payout Proposal Data  
            if(curDaoIdx && contract && proposalId){
           
-            let propResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
-         console.log('payout propresult', propResult)
+            let propResult = await curDaoIdx.get('cancelCommitmentProposalDetails', curDaoIdx.id)
             
             if(propResult) {
              
@@ -287,7 +286,7 @@ export default function EditPayoutProposalForm(props) {
       }
 
     const handleClose = () => {
-        handleEditPayoutProposalDetailsClickState(false)
+        handleEditCancelCommitmentProposalDetailsClickState(false)
         setOpen(false)
     }
 
@@ -339,7 +338,7 @@ export default function EditPayoutProposalForm(props) {
       let formattedDate = formatDate(now)
   
       // Load existing array of details
-      let detailRecords = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
+      let detailRecords = await curDaoIdx.get('cancelCommitmentProposalDetails', curDaoIdx.id)
     
       if(!detailRecords){
         detailRecords = { proposals: [] }
@@ -370,7 +369,7 @@ export default function EditPayoutProposalForm(props) {
       while (i < detailRecords.proposals.length){
         if(detailRecords.proposals[i].proposalId == proposalId){
           detailRecords.proposals[i] = proposalRecord
-          await curDaoIdx.set('payoutProposalDetails', detailRecords)
+          await curDaoIdx.set('cancelCommitmentProposalDetails', detailRecords)
           exists = true
           break
         }
@@ -381,7 +380,7 @@ export default function EditPayoutProposalForm(props) {
       if(!exists){
         detailRecords.proposals.push(proposalRecord)
       
-        await curDaoIdx.set('payoutProposalDetails', detailRecords)
+        await curDaoIdx.set('cancelCommitmentProposalDetails', detailRecords)
       }
      
       setFinished(true)
@@ -389,15 +388,14 @@ export default function EditPayoutProposalForm(props) {
       setOpen(false)
       handleClose()
     }
-    console.log('filefields', fileFields)
-    console.log('attachedFiles', attachedFiles)
+    
         return (
            
             <div>
        
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             { loaded ? (<>
-              <DialogTitle id="form-dialog-title">Payout Proposal Details</DialogTitle>
+              <DialogTitle id="form-dialog-title">Cancel Commitment Proposal Details</DialogTitle>
               <DialogContent>
                  
                   {referenceIds && referenceIds.length > 0 ?
@@ -411,20 +409,20 @@ export default function EditPayoutProposalForm(props) {
                       id="payout-proposal-title"
                       variant="outlined"
                       name="payoutProposalTitle"
-                      label="Payout Proposal Title"
-                      placeholder="Payout Request for Milestone # of Commitment #"
+                      label="Cancel Commitment Title"
+                      placeholder="Cancellation Request for Milestone # of Commitment #"
                       value={title}
                       helperText={`${title.length}/40`}
                       onChange={handleTitleChange}
                       inputRef={register({
                           required: true,
-                          maxLength: 40                               
+                          maxLength: 40                             
                       })}
                   />
                   ) : null }
-                  {errors.payoutProposalTitle && <p style={{color: 'red'}}>You must provide a payout proposal title.</p>}
+                  {errors.payoutProposalTitle && <p style={{color: 'red'}}>You must provide a cancel commitment proposal title.</p>}
                  
-                  <Typography variant="body1">Please provide detail for your payout request including proof of work completion if applicable:</Typography>
+                  <Typography variant="body1">Please provide detail for your cancellation request including proof as applicable:</Typography>
                   <Paper style={{padding: '5px'}}>
                   <Editor
                     name="details"
@@ -436,7 +434,7 @@ export default function EditPayoutProposalForm(props) {
                     editorStyle={{minHeight:'200px'}}
                   />
                   </Paper>
-                  {errors.details && <p style={{color: 'red'}}>You must provide the details showing proof of project completion.</p>}
+                  {errors.details && <p style={{color: 'red'}}>You must provide details justifying the cancellation.</p>}
                   
                   <Grid container justifyContent="space-between" alignItems="flex-end" spacing={1}>
                     <Typography variant="body1" style={{marginTop: '10px', marginBottom:'10px'}}>Attach Files</Typography>

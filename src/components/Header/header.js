@@ -77,7 +77,7 @@ export const Header = ({ state, handleUpdate }) => {
         .then((res) => {
       
         })
-    }, [state])
+    }, [accountId, isUpdated])
 
     const matches = useMediaQuery('(max-width:500px)')
     

@@ -90,6 +90,9 @@ export const proposalSchema = {
         "sponsorTransactionHash": {
           "type": "string",
         },
+        "changeTransactionHash": {
+          "type": "string",
+        },
         "configuration": {
           "type": "array",
         },
@@ -105,6 +108,12 @@ export const proposalSchema = {
         "referenceIds": {
           "type": "array",
         },
+        "functionName": {
+          "type": "string",
+        },
+        "parameters": {
+          "type": "array",
+        }
       }
     }
   }

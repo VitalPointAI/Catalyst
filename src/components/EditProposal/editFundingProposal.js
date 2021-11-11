@@ -332,10 +332,12 @@ export default function EditFundingProposalForm(props) {
                       name="fundingProposalTitle"
                       label="Proposal Title"
                       placeholder="My Awesome Proposal"
+                      helperText={`${title.length}/40`}
                       value={title}
                       onChange={handleTitleChange}
                       inputRef={register({
-                        required: true                             
+                        required: true.valueOf,
+                        maxLength: 40                        
                       })}
                   />
                   {errors.fundingProposalTitle && <p style={{color: 'red', fontSize:'80%'}}>You must give your proposal a title.</p>}

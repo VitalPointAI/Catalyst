@@ -2,21 +2,22 @@ import * as nearAPI from 'near-api-js'
 import { get, set, del } from '../utils/storage'
 import { APP_OWNER_ACCOUNT, ceramic } from '../utils/ceramic'
 import { factory } from '../utils/factory'
+import { tokenFactory } from '../utils/tokenFactory'
+import { ft } from '../utils/ft'
 import { dao } from '../utils/dao'
 import Big from 'big.js'
-
 import { config } from './config'
 import { Action } from 'near-api-js/lib/transaction'
 
 export const {
     FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT, DAO_FIRST_INIT, 
-    CURRENT_DAO, REDIRECT, NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, OPPORTUNITY_REDIRECT, NEW_PROCESS, NEW_VOTE, 
+    CURRENT_DAO, REDIRECT, FT_FIRST_INIT, NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, OPPORTUNITY_REDIRECT, NEW_PROCESS, NEW_VOTE, 
     DASHBOARD_ARRIVAL, DASHBOARD_DEPARTURE, WARNING_FLAG, PERSONAS_ARRIVAL, EDIT_ARRIVAL, COMMUNITY_ARRIVAL, 
-    NEW_DONATION, NEW_EXIT, NEW_RAGE, NEW_DELEGATION, OPPORTUNITY_NOTIFICATION, PROPOSAL_NOTIFICATION, 
+    NEW_DONATION, NEW_EXIT, NEW_RAGE, NEW_DELEGATION, OPPORTUNITY_NOTIFICATION, PROPOSAL_NOTIFICATION, TOKEN_FACTORY_DEPOSIT,
     NEW_NOTIFICATIONS, IPFS_PROVIDER, PLATFORM_SUPPORT_ACCOUNT, STORAGE,
-    NEW_REVOCATION, INACTIVATE_COMMUNITY, NEW_INACTIVATION, 
-    networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix, explorerUrl,
-    contractName, didRegistryContractName, factoryContractName
+    NEW_REVOCATION, INACTIVATE_COMMUNITY, NEW_INACTIVATION, NEW_CHANGE_PROPOSAL,
+    networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix, tokenFactorySuffix, nftFactorySuffix, explorerUrl,
+    contractName, didRegistryContractName, factoryContractName, tokenFactoryContractName,
 } = config
 
 export const {
@@ -77,18 +78,35 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         changeMethods: ['send', 'create_account', 'create_account_and_claim'],
     })
 
-    const daoFactoryContract = new nearAPI.Contract(wallet.account(), factoryContractName, {
-        viewMethods: ['getDaoList', 'getDaoListLength', 'getDaoIndex'],
-        changeMethods: ['createDAO', 'deleteDAO'],
-    })
+    // const daoFactory = new nearAPI.Contract(wallet.account(), factoryContractName, {
+    //     viewMethods: ['getDaoList', 'getDaoListLength', 'getDaoIndex'],
+    //     changeMethods: ['createDAO', 'deleteDAO'],
+    // })
+
+    const daoFactory = await factory.initFactoryContract(wallet.account())
+    const ftFactory = await tokenFactory.initTokenFactoryContract(wallet.account())
+    // const ftFactory = new nearAPI.Contract(wallet.account(), tokenFactoryContractName, {
+    //     viewMethods: ['getTokenList', 'getTokenListLength', 'getTokenIndex', 'getTokensByAccount'],
+    //     changeMethods: ['createToken'],
+    // })
 
     wallet.isAccountTaken = async (accountId) => {
         const accountTaken = await isAccountTaken(accountId + nameSuffix)
         update('app', { accountTaken, wasValidated: true })
     }
 
+    wallet.isToken = async (accountId) => {
+        const accountTaken = await isAccountTaken(accountId)
+        update('app', { accountTaken, wasValidated: true })
+    }
+
     wallet.isDaoAccountTaken = async (accountId) => {
         const accountTaken = await isAccountTaken(accountId + factorySuffix)
+        update('app', { accountTaken, wasValidated: true })
+    }
+
+    wallet.isFTAccountTaken = async (accountId) => {
+        const accountTaken = await isAccountTaken(accountId + tokenFactorySuffix)
         update('app', { accountTaken, wasValidated: true })
     }
 
@@ -157,7 +175,57 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
                     set(REDIRECT, {action: true, link: link})
 
                     if(result){
-                        await daoFactoryContract.createDAO({ accountId: accountId, deposit: FACTORY_DEPOSIT}, GAS, parseNearAmount(FACTORY_DEPOSIT))
+                        await daoFactory.createDAO({ accountId: accountId, deposit: FACTORY_DEPOSIT}, GAS, parseNearAmount(FACTORY_DEPOSIT))
+                    }
+                 
+                }
+            } catch (err) {
+                console.log('error setting up new Dao', err)
+            }
+        
+    }
+
+    wallet.fundFTAccount = async (accountId, creator) => {
+        
+        if (accountId.indexOf(tokenFactorySuffix) > -1 || accountId.indexOf('.') > -1) {
+            alert(tokenFactorySuffix + ' is added automatically and no "." is allowed. Please remove and try again.')
+            return update('app.wasValidated', true)
+        }
+
+        accountId = accountId + tokenFactorySuffix
+        if (parseFloat(TOKEN_FACTORY_DEPOSIT, 10) < 0.1 || accountId.length < 2 || accountId.length > 48) {
+            return update('app.wasValidated', true)
+        }
+
+        let ftCreated = await isAccountTaken(accountId)
+
+            const keyPair = KeyPair.fromRandom('ed25519')
+
+            let state = getState()
+
+            let upLinks = await ceramic.downloadKeysSecret(state.appIdx, 'ftKeys')
+           console.log('upLinks', upLinks)
+            const ftInit = get(FT_FIRST_INIT, [])
+
+            try{
+                let i = 0
+                let exists = false
+                while (i < upLinks.length){
+                    if(upLinks[i].contractId == accountId){
+                        exists = true
+                        break
+                    }
+                    i++
+                }
+                if(!exists){
+                    upLinks.push({ key: keyPair.secretKey, contractId: accountId, creator: creator, created: Date.now() })
+                    let result = await ceramic.storeKeysSecret(state.appIdx, upLinks, 'ftKeys')
+
+                    let link = '/ft/' + accountId
+                    set(REDIRECT, {action: true, link: link})
+                    console.log('ftfactory', ftFactory)
+                    if(result){
+                        await ftFactory.createToken({ accountId: accountId, deposit: TOKEN_FACTORY_DEPOSIT}, GAS, parseNearAmount(TOKEN_FACTORY_DEPOSIT))
                     }
                  
                 }
@@ -201,22 +269,8 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
 
     //Initiate App Ceramic Components
 
-    //testing near auth
     const appIdx = await ceramic.getAppIdx(didRegistryContract, accountId)
-    let appIndex = await appIdx.getIndex()
 
-    // const appceramic = await ceramic.getAppCeramic3ID(near, accountId)
-    // console.log('appceramic', appceramic)
-
-    //** INITIALIZE FACTORY CONTRACT */
-    let daoFactory
-    try {
-        daoFactory = await factory.initFactoryContract(account)
-    } catch (err) {
-        console.log('error initializing daoFactory', err)
-    }
-
-   
     let t = 0
     let start = 0
     let end = 0
@@ -224,9 +278,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     let currentDaosList = []
 
     try {
-        let currentDaosLength = await daoFactory.getDaoListLength()
-     
-        
+        let currentDaosLength = await daoFactory.getDaoListLength() 
     
         while(t < currentDaosLength){
             if(currentDaosLength < interval){
@@ -234,7 +286,6 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
             }
             let newDaoList = await daoFactory.getDaoList({start: start, end: end})
             for(let i = 0; i < newDaoList.length; i++){
-                //verify DAO exists
                 currentDaosList.push(newDaoList[i])
             }
             start = end
@@ -243,14 +294,42 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
             } else {
             end = end + interval
             }
-            t++
-                  
+            t++   
         }
-
     } catch (err) {
         console.log('error creating currentDaosList', err)
     }
-   
+    
+
+    let v = 0
+    let ftStart = 0
+    let ftEnd = 0
+    let ftInterval = 20
+    let currentTokensList = []
+
+    try {
+        let currentTokensLength = await ftFactory.getTokenListLength()
+        while(v < currentTokensLength){
+            if(currentTokensLength < ftInterval){
+                ftEnd = currentTokensLength
+            }
+            let newTokensList = await ftFactory.getTokenList({start: ftStart, end: ftEnd})
+            for(let i = 0; i < newTokensList.length; i++){
+                currentTokensList.push(newTokensList[i])
+            }
+            ftStart = ftEnd
+            if(ftEnd + ftInterval > currentTokensLength){
+                ftEnd = currentTokensLength
+            } else {
+            ftEnd = ftEnd + ftInterval
+            }
+            v++        
+        }
+    } catch (err) {
+        console.log('error creating currentTokensList', err)
+    }
+
+
     // Set Current User Ceramic Client
     let accountKeys = get(ACCOUNT_LINKS, [])
     let i = 0
@@ -277,7 +356,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         curUserIdx = await ceramic.getCurrentUserIdxNoDid(appIdx, didRegistryContract, account, null, null, accountId)
     }
  
-    update('', { didRegistryContract, appIdx, account, accountId, curUserIdx, daoFactory, currentDaosList })
+    update('', { ftFactory, currentTokensList, didRegistryContract, appIdx, account, accountId, curUserIdx, daoFactory, currentDaosList })
     
     if(curUserIdx){
         // check localLinks, see if they're still valid
@@ -427,29 +506,31 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
 
     // get average block time
     let avgBlockTime = 60
-    try{
-        let currentBlock = await near.connection.provider.block({
-            finality: 'final'
-        })
-        let lastBlock = currentBlock.header.height
-        let firstBlock = lastBlock - 20
-        let totalTime = 0
-        let count = 0
-        while (firstBlock <= lastBlock ){
-            let prevBlock = await near.connection.provider.block(firstBlock-1)
-            let prevBlockTime = prevBlock.header.timestamp
-            let thisBlock = await near.connection.provider.block(firstBlock)
-            let thisBlockTime = thisBlock.header.timestamp
-            let createTime = thisBlockTime - prevBlockTime
-            count ++
-            totalTime += createTime
-            firstBlock++
-        }
+    if(near){
+        try{
+            let currentBlock = await near.connection.provider.block({
+                finality: 'final'
+            })
+            let lastBlock = currentBlock.header.height
+            let firstBlock = lastBlock - 20
+            let totalTime = 0
+            let count = 0
+            while (firstBlock <= lastBlock ){
+                let prevBlock = await near.connection.provider.block(firstBlock-1)
+                let prevBlockTime = prevBlock.header.timestamp
+                let thisBlock = await near.connection.provider.block(firstBlock)
+                let thisBlockTime = thisBlock.header.timestamp
+                let createTime = thisBlockTime - prevBlockTime
+                count ++
+                totalTime += createTime
+                firstBlock++
+            }
 
-        avgBlockTime = parseFloat(Math.fround(totalTime/count / 1000000000).toFixed(3)) // Time in seconds
-        console.log('avgblocktime', avgBlockTime)
-    } catch (err) {
-        console.log("problem retrieving blockTime", err)
+            avgBlockTime = parseFloat(Math.fround(totalTime/count / 1000000000).toFixed(3)) // Time in seconds
+            console.log('avgblocktime', avgBlockTime)
+        } catch (err) {
+            console.log("problem retrieving blockTime", err)
+        }
     }
     finished = true
 
@@ -585,6 +666,39 @@ export async function initDao(wallet, contractId, periodDuration, votingPeriodLe
     return true
 }
 
+// Initializes a FT by setting its key components
+export async function initFT(wallet, contractId, name, symbol, icon, reference, referenceHash, decimals, maxSupply) {
+
+    let metadata = {
+        spec: 'ft-1.0.0',
+        name: name,
+        symbol: symbol,
+        icon: icon,
+        reference: reference,
+        reference_hash: referenceHash,
+        decimals: parseInt(decimals),
+    }
+
+    try {
+        const ftContract = await ft.initFTContract(wallet.account(), contractId)
+
+        // set trigger for first init to log token summon event
+        let firstFTInit = get(FT_FIRST_INIT, [])
+        firstFTInit.push({contractId: contractId, metadata: metadata, maxSupply: maxSupply, creationTime: Date.now(), init: true })
+        set(FT_FIRST_INIT, firstFTInit)
+       
+        await ftContract.init_token({
+            metadata: metadata,
+            max_supply: parseNearAmount(maxSupply)
+        }, GAS)
+
+    } catch (err) {
+        console.log('init FT failed', err)
+        return false
+    }
+    return true
+}
+
 // Submits new DAO settings from summoner if only member
 export async function changeDao(wallet, contractId, periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound, voteThreshold, platformPercent) {
 
@@ -647,6 +761,28 @@ async function sendMessage(content, data, curDaoIdx){
     return false
 }
 
+// Changes an amount or token type on an existing proposal
+export async function submitProposalChange(wallet, contractId, proposalId, amount, token){
+    const daoContract = await dao.initDaoContract(wallet.account(), contractId)
+
+    // set trigger for to log change of proposal
+    let changeProposal = get(NEW_CHANGE_PROPOSAL, [])
+    changeProposal.push({contractId: contractId, proposalId: proposalId, fundingRequested: amount, fundingToken: token, new: true})
+    set(NEW_CHANGE_PROPOSAL, changeProposal)
+
+    try{
+        await daoContract.changeAmount({
+            proposalId: parseInt(proposalId),
+            token: token,
+            amount: parseNearAmount(amount)
+            }, GAS )
+        } catch (err) {
+            console.log('change proposal failed', err)
+            return false
+        }
+    return true
+}
+
 // Initializes a DAO by setting its key components
 export async function submitProposal(
     wallet, 
@@ -658,7 +794,8 @@ export async function submitProposal(
     sharesRequested,
     paymentRequested,
     configuration,
-    references) {
+    references,
+    token) {
 
     console.log('proposalType', proposalType)
     console.log('applicant', applicant)
@@ -746,6 +883,18 @@ export async function submitProposal(
                 }, GAS, parseNearAmount((parseFloat(proposalDeposit) + parseFloat(STORAGE)).toString()))
                 } catch (err) {
                     console.log('submit guild kick proposal failed', err)
+                    return false
+                }
+                break
+        case 'Whitelist':
+            try{
+                await daoContract.submitWhitelistProposal({
+                    tokenToWhitelist: token,
+                    depositToken: depositToken,
+                    contractId: contractId
+                }, GAS, parseNearAmount((parseFloat(proposalDeposit) + parseFloat(STORAGE)).toString()))
+                } catch (err) {
+                    console.log('submit whitelist proposal failed', err)
                     return false
                 }
                 break
@@ -901,6 +1050,9 @@ export async function processProposal(daoContract, contractId, proposalId, propo
         await daoContract.processProposal({
             proposalId: proposalId,
             platformPayment: payment,
+            contractId: contractId,
+            functionName: proposal.functionName,
+            parameters: proposal.parameters
             }, GAS)
 
     } catch (err) {
@@ -1089,9 +1241,10 @@ export async function synchBudgets(curDaoIdx, allProposals) {
     let opportunities
     let oppBudget
     let budgetChange = false
-    
+    console.log('budget allproposals', allProposals)
     try{
         opportunities = await curDaoIdx.get('opportunities', curDaoIdx.id)
+        console.log('budget synch opportunities', opportunities)
     } catch (err) {
         console.log('problem retreiving opportunities', err)
     }
@@ -1100,20 +1253,27 @@ export async function synchBudgets(curDaoIdx, allProposals) {
     while (j < opportunities.opportunities.length){
         let i = 0
         while (i < allProposals.length){
-            if(allProposals[i].proposalType=='Commitment' && (allProposals[i].status == 'Passed' || allProposals[i].status == 'Sponsored')){
-                let k = 0
-                while (k < allProposals[i].referenceIds.length){
-                    if(allProposals[i].referenceIds[k].keyName=='proposal'
-                        && allProposals[i].referenceIds[k].valueSetting == opportunities.opportunities[j].opportunityId){
-                            oppBudget += opportunities.opportunities[j].budget
-                        }
-                    k++
+            if(allProposals[i].flags[7]){
+                let status = getStatus(allProposals[i].flags)
+                if(status == 'Passed' || status == 'Sponsored'){
+                    let k = 0
+                    while (k < allProposals[i].referenceIds.length){
+                        console.log('budget opps', opportunities.opportunities[j])
+                        console.log('budget all props', allProposals[i])
+                        if(allProposals[i].referenceIds[k].keyName=='proposal'
+                            && allProposals[i].referenceIds[k].valueSetting == opportunities.opportunities[j].opportunityId){
+                                oppBudget += opportunities.opportunities[j].budget
+                                console.log('budget oppbudget', oppBudget)
+                            }
+                        k++
+                    }
                 }
             }
             i++
         }
         if(opportunities.opportunities[j].budget != oppBudget){
             opportunities.opportunities[j].budget = oppBudget
+            console.log('budget finished', opportunities.opportunities[j])
             opportunities.opportunities[j] = opportunities.opportunities[j]
             budgetChange = true
         }
@@ -1161,7 +1321,7 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
             while (i < contractProposals){
                 try{
                     let proposal = await daoContract.getProposal({proposalId: i})
-                  
+                    console.log('synch proposal', proposal)
                     if(proposal) { 
                         let k = 0
                         while (k < proposalEventRecord.events.length){
@@ -1203,8 +1363,10 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
                                 referenceIds: proposal.referenceIds ? proposal.referenceIds : [{}],
                                 roles: proposal.roleNames,
                                 roleConfiguration: proposal.roleConfiguration,
-                                reputationConfiguration: proposal.reputationConfiguration
-                                }
+                                reputationConfiguration: proposal.reputationConfiguration,
+                                functionName: proposal.functionName,
+                                parameters: proposal.parameters    
+                            }
 
                                 proposalEventRecord.events.push(indivProposalRecord)
                        
@@ -1266,7 +1428,9 @@ export async function synchProposalEvent(curDaoIdx, daoContract) {
                         referenceIds: proposal.referenceIds ? proposal.referenceIds : [{}],
                         roles: proposal.roleNames,
                         roleConfiguration: proposal.roleConfiguration,
-                        reputationConfiguration: proposal.reputationConfiguration
+                        reputationConfiguration: proposal.reputationConfiguration,
+                        functionName: proposal.functionName,
+                        parameters: proposal.parameters
                         }
 
                         proposalEventRecord.events.push(indivProposalRecord)
@@ -1312,7 +1476,6 @@ export async function synchMember(curDaoIdx, daoContract, contractId, accountId,
     if(member && member.length > 0){
         // add processed members
         while(i < logMembers.events.length){
-            console.log('members', logMembers)
             if(logMembers.events[i].delegateKey == member[0].delegateKey){
                 exists = true
                 count++
@@ -1439,6 +1602,58 @@ export async function addDaoToList (appIdx, contractId, summoner, created, categ
           return false
       }
 }
+
+// Logs the initial member and summoning event when a DAO is created
+export async function logFTInitEvent (contractId, curFTIdx, FTContract, accountId, metadata, maxSupply, creationTime, transactionHash) {
+    console.log('curFTIDX', curFTIdx)
+    let logged = false
+
+    try {
+        let result = await FTContract.ft_medatata()
+        console.log('result', result)
+       
+    } catch (err) {
+        console.log('logftinitevent failure fetching metadata settings')
+    }
+    
+    // Log Summon Event
+    let summonEventRecord = await curFTIdx.get('ftSummonEvent', curFTIdx.id)
+    if(!summonEventRecord){
+    summonEventRecord = { events: [] }
+    }
+
+    let indivSummonEventRecord = {
+    eventId: '1',
+    contractId: contractId,
+    creator: accountId,
+    spec: metadata.spec,
+    name: metadata.name,
+    symbol: metadata.symbol,
+    icon: metadata.icon,
+    reference: metadata.reference,
+    referenceHash: metadata.reference_hash,
+    decimals: metadata.decimals,
+    maxSupply: parseFloat(maxSupply),
+    creationTime: creationTime,
+    transactionHash: transactionHash ? transactionHash : '',
+    }
+
+    summonEventRecord.events.push(indivSummonEventRecord)
+
+    try{
+        await curFTIdx.set('ftSummonEvent', summonEventRecord)
+        logged = true
+    } catch (err) {
+        console.log('error logging summon event', err)
+    }
+    
+    if(logged){
+        return true
+    } else {
+        return false
+    }
+}
+
 
 // Logs the initial member and summoning event when a DAO is created
 export async function logInitEvent (contractId, curDaoIdx, daoContract, daoType, accountId, shares, transactionHash) {
@@ -1830,6 +2045,47 @@ export async function logDelegationEvent (contractId, curDaoIdx, daoContract, de
     }
 }
 
+// Logs a proposal change
+export async function logProposalChange(
+    curDaoIdx, 
+    daoContract,
+    proposalId,
+    fundingRequested,
+    fundingToken,
+    transactionHash
+    ){
+      
+        try{
+            proposal = await daoContract.getProposal({proposalId: parseInt(proposalId)})
+        } catch (err) {
+            console.log('error retrieving proposal for this id', err)
+            return false
+        }
+        
+        if(proposal && curDaoIdx) {
+            // Load existing array of details
+            let detailRecords = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
+       
+            // Update existing records
+            let exists
+            let i = 0
+            while (i < detailRecords.proposals.length){
+            if(detailRecords.proposals[i].proposalId == proposalId){
+                detailRecords.proposals[i].paymentRequested = fundingRequested
+                detailRecords.proposals[i].paymentToken = fundingToken
+                detailRecords.proposals[i].changeTransactionHash = transactionHash
+                await curDaoIdx.set('fundingProposalDetails', detailRecords)
+                exists = true
+                break
+            }
+            i++
+            }
+            return true
+        }
+        return false
+    }
+    
+
 // Logs a new Proposal Event
 export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contractId, transactionHash) {
     console.log('trans hash', transactionHash)
@@ -1887,7 +2143,9 @@ export async function logProposalEvent(curDaoIdx, daoContract, proposalId, contr
             roles: proposal.roleNames,
             roleConfiguration: proposal.roleConfiguration,
             memberRoleConfiguration: proposal.memberRoleConfiguration,
-            reputationConfiguration: proposal.reputationConfiguration
+            reputationConfiguration: proposal.reputationConfiguration,
+            functionName: proposal.functionName,
+            parameters: proposal.parameters
             }
 
             console.log('indivproposalrecord', indivProposalRecord)
@@ -2125,8 +2383,10 @@ export async function logProcessEvent(near, appIdx, didRegistryContract, curDaoI
                         processTransactionHash: transactionHash ? transactionHash : '',
                         submitTransactionHash: proposalRecords.events[i].submitTransactionHash,
                         cancelTransactionHash: proposalRecords.events[i].cancelTransactionHash,
-                        sponsorTransactionHash: proposalRecords.events[i].sponsorTransactionHash
-                        }
+                        sponsorTransactionHash: proposalRecords.events[i].sponsorTransactionHash,
+                        functionName: proposal.functionName,
+                        parameters: proposal.parameters    
+                    }
 
                     proposalRecords.events[i] = updatedProposalRecord
                     try{
@@ -2471,7 +2731,9 @@ export async function logVoteEvent(curDaoIdx, contractId, daoContract, proposalI
                     submitTransactionHash: proposalRecords.events[i].submitTransactionHash,
                     cancelTransactionHash: proposalRecords.events[i].cancelTransactionHash,
                     processTransactionHash: proposalRecords.events[i].processTransactionHash,
-                    sponsorTransactionHash: proposalRecords.events[i].sponsorTransactionHash
+                    sponsorTransactionHash: proposalRecords.events[i].sponsorTransactionHash,
+                    functionName: proposal.functionName,
+                    parameters: proposal.parameters
                     }
                 proposalRecords.events[i] = updatedProposalRecord
 
@@ -2625,7 +2887,9 @@ export async function logSponsorEvent (curDaoIdx, daoContract, contractId, propo
                 submitTransactionHash: proposalRecords.events[i].submitTransactionHash,
                 cancelTransactionHash: proposalRecords.events[i].cancelTransactionHash,
                 processTransactionHash: proposalRecords.events[i].processTransactionHash,
-                sponsorTransactionHash: transactionHash
+                sponsorTransactionHash: transactionHash,
+                functionName: proposal.functionName,
+                parameters: proposal.parameters
                 }
             proposalRecords.events[i] = updatedProposalRecord
 
@@ -2762,7 +3026,9 @@ export async function logCancelEvent (curDaoIdx, daoContract, contractId, propos
                     cancelTransactionHash: transactionHash,
                     submitTransactionHash: proposalRecords.events[i].submitTransactionHash,
                     processTransactionHash: proposalRecords.events[i].processTransactionHash,
-                    sponsorTransactionHash: proposalRecords.events[i].sponsorTransactionHash
+                    sponsorTransactionHash: proposalRecords.events[i].sponsorTransactionHash,
+                    functionName: proposal.functionName,
+                    parameters: proposal.parameters
                     }
             
                 proposalRecords.events[i] = updatedProposalRecord
@@ -2932,18 +3198,7 @@ export function getStatus(flags) {
         0: sponsored, 
         1: processed, 
         2: didPass, 
-        3: cancelled, 
-        4: whitelist, 
-        5: guildkick, 
-        6: member, 
-        7: commitment, 
-        8: opportunity, 
-        9: tribute, 
-        10: configuration, 
-        11: payout, 
-        12: communityRole, 
-        13: reputationFactor, 
-        14: assignRole
+        3: cancelled,
     ]
     */
     let status
@@ -2969,10 +3224,6 @@ export function getStatus(flags) {
 
 export function getProposalType(flags) {
  /* flags [
-        0: sponsored, 
-        1: processed, 
-        2: didPass, 
-        3: cancelled, 
         4: whitelist, 
         5: guildkick, 
         6: member, 
@@ -2984,6 +3235,8 @@ export function getProposalType(flags) {
         12: communityRole, 
         13: reputationFactor, 
         14: assignRole
+        15: affiliation
+        16: cancelCommit
     ]
     */
     let type
@@ -3027,6 +3280,12 @@ export function getProposalType(flags) {
                 break
             case 14:
                 type = 'AssignRole'
+                break
+            case 15:
+                type = 'Affiliation'
+                break
+            case 16:
+                type = 'CancelCommit'
                 break
             default:
                 type = ''
@@ -3134,7 +3393,15 @@ export async function signal(proposalId, signalType, curDaoIdx, accountId, propo
                 stream = 'opportunities'
                 break
             } catch (err) {
-                console.log('problem retrieving reputation factor proposal details', err)
+                console.log('problem retrieving opportunity proposal details', err)
+            }
+        case 'CancelCommit':
+            try{
+                currentProperties = await curDaoIdx.get('cancelCommitmentProposalDetails', curDaoIdx.id)
+                stream = 'cancelCommitmentProposalDetails'
+                break
+            } catch (err) {
+                console.log('problem retrieving cancel commitment proposal details', err)
             }
         default:
             break
@@ -3330,4 +3597,6 @@ export async function signal(proposalId, signalType, curDaoIdx, accountId, propo
         console.log('error with signalling', err)
     }
 }
+
+
 }

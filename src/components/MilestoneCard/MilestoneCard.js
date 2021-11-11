@@ -4,21 +4,14 @@ import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 import Persona from '@aluhning/get-personas-js'
 import PayoutProposal from '../PayoutProposal/payoutProposal'
+import CancelCommitmentProposal from '../CancelCommitment/cancelCommitmentProposal'
 
 // Material UI Components
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
-import CardContent from '@material-ui/core/CardContent'
-import CardHeader from '@material-ui/core/CardHeader'
-import CardActions from '@material-ui/core/CardActions'
 import Button from '@material-ui/core/Button'
-import Chip from '@material-ui/core/Chip'
 import Grid from '@material-ui/core/Grid'
-import Avatar from '@material-ui/core/Avatar'
 import Typography from '@material-ui/core/Typography'
-import ExploreIcon from '@material-ui/icons/Explore'
-import Tooltip from '@material-ui/core/Tooltip'
-import IconButton from '@material-ui/core/IconButton'
 import { red } from '@material-ui/core/colors'
 
 const useStyles = makeStyles((theme) => ({
@@ -44,6 +37,7 @@ const useStyles = makeStyles((theme) => ({
 export default function MilestoneCard(props) {
 
     const [payoutProposalClicked, setPayoutProposalClicked] = useState(false)
+    const [cancelCommitmentProposalClicked, setCancelCommitmentProposalClicked] = useState(false)
     const [anchorEl, setAnchorEl] = useState(null)
 
     const { state, dispatch, update } = useContext(appStore)
@@ -67,7 +61,8 @@ export default function MilestoneCard(props) {
       proposalId,
       proposalStatus,
       applicant,
-      paid
+      paid,
+      cancelled
     } = props
 
     const {
@@ -112,6 +107,16 @@ export default function MilestoneCard(props) {
       setPayoutProposalClicked(property)
     }
 
+    const handleCancelCommitmentProposalClick = () => {
+      handleExpanded()
+      setCancelCommitmentProposalClicked(true)
+    }
+
+    function handleCancelCommitmentProposalClickState(property) {
+      setCancelCommitmentProposalClicked(property)
+    }
+
+
     function handleExpanded() {
       setAnchorEl(null)
     }
@@ -137,8 +142,13 @@ export default function MilestoneCard(props) {
             </Grid>
             <Grid item xs={2} sm={2} md={2} lg={2} xl={2} align="center">
             {paid ? <Typography variant="overline">Paid</Typography> :
-              proposalStatus == 'Passed' && accountId == applicant ? (
+              proposalStatus == 'Passed' && accountId == applicant && !cancelled ? (
                 <Button onClick={handlePayoutProposalClick} variant="contained" color="primary">Request Payout</Button>
+              ) : null
+            }<br></br>
+            {cancelled ? <Typography variant="overline">Cancelled</Typography> :
+              proposalStatus == 'Passed' && Date.now() > new Date(deadline) ? (
+                <Button onClick={handleCancelCommitmentProposalClick} variant="contained" color="primary">Propose Cancellation</Button>
               ) : null
             }
             </Grid>
@@ -155,9 +165,19 @@ export default function MilestoneCard(props) {
           reference={referenceIds}
           accountId={accountId}
           milestonePayout={payout}
-    
           /> : null }
 
+        {cancelCommitmentProposalClicked ? <CancelCommitmentProposal
+          contractId={contractId}
+          state={state}
+          proposalDeposit={proposalDeposit}
+          depositToken={depositToken}
+          tokenName={tokenName}
+          handleCancelCommitmentProposalClickState={handleCancelCommitmentProposalClickState}
+          reference={referenceIds}
+          accountId={accountId}
+          milestonePayout={payout}
+          /> : null }
         </>
 
        

@@ -11,7 +11,6 @@ import { dao } from '../../utils/dao'
 import { getStatus, formatDate } from '../../state/near'
 import { ceramic } from '../../utils/ceramic'
 import * as nearAPI from 'near-api-js'
-import DOMPurify from "dompurify"
 import { formatNearAmount } from 'near-api-js/lib/utils/format'
 
 // Material UI components
@@ -96,7 +95,7 @@ export default function OpportunityProposalDetails(props) {
     const [curUserName, setCurUserName] = useState()
    
     const [title, setTitle] = useState('')
-    const [details, setDetails] = useState('')
+    const [details, setDetails] = useState()
     const [reward, setReward] = useState('')
     const [category, setCategory] = useState('')
     const [projectName, setProjectName] = useState('')
@@ -108,7 +107,7 @@ export default function OpportunityProposalDetails(props) {
     const [desiredSkillSet, setDesiredSkillSet] = useState([])
     const [desiredDeveloperSkillSet, setDesiredDeveloperSkillSet] = useState([])
     const [opportunitySkillSet, setOpportunitySkillSet] = useState([])
-    const [thisCurDaoIdx, setThisCurDaoIdx] = useState(props.curDaoIdx)
+    //const [thisCurDaoIdx, setThisCurDaoIdx] = useState(props.curDaoIdx)
     const [memberStatus, setMemberStatus] = useState()
     const [active, setActive] = useState(false)
     
@@ -145,13 +144,14 @@ export default function OpportunityProposalDetails(props) {
         applicant,
         proposer,
         contract,
+        sponsor,
         contractId,
         dateValid,
         budget
     } = props
   
     const thisPersona = new Persona()
-    
+  
     useEffect(
         () => {
           if(currentDaosList && currentDaosList.length > 0){
@@ -232,30 +232,30 @@ export default function OpportunityProposalDetails(props) {
               }
             }
 
-            // Set Existing Proposal Data
-            let loadCurDaoIdx
-            if(!thisCurDaoIdx){
-              if(contractId){
-                let daoAccount = new nearAPI.Account(near.connection, contractId)
+            // // Set Existing Proposal Data
+            // let loadCurDaoIdx
+            // if(!thisCurDaoIdx){
+            //   if(contractId){
+            //     let daoAccount = new nearAPI.Account(near.connection, contractId)
                  
-                loadCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+            //     loadCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
               
-                setThisCurDaoIdx(loadCurDaoIdx)
+            //     setThisCurDaoIdx(loadCurDaoIdx)
 
-              }
-            }           
+            //   }
+            // }           
 
 
-            if(thisCurDaoIdx){
-              let propResult = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
+            if(curDaoIdx){
+              let propResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
           
-          
+              console.log('opp details propResult', propResult)
               if(propResult) {
                 let i = 0
                 while (i < propResult.opportunities.length){
-                  if(propResult.opportunities[i].opportunityId == opportunityId && propResult.opportunities[i].contractId == contractId){
+                  if(propResult.opportunities[i].opportunityId == opportunityId.toString() && propResult.opportunities[i].contractId == contractId){
                     propResult.opportunities[i].title ? setTitle(propResult.opportunities[i].title) : setTitle('')
-                    propResult.opportunities[i].details ? setDetails(DOMPurify.sanitize(propResult.opportunities[i].details)) : setDetails('')
+                    propResult.opportunities[i].details ? setDetails(propResult.opportunities[i].details) : setDetails()
                     propResult.opportunities[i].reward ? setReward(propResult.opportunities[i].reward) : setReward('')
                     propResult.opportunities[i].category ? setCategory(propResult.opportunities[i].category) : setCategory('')
                     propResult.opportunities[i].projectName ? setProjectName(propResult.opportunities[i].projectName) : setProjectName('')
@@ -264,21 +264,21 @@ export default function OpportunityProposalDetails(props) {
                     propResult.opportunities[i].submitDate ? setCreated(propResult.opportunities[i].submitDate) : setCreated('')
                     propResult.opportunities[i].familiarity ? setFamiliarity(propResult.opportunities[i].familiarity) : setFamiliarity('0')
                     if(propResult.opportunities[i].desiredSkillSet ){
-                      let skillArray = []
-                      skillArray.push(propResult.opportunities[i].desiredSkillSet )
+                      // let skillArray = []
+                      // skillArray.push(propResult.opportunities[i].desiredSkillSet )
                    
-                      setDesiredSkillSet(skillArray)
+                      setDesiredSkillSet(propResult.opportunities[i].desiredSkillSet)
                     }
                     if(propResult.opportunities[i].desiredDeveloperSkillSet){
-                      let developerSkillSetArray = []
-                      developerSkillSetArray.push(propResult.opportunities[i].desiredDeveloperSkillSet)
-                      setDesiredDeveloperSkillSet(developerSkillSetArray)
+                      // let developerSkillSetArray = []
+                      // developerSkillSetArray.push(propResult.opportunities[i].desiredDeveloperSkillSet)
+                       setDesiredDeveloperSkillSet(propResult.opportunities[i].desiredDeveloperSkillSet)
                     }
                     if(propResult.opportunities[i].opportunitySkills){
-                      let opportunitySkillSetArray = []
-                      opportunitySkillSetArray.push(propResult.opportunities[i].opportunitySkills)
+                      // let opportunitySkillSetArray = []
+                      // opportunitySkillSetArray.push(propResult.opportunities[i].opportunitySkills)
                     
-                      setOpportunitySkillSet(opportunitySkillSetArray)
+                      setOpportunitySkillSet(propResult.opportunities[i].opportunitySkills)
                     }
                     break
                   }
@@ -289,8 +289,8 @@ export default function OpportunityProposalDetails(props) {
             }
 
             // Set Existing Proposal Comments      
-            if(thisCurDaoIdx){
-              let commentResult = await thisCurDaoIdx.get('comments', thisCurDaoIdx.id)
+            if(curDaoIdx){
+              let commentResult = await curDaoIdx.get('comments', curDaoIdx.id)
               if(!commentResult){
                 commentResult = { comments: [] }
               }
@@ -317,7 +317,7 @@ export default function OpportunityProposalDetails(props) {
               setFinished(true)
             })
           
-    }, [applicant, applicantAvatar, curUserAvatar, proposerAvatar, proposer, title, details, proposerName, contractId, thisCurDaoIdx, isUpdated]
+    }, [applicant, applicantAvatar, curUserAvatar, proposerAvatar, proposer, title, details, proposerName, contractId, curDaoIdx, isUpdated]
     )
 
     const handleClose = () => {
@@ -405,7 +405,6 @@ export default function OpportunityProposalDetails(props) {
           })
     }
   
-
         return (
            
          
@@ -414,7 +413,7 @@ export default function OpportunityProposalDetails(props) {
               <DialogTitle id="form-dialog-title">Opportunity Proposal Details</DialogTitle>
               
                 <DialogContent>
-                {details == '' ? (
+                {!details ? (
                   <DialogContentText style={{marginBottom: 10}}>
                   This proposal has no details yet.
                   </DialogContentText>) 
@@ -463,35 +462,25 @@ export default function OpportunityProposalDetails(props) {
                           
                           </TableHead>
                           <TableBody>
-                          {desiredSkillSet && desiredSkillSet.length > 0 ?
-                            desiredSkillSet.map((values, index) => {
-
-                              for (const [key, value] of Object.entries(values)) {
+                          {desiredSkillSet ?
+                            Object.entries(desiredSkillSet).map(([key, value]) => {
                                 if(value){
                                   return(
                                     <TableRow key={key}>
                                     <TableCell>{key}</TableCell>
                                     </TableRow>
                                   )
-                                } else {
-                                  return(
-                                    <TableRow key={'none'}>
-                                    <TableCell>None</TableCell>
-                                    </TableRow>
-                                  )
                                 }
-                              }
                             })
-                            : <TableRow key={'none'}><TableCell>None</TableCell></TableRow>
+                            : null
                           }
-                              
-                                  
+                          
                           </TableBody>
                         </Table>
                       </TableContainer>
                       </Grid>
                       <Grid item xs={12} sm={12} md={6} lg={6} xl={6} className={classes.centered}>
-                      <Typography variant="h6">Specific Skills Required</Typography>
+                      <Typography variant="h6">Specific Skills</Typography>
                       <TableContainer component={Paper}>
                         <Table className={classes.table} size="small" aria-label="a dense table">
                           <TableHead>
@@ -499,10 +488,8 @@ export default function OpportunityProposalDetails(props) {
                           </TableHead>
                           <TableBody>
                           
-                          {desiredDeveloperSkillSet && desiredDeveloperSkillSet.length > 0 ?
-                            desiredDeveloperSkillSet.map((values, index) => {
-
-                              for (const [key, value] of Object.entries(values)) {
+                          {desiredDeveloperSkillSet ?
+                            Object.entries(desiredDeveloperSkillSet).map(([key, value]) => {
                                 if(value){
                                   return(
                                     
@@ -512,20 +499,19 @@ export default function OpportunityProposalDetails(props) {
                                     
                                   )
                                 }
-                              }
                             })
                             : null
                           }
                           {opportunitySkillSet && opportunitySkillSet.length > 0 ?
-                           
-                              opportunitySkillSet[0].map((values, index) => {
+                          
+                              opportunitySkillSet.map((values, index) => {
                                 
                                   return (
                                     <TableRow key={values.name}>
                                       <TableCell>{values.name}</TableCell>
                                     </TableRow>
                                   )
-                               
+                              
                             })
                             : null
                           }
@@ -542,21 +528,42 @@ export default function OpportunityProposalDetails(props) {
                 </DialogContent>
               <DialogActions>
 
-                {status == 'Passed' && memberStatus && active && dateValid && budget > 0 ? 
-                  <Button 
+              {status == 'Passed' ? (
+                memberStatus ? (
+                  dateValid ? (  
+                    budget > 0 ? (
+                      <>
+                      <Button 
+                        color="primary" 
+                        onClick={handleFundingProposalClick}>
+                          Accept
+                      </Button>
+                      </>
+                    ) : 
+                      <>
+                      <Button 
+                        color="primary" 
+                        disabled>
+                          Out of Budget
+                      </Button>
+                      </>            
+                  ) :
+                    <>
+                    <Button 
                       color="primary" 
-                      onClick={handleFundingProposalClick}>
-                        Accept
-                  </Button>
-                : (
+                      disabled>
+                        Expired
+                    </Button>
+                    </>
+                ) :
                   <>
                   <Button 
-                     color="primary" 
-                     onClick={handleMemberProposalClick}>
+                    color="primary" 
+                    onClick={handleMemberProposalClick}>
                       Join Community
-                   </Button>
-                   </>
-                )  }
+                  </Button>
+                  </>
+              ) : null }
 
                   <Button onClick={handleClose} color="primary">
                     Close

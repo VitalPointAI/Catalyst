@@ -52,6 +52,7 @@ export default function Opportunities(props) {
     const [suitabilityScore, setSuitabilityScore] = useState()
     const [finished, setFinished] = useState(false)
     const [active, setActive] = useState(false)
+   
     
 
     const classes = useStyles()
@@ -63,15 +64,18 @@ export default function Opportunities(props) {
       didRegistryContract, 
       near,
       appIdx,
-      currentDaosList
+      currentDaosList,
+      isUpdated
     } = state
 
     const {
       contractId
     } = useParams()
 
+
     useEffect(
         () => {
+          if(isUpdated){}
           if(currentDaosList && currentDaosList.length > 0){
             let i = 0
             while (i < currentDaosList.length){
@@ -84,6 +88,7 @@ export default function Opportunities(props) {
           }
 
           async function fetchData() {
+           
             setFinished(false)
             if(didRegistryContract && near && contractId){
               let Persona = new Personas()
@@ -96,7 +101,7 @@ export default function Opportunities(props) {
                 console.log('no account', err)
               }
               thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
-          
+           
               opportunities = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
               console.log('opportunities', opportunities)
               if(opportunities && opportunities.opportunities.length > 0){
@@ -203,7 +208,8 @@ export default function Opportunities(props) {
                   setSuitabilityScore(asuitabilityScore)
 
                   let thisContract = await dao.initDaoContract(state.wallet.account(), allOpportunities[j].contractId)
-                    // confirm proposal exists
+                  console.log('thiscontract', thisContract)
+                  // confirm proposal exists
                   let exists
                   try{
                     let index = await thisContract.getProposal({proposalId: parseInt(allOpportunities[j].opportunityId)})
@@ -238,7 +244,7 @@ export default function Opportunities(props) {
             })
           return() => mounted = false
           }
-    }, [near]
+    }, [near, isUpdated]
     )
 
     const searchData = async (pattern) => {
@@ -273,7 +279,7 @@ export default function Opportunities(props) {
         <>
         <div className={classes.root}>
         <Header state={state}/>
-        <Grid container alignItems="center" justifyContent="flex-start" spacing={0}>
+        <Grid container alignItems="center" justifyContent="center" spacing={0}>
           <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom:'30px'}}>
             <Typography variant='h3' style={{marginTop: '20px'}}>Community Opportunities</Typography>
             <Typography variant='body1' style={{padding: '5px'}}>These are the opportunitites currently available to the community.</Typography>
@@ -308,6 +314,7 @@ export default function Opportunities(props) {
                     suitabilityScore={fr.suitabilityScore}
                     deadline={fr.opportunity.deadline}
                     budget={fr.opportunity.budget}
+                 
                   />
                 )} else {
                   return null

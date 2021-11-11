@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app'
+import { useParams } from 'react-router-dom'
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { flexClass } from '../../App'
@@ -72,7 +73,7 @@ export default function EditOpportunityProposalForm(props) {
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
     const [loaded, setLoaded] = useState(false)
-    const [isUpdated, setIsUpdated] = useState(false)
+    //const [isUpdated, setIsUpdated] = useState(false)
 
     // Persona Fields
     const [date, setDate] = useState('')
@@ -89,7 +90,7 @@ export default function EditOpportunityProposalForm(props) {
     const [title, setTitle] = useState('')
     const [details, setDetails] = useState(EditorState.createEmpty())
     const [reward, setReward] = useState('')
-    const [budget, setBudget] = useState()
+    const [budget, setBudget] = useState(0)
     const [category, setCategory] = useState('')
     const [projectName, setProjectName] = useState('')
     const [status, setStatus] = useState(false)
@@ -112,6 +113,14 @@ export default function EditOpportunityProposalForm(props) {
     const opportunitySkills = watch('opportunitySkills', opportunitySkillsFields)
 
     const {
+      isUpdated
+    } = state
+
+    const {
+      contractId
+    } = useParams()
+
+    const {
         handleUpdate,
         handleEditOpportunityProposalDetailsClickState,
         applicant,
@@ -119,13 +128,14 @@ export default function EditOpportunityProposalForm(props) {
         curDaoIdx,
         curPersonaIdx,
         opportunityId,
-        contractId,
     } = props
+    
     
     const classes = useStyles()
     
     useEffect(() => {
         async function fetchData() {
+          if(isUpdated){}
           setLoaded(false)
            
             // Set Existing Persona Data      
@@ -160,11 +170,11 @@ export default function EditOpportunityProposalForm(props) {
            // Set Existing Proposal Data       
            if(curDaoIdx){
               let propResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
-           
+            console.log('budget propresult', propResult)
               if(propResult) {
                 let i = 0
                 while (i < propResult.opportunities.length){
-                  if(propResult.opportunities[i].opportunityId == opportunityId){
+                  if(propResult.opportunities[i].opportunityId == opportunityId.toString()){
                     propResult.opportunities[i].title ? setTitle(propResult.opportunities[i].title) : setTitle('')
                     if (propResult.opportunities[i].details){
                     let contentBlock = htmlToDraft(propResult.opportunities[i].details)
@@ -185,7 +195,7 @@ export default function EditOpportunityProposalForm(props) {
                     propResult.opportunities[i].deadline ? setDeadline(propResult.opportunities[i].deadline) : setDeadline('')
                     propResult.opportunities[i].familiarity ? setFamiliarity(propResult.opportunities[i].familiarity) : setFamiliarity('0')
                     propResult.opportunities[i].opportunitySkills ? setValue('opportunitySkills', propResult.opportunities[i].opportunitySkills) : setValue('opportunitySkills', {'name': ''})
-                    propResult.opportunities[i].budget ? setBudget(propResult.opportunities[i].budget) : setBudget()
+                    propResult.opportunities[i].budget ? setBudget(propResult.opportunities[i].budget) : setBudget(0)
                     propResult.opportunities[i].desiredSkillSet ? setDesiredSkillSet(propResult.opportunities[i].desiredSkillSet): setDesiredSkillSet({})
                     propResult.opportunities[i].desiredDeveloperSkillSet ? setDesiredDeveloperSkillSet(propResult.opportunities[i].desiredDeveloperSkillSet): setDesiredDeveloperSkillSet({})
                     propResult.opportunities[i].likes ? setCurrentLikes(propResult.opportunities[i].likes) : setCurrentLikes([])
@@ -210,7 +220,7 @@ export default function EditOpportunityProposalForm(props) {
           })
         return () => mounted = false
         }
-    },[curPersonaIdx])
+    },[curPersonaIdx, isUpdated])
 
     function handleFileHash(hash) {
       setAvatar(IPFS_PROVIDER + hash)
@@ -288,7 +298,8 @@ export default function EditOpportunityProposalForm(props) {
   
       // Load existing array of details
       let detailRecords = await curDaoIdx.get('opportunities', curDaoIdx.id)
-   
+      console.log('detailRecords', detailRecords)
+      
       if(!detailRecords){
         detailRecords = { opportunities: [] }
       }
@@ -304,7 +315,7 @@ export default function EditOpportunityProposalForm(props) {
           category: category,
           projectName: projectName,
           deadline: deadline, 
-          budget: parseFloat( parseNearAmount( (budget).toString() ) ),
+          budget: parseFloat(budget),
           status: status,
           permission: permission,
           familiarity: familiarity,
@@ -316,13 +327,18 @@ export default function EditOpportunityProposalForm(props) {
           neutrals: currentNeutrals
       }
 
+      console.log('proposalrecord', proposalRecord)
+
       // Update existing records
       let exists
       let i = 0
       while (i < detailRecords.opportunities.length){
-        if(detailRecords.opportunities[i].opportunityId == opportunityId){
+        if(detailRecords.opportunities[i].opportunityId == opportunityId.toString()){
+          console.log('here detailrecords', detailRecords.opportunities[i])
           detailRecords.opportunities[i] = proposalRecord
+          console.log('here2 detailrecords', detailRecords.opportunities[i])
           await curDaoIdx.set('opportunities', detailRecords)
+          console.log('gtg1')
           exists = true
           break
         }
@@ -334,8 +350,10 @@ export default function EditOpportunityProposalForm(props) {
         detailRecords.opportunities.push(proposalRecord)
       
         await curDaoIdx.set('opportunities', detailRecords)
+        console.log('gtg2')
       }
-     
+      let newopps = await curDaoIdx.get('opportunities', curDaoIdx.id)
+      console.log('newopps', newopps)
       setFinished(true)
       update('', { isUpdated: !isUpdated })
       //handleUpdate(true)
@@ -384,10 +402,12 @@ export default function EditOpportunityProposalForm(props) {
                         name="opportunityProposalTitle"
                         label="Opportunity Title"
                         placeholder="My Awesome Opportunity"
+                        helperText={`${title.length}/40`}
                         value={title}
                         onChange={handleTitleChange}
                         inputRef={register({
-                            required: true                              
+                            required: true,
+                            maxLength: 40                             
                         })}
                     />
                     {errors.opportunityProposalTitle && <p style={{color: 'red'}}>You must give your proposal a title.</p>}

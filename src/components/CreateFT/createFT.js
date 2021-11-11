@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { useForm } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
-import { factorySuffix } from '../../state/near'
+import { tokenFactorySuffix } from '../../state/near'
+import { TOKEN_FACTORY_DEPOSIT } from '../../state/near'
 import { appStore, onAppMount } from '../../state/app'
 
 //Material-UI Components
@@ -21,7 +22,7 @@ import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
 import Typography from '@material-ui/core/Typography'
 
-import { FACTORY_DEPOSIT } from '../../utils/ceramic'
+
 
 const useStyles = makeStyles((theme) => ({
   warning: {
@@ -40,7 +41,7 @@ const useStyles = makeStyles((theme) => ({
   },
   }));
 
-export default function AddDaoForm(props) {
+export default function AddFTForm(props) {
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
     const [id, setId] = useState('')
@@ -50,7 +51,7 @@ export default function AddDaoForm(props) {
     const { register, handleSubmit, watch, errors, transform } = useForm()
 
     const {
-       handleAddDaoClick,
+       handleAddFTClick,
     } = props
     
     const classes = useStyles()
@@ -68,7 +69,7 @@ export default function AddDaoForm(props) {
     },[])
 
     const handleClose = () => {
-        handleAddDaoClick(false)
+        handleAddFTClick(false)
         setOpen(!open)
     }
 
@@ -78,7 +79,7 @@ export default function AddDaoForm(props) {
 
     const onSubmit = async (values) => {
       try{
-        wallet.fundDaoAccount(id, accountId)
+        wallet.fundFTAccount(id, accountId)
       } catch (err) {
         console.log('error creating dao', err)
       }
@@ -87,19 +88,19 @@ export default function AddDaoForm(props) {
         return (
             <div>
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" className={classes.root}>
-              <DialogTitle id="form-dialog-title">Create Community</DialogTitle>
+              <DialogTitle id="form-dialog-title">Create Fungible Token</DialogTitle>
               <DialogContent>
                     
                         <TextField
                           fullWidth
-                          id="daoName"
+                          id="ftName"
                           required
                           placeholder=" "
                           autoFocus
                           margin="dense"
                           variant="outlined"
                           name="id"
-                          label="Community Name"
+                          label="Fungible Token Name"
                           helperText="2-48 characters, no spaces, no symbols (except -)"
                           minLength={state.app.accountTaken ? 999999 : 2}
                           maxLength={48}
@@ -111,17 +112,17 @@ export default function AddDaoForm(props) {
                               }        
                           })}
                           InputProps={{
-                              endAdornment: <><InputAdornment position="end">{factorySuffix}</InputAdornment></>,
+                              endAdornment: <><InputAdornment position="end">{tokenFactorySuffix}</InputAdornment></>,
                           }}
                           onChange={(e) => {
                               const v = e.target.value.toLowerCase()
                               setId(v)
-                              wallet.isDaoAccountTaken(v)
+                              wallet.isFTAccountTaken(v)
                           }}
                         />
                     {errors.id && <p style={{color: 'red'}}>You must provide an community account name.</p>}
                     <div>
-                        {app.accountTaken ? 'Community name is already taken' : null}
+                        {app.accountTaken ? 'Token name is already taken' : null}
                     </div>                
                    
                     <Card>
@@ -143,8 +144,8 @@ export default function AddDaoForm(props) {
           
                           <Grid item xs={11} sm={11} md={11} lg={11} xl={11} style={{margin:'auto'}}>
                               <WarningIcon fontSize='large' className={classes.warning} />
-                              <Typography variant="body2" gutterBottom>Creating a community requires <b>{parseFloat(FACTORY_DEPOSIT)} Ⓝ</b>.</Typography>
-                              <Typography variant="body2">The <b>{FACTORY_DEPOSIT} Ⓝ</b> you are about to transfer covers storage costs on the NEAR chain.</Typography>     
+                              <Typography variant="body2" gutterBottom>Creating a token requires <b>{parseFloat(TOKEN_FACTORY_DEPOSIT)} Ⓝ</b>.</Typography>
+                              <Typography variant="body2">The <b>{TOKEN_FACTORY_DEPOSIT} Ⓝ</b> covers your token's contract storage costs on the NEAR chain.</Typography>     
                           </Grid>
                         </Grid>
                       </CardContent>
@@ -160,7 +161,7 @@ export default function AddDaoForm(props) {
                 color="primary"
                 onClick={handleSubmit(onSubmit)}
                 >
-                CREATE COMMUNITY
+                CREATE TOKEN
               </Button>
               
                 <Button onClick={handleClose} color="primary">

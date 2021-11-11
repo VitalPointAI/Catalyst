@@ -3,9 +3,9 @@ import { appStore, onAppMount } from '../../state/app'
 import { makeStyles } from '@material-ui/core/styles'
 import CommentForm from '../common/Comment/commentForm'
 import CommentDetails from '../common/Comment/commentDetails'
-import MilestoneCard from '../MilestoneCard/MilestoneCard'
 import Persona from '@aluhning/get-personas-js'
-import { getStatus, formatDate } from '../../state/near'
+import MilestoneCard from '../MilestoneCard/MilestoneCard'
+import { formatDate } from '../../state/near'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -26,8 +26,14 @@ import Chip from '@material-ui/core/Chip'
 import Divider from '@material-ui/core/Divider'
 import Card from '@material-ui/core/Card'
 import Paper from '@material-ui/core/Paper'
+import List from '@material-ui/core/List'
+import ListItem from '@material-ui/core/ListItem'
+import ListItemIcon from '@material-ui/core/ListItemIcon'
+import ListItemText from '@material-ui/core/ListItemText'
+import AttachFileIcon from '@material-ui/icons/AttachFile'
 
 // CSS Styles
+
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -38,18 +44,8 @@ const useStyles = makeStyles((theme) => ({
     },
     card: {
       margin: 'auto',
-      width: '100%',
-      marginBottom: '10px'
-    },
-    paper: {
-      width: '100%'
     },
     detailsCard: {
-      margin: 'auto',
-      width: '100%',
-      minWidth: '100%',
-      marginBottom: '10px',
-      marginTop: '10px',
       padding: '5px'
     },
     progress: {
@@ -81,17 +77,10 @@ const useStyles = makeStyles((theme) => ({
     }));
 
     const imageName = require('../../img/default-profile.png') // default no-image avatar
-
-export default function FundingProposalDetails(props) {
+    
+export default function CancelCommitmentProposalDetails(props) {
     const [open, setOpen] = useState(true)
 
-    const [title, setTitle] = useState()
-    const [details, setDetails] = useState()
-    const [milestones, setMilestones] = useState([{}])
-    const [created, setCreated] = useState()
-    const [likes, setLikes] = useState([])
-    const [dislikes, setDisLikes] = useState([])
-    const [neutrals, setNeutrals] = useState([])
     const [applicantAvatar, setApplicantAvatar] = useState()
     const [applicantName, setApplicantName] = useState()
 
@@ -101,37 +90,34 @@ export default function FundingProposalDetails(props) {
     const [curUserAvatar, setCurUserAvatar] = useState()
     const [curUserName, setCurUserName] = useState()
 
-    const [milestonePayouts, setMilestonePayouts] = useState([])
-    const [milestoneCancellations, setMilestoneCancellations] = useState([])
-
-    // const [proposalStatus, setProposalStatus] = useState()
+    const [payoutTitle, setPayoutTitle] = useState()
+    const [detailsOfCompletion, setDetailsOfCompletion] = useState()
+    const [milestones, setMilestones] = useState()
+    const [attachedFiles, setAttachedFiles] = useState()
+    const [created, setCreated] = useState()
   
     const [isUpdated, setIsUpdated] = useState(false)
     const [proposalComments, setProposalComments] = useState([])
     const [finished, setFinished] = useState(false)
-  
+
     const classes = useStyles()
 
     const { state, dispatch, update } = useContext(appStore)
 
     const {
       accountId,
-      curUserIdx, 
-      wallet
+      curUserIdx
     } = state
 
     const {
-        handleFundingProposalDetailsClickState,
+        handleCancelCommitmentProposalDetailsClickState,
         proposalId,
-        status,
-        curDaoIdx,
-        curPersonaIdx,
+        proposalStatus,
         applicant,
+        curDaoIdx,
+        sponsor,
         proposer,
         contract,
-        contractId,
-        sponsor,
-        proposalStatus,
         memberStatus
     } = props
 
@@ -139,21 +125,19 @@ export default function FundingProposalDetails(props) {
 
     useEffect(
         () => {
-         
-
           async function fetchData() {
          
             // Get Applicant Persona Information
             if(proposer){                    
               
               let result = await thisPersona.getPersona(proposer)
-                  if(result){
-                    result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
-                    result.name ? setProposerName(result.name) : setProposerName(proposer)
-                  } else {
-                    setProposerAvatar(imageName)
-                    setProposerName(proposer)
-                  } 
+                if(result){
+                  result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
+                  result.name ? setProposerName(result.name) : setProposerName(proposer)
+                } else {
+                  setProposerAvatar(imageName)
+                  setProposerName(proposer)
+                } 
             }
 
             // Get Current User Persona Information
@@ -168,9 +152,9 @@ export default function FundingProposalDetails(props) {
                     setCurUserName(accountId)
                   } 
             }
-           
+          
             if(applicant){                           
-               
+              
                   let result = await thisPersona.getPersona(applicant)
                       if(result){
                         result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
@@ -182,75 +166,24 @@ export default function FundingProposalDetails(props) {
             }
 
             // Set Existing Proposal Data       
-            if(curDaoIdx && contract){
-              let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
-            console.log('fundingproposaldetails', propResult)
+            if(curDaoIdx){
+              let propResult = await curDaoIdx.get('cancelCommitmentProposalDetails', curDaoIdx.id)
+             
               if(propResult) {
                 let i = 0
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == proposalId){
-                    propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
-                    propResult.proposals[i].details ? setDetails(propResult.proposals[i].details) : setDetails('')
-                    propResult.proposals[i].milestones ? setMilestones(propResult.proposals[i].milestones) : setMilestones([{}])
+                    propResult.proposals[i].title ? setPayoutTitle(propResult.proposals[i].title) : setPayoutTitle('')
+                    propResult.proposals[i].details ? setDetailsOfCompletion(propResult.proposals[i].details) : setDetailsOfCompletion('')
+                    propResult.proposals[i].milestone ? setMilestones(propResult.proposals[i].milestone) : setMilestones([{}])
                     propResult.proposals[i].submitDate ? setCreated(propResult.proposals[i].submitDate) : setCreated()
-                    propResult.proposals[i].likes ? setLikes(propResult.proposals[i].likes.length) : setLikes(0)
-                    propResult.proposals[i].dislikes ? setDisLikes(propResult.proposals[i].dislikes.length) : setDisLikes(0)
-                    propResult.proposals[i].neutrals ? setNeutrals(propResult.proposals[i].neutrals.length) : setNeutrals(0)
-            
+                    propResult.proposals[i].attachedFiles ? setAttachedFiles(propResult.proposals[i].attachedFiles) : setAttachedFiles([{}])
                     break
                   }
                   i++
                 }
               }
-              
-              try{
-                let oppResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
-                console.log('oppResult', oppResult)
-                let confirmedMilestonePayouts = []
-                let t = 0
-                while (t < oppResult.proposals.length){
-                  let z = 0
-                  while(z < oppResult.proposals[t].referenceIds.length-1){                 
-                    if(oppResult.proposals[t].referenceIds[0].keyName == 'proposal' && oppResult.proposals[t].referenceIds[0].valueSetting == proposalId ){
-                      let currentProposal = await contract.getProposal({proposalId: parseInt(proposalId)})
-                      let status = getStatus(currentProposal.flags)                    
-                      if (status == 'Passed'){
-                        confirmedMilestonePayouts.push(oppResult.proposals[t].referenceIds[1].valueSetting)
-                        setMilestonePayouts(confirmedMilestonePayouts)                     
-                      }
-                    }
-                  z++
-                  }
-                t++
-                }
-              } catch (err) {
-                console.log('problem retrieving payout details', err)
-              }
-              try{
-                let oppResult = await curDaoIdx.get('cancelCommitmentProposalDetails', curDaoIdx.id)
-                console.log('oppResult', oppResult)
-                let confirmedMilestoneCancellations = []
-                let t = 0
-                while (t < oppResult.proposals.length){
-                  let z = 0
-                  while(z < oppResult.proposals[t].referenceIds.length-1){                 
-                    if(oppResult.proposals[t].referenceIds[0].keyName == 'proposal' && oppResult.proposals[t].referenceIds[0].valueSetting == proposalId ){
-                      let currentProposal = await contract.getProposal({proposalId: parseInt(proposalId)})
-                      let status = getStatus(currentProposal.flags)                    
-                      if (status == 'Passed'){
-                        confirmedMilestoneCancellations.push(oppResult.proposals[t].referenceIds[1].valueSetting)
-                        setMilestoneCancellations(confirmedMilestoneCancellations)                     
-                      }
-                    }
-                  z++
-                  }
-                t++
-                }
-              } catch (err) {
-                console.log('problem retrieving payout details', err)
-              }
             }
-            
 
             // Set Existing Proposal Comments      
             if(curDaoIdx){
@@ -281,42 +214,14 @@ export default function FundingProposalDetails(props) {
               setFinished(true)
             })
           
-    }, [applicant, applicantAvatar, curUserAvatar, proposerAvatar, title, created, details, applicantName, proposerName, isUpdated]
+    }, [curDaoIdx]
     )
 
-    const handleClose = () => {
-        handleFundingProposalDetailsClickState(false)
-        setOpen(false)
-    }
-
-    function handleUpdate(property){
-      setIsUpdated(property)
-    }
-
+    
     let Milestones
     if(milestones && milestones.length > 0){
       Milestones = milestones.map((element, index) => {
-     
-        let i = 0
-        let paid
-        while (i < milestonePayouts.length){
-          if (element.id == parseInt(milestonePayouts[i])){
-            paid = true
-            break
-          }
-          i++
-        }
-
-        let j = 0
-        let cancelled
-        while (j < milestoneCancellations.length){
-          if (element.id == parseInt(milestoneCancellations[j])){
-            cancelled = true
-            break
-          }
-          j++
-        }
-
+        
         if(element.title=='' && element.deadline =='' && element.payout == '0' && element.briefDescription==''){
           return null
         } else {
@@ -331,47 +236,72 @@ export default function FundingProposalDetails(props) {
             proposalId={proposalId}
             proposalStatus={proposalStatus}
             applicant={applicant}
-            paid={paid}
-            cancelled={cancelled}
           />
         )
         }
       })
     }
-      
 
-    let Comments;
-    let author = '';
-    let color;
-    let preview = '';
-  
+    let Files
+    if(attachedFiles && attachedFiles.length > 0){
+      Files = attachedFiles.map((element, index) => {
+        console.log('attachedfiles', attachedFiles)
+        console.log('element', element)
+        if(element.hash==''){
+          return null
+        } else {
+        return (
+          <a href={element.hash} target="_blank">
+            <ListItem button key={element.id}>
+              <ListItemIcon><AttachFileIcon /></ListItemIcon>
+              <ListItemText primary={element.name} />
+            </ListItem>
+          </a>
+         
+        )
+        }
+      })
+    }
+
+
+    const handleClose = () => {
+        handleCancelCommitmentProposalDetailsClickState(false)
+        setOpen(false)
+    }
+
+    function handleUpdate(property){
+      setIsUpdated(property)
+    }
+
+    let Comments
+    let author = ''
+    let color = 'white'
+    let preview = ''
     if (proposalComments && proposalComments.length > 0) {
         Comments = proposalComments.map(comment => {
-          if(comment.originalAuthor && comment.originalContent){
-            author = comment.originalAuthor
-            let previewLength
-            if(comment.originalContent.length > 43){
-              previewLength = 40;
+            if(comment.originalAuthor && comment.originalContent){
+              author = comment.originalAuthor
+              let previewLength
+              if(comment.originalContent.length > 43){
+                previewLength = 40;
+              }
+              else{
+                previewLength = comment.originalContent.length - 5; 
+              }
+              preview = ': ' + comment.originalContent.substring(3, previewLength) + '...'
+              if(author == accountId){
+                color = '#ffecc7'
+              }
+              else{
+                color = '#dedad3'
+              }
             }
-            else{
-              previewLength = comment.originalContent.length - 5; 
-            }
-            preview = ': ' + comment.originalContent.substring(3, previewLength) + '...'
-            if(author == accountId){
-              color = '#ffecc7'
-            }
-            else{
-              color = '#dedad3'
-            }
-          }
             return (
-                <div >
-                   {author != '' ? 
-                        <Typography>
-                        In reply to {author}{preview}
-                        </Typography>
-                      : null}
-                    
+              <div >
+                  {author != '' ? 
+                    <Typography>
+                    In reply to {author}{preview}
+                    </Typography>: null}
                     <CommentDetails
                         proposalId={proposalId}
                         proposalApplicant={applicant}
@@ -391,7 +321,7 @@ export default function FundingProposalDetails(props) {
                         curUserIdx={curUserIdx}
                         memberStatus={memberStatus}
                     />
-              </div>
+                </div>
                   )
           })
     }
@@ -402,15 +332,15 @@ export default function FundingProposalDetails(props) {
      
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             {finished ? (<>
-              <DialogTitle id="form-dialog-title">Funding Commitment Proposal Details</DialogTitle>
+              <DialogTitle id="form-dialog-title">Cancel Commitment Proposal Details</DialogTitle>
                 <DialogContent>
-                {details == '' ? (
+                {!detailsOfCompletion ? (
                   <DialogContentText style={{marginBottom: 10}}>
                   This proposal has no details yet.
                   </DialogContentText>) : (<>
                   <Grid container alignItems="flex-start" justifyContent="space-between" style={{marginBottom: '30px'}}>
                     <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
-                       <Typography variant="h4">{title}</Typography>
+                       <Typography variant="h4">{payoutTitle}</Typography>
                     </Grid>
                     <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
                       <Typography variant="overline">Proposer:</Typography>
@@ -425,14 +355,18 @@ export default function FundingProposalDetails(props) {
                     ) : null }
                     <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                       <Card className={classes.detailsCard}>
-                      <div dangerouslySetInnerHTML={{ __html: details }} />
+                      <div dangerouslySetInnerHTML={{ __html: detailsOfCompletion }} />
                       </Card>
                       
                     </Grid>
                   </Grid>
+                  {milestones && milestones.length > 0 ?
                     <Grid container spacing={1} style={{width: '100%'}}>
-                    <Typography variant="h6" style={{marginBottom: '10px'}}>Completion Plan</Typography>
-                      <Paper className={classes.paper} >
+                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                      <Typography variant="h6" style={{marginBottom: '10px'}}>Milestones</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                    <Paper style={{padding: '5px'}}>
                       <Grid container justifyContent="flex-start" alignItems="center" spacing={1}>
                         <Grid item xs={1} sm={1} md={1} lg={1} xl={1} align="center">
                           <Typography variant="body2">Id</Typography>
@@ -453,15 +387,29 @@ export default function FundingProposalDetails(props) {
                          
                         </Grid>
                       </Grid>
-                    
-
+     
                         <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                             {Milestones}
                         </Grid>
                         </Paper>
+                      </Grid>
                     </Grid>
-                  
-                    </>)}
+                  : null }
+                  {attachedFiles && attachedFiles.length > 0 ? (
+                    <Grid container spacing={1} style={{width: '100%'}}>
+                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                    <Paper style={{marginTop:'20px', padding: '10px'}}>
+                      <Typography variant="h6" style={{marginTop: '20px', marginBottom: '20px'}}>Attached Files</Typography>
+                      <List>
+                      {Files}
+                      </List>
+                    </Paper>
+                    </Grid>
+                    </Grid>
+                    
+                    )
+                  :null }
+                  </>)}
                 </DialogContent>
               <DialogActions>
                 <Button onClick={handleClose} color="primary">

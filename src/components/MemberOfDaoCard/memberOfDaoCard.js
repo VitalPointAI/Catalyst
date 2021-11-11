@@ -35,7 +35,7 @@ export default function MemberOfDaoCard(props) {
     const [sname, setsName] = useState('')
     const [slogo, setsLogo] = useState(imageName)
     const [display, setDisplay] = useState(true)
-    const [isUpdated, setIsUpdated] = useState()
+   // const [isUpdated, setIsUpdated] = useState()
     const [finished, setFinished] = useState(false)
     const [totalMembers, setTotalMembers] = useState()
 
@@ -44,9 +44,16 @@ export default function MemberOfDaoCard(props) {
     const { state, dispatch, update } = useContext(appStore)
 
     const {
+      wallet,
+      isUpdated,
+      appIdx
+    } = state
+
+    const {
       contractId,
       status
      } = props
+
 
    const Dao = new Persona()
 
@@ -54,16 +61,18 @@ export default function MemberOfDaoCard(props) {
       () => {
 
       async function fetchData() {
-         if(contractId){
+        if(isUpdated){}
+         if(contractId && wallet){
            try{
-            let contract = await dao.initDaoContract(state.wallet.account(), contractId)
+            let contract = await dao.initDaoContract(wallet.account(), contractId)
             let allMembers = await contract.getTotalMembers()
           
             setTotalMembers(allMembers)
            } catch (err) {
              console.log('error retrieving member count', err)
            }
-           let result = await Dao.getDao(contractId)
+           let result = await Dao.getDao(contractId, appIdx)
+           
            if(result){
                   result.name != '' ? setsName(result.name) : setsName('')
                   result.logo !='' ? setsLogo(result.logo) : setsLogo(imageName)
@@ -80,7 +89,7 @@ export default function MemberOfDaoCard(props) {
       return () => mounted = false
       }
       
-  }, [state, isUpdated]
+  }, [isUpdated]
   )
   
     return(

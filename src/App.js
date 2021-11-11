@@ -25,6 +25,8 @@ import ArtStory from './components/LandingSite/artistStory.js'
 import NearStory from './components/LandingSite/nearStory.js'
 import ReceiveInvite from './components/Invite/Receiver'
 import Opportunities from './components/mainPages/opportunities'
+import MintFT from './components/mainPages/mintFT'
+import FTs from './components/mainPages/fts'
 
 // Material-UI Components
 import { CircularProgress } from '@material-ui/core'
@@ -126,6 +128,9 @@ const App = () => {
                 <Route path="/explore">
                     <ExploreDaos state={state}/>
                 </Route>
+                <Route path="/fts">
+                    <MintFT state={state}/>
+                </Route>
                 <Route path="/developers">
                     <Developers />
                 </Route>
@@ -156,7 +161,11 @@ const App = () => {
                 <Route path="/dao/:contractId">
                     <AppFramework
                         state={state}
-                       
+                    />
+                </Route>
+                <Route path="/ft/:contractId">
+                    <FTs
+                        state={state}
                     />
                 </Route>
                 <Route path="/supporters/:contractId">

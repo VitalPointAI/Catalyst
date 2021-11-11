@@ -195,13 +195,8 @@ export default function OpportunityCard(props) {
       contractId
     } = useParams()
 
-   
-
-    const active = green[500]
-    const inactive = red[500]
-
     const data = new Persona()
-    let useContractId
+   // let useContractId
 
     useEffect(
         () => {
@@ -219,29 +214,28 @@ export default function OpportunityCard(props) {
             
           }       
 
-          if(didRegistryContract && near){
-            state.isUpdated
-            if(!contractId && passedContractId) {
-              useContractId = passedContractId
-              setThisContractId(passedContractId)
-            }
-            if(contractId) {
-              useContractId = contractId
-              setThisContractId(contractId)
-            }
-            if(useContractId){
+          // if(didRegistryContract && near){
+          //   if(!contractId && passedContractId) {
+          //     useContractId = passedContractId
+          //     setThisContractId(passedContractId)
+          //   }
+          //   if(contractId) {
+          //     useContractId = contractId
+          //     setThisContractId(contractId)
+          //   }
+            if(contractId){
               let thisCurDaoIdx
-              let daoAccount = new nearAPI.Account(near.connection, useContractId)
+              let daoAccount = new nearAPI.Account(near.connection, contractId)
                
               thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
             
               setCurDaoIdx(thisCurDaoIdx)
             }
-          }
+          //}
           
           
-          if(useContractId && near){
-            let contract = await dao.initDaoContract(state.wallet.account(), useContractId)
+          if(contractId && near){
+            let contract = await dao.initDaoContract(state.wallet.account(), contractId)
             try {
               let deposit = await contract.getProposalDeposit()
               setProposalDeposit(formatNearAmount(deposit))
@@ -266,7 +260,7 @@ export default function OpportunityCard(props) {
           }
 
           if(wallet && opportunityId){
-            const daoContract = await dao.initDaoContract(wallet.account(), useContractId)
+            const daoContract = await dao.initDaoContract(wallet.account(), contractId)
             let proposal = await daoContract.getProposal({proposalId: parseInt(opportunityId)})
             let thisStatus = getStatus(proposal.flags)
             setStatus(thisStatus)
@@ -286,7 +280,7 @@ export default function OpportunityCard(props) {
           }
 
           // get community information
-          let daoResult = await data.getDao(useContractId)
+          let daoResult = await data.getDao(contractId)
           if(daoResult){
             daoResult.name ? setCommunityName(daoResult.name) : setCommunityName('')
             daoResult.logo ? setLogo(daoResult.logo) : setLogo(defaultImage)
@@ -488,15 +482,24 @@ export default function OpportunityCard(props) {
             memberStatus ? (
               dateValid ? (  
                 budget > 0 ? (
-                  <>
-                  <Button 
-                    color="primary" 
-                    onClick={handleFundingProposalClick}>
-                      Accept
-                  </Button>
-                  </>
-                ) : 
-                  <>
+                  opportunityStatus ? (
+                    <>
+                    <Button 
+                      color="primary" 
+                      onClick={handleFundingProposalClick}>
+                        Accept
+                    </Button>
+                    </>
+                  ) : 
+                    <>
+                    <Button 
+                      color="primary" 
+                      disabled>
+                        Inactive
+                    </Button>
+                    </>
+                ) :
+                    <>
                   <Button 
                     color="primary" 
                     disabled>
@@ -585,7 +588,7 @@ export default function OpportunityCard(props) {
           applicant={accountId}
           handleUpdate={handleUpdate}
           opportunityId={opportunityId}
-          contractId={thisContractId}
+          contractId={contractId}
           status={status}
           dateValid={dateValid}
           budget={budget}

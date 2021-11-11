@@ -32,6 +32,7 @@ import EnhancedEncryptionIcon from '@material-ui/icons/EnhancedEncryption'
 import ExitToAppIcon from '@material-ui/icons/ExitToApp'
 import AddAlertIcon from '@material-ui/icons/AddAlert'
 import MoneyIcon from '@material-ui/icons/Money'
+import VerifiedUserIcon from '@material-ui/icons/VerifiedUser'
 import { LinearProgress } from '@material-ui/core'
 
 const StyledMenu = withStyles({
@@ -177,7 +178,7 @@ export default function ActionSelector(props) {
     setTributeProposalClicked(true)
   }
 
-  const handleWhiteListClick = () => {
+  const handleWhitelistProposalClick = () => {
     handleExpanded()
     handleTabValueState('2')
     setWhiteListClicked(true)
@@ -235,7 +236,7 @@ export default function ActionSelector(props) {
     setInviteClicked(property)
   }
 
-  function handleWhiteListClickState(property) {
+  function handleWhitelistClickState(property) {
     setWhiteListClicked(property)
   }
 
@@ -383,6 +384,12 @@ export default function ActionSelector(props) {
             </ListItemIcon>
             <ListItemText primary="Payout" />
           </StyledMenuItem>
+          <StyledMenuItem button onClick={handleWhitelistProposalClick}>
+          <ListItemIcon>
+            <VerifiedUserIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="Whitelist Token" />
+        </StyledMenuItem>
           <StyledMenuItem button onClick={handleGuildKickClick}>
             <ListItemIcon>
               <RemoveCircleIcon fontSize="small" />
@@ -427,11 +434,12 @@ export default function ActionSelector(props) {
 
       {whiteListClicked ? <WhiteListProposal
         contract={contract}
-        handleProposalEventChange={handleProposalEventChange}
-        handleWhiteListClickState={handleWhiteListClickState}
-        didsContract={didsContract}
-        idx={idx}
-        handleTabValueState={handleTabValueState} /> : null}
+        handleWhitelistClickState={handleWhitelistClickState}
+        state={state}
+        contractId={contractId}
+        depositToken={depositToken}
+        proposalDeposit={proposalDeposit}
+        accountId={accountId} /> : null}
 
       {guildKickClicked ? <GuildKickProposal
         contract={contract}

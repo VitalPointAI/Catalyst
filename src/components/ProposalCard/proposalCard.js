@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 import {get, set, del} from '../../utils/storage'
 import { dao } from '../../utils/dao'
+import FungibleTokens from '../../utils/fungibleTokens'
 import { explorerUrl, signal } from '../../state/near'
 import Persona from '@aluhning/get-personas-js'
 import { PROPOSAL_NOTIFICATION} from '../../state/near'
@@ -28,6 +29,13 @@ import OpportunityProposalDetails from '../ProposalDetails/opportunityProposalDe
 import EditGuildKickProposalForm from '../EditProposal/editGuildKickProposal'
 import GuildKickProposalDetails from '../ProposalDetails/guildKickProposalDetails'
 
+import EditWhitelistProposalForm from '../EditProposal/editWhitelistProposal'
+import WhitelistProposalDetails from '../ProposalDetails/whitelistProposalDetails'
+
+import EditCancelCommitmentProposalForm from '../EditProposal/editCancelCommitmentProposal'
+import CancelCommitmentProposalDetails from '../ProposalDetails/cancelCommitmentProposalDetails'
+
+import EditCommitmentAmountForm from '../EditProposal/editCommitmentAmount'
 
 // Material UI Components
 import { makeStyles, withStyles } from '@material-ui/core/styles'
@@ -68,7 +76,7 @@ const useStyles = makeStyles((theme) => ({
       marginTop: '10px',
       maxWidth: '250px',
       minWidth: '250px',
-      height: '490px',
+      height: '510px',
       position: 'relative',
       margin: 'auto'
     },
@@ -122,6 +130,13 @@ const useStyles = makeStyles((theme) => ({
       height: theme.spacing(7),
       float: 'left'
     },
+    btnTitle: {
+        fontSize: '20px',
+        padding: '0.5em 1em',
+        textAlign: 'center',
+        width: '100%',
+        height: '80px'
+    },
     greenButton: {
       backgroundColor: '#43a047',
       marginLeft: '-20px'
@@ -156,6 +171,7 @@ const useStyles = makeStyles((theme) => ({
   const likeImage = require('../../img/happy.png')
   const dislikeImage = require('../../img/disgust.png') 
   const neutralImage = require('../../img/neutral.png') 
+  const defaultToken = require('../../img/default-coin.png') // default no-token image
 
 export default function ProposalCard(props) {
 
@@ -171,7 +187,11 @@ export default function ProposalCard(props) {
     const [tributeTitle, setTributeTitle] = useState('Contribution Proposal Details')
     const [opportunityTitle, setOpportunityTitle] = useState('Opportunity Proposal Details')
 
-    const[payoutTitle, setPayoutTitle] = useState('Payout Details')
+    const [payoutTitle, setPayoutTitle] = useState('Payout Details')
+
+    const [whitelistTitle, setWhitelistTitle] = useState('Whitelist Details')
+    const [thisTokenName, setThisTokenName] = useState('')
+    const [tokenImage, setTokenImage] = useState(defaultToken)
 
     const [proposals, setProposals] = useState()
     const [currentLikes, setCurrentLikes] = useState([])
@@ -208,6 +228,14 @@ export default function ProposalCard(props) {
     const [editGuildKickProposalDetailsClicked, setEditGuildKickProposalDetailsClicked] = useState(false)
     const [guildKickProposalDetailsClicked, setGuildKickProposalDetailsClicked] = useState(false)
 
+    const [editWhitelistProposalDetailsClicked, setEditWhitelistProposalDetailsClicked] = useState(false)
+    const [whitelistProposalDetailsClicked, setWhitelistProposalDetailsClicked] = useState(false)
+
+    const [editCancelCommitmentProposalDetailsClicked, setEditCancelCommitmentProposalDetailsClicked] = useState(false)
+    const [cancelCommitmentProposalDetailsClicked, setCancelCommitmentProposalDetailsClicked] = useState(false)
+
+    const [editCommitmentAmountChangeClicked, setEditCommitmentAmountChangeClicked] = useState(false)
+
     const [nextToFinalize, setNextToFinalize] = useState()
     const [voteEnding, setVoteEnding] = useState('calculating')
     const [rageQuitEnding, setRageQuitEnding] = useState('calculating')
@@ -219,6 +247,8 @@ export default function ProposalCard(props) {
     const [anchorEl, setAnchorEl] = useState(null)
     
     const { state, dispatch, update } = useContext(appStore)
+
+    const { getMetadata } = FungibleTokens
 
     const {
       didRegistryContract,
@@ -260,15 +290,30 @@ export default function ProposalCard(props) {
         gracePeriodLength,
         votingPeriodLength,
         isFinalized,
-        totalMembers
+        totalMembers,
+        tributeToken
     } = props
+
+    useEffect(
+      () => {
+          getMetadata(tributeToken).then((meta) => {
+            console.log('meta', meta)
+            if(meta && meta.symbol != '') {
+              setThisTokenName(meta.symbol)
+            }
+            if(meta && meta.icon != '') {
+              setTokenImage(meta.icon)
+            }
+          })
+      },[tributeToken]
+    )
 
     useEffect(
         () => {
          
 
           async function fetchData() {
-            isUpdated
+            if(isUpdated){}
             // Get Persona Information           
             if(applicant){
               const thisPersona = new Persona()
@@ -375,11 +420,11 @@ export default function ProposalCard(props) {
              // Set Existing Payout Proposal Data       
              if(curDaoIdx && proposalType=='Payout'){
               let propResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
-              console.log('propResult', propResult)
+              
               if(propResult) {
                 let i = 0
                 while (i < propResult.proposals.length){
-                  console.log('requestId', requestId)
+                 
                   if(parseInt(propResult.proposals[i].proposalId) == requestId){
                     propResult.proposals[i].title ? setPayoutTitle(propResult.proposals[i].title) : setPayoutTitle('')
                     propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
@@ -392,6 +437,28 @@ export default function ProposalCard(props) {
                 }
               }
             }
+
+            // Set Existing Cancel Commitment Proposal Data       
+            if(curDaoIdx && proposalType=='CancelCommit'){
+              let propResult = await curDaoIdx.get('cancelCommitmentProposalDetails', curDaoIdx.id)
+              
+              if(propResult) {
+                let i = 0
+                while (i < propResult.proposals.length){
+                  
+                  if(parseInt(propResult.proposals[i].proposalId) == requestId){
+                    propResult.proposals[i].title ? setPayoutTitle(propResult.proposals[i].title) : setPayoutTitle('')
+                    propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
+                    propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
+                    propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
+                    setDetailsExist(true)
+                    break
+                  }
+                  i++
+                }
+              }
+            }
+  
 
             // Set Existing Opportunity Proposal Data       
             if(curDaoIdx && proposalType=='Opportunity'){
@@ -416,6 +483,25 @@ export default function ProposalCard(props) {
             // Set Existing GuildKick Proposal Data       
             if(curDaoIdx && proposalType=='GuildKick'){
               let propResult = await curDaoIdx.get('guildKickProposalDetails', curDaoIdx.id)
+          
+              if(propResult) {
+                let i = 0
+                while (i < propResult.proposals.length){
+                  if(parseInt(propResult.proposals[i].proposalId) == requestId){
+                    propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
+                    propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
+                    propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
+                    setDetailsExist(true)
+                    break
+                  }
+                  i++
+                }
+              }
+            }
+
+            // Set Existing Whitelist Proposal Data       
+            if(curDaoIdx && proposalType=='Whitelist'){
+              let propResult = await curDaoIdx.get('whitelistProposalDetails', curDaoIdx.id)
           
               if(propResult) {
                 let i = 0
@@ -458,6 +544,12 @@ export default function ProposalCard(props) {
                       break;
                     case 'Payout':
                       handlePayoutProposalDetailsClick()
+                      break;
+                    case 'CancelCommit':
+                      handleCancelCommitmentProposalDetailsClick()
+                      break;
+                    case 'Whitelist':
+                      handleWhitelistProposalDetailsClick()
                       break;
                     case 'Configuration':
                       handleConfigurationProposalDetailsClick()
@@ -546,7 +638,7 @@ export default function ProposalCard(props) {
                     break
                   }
                 break
-              case 'Payout':
+              case 'Payout' || 'CancelCommit':
                 if(
                     totalMembers != 1
                     && (accountId != proposer && accountId != applicant) 
@@ -640,6 +732,37 @@ export default function ProposalCard(props) {
   
     function handleGuildKickProposalDetailsClickState(property){
       setGuildKickProposalDetailsClicked(property)
+    }
+
+    // Proposal change functions
+
+    const handleCommitmentChangeAmountClick = () => {
+      handleExpanded()
+      handleCommitmentAmountChangeClickState(true)
+    }
+
+    function handleCommitmentAmountChangeClickState(property){
+      setEditCommitmentAmountChangeClicked(property)
+    }
+
+    // Whitelist Proposal Functions
+
+    const handleEditWhitelistProposalDetailsClick = () => {
+      handleExpanded()
+      handleEditWhitelistProposalDetailsClickState(true)
+    }
+  
+    function handleEditWhitelistProposalDetailsClickState(property){
+      setEditWhitelistProposalDetailsClicked(property)
+    }
+
+    const handleWhitelistProposalDetailsClick = () => {
+      handleExpanded()
+      handleWhitelistProposalDetailsClickState(true)
+    }
+  
+    function handleWhitelistProposalDetailsClickState(property){
+      setWhitelistProposalDetailsClicked(property)
     }
 
     // Funding Commitment Proposal Functions
@@ -741,6 +864,26 @@ export default function ProposalCard(props) {
     function handlePayoutProposalDetailsClickState(property){
       setPayoutProposalDetailsClicked(property)
     }
+
+    // Cancel Commitment Proposal Functions
+
+    const handleEditCancelCommitmentProposalDetailsClick = () => {
+      handleExpanded()
+      handleEditCancelCommitmentProposalDetailsClickState(true)
+    }
+  
+    function handleEditCancelCommitmentProposalDetailsClickState(property){
+      setEditCancelCommitmentProposalDetailsClicked(property)
+    }
+
+    const handleCancelCommitmentProposalDetailsClick = () => {
+      handleExpanded()
+      handleCancelCommitmentProposalDetailsClickState(true)
+    }
+  
+    function handleCancelCommitmentProposalDetailsClickState(property){
+      setCancelCommitmentProposalDetailsClicked(property)
+    }
   
     function handleExpanded() {
       setAnchorEl(null)
@@ -805,6 +948,7 @@ export default function ProposalCard(props) {
               <Button
               color="primary"
               onClick={handleMemberProposalDetailsClick}
+              className={classes.btnTitle}
               >
                 <Avatar src={applicantAvatar} className={classes.large}  />
                 <center><Chip label={applicantName != '' ? applicantName : applicant} style={{marginBottom: '3px'}}/><br></br>
@@ -888,8 +1032,9 @@ export default function ProposalCard(props) {
                  <>
                  <Button 
                   color="primary"
-                  style={{fontWeight: '800', fontSize: '110%', lineHeight: '1.1em'}}
+                  style={{fontWeight: '800', lineHeight: '1.1em'}}
                   onClick={handleFundingProposalDetailsClick}
+                  className={classes.btnTitle}
                  >
                   {title ? title.replace(/(<([^>]+)>)/gi, ""): 'No Details Yet.'}
                  </Button>
@@ -967,8 +1112,9 @@ export default function ProposalCard(props) {
                  <>
                  <Button 
                   color="primary"
-                  style={{fontWeight: '800', fontSize: '110%', lineHeight: '1.1em'}}
+                  style={{fontWeight: '800', lineHeight: '1.1em'}}
                   onClick={handleTributeProposalDetailsClick}
+                  className={classes.btnTitle}
                  >
                   {tributeTitle ? tributeTitle.replace(/(<([^>]+)>)/gi, ""): 'No Details Yet.'}
                  </Button>
@@ -1046,8 +1192,9 @@ export default function ProposalCard(props) {
                  <>
                  <Button 
                   color="primary"
-                  style={{fontWeight: '800', fontSize: '110%', lineHeight: '1.1em'}}
+                  style={{fontWeight: '800', lineHeight: '1.1em'}}
                   onClick={handleConfigurationProposalDetailsClick}
+                  className={classes.btnTitle}
                  >
                   Configuration Changes Proposed
                  </Button>
@@ -1125,8 +1272,9 @@ export default function ProposalCard(props) {
                  <>
                  <Button 
                   color="primary"
-                  style={{fontWeight: '800', fontSize: '110%', lineHeight: '1.1em'}}
+                  style={{fontWeight: '800', lineHeight: '1.1em'}}
                   onClick={handleOpportunityProposalDetailsClick}
+                  className={classes.btnTitle}
                  >
                   {opportunityTitle ? opportunityTitle.replace(/(<([^>]+)>)/gi, ""): 'No Details Yet.'}
                  </Button>
@@ -1203,8 +1351,9 @@ export default function ProposalCard(props) {
                title={ <>
                 <Button 
                  color="primary"
-                 style={{fontWeight: '800', fontSize: '110%', lineHeight: '1.1em'}}
+                 style={{fontWeight: '800', lineHeight: '1.1em'}}
                  onClick={handlePayoutProposalDetailsClick}
+                 className={classes.btnTitle}
                 >
                  {payoutTitle ? payoutTitle.replace(/(<([^>]+)>)/gi, ""): 'No Details Yet.'}
                 </Button>
@@ -1227,6 +1376,85 @@ export default function ProposalCard(props) {
                  }
              /></>
            ) : null }
+
+
+          {proposalType === 'CancelCommit' ? (
+          <> 
+          
+          {status=='Submitted' ? (<>
+            <Tooltip title="See transaction on explorer.">
+              <a href={explorerUrl + '/transactions/' + submitTransactionHash}>
+                <IconButton aria-label="delete" style={{float: 'left'}}>
+                  <ExploreIcon />
+                </IconButton>
+              </a>
+              </Tooltip>
+              </>
+            ) : null }
+            {status=='Sponsored' ? (<>
+              <Tooltip title="See transaction on explorer.">
+                <a href={explorerUrl + '/transactions/' + sponsorTransactionHash}>
+                  <IconButton aria-label="delete" style={{float: 'left'}}>
+                    <ExploreIcon />
+                  </IconButton>
+                </a>
+                </Tooltip>
+                </>
+              ) : null }
+            {status=='Passed' || status=='Not Passed' ? (<>
+              <Tooltip title="See transaction on explorer.">
+                <a href={explorerUrl + '/transactions/' + processTransactionHash}>
+                  <IconButton aria-label="delete" style={{float: 'left'}}>
+                    <ExploreIcon />
+                  </IconButton>
+                </a>
+                </Tooltip>
+                </>
+              ) : null }
+            {status=='Cancelled' ? (<>
+              <Tooltip title="See transaction on explorer.">
+                <a href={explorerUrl + '/transactions/' + cancelTransactionHash}>
+                  <IconButton aria-label="delete" style={{float: 'left'}}>
+                    <ExploreIcon />
+                  </IconButton>
+                </a>
+                </Tooltip>
+                </>
+              ) : null }
+            <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px', marginTop: '12px'}} color="textSecondary">{proposalType} Proposal</Typography>
+          <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
+          <div style={{clear: 'both'}}></div>
+          <CardHeader
+              style={{display: 'block'}}
+              align="center"
+              title={ <>
+              <Button 
+                color="primary"
+                style={{fontWeight: '800', lineHeight: '1.1em'}}
+                onClick={handleCancelCommitmentProposalDetailsClick}
+                className={classes.btnTitle}
+              >
+                {payoutTitle ? payoutTitle.replace(/(<([^>]+)>)/gi, ""): 'No Details Yet.'}
+              </Button>
+              </>}
+              subheader={
+              <><Typography variant="overline">Proposed: {created}</Typography>
+                <Grid container alignItems="center" justifyContent="space-between">
+                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
+                  <Typography variant="overline">By:</Typography>
+                  <Chip avatar={<Avatar src={proposerAvatar} className={classes.small}  />} label={proposerName != '' ? proposerName : proposer}/>
+                  </Grid> 
+                
+                
+                  {status == 'Sponsored' ? (
+                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                    <Typography variant="overline" color="textSecondary">Sponsor: {sponsor}</Typography>
+                  </Grid>
+                  ) : null }
+                </Grid></>
+                }
+            /></>
+          ) : null }
 
 
           {proposalType === 'GuildKick' ? (
@@ -1271,14 +1499,87 @@ export default function ProposalCard(props) {
                   </Tooltip>
                   </>
                 ) : null }
-                <Typography variant="h6" align="center" color="textSecondary">Remove Member Proposal</Typography>
-             <CardHeader
+                <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px', marginTop: '12px'}} color="textSecondary">Remove Voting Rights</Typography>
+                <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
+                <div style={{clear: 'both'}}></div>
+              <CardHeader
                title={<Chip
                  avatar={<Avatar alt="Member" src="../../../images/default-profile.png" />}
                  label={applicant}
                  variant="outlined"
                  onclick={handleGuildKickProposalDetailsClick}
                />}
+               subheader={
+                 <Grid container alignItems="center" justifyContent="space-evenly">
+                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                     <Typography variant="overline">Proposed: {created}</Typography>
+                   </Grid>
+                   {status == 'Sponsored' ? (
+                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
+                     <Typography variant="overline" color="textSecondary">Sponsor: {sponsor}</Typography>
+                   </Grid>
+                   ) : null }
+                 </Grid>
+                 }
+             /></>
+           ) : null }
+
+           {proposalType === 'Whitelist' ? (
+            <>
+            {status=='Submitted' ? (<>
+              <Tooltip title="See transaction on explorer.">
+                <a href={explorerUrl + '/transactions/' + submitTransactionHash}>
+                  <IconButton aria-label="delete" style={{float: 'left'}}>
+                    <ExploreIcon />
+                  </IconButton>
+                </a>
+                </Tooltip>
+                </>
+              ) : null }
+              {status=='Sponsored' ? (<>
+                <Tooltip title="See transaction on explorer.">
+                  <a href={explorerUrl + '/transactions/' + sponsorTransactionHash}>
+                    <IconButton aria-label="delete" style={{float: 'left'}}>
+                      <ExploreIcon />
+                    </IconButton>
+                  </a>
+                  </Tooltip>
+                  </>
+                ) : null }
+              {status=='Passed' || status=='Not Passed' ? (<>
+                <Tooltip title="See transaction on explorer.">
+                  <a href={explorerUrl + '/transactions/' + processTransactionHash}>
+                    <IconButton aria-label="delete" style={{float: 'left'}}>
+                      <ExploreIcon />
+                    </IconButton>
+                  </a>
+                  </Tooltip>
+                  </>
+                ) : null }
+              {status=='Cancelled' ? (<>
+                <Tooltip title="See transaction on explorer.">
+                  <a href={explorerUrl + '/transactions/' + cancelTransactionHash}>
+                    <IconButton aria-label="delete"style={{float: 'left'}}>
+                      <ExploreIcon />
+                    </IconButton>
+                  </a>
+                  </Tooltip>
+                  </>
+                ) : null }
+                <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px', marginTop: '12px'}} color="textSecondary">{proposalType} Proposal</Typography>
+                <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
+                <div style={{clear: 'both'}}></div>
+              <CardHeader
+                title={ <>
+                  <Button 
+                  color="primary"
+                  style={{fontWeight: '800', lineHeight: '1.1em'}}
+                  onClick={handleWhitelistProposalDetailsClick}
+                  className={classes.btnTitle}
+                  >
+                  {whitelistTitle ? whitelistTitle.replace(/(<([^>]+)>)/gi, ""): 'No Details Yet.'}
+                  </Button>
+                  </>}
                subheader={
                  <Grid container alignItems="center" justifyContent="space-evenly">
                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
@@ -1314,13 +1615,30 @@ export default function ProposalCard(props) {
               </Grid>
             ) : null}
 
+            {proposalType == 'Whitelist' ? (
+              <Grid container alignItems="center" justifyContent="space-evenly" style={{marginTop: '-20px', marginBottom:'20px'}}>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
+                  <Typography variant="overline">{tributeToken}</Typography><br></br>
+                  <Avatar src={tokenImage} />
+                </Grid>  
+              </Grid>
+            ) : null}
+
             {proposalType == 'Commitment' ? (
               <Grid container alignItems="center" justifyContent="space-evenly" style={{marginTop: '-20px'}}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                  
                 </Grid>    
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
-                  <Typography variant="overline" align="center" style={{marginBottom: '10px'}}>Funding Requested</Typography><br></br>
+                  <Typography variant="overline" align="center" style={{marginBottom: '10px'}}>Funding Requested
+                  {status == 'Submitted' && accountId == proposer && memberStatus ? (
+                    <><Button 
+                        color="primary" 
+                        onClick={handleCommitmentChangeAmountClick}>
+                        <EditIcon fontSize="small"/>
+                      </Button>
+                    </>) : null }
+                  </Typography><br></br>
                   <Typography variant="overline" align="center" style={{fontSize:'100%'}}>{`${formatNearAmount(funding, 3)} Ⓝ`}</Typography>
                 </Grid>
               </Grid>
@@ -1336,7 +1654,7 @@ export default function ProposalCard(props) {
               </Grid>
             ) : null }
 
-            {proposalType == 'Payout' ? (
+            {proposalType == 'Payout' || proposalType == 'CancelCommit' ? (
               <Grid container alignItems="center" justifyContent="space-evenly" style={{marginTop: '-20px'}}>
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
                  
@@ -1576,6 +1894,20 @@ export default function ProposalCard(props) {
                         <EditIcon />
                       </Button>
                     </>) : null }
+                  {proposalType === 'CancelCommit' ? (
+                    <><Button 
+                        color="primary" 
+                        onClick={handleEditCancelCommitmentProposalDetailsClick}>
+                        <EditIcon />
+                      </Button>
+                    </>) : null }
+                  {proposalType === 'Whitelist' ? (
+                    <><Button 
+                        color="primary" 
+                        onClick={handleEditWhitelistProposalDetailsClick}>
+                        <EditIcon />
+                      </Button>
+                    </>) : null }
                   {proposalType === 'Configuration' ? (
                     <><Button 
                         color="primary" 
@@ -1612,6 +1944,21 @@ export default function ProposalCard(props) {
         {editFundingProposalDetailsClicked ? <EditFundingProposalForm
           state={state}
           handleEditFundingProposalDetailsClickState={handleEditFundingProposalDetailsClickState}
+          curDaoIdx={curDaoIdx}
+          curPersonaIdx={curPersonaIdx}
+          applicant={applicant}
+          proposer={proposer}
+          handleUpdate={handleUpdate}
+          accountId={accountId}
+          proposalId={requestId}
+          contract={daoContract}
+          funding={funding}
+          referenceIds={referenceIds}
+          /> : null }
+
+        {editCommitmentAmountChangeClicked ? <EditCommitmentAmountForm
+          state={state}
+          handleCommitmentAmountChangeClickState={handleCommitmentAmountChangeClickState}
           curDaoIdx={curDaoIdx}
           curPersonaIdx={curPersonaIdx}
           applicant={applicant}
@@ -1665,6 +2012,22 @@ export default function ProposalCard(props) {
           proposalStatus={status}
           /> : null }
 
+        {editCancelCommitmentProposalDetailsClicked ? <EditCancelCommitmentProposalForm
+          state={state}
+          handleEditCancelCommitmentProposalDetailsClickState={handleEditCancelCommitmentProposalDetailsClickState}
+          curDaoIdx={curDaoIdx}
+          curPersonaIdx={curPersonaIdx}
+          applicant={applicant}
+          proposer={proposer}
+          handleUpdate={handleUpdate}
+          accountId={accountId}
+          proposalId={requestId}
+          contract={daoContract}
+          funding={funding}
+          referenceIds={referenceIds}
+          proposalStatus={status}
+          /> : null }
+
         {editOpportunityProposalDetailsClicked ? <EditOpportunityProposalForm
           state={state}
           handleEditOpportunityProposalDetailsClickState={handleEditOpportunityProposalDetailsClickState}
@@ -1678,17 +2041,30 @@ export default function ProposalCard(props) {
           contractId={contractId}
           /> : null }
 
-          {editGuildKickProposalDetailsClicked ? <EditGuildKickProposalForm
-            state={state}
-            handleEditGuildKickProposalDetailsClickState={handleEditGuildKickProposalDetailsClickState}
-            curDaoIdx={curDaoIdx}
-            applicant={applicant}
-            proposer={proposer}
-            handleUpdate={handleUpdate}
-            accountId={accountId}
-            proposalId={requestId}
-            contractId={contractId}
-            /> : null }
+        {editGuildKickProposalDetailsClicked ? <EditGuildKickProposalForm
+          state={state}
+          handleEditGuildKickProposalDetailsClickState={handleEditGuildKickProposalDetailsClickState}
+          curDaoIdx={curDaoIdx}
+          applicant={applicant}
+          proposer={proposer}
+          handleUpdate={handleUpdate}
+          accountId={accountId}
+          proposalId={requestId}
+          contractId={contractId}
+          /> : null }
+
+        {editWhitelistProposalDetailsClicked ? <EditWhitelistProposalForm
+          state={state}
+          handleEditWhitelistProposalDetailsClickState={handleEditWhitelistProposalDetailsClickState}
+          curDaoIdx={curDaoIdx}
+          applicant={applicant}
+          proposer={proposer}
+          handleUpdate={handleUpdate}
+          accountId={accountId}
+          proposalId={requestId}
+          contractId={contractId}
+          tokenName={tributeToken}
+          /> : null }
 
 
         {memberProposalDetailsClicked ? <MemberProposalDetails
@@ -1697,9 +2073,22 @@ export default function ProposalCard(props) {
           curDaoIdx={curDaoIdx}
           curPersonaIdx={curPersonaIdx}
           applicant={applicant}
+          sponsor={sponsor}
           handleUpdate={handleUpdate}
           proposalId={requestId}
           memberStatus={memberStatus}
+          /> : null }
+
+        {whitelistProposalDetailsClicked ? <WhitelistProposalDetails
+          proposer={proposer}
+          handleWhitelistProposalDetailsClickState={handleWhitelistProposalDetailsClickState}
+          curDaoIdx={curDaoIdx}
+          applicant={applicant}
+          handleUpdate={handleUpdate}
+          sponsor={sponsor}
+          proposalId={requestId}
+          memberStatus={memberStatus}
+          tokenName={tributeToken}
           /> : null }
 
         {guildKickProposalDetailsClicked ? <GuildKickProposalDetails
@@ -1708,6 +2097,7 @@ export default function ProposalCard(props) {
           curDaoIdx={curDaoIdx}
           applicant={applicant}
           handleUpdate={handleUpdate}
+          sponsor={sponsor}
           proposalId={requestId}
           memberStatus={memberStatus}
           /> : null }
@@ -1733,6 +2123,7 @@ export default function ProposalCard(props) {
           curPersonaIdx={curPersonaIdx}
           applicant={applicant}
           handleUpdate={handleUpdate}
+          sponsor={sponsor}
           proposalId={requestId}
           memberStatus={memberStatus}
           /> : null }
@@ -1744,6 +2135,7 @@ export default function ProposalCard(props) {
           curPersonaIdx={curPersonaIdx}
           applicant={applicant}
           handleUpdate={handleUpdate}
+          sponsor={sponsor}
           proposalId={requestId}
           configuration={configuration}
           contract={contract}
@@ -1753,6 +2145,19 @@ export default function ProposalCard(props) {
         {payoutProposalDetailsClicked ? <PayoutProposalDetails
           proposer={proposer}
           handlePayoutProposalDetailsClickState={handlePayoutProposalDetailsClickState}
+          curDaoIdx={curDaoIdx}
+          curPersonaIdx={curPersonaIdx}
+          applicant={applicant}
+          handleUpdate={handleUpdate}
+          proposalId={requestId}
+          proposalStatus={status}
+          sponsor={sponsor}
+          memberStatus={memberStatus}
+          /> : null }
+        
+        {cancelCommitmentProposalDetailsClicked ? <CancelCommitmentProposalDetails
+          proposer={proposer}
+          handleCancelCommitmentProposalDetailsClickState={handleCancelCommitmentProposalDetailsClickState}
           curDaoIdx={curDaoIdx}
           curPersonaIdx={curPersonaIdx}
           applicant={applicant}
@@ -1772,6 +2177,7 @@ export default function ProposalCard(props) {
           handleUpdate={handleUpdate}
           opportunityId={requestId}
           contractId={contractId}
+          sponsor={sponsor}
           status={status}
           memberStatus={memberStatus}
           /> : null }

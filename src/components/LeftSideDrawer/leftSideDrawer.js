@@ -1,10 +1,12 @@
-import React, { useState, useEffect} from 'react'
+import React, { useState, useEffect, useContext} from 'react'
 import { Link } from 'react-router-dom'
 import { get, set, del } from '../../utils/storage'
 import { Steps, Hints } from "intro.js-react";
 import clsx from 'clsx'
+import { appStore, onAppMount } from '../../state/app';
 import AddPersonaForm from '../AddPersona/addPersona'
 import AddDaoForm from '../CreateDAO/addDao'
+import AddFTForm from '../CreateFT/createFT'
 import { DASHBOARD_DEPARTURE, NEW_NOTIFICATIONS} from '../../state/near'
 import NotificationCard from '../Notifications/notifications'
 import {ceramic} from '../../utils/ceramic'
@@ -71,9 +73,12 @@ const [options, setOptions] = useState({
 const [anchorEl, setAnchorEl] = useState(null);
 const [addPersonaClicked, setAddPersonaClicked] = useState(false)
 const [addDaoClicked, setAddDaoClicked] = useState(false)
+const [addFTClicked, setAddFTClicked] = useState(false)
 const [notificationsClicked, setNotificationsClicked] = useState(false)
 const [stepsEnabled, setStepsEnabled] = useState(false)
 const [newNotifications, setNewNotifications] = useState(0)
+
+const { state, update } = useContext(appStore);
 
 const [drawerState, setDrawerState] = useState({
     top: false,
@@ -82,16 +87,11 @@ const [drawerState, setDrawerState] = useState({
     right: false,
   });
 
-
-const {
-    state,
-} = props
-
-
 const {
   wallet,
   appIdx,
-  accountId
+  accountId,
+  isUpdated
 } = state
 
 const steps = [
@@ -140,7 +140,7 @@ useEffect(
   () => {
 
     async function fetchData(){
-    
+      if(isUpdated){}
       if(accountId){
         //get the list of all notifications for all accounts
         let result = await ceramic.downloadKeysSecret(appIdx, 'notifications')
@@ -190,7 +190,7 @@ useEffect(
     .then((res) => {
   
     })
-  }, [state]
+  }, [isUpdated, accountId]
 )
 
 const handleClick = (event) => {
@@ -210,6 +210,10 @@ function handleAddDaoClick(property){
     setAddDaoClicked(property)
 }
 
+function handleAddFTClick(property){
+    setAddFTClicked(property)
+}
+
 function handleNotificationClick(property){
   setNotificationsClicked(property)
 
@@ -217,6 +221,11 @@ function handleNotificationClick(property){
 
 const addDaoClick = (event) => {
     setAddDaoClicked(true)
+    handleClick(event)
+}
+
+const addFTClick = (event) => {
+    setAddFTClicked(true)
     handleClick(event)
 }
 
@@ -287,7 +296,7 @@ const list = (anchor) => (
         <ListItemText primary='Create Persona'/>
       </ListItem>
       <Link to='/newkey'>
-        <ListItem className='recoverKey' button key={2}>
+        <ListItem className='recoverKey' button key={4}>
         <ListItemIcon><LocalHospitalIcon /></ListItemIcon>
         <ListItemText primary='Recover Persona'/>
       </ListItem>
@@ -297,28 +306,42 @@ const list = (anchor) => (
     <Typography variant='h6'>Communities</Typography>
     <List>
       <Link to='/daos'>
-        <ListItem className='myCommunities' button key={4}>
+        <ListItem className='myCommunities' button key={5}>
           <ListItemIcon><GroupIcon /></ListItemIcon>
           <ListItemText primary='My Communities'/>
         </ListItem>
       </Link>
       
     <Link to='/explore'>
-      <ListItem className='exploreCommunities' button key={5}>
+      <ListItem className='exploreCommunities' button key={6}>
         <ListItemIcon><ExploreIcon /></ListItemIcon>
         <ListItemText primary='Explore Communities'/>
       </ListItem>
     </Link>
-    <ListItem className='createCommunity' button key={6} onClick={(e) => addDaoClick(e)}>
+    <ListItem className='createCommunity' button key={7} onClick={(e) => addDaoClick(e)}>
         <ListItemIcon><AddBoxIcon /></ListItemIcon>
         <ListItemText primary='Create Community'/>
+      </ListItem>
+    </List>
+    <Divider />
+    <Typography variant='h6'>Fungible Tokens</Typography>
+    <List>
+      <Link to='/fts'>
+        <ListItem className='exploreTokens' button key={8}>
+          <ListItemIcon><ExploreIcon /></ListItemIcon>
+          <ListItemText primary='Explore Tokens'/>
+        </ListItem>
+      </Link>
+      <ListItem className='createFT' button key={9} onClick={(e) => addFTClick(e)}>
+        <ListItemIcon><AddBoxIcon /></ListItemIcon>
+        <ListItemText primary='Create Token'/>
       </ListItem>
     </List>
     <Divider />
     </div>
   </>
   ) :
-    state.wallet.signedIn ? (
+    wallet.signedIn ? (
       <>
       <List>
       <Link to='/'>
@@ -361,6 +384,20 @@ const list = (anchor) => (
     <ListItem button key={6} onClick={(e) => addDaoClick(e)}>
         <ListItemIcon><AddBoxIcon /></ListItemIcon>
         <ListItemText primary='Create Community'/>
+      </ListItem>
+    </List>
+    <Divider />
+    <Typography variant='h6'>Fungible Tokens</Typography>
+    <List>
+      <Link to='/fts'>
+        <ListItem className='exploreTokens' button key={7}>
+          <ListItemIcon><ExploreIcon /></ListItemIcon>
+          <ListItemText primary='Explore Tokens'/>
+        </ListItem>
+      </Link>
+      <ListItem className='createFT' button key={8} onClick={(e) => addFTClick(e)}>
+        <ListItemIcon><AddBoxIcon /></ListItemIcon>
+        <ListItemText primary='Create Token'/>
       </ListItem>
     </List>
     <Divider />
@@ -415,8 +452,11 @@ return (
         {addDaoClicked ? <AddDaoForm
             state={state}
             handleAddDaoClick={handleAddDaoClick}
-        
-            
+        /> : null }
+
+        {addFTClicked ? <AddFTForm
+          state={state}
+          handleAddFTClick={handleAddFTClick}
         /> : null }
 
         {notificationsClicked ? 

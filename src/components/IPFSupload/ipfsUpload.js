@@ -68,7 +68,7 @@ export default function FileUpload(props) {
     return (
         <div>
         <form id="captureMedia" onSubmit={handleSubmit} style={{textAlign: 'center', marginTop: '10px'}}>
-            <input type="file" name="file" onChange={captureFile} {...register("file")} />
+            <input type="file" name="file" onChange={captureFile} />
         </form>
       </div>
     )

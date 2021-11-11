@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useForm, Controller } from 'react-hook-form'
+import { appStore, onAppMount } from '../../state/app'
 import { makeStyles } from '@material-ui/core/styles'
 import FileUpload from '../IPFSupload/ipfsUpload'
 import { flexClass } from '../../App'
@@ -10,6 +11,7 @@ import { Editor } from "react-draft-wysiwyg"
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
 import draftToHtml from 'draftjs-to-html'
 import htmlToDraft from 'html-to-draftjs'
+import FungibleTokens from '../../utils/fungibleTokens';
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -24,6 +26,7 @@ import Paper from '@material-ui/core/Paper'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import Divider from '@material-ui/core/Divider'
+import { Avatar } from '@material-ui/core'
 import { CircularProgress } from '@material-ui/core'
 
 const useStyles = makeStyles((theme) => ({
@@ -47,8 +50,9 @@ const useStyles = makeStyles((theme) => ({
     }));
 
 const imageName = require('../../img/default-profile.png') // default no-image avatar
+const defaultToken = require('../../img/default-coin.png') // default no-token image
 
-export default function EditTributeProposalForm(props) {
+export default function EditWhitelistProposalForm(props) {
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
     const [loaded, setLoaded] = useState(false)
@@ -66,22 +70,48 @@ export default function EditTributeProposalForm(props) {
     // Tribute Proposal Fields
     const [title, setTitle] = useState('')
     const [details, setDetails] = useState(EditorState.createEmpty())
-
+    const [thisTokenName, setThisTokenName] = useState('')
+    const [tokenImage, setTokenImage] = useState(defaultToken)
+    const { state, dispatch, update } = useContext(appStore)
     const { register, handleSubmit, watch, errors } = useForm()
 
     const {
-        handleUpdate,
-        handleEditTributeProposalDetailsClickState,
+        handleEditWhitelistProposalDetailsClickState,
         applicant,
         proposer,
         curDaoIdx,
         proposalId,
+        tokenName
     } = props
+
+    const { getMetadata } = FungibleTokens
+
+    const {
+      isUpdated
+    } = state
     
     const classes = useStyles()
 
+    useEffect(
+      () => {
+        if(tokenName){
+          getMetadata(tokenName).then((meta) => {
+            console.log('meta', meta)
+            if(meta && meta.symbol != '') {
+              setThisTokenName(meta.symbol)
+              setTokenImage(meta.icon)
+            } else {
+              sethisTokenName('')
+              setTokenImage(defaultToken)
+            }
+          })
+        }
+      },[tokenName]
+    )
+
     useEffect(() => {
         async function fetchData() {
+          if(isUpdated){}
           setLoaded(false)
            
             // Set Existing Persona Data      
@@ -98,13 +128,14 @@ export default function EditTributeProposalForm(props) {
 
            // Set Existing Proposal Data       
            if(curDaoIdx){
-              let propResult = await curDaoIdx.get('tributeProposalDetails', curDaoIdx.id)
+              let propResult = await curDaoIdx.get('whitelistProposalDetails', curDaoIdx.id)
            
               if(propResult) {
                 let i = 0
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == proposalId){
                     propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
+                    propResult.proposals[i].tokenName ? setTokenName(propResult.proposals[i].tokenName) : setTokenName('')
                     if (propResult.proposals[i].details){
                       let contentBlock = htmlToDraft(propResult.proposals[i].details)
                       if (contentBlock){
@@ -131,14 +162,14 @@ export default function EditTributeProposalForm(props) {
           .then((res) => {
             setLoaded(true)
           })
-    },[])
+    },[isUpdated])
 
     function handleFileHash(hash) {
       setAvatar(IPFS_PROVIDER + hash)
     }
 
     const handleClose = () => {
-        handleEditTributeProposalDetailsClickState(false)
+        handleEditWhitelistProposalDetailsClickState(false)
         setOpen(false)
     }
 
@@ -165,7 +196,7 @@ export default function EditTributeProposalForm(props) {
       let formattedDate = formatDate(now)
   
       // Load existing array of details
-      let detailRecords = await curDaoIdx.get('tributeProposalDetails', curDaoIdx.id)
+      let detailRecords = await curDaoIdx.get('whitelistProposalDetails', curDaoIdx.id)
    
       if(!detailRecords){
         detailRecords = { proposals: [] }
@@ -174,6 +205,7 @@ export default function EditTributeProposalForm(props) {
       let proposalRecord = {
           proposalId: proposalId.toString(),
           title: title,
+          tokenName: tokenName,
           details: draftToHtml(convertToRaw(details.getCurrentContent())),
           proposer: proposer,
           submitDate: now,
@@ -189,7 +221,7 @@ export default function EditTributeProposalForm(props) {
       while (i < detailRecords.proposals.length){
         if(detailRecords.proposals[i].proposalId == proposalId){
           detailRecords.proposals[i] = proposalRecord
-          await curDaoIdx.set('tributeProposalDetails', detailRecords)
+          await curDaoIdx.set('whitelistProposalDetails', detailRecords)
           exists = true
           break
         }
@@ -200,11 +232,11 @@ export default function EditTributeProposalForm(props) {
       if(!exists){
         detailRecords.proposals.push(proposalRecord)
      
-        await curDaoIdx.set('tributeProposalDetails', detailRecords)
+        await curDaoIdx.set('whitelistProposalDetails', detailRecords)
       }
      
       setFinished(true)
-      handleUpdate(true)
+      update('', {isUpdated: !isUpdated})
       setOpen(false)
       handleClose()
     }
@@ -215,31 +247,32 @@ export default function EditTributeProposalForm(props) {
        
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             { loaded ? (<>
-              <DialogTitle id="form-dialog-title">Tribute Proposal Details</DialogTitle>
+              <DialogTitle id="form-dialog-title">Token Whitelist Proposal Details</DialogTitle>
               <DialogContent>
                   <DialogContentText style={{marginBottom: 10}}>
-                  Please provide any additional info as necessary:
-                  
+                  Please provide any additional info as necessary:<br></br>
+                  <Avatar src={tokenImage}/><br></br>
+                  {thisTokenName}
                   </DialogContentText>
                   
                   <TextField
                       autoFocus
                       margin="dense"
-                      id="funding-proposal-title"
+                      id="whitelist-proposal-title"
                       variant="outlined"
-                      name="fundingProposalTitle"
+                      name="whitelistProposalTitle"
                       label="Proposal Title"
+                      placeholder="Whitelist this token"
                       helperText={`${title.length}/40`}
-                      placeholder="My Awesome Proposal"
                       value={title}
                       onChange={handleTitleChange}
                       inputRef={register({
                           required: true,
-                          maxLength: 40                               
+                          maxLength: 40                              
                       })}
                   />
-                  {errors.fundingProposalTitle && <p style={{color: 'red'}}>You must give your proposal a title.</p>}
-              
+                  {errors.whitelistProposalTitle && <p style={{color: 'red'}}>You must give your proposal a title.</p>}
+                  <Typography variant="h6">Why Whitelist this Token?</Typography>
                   <Paper style={{padding: '5px'}}>
                   <Editor
                     editorState={details}

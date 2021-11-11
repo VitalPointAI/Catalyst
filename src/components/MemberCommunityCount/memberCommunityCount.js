@@ -49,7 +49,7 @@ export default function MemberCommunityCount(props) {
     const [finished, setFinished] = useState(false)
     const [daoCount, setDaoCount] = useState()
     const [memberCount, setMemberCount] = useState('0')
-    const [isUpdated, setIsUpdated] = useState()
+ //   const [isUpdated, setIsUpdated] = useState()
 
     const { state, dispatch, update } = useContext(appStore)
 
@@ -61,7 +61,8 @@ export default function MemberCommunityCount(props) {
       curUserIdx,
       claimed,
       currentDaosList,
-      links
+      links,
+      isUpdated
     } = state
 
     const {
@@ -78,6 +79,7 @@ export default function MemberCommunityCount(props) {
         () => {
   
             async function fetchData() {
+                if(isUpdated){}
                 if(currentDaosList && state){
                    
                     let contract
