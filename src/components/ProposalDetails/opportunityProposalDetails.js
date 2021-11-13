@@ -107,7 +107,7 @@ export default function OpportunityProposalDetails(props) {
     const [desiredSkillSet, setDesiredSkillSet] = useState([])
     const [desiredDeveloperSkillSet, setDesiredDeveloperSkillSet] = useState([])
     const [opportunitySkillSet, setOpportunitySkillSet] = useState([])
-    //const [thisCurDaoIdx, setThisCurDaoIdx] = useState(props.curDaoIdx)
+    const [thisCurDaoIdx, setThisCurDaoIdx] = useState(props.curDaoIdx)
     const [memberStatus, setMemberStatus] = useState()
     const [active, setActive] = useState(false)
     
@@ -140,7 +140,6 @@ export default function OpportunityProposalDetails(props) {
         handleOpportunityProposalDetailsClickState,
         opportunityId,
         status,
-        curDaoIdx,
         applicant,
         proposer,
         contract,
@@ -232,22 +231,22 @@ export default function OpportunityProposalDetails(props) {
               }
             }
 
-            // // Set Existing Proposal Data
-            // let loadCurDaoIdx
-            // if(!thisCurDaoIdx){
-            //   if(contractId){
-            //     let daoAccount = new nearAPI.Account(near.connection, contractId)
+            // Set Existing Proposal Data
+            let loadCurDaoIdx
+            if(!thisCurDaoIdx){
+              if(contractId){
+                let daoAccount = new nearAPI.Account(near.connection, contractId)
                  
-            //     loadCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+                loadCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
               
-            //     setThisCurDaoIdx(loadCurDaoIdx)
+                setThisCurDaoIdx(loadCurDaoIdx)
 
-            //   }
-            // }           
+              }
+            }           
 
-
-            if(curDaoIdx){
-              let propResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
+            
+            if(thisCurDaoIdx){
+              let propResult = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
           
               console.log('opp details propResult', propResult)
               if(propResult) {
@@ -289,8 +288,8 @@ export default function OpportunityProposalDetails(props) {
             }
 
             // Set Existing Proposal Comments      
-            if(curDaoIdx){
-              let commentResult = await curDaoIdx.get('comments', curDaoIdx.id)
+            if(thisCurDaoIdx){
+              let commentResult = await thisCurDaoIdx.get('comments', thisCurDaoIdx.id)
               if(!commentResult){
                 commentResult = { comments: [] }
               }
@@ -317,7 +316,7 @@ export default function OpportunityProposalDetails(props) {
               setFinished(true)
             })
           
-    }, [applicant, applicantAvatar, curUserAvatar, proposerAvatar, proposer, title, details, proposerName, contractId, curDaoIdx, isUpdated]
+    }, [applicant, applicantAvatar, curUserAvatar, proposerAvatar, proposer, title, details, proposerName, contractId, thisCurDaoIdx, isUpdated]
     )
 
     const handleClose = () => {
@@ -386,7 +385,7 @@ export default function OpportunityProposalDetails(props) {
                         proposalApplicant={applicant}
                         accountId={accountId}
                         handleUpdate={handleUpdate}
-                        curDaoIdx={curDaoIdx}
+                        curDaoIdx={thisCurDaoIdx}
                         key={comment.commentId}
                         commentId={comment.commentId}
                         comments={proposalComments}
@@ -597,7 +596,7 @@ export default function OpportunityProposalDetails(props) {
                     accountId={accountId}
                     contract={contract}
                     handleUpdate={handleUpdate}
-                    curDaoIdx={curDaoIdx}
+                    curDaoIdx={thisCurDaoIdx}
                   />
               </Grid>
               </Grid>

@@ -445,6 +445,7 @@ export default function Dashboard(props) {
                                 try{
                                     thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
                                     console.log('curdaoidx here', thisCurDaoIdx)
+                                    setCurDaoIdx(thisCurDaoIdx)
                                 } catch (err) {
                                     console.log('error getting dao idx', err)
                                 }

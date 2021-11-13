@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { flexClass } from '../../App'
+const { create } = require('ipfs-http-client')
 import { contractName, IPFS_PROVIDER } from '../../utils/ceramic'
 import Persona from '@aluhning/get-personas-js'
 import { EditorState, convertFromRaw, convertToRaw, ContentState } from 'draft-js'
@@ -84,6 +85,9 @@ export default function EditFundingProposalForm(props) {
     const [errorM, setErrorM] = useState(false)
     const [message, setMessage] = useState(false)
     const [max, setMax] = useState(props.funding)
+    const [attachedFiles, setAttachedFiles] = useState([])
+    const [addedFileHash, setAddedFileHash] = useState('QmZsKcVEwj9mvGfA7w7wUS1f2fLqcfzqdCnEGtdq6MBR7P')
+
     const { register, handleSubmit, watch, errors, control, reset, setValue, getValues } = useForm()
     const {
       fields: milestoneFields,
@@ -94,6 +98,23 @@ export default function EditFundingProposalForm(props) {
     })
 
     const projectMilestones = watch('projectMilestones', milestoneFields)
+
+    const {
+      fields: fileFields,
+      append: fileFieldsAppend,
+      remove: fileFieldsRemove} = useFieldArray({
+     name: "files",
+     control
+    })
+
+    const files = watch('files', fileFields)
+
+    let controlledFields = fileFields.map((field, index) => {
+      return {
+        ...field,
+        ...files[index]
+      }
+    })
   
     const {
         handleUpdate,
@@ -142,6 +163,7 @@ export default function EditFundingProposalForm(props) {
                 while (i < propResult.proposals.length){
                   if(propResult.proposals[i].proposalId == proposalId){
                     propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
+                    propResult.proposals[i].attachedFiles ? setValue('files', propResult.proposals[i].attachedFiles) : null
                     propResult.proposals[i].milestones ? setValue('projectMilestones', propResult.proposals[i].milestones): setValue('projectMilestones', {title: '', deadline: '', payout: '0', briefDescription: ''})
                     if (propResult.proposals[i].details){
                       let contentBlock = htmlToDraft(propResult.proposals[i].details)
@@ -210,8 +232,41 @@ export default function EditFundingProposalForm(props) {
           })
     },[])
 
-    function handleFileHash(hash) {
-      setAvatar(IPFS_PROVIDER + hash)
+    function handleFileHash(hash, name) {
+      let fullHash = IPFS_PROVIDER + hash
+      let newAttachedFiles = { name: name, hash: fullHash }
+      attachedFiles.push(newAttachedFiles)
+      setAttachedFiles(attachedFiles)
+    }
+
+    const ipfsApi = create('https://infura-ipfs.io:5001')
+  
+    const captureFile = (i) => {
+      console.log('here', i)
+        event.stopPropagation()
+        event.preventDefault()
+        //const file = event.target.files[0]
+        const file = controlledFields[i].hash[0]
+        let name = controlledFields[i].hash[0].name
+        let reader = new window.FileReader()
+        console.log('reader', reader)
+        reader.onloadend = () => saveToIpfs(reader, name)
+        reader.readAsArrayBuffer(file)
+    }
+
+    const saveToIpfs = (reader, name) => {
+        let ipfsId
+        const buffer = Buffer.from(reader.result)
+      
+        ipfsApi.add(buffer)
+        .then((response) => {
+        ipfsId = response.path
+        console.log('ipfsId', ipfsId)
+        setAddedFileHash(ipfsId)
+        handleFileHash(ipfsId, name)
+        }).catch((err) => {
+        console.error(err)
+        })
     }
 
     const handleClose = () => {
@@ -282,7 +337,8 @@ export default function EditFundingProposalForm(props) {
           published: true,
           likes: currentLikes,
           dislikes: currentDisLikes,
-          neutrals: currentNeutrals
+          neutrals: currentNeutrals,
+          attachedFiles: attachedFiles
       }
 
       // Update existing records
@@ -354,6 +410,64 @@ export default function EditFundingProposalForm(props) {
                     editorStyle={{minHeight:'200px'}}
                   />
                   </Paper>
+                  <Grid container justifyContent="space-between" alignItems="flex-end" spacing={1}>
+                    <Typography variant="h6" style={{marginTop: '20px', marginBottom:'10px'}}>Attach Files</Typography>
+     
+                            <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
+                               
+                            </Grid>
+                            {
+                              fileFields.map((field, index) => {
+                              
+                                return(
+                                  <Grid container spacing={1} style={{marginBottom: '5px'}} key={field.id}>
+                                    <Grid item xs={10} sm={10} md={10} lg={10} xl={10} >
+                                     
+                                      <TextField
+                                        fullWidth
+                                        type="file"
+                                        margin="normal"
+                                        className={classes.textField}
+                                        id="fileName"
+                                        variant="outlined"
+                                        name={`files[${index}].hash`}
+                                        label={field.name}
+                                      
+                                        onChange={() => captureFile(index, event)}
+                                        InputProps={{
+                                          endAdornment: <div>
+                                          <Tooltip TransitionComponent={Zoom} title="Select file to attach.">
+                                              <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                                          </Tooltip>
+                                          </div>
+                                        }}
+                                        inputRef={register({
+                                          required: false                            
+                                        })}
+                                      />
+                                    
+                                
+                                   
+                                    </Grid>
+                        
+                                    <Button type="button" onClick={() => fileFieldsRemove(index)} style={{float: 'right', marginLeft:'10px'}}>
+                                      <DeleteForeverIcon />
+                                    </Button>
+                                  </Grid>
+                                )
+                              }) 
+                            }
+                    {!fileFields || fileFields.length == 0 ?
+                      <Typography variant="body1" style={{marginLeft: '5px'}}>No attached files.</Typography>
+                    : null }
+                      <Button
+                        type="button"
+                        onClick={() => fileFieldsAppend({hash: ''})}
+                        startIcon={<AddBoxIcon />}
+                      >
+                        Add File
+                      </Button>
+                    </Grid>
                   <Typography variant="h6" style={{marginTop: '30px'}}>Milestones</Typography>
                   <Paper style={{padding: '5px'}}>
                   <Typography variant="body1">The total amount of all milestones must equal the amount requested ({formatNearAmount(requested, 3)} Ⓝ).</Typography>

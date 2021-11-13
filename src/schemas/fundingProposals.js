@@ -37,6 +37,9 @@ export const fundingProposalDetailsSchema = {
         "milestones": {
           type: 'array'
         },
+        "attachedFiles": {
+          type: "array"
+        },
         "referenceIds": {
           type: 'array'
         },

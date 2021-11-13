@@ -389,8 +389,7 @@ export default function EditPayoutProposalForm(props) {
       setOpen(false)
       handleClose()
     }
-    console.log('filefields', fileFields)
-    console.log('attachedFiles', attachedFiles)
+    
         return (
            
             <div>

@@ -191,30 +191,30 @@ export default function AppFramework(props) {
       contractId
     } = useParams()
 
-    useEffect(
-      () => {
-        // Determine type of contract - DAO or FT
-        let type = contractId.split('.')
-        console.log('type', type)
-        if(networkId == 'testnet'){
-          let combined = type[1]+'.'+type[2]+'.'+type[3]
-          console.log('combined', combined)
-          if(combined == tokenFactoryContractName){
-            setContractType('ft')
-          } else {
-            setContractType('dao')
-          }
-        }
-        if(networkId == 'mainnet'){
-          let combined = type[1]+'.'+type[2]
-          if(combined == tokenFactoryContractName){
-            setContractType('ft')
-          } else {
-            setContractType('dao')
-          }
-        }
-    }, [contractId]
-    )
+    // useEffect(
+    //   () => {
+    //     // Determine type of contract - DAO or FT
+    //     let type = contractId.split('.')
+    //     console.log('type', type)
+    //     if(networkId == 'testnet'){
+    //       let combined = type[1]+'.'+type[2]+'.'+type[3]
+    //       console.log('combined', combined)
+    //       if(combined == tokenFactoryContractName){
+    //         setContractType('ft')
+    //       } else {
+    //         setContractType('dao')
+    //       }
+    //     }
+    //     if(networkId == 'mainnet'){
+    //       let combined = type[1]+'.'+type[2]
+    //       if(combined == tokenFactoryContractName){
+    //         setContractType('ft')
+    //       } else {
+    //         setContractType('dao')
+    //       }
+    //     }
+    // }, [contractId]
+    // )
     
 
     const matches = useMediaQuery('(max-width:500px)')
@@ -294,7 +294,7 @@ export default function AppFramework(props) {
            
             if(didRegistryContract && near){
 
-              if(contractId && contractType == 'dao'){
+              if(contractId){
                 let curDaoIdx
                 let daoAccount
                 let contract
@@ -325,14 +325,14 @@ export default function AppFramework(props) {
                 }
               }
 
-              if(contractId && contractType == 'ft'){
-                try{
-                  ftContract = await ft.initFTContract(state.wallet.account(), contractId)
-                  setFTContract(ftContract)
-                } catch (err) {
-                  console.log('problem initializing ft contract', err)
-                }
-              }
+              // if(contractId && contractType == 'ft'){
+              //   try{
+              //     ftContract = await ft.initFTContract(state.wallet.account(), contractId)
+              //     setFTContract(ftContract)
+              //   } catch (err) {
+              //     console.log('problem initializing ft contract', err)
+              //   }
+              // }
               
               return true
             }
@@ -744,7 +744,7 @@ export default function AppFramework(props) {
           async function fetchData() {
             if(isUpdated){}
             //************ LOAD COMMUNITY SETTINGS AND INFORMATION */
-                    
+                
                   try{
                     let result = await curDaoIdx.get('daoProfile', curDaoIdx.id)
                     if(result){
@@ -757,10 +757,16 @@ export default function AppFramework(props) {
                   } catch (err) {
                     console.log('problem retrieving DAO profile')
                   }
-
-                  let init = await daoContract.getInit()
-                  setInitialized(init)
-                  setInitLoad(true)
+                  let init
+                  if(daoContract){
+                    try{
+                    init = await daoContract.getInit()
+                    setInitialized(init)
+                    setInitLoad(true)
+                    } catch (err) {
+                      console.log('getinit error', err)
+                    }
+                  }
 
                   if(init){
                       let thisMemberInfo
@@ -1071,7 +1077,7 @@ export default function AppFramework(props) {
           mounted = false
         } 
       }
-}, [essentialsInitialized, isUpdated]
+}, [essentialsInitialized, daoContract, isUpdated]
     )
 
     function handleTabValueState(value) {

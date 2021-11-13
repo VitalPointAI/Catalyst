@@ -26,6 +26,11 @@ import Chip from '@material-ui/core/Chip'
 import Divider from '@material-ui/core/Divider'
 import Card from '@material-ui/core/Card'
 import Paper from '@material-ui/core/Paper'
+import List from '@material-ui/core/List'
+import ListItem from '@material-ui/core/ListItem'
+import ListItemIcon from '@material-ui/core/ListItemIcon'
+import ListItemText from '@material-ui/core/ListItemText'
+import AttachFileIcon from '@material-ui/icons/AttachFile'
 
 // CSS Styles
 
@@ -100,6 +105,8 @@ export default function FundingProposalDetails(props) {
 
     const [curUserAvatar, setCurUserAvatar] = useState()
     const [curUserName, setCurUserName] = useState()
+
+    const [attachedFiles, setAttachedFiles] = useState()
 
     const [milestonePayouts, setMilestonePayouts] = useState([])
     const [milestoneCancellations, setMilestoneCancellations] = useState([])
@@ -191,6 +198,7 @@ export default function FundingProposalDetails(props) {
                   if(propResult.proposals[i].proposalId == proposalId){
                     propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
                     propResult.proposals[i].details ? setDetails(propResult.proposals[i].details) : setDetails('')
+                    propResult.proposals[i].attachedFiles ? setAttachedFiles(propResult.proposals[i].attachedFiles) : setAttachedFiles([{}])
                     propResult.proposals[i].milestones ? setMilestones(propResult.proposals[i].milestones) : setMilestones([{}])
                     propResult.proposals[i].submitDate ? setCreated(propResult.proposals[i].submitDate) : setCreated()
                     propResult.proposals[i].likes ? setLikes(propResult.proposals[i].likes.length) : setLikes(0)
@@ -338,6 +346,27 @@ export default function FundingProposalDetails(props) {
         }
       })
     }
+
+    let Files
+    if(attachedFiles && attachedFiles.length > 0){
+      Files = attachedFiles.map((element, index) => {
+        console.log('attachedfiles', attachedFiles)
+        console.log('element', element)
+        if(element.hash==''){
+          return null
+        } else {
+        return (
+          <a href={element.hash} target="_blank">
+            <ListItem button key={element.id}>
+              <ListItemIcon><AttachFileIcon /></ListItemIcon>
+              <ListItemText primary={element.name} />
+            </ListItem>
+          </a>
+         
+        )
+        }
+      })
+    }
       
 
     let Comments;
@@ -461,6 +490,21 @@ export default function FundingProposalDetails(props) {
                         </Paper>
                     </Grid>
                   
+                  
+                    {attachedFiles && attachedFiles.length > 0 ? (
+                      <Grid container spacing={1} style={{width: '100%'}}>
+                      <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                      <Paper style={{marginTop:'20px', padding: '10px'}}>
+                        <Typography variant="h6" style={{marginTop: '20px', marginBottom: '20px'}}>Attached Files</Typography>
+                        <List>
+                        {Files}
+                        </List>
+                      </Paper>
+                      </Grid>
+                      </Grid>
+                      
+                      )
+                    :null }
                     </>)}
                 </DialogContent>
               <DialogActions>

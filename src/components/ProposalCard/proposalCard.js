@@ -296,6 +296,7 @@ export default function ProposalCard(props) {
 
     useEffect(
       () => {
+        if(tributeToken && tributeToken != 'Ⓝ'){
           getMetadata(tributeToken).then((meta) => {
             console.log('meta', meta)
             if(meta && meta.symbol != '') {
@@ -305,6 +306,7 @@ export default function ProposalCard(props) {
               setTokenImage(meta.icon)
             }
           })
+        }
       },[tributeToken]
     )
 
