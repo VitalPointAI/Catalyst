@@ -69,6 +69,7 @@
         "@babel/preset-env": "^7.13.10",
         "@babel/preset-react": "^7.12.13",
         "babel-plugin-react-html-attrs": "^3.0.5",
+        "jest": "^27.3.1",
         "parcel": "^2.0.0-beta.2",
         "rimraf": "^3.0.2"
     },
@@ -77,6 +78,7 @@
     ],
     "context": "node",
     "scripts": {
+        "test": "jest",
         "deploy:testnet": "npm run build && gh-pages -d dist",
         "deploy": "REACT_APP_ENV=\"prod\" yarn build && cp -a static/* dist && gh-pages -d dist",
         "prebuild": "npm run clean",
