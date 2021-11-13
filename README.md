@@ -1,5 +1,7 @@
 # CATALYST
 
+[![Build Status](https://dev.azure.com/vitalpoint/Catalyst/_apis/build/status/VitalPointAI.Catalyst?branchName=main)](https://dev.azure.com/vitalpoint/Catalyst/_build/latest?definitionId=1&branchName=main)
+
 ## Executive Summary
 
 Vital Point AI (NEAR Guild) is building Catalyst - a DAOaaS with social/community features on NEAR.  Targeting non-technical users interested in exploring how a DAO (without knowing what a DAO is) can help them build and nurture a loyal community around a common cause.  Already Included or on the roadmap:
