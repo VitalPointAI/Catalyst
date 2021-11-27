@@ -87,7 +87,7 @@ export default function EditMemberProposalForm(props) {
           setLoaded(false)
 
             // Set Existing Persona Data
-            let result = await data.getPersona(applicant)     
+            let result = await data.getData('profile', applicant, curDaoIdx)     
            
               if(result) {
                 result.date ? setDate(result.date) : setDate('')

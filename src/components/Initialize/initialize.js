@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
+import { get, set, del } from '../../utils/storage'
 import { appStore, onAppMount } from '../../state/app'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { useParams } from 'react-router-dom'
@@ -114,7 +115,8 @@ export default function Initialize(props) {
 
     const {
       accountId,
-      currentDaosList
+      currentDaosList,
+      near
     } = state
 
     const {
@@ -138,7 +140,9 @@ export default function Initialize(props) {
    
     useEffect(
       () => {
-       // let daoOwner = get(DAO_LINKS, [])
+        // remove temporary key
+    //    del('near-api-js:keystore:'+contractId+':'+near.connection.networkId)
+        
         let i = 0
         while(i < currentDaosList.length){
           if(currentDaosList[i].contractId == contractId){

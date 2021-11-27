@@ -8,6 +8,7 @@ import { flexClass } from '../../App'
 import { ceramic, IPFS_PROVIDER } from '../../utils/ceramic' 
 import { config } from '../../state/config'
 import * as nearAPI from 'near-api-js'
+import Personas from '@aluhning/get-personas-js'
 
 // Material UI components
 import InfoIcon from '@material-ui/icons/Info'
@@ -90,6 +91,7 @@ const useStyles = makeStyles((theme) => ({
 
 const imageName = require('../../img/default-profile.png') // default no-image avatar
 const discordIcon = require('../../img/discord-icon.png')
+const data = new Personas()
 
 export const {
   FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT, DAO_FIRST_INIT, CURRENT_DAO, REDIRECT,
@@ -107,7 +109,6 @@ export default function EditPersonaForm(props) {
     const [name, setName] = useState('')
     const [avatar, setAvatar] = useState(imageName)
     const [shortBio, setShortBio] = useState('')
-    const [isUpdated, setIsUpdated] = useState(false)
     const [email, setEmail] = useState('')
     const [discord, setDiscord] = useState('')
     const [reddit, setReddit] = useState('')
@@ -122,6 +123,7 @@ export default function EditPersonaForm(props) {
     
     const [otherSkills, setOtherSkills] = useState([])
     const [notifications, setNotifications] = useState([])
+
     const { state, dispatch, update } = useContext(appStore)
 
     const countries = ["Afghanistan","Albania","Algeria","Andorra","Angola","Anguilla","Antigua & Barbuda","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bermuda","Bhutan","Bolivia","Bosnia & Herzegovina","Botswana","Brazil","British Virgin Islands","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Cayman Islands","Chad","Chile","China","Colombia","Congo","Cook Islands","Costa Rica","Cote D Ivoire","Croatia","Cruise Ship","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Estonia","Ethiopia","Falkland Islands","Faroe Islands","Fiji","Finland","France","French Polynesia","French West Indies","Gabon","Gambia","Georgia","Germany","Ghana","Gibraltar","Greece","Greenland","Grenada","Guam","Guatemala","Guernsey","Guinea","Guinea Bissau","Guyana","Haiti","Honduras","Hong Kong","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Isle of Man","Israel","Italy","Jamaica","Japan","Jersey","Jordan","Kazakhstan","Kenya","Kuwait","Kyrgyz Republic","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Macau","Macedonia","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Mauritania","Mauritius","Mexico","Moldova","Monaco","Mongolia","Montenegro","Montserrat","Morocco","Mozambique","Namibia","Nepal","Netherlands","Netherlands Antilles","New Caledonia","New Zealand","Nicaragua","Niger","Nigeria","Norway","Oman","Pakistan","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Puerto Rico","Qatar","Reunion","Romania","Russia","Rwanda","Saint Pierre & Miquelon","Samoa","San Marino","Satellite","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","South Africa","South Korea","Spain","Sri Lanka","St Kitts & Nevis","St Lucia","St Vincent","St. Lucia","Sudan","Suriname","Swaziland","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor L'Este","Togo","Tonga","Trinidad & Tobago","Tunisia","Turkey","Turkmenistan","Turks & Caicos","Uganda","Ukraine","United Arab Emirates","United Kingdom","Uruguay","Uzbekistan","Venezuela","Vietnam","Virgin Islands (US)","Yemen","Zambia","Zimbabwe"];
@@ -150,17 +152,16 @@ export default function EditPersonaForm(props) {
     const personaSpecificSkills = watch('personaSpecificSkills', personaSpecificSkillsFields)
 
     const {
-        handleUpdate,
         handleEditPersonaClickState,
+        curPersonaIdx,
         accountId,
-        curPersonaIdx
     } = props
 
     const {
       near,
       appIdx,
-      didRegistryContract,
-      currentDaosList
+      currentDaosList,
+      isUpdated
     } = state
 
     const {
@@ -180,14 +181,17 @@ export default function EditPersonaForm(props) {
         async function fetchData() {
           setLoaded(false)
 
-          // Set Dao Idx
-         
-             
+          // // Set Dao Idx
+          // let personaAccount = new nearAPI.Account(near.connection, accountId)
+          // let thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, near)
+          // console.log('crazy', thisCurPersonaIdx)
+          // setCurPersonaIdx(thisCurPersonaIdx)
           
 
            // Set Card Persona Idx       
            if(accountId && currentDaosList){
               let result = await curPersonaIdx.get('profile', curPersonaIdx.id)
+           //   let result = await data.getData('profile', accountId, curPersonaIdx)   
               console.log('profile', result)
               if(result) {
                 result.date ? setDate(result.date) : setDate('')
@@ -265,8 +269,8 @@ export default function EditPersonaForm(props) {
         while (i < currentDaosList.length){
           if(currentDaosList[i].status == 'active'){
             let daoAccount = new nearAPI.Account(near.connection, currentDaosList[i].contractId)
-              
-            let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+            
+            let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
             console.log('currentskills', currentSkills)
             // Get Existing Community Skills
             if(thisCurDaoIdx){
@@ -498,11 +502,11 @@ export default function EditPersonaForm(props) {
         }
      
         let result = await curPersonaIdx.set('profile', record)
-     
-      setIsUpdated(true)
+        console.log('result', result)
+   //   setIsUpdated(true)
       setFinished(true)
       update('', { isUpdated: !isUpdated })
-      handleUpdate(true)
+   //   handleUpdate(true)
       setOpen(false)
       handleClose()
     }

@@ -52,8 +52,9 @@ const Footer = ({}) => {
             </div>
         </div>
         <div className="footerright">
-        <Typography variant="body2" style={{fontSize: '90%'}}><a href="https://vitalpoint.ai">© 2020 Vital Point AI</a><br></br>
-            All Rights Reserved.<br></br>
+        <Typography variant="body2" style={{fontSize: '90%'}}>Catalyst is open source.<br></br>
+            Provided "as is" without warranty<br></br>
+            of any kind. Use at own risk.<br></br>
             <span className="blue">Privacy<span className="black"> | </span>TOS</span></Typography>
         </div>
         </div>

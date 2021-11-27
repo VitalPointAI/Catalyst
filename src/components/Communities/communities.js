@@ -41,7 +41,6 @@ const useStyles = makeStyles((theme) => ({
 export default function Communities(props) {
    
     const[daos, setDaos] = useState([])
-    const [isUpdated, setIsUpdated] = useState(false)
     const classes = useStyles()
 
     const { state, dispatch, update } = useContext(appStore)
@@ -49,10 +48,12 @@ export default function Communities(props) {
     const {
       accountId,
       currentDaosList,
+      isUpdated
     } = state
 
     useEffect(
         () => {
+          if(isUpdated){}
             if(currentDaosList){
                 let sortedDaos = _.sortBy(currentDaosList, 'created')
                 setDaos(sortedDaos)

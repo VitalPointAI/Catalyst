@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
+import * as nearAPI from 'near-api-js'
 import { appStore, onAppMount } from '../../state/app'
 import {get, set, del} from '../../utils/storage'
 import { dao } from '../../utils/dao'
+import { ceramic } from '../../utils/ceramic'
 import FungibleTokens from '../../utils/fungibleTokens'
 import { explorerUrl, signal } from '../../state/near'
-import Persona from '@aluhning/get-personas-js'
 import { PROPOSAL_NOTIFICATION} from '../../state/near'
 import { formatNearAmount, parseNearAmount } from 'near-api-js/lib/utils/format'
+
 import EditMemberProposalForm from '../EditProposal/editMemberProposal'
 import MemberProposalDetails from '../ProposalDetails/memberProposalDetails'
 
@@ -318,20 +320,41 @@ export default function ProposalCard(props) {
             if(isUpdated){}
             // Get Persona Information           
             if(applicant){
-              const thisPersona = new Persona()
+              
+              let applicantIdx
+              try{
+                const applicantAccount = new nearAPI.Account(near.connection, applicant)
+                applicantIdx = await ceramic.getCurrentUserIdx(applicantAccount, appIdx, near)
+                
+              } catch (err) {
+                console.log('problem getting curdaoidx', err)
+                return false
+              }
 
               // Applicant
-              let result = await thisPersona.getPersona(applicant)
+              if(applicantIdx){
+              let result = await applicantIdx.get('profile', applicantIdx.id)
                   if(result){
                     result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
                     result.name ? setApplicantName(result.name) : setApplicantName('')
                   }
-              
+              }
               // Proposer
-              let resultb = await thisPersona.getPersona(proposer)
-              if(resultb){
-                resultb.avatar ? setProposerAvatar(resultb.avatar) : setProposerAvatar(imageName)
-                resultb.name ? setProposerName(resultb.name) : setProposerName('')
+              let proposerIdx
+              try{
+                const proposerAccount = new nearAPI.Account(near.connection, proposer)
+                proposerIdx = await ceramic.getCurrentUserIdx(proposerAccount, appIdx, near)
+                
+              } catch (err) {
+                console.log('problem getting proposer idx', err)
+                return false
+              }
+              if(proposerIdx){
+                let resultb = await proposerIdx.get('profile', proposerIdx.id)
+                if(resultb){
+                  resultb.avatar ? setProposerAvatar(resultb.avatar) : setProposerAvatar(imageName)
+                  resultb.name ? setProposerName(resultb.name) : setProposerName('')
+                }
               }
              }
 

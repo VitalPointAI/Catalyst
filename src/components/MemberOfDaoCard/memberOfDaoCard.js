@@ -2,7 +2,8 @@ import React, { useState, useEffect, useContext } from 'react'
 import { Link } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 import { dao } from '../../utils/dao'
-import Persona from '@aluhning/get-personas-js'
+import { ceramic } from '../../utils/ceramic'
+import * as nearAPI from 'near-api-js'
 
 // Material UI Components
 import { makeStyles } from '@material-ui/core/styles'
@@ -35,7 +36,6 @@ export default function MemberOfDaoCard(props) {
     const [sname, setsName] = useState('')
     const [slogo, setsLogo] = useState(imageName)
     const [display, setDisplay] = useState(true)
-   // const [isUpdated, setIsUpdated] = useState()
     const [finished, setFinished] = useState(false)
     const [totalMembers, setTotalMembers] = useState()
 
@@ -46,7 +46,8 @@ export default function MemberOfDaoCard(props) {
     const {
       wallet,
       isUpdated,
-      appIdx
+      appIdx, 
+      near
     } = state
 
     const {
@@ -54,8 +55,6 @@ export default function MemberOfDaoCard(props) {
       status
      } = props
 
-
-   const Dao = new Persona()
 
     useEffect(
       () => {
@@ -71,7 +70,16 @@ export default function MemberOfDaoCard(props) {
            } catch (err) {
              console.log('error retrieving member count', err)
            }
-           let result = await Dao.getDao(contractId, appIdx)
+
+           let thisCurDaoIdx
+           try{
+            let daoAccount = new nearAPI.Account(near.connection, contractId)
+            thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
+            } catch (err) {
+              console.log('problem getting curdaoidx', err)
+              return false
+            }
+           let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
            
            if(result){
                   result.name != '' ? setsName(result.name) : setsName('')

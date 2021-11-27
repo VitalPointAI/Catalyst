@@ -69,7 +69,6 @@ export default function PersonaCard(props) {
     const [claimed, setClaimed] = useState(false)
     const [curUserIdx, setCurUserIdx] = useState()
     const [display, setDisplay] = useState(false)
-    const [isUpdated, setIsUpdated] = useState(false)
     const [anchorEl, setAnchorEl] = useState(null)
     const [did, setDid] = useState()
     const [finished, setFinished] = useState(false)
@@ -79,126 +78,107 @@ export default function PersonaCard(props) {
     const {
       appIdx,
       didRegistryContract,
-      near
+      near,
+      isUpdated
     } = state
 
     const { 
       owner,
       accountId,
-      link
+      link,
+      claim
    } = props
 
     useEffect(
       () => {
 
       async function fetchData() {
-              if(owner == state.accountId){
-                setDisplay(true)
-              }
-              setFinished(false)
-
-              if(accountId && near){
-                //let personaAccount = new nearAPI.Account(near.connection, accountId)
-                // let thisCurPersonaIdx
-                // try{
-                //   thisCurPersonaIdx = await ceramic.getCurrentUserIdx3ID(near, accountId, appIdx)
-                //   console.log('thiscurpersonaidx', thisCurPersonaIdx)
-                //   setCurUserIdx(thisCurPersonaIdx)
-                // } catch (err) {
-                //   console.log('error retrieving idx', err)
-                // }
-                // let i = 0
-                //     while (i < state.claimed.length) {
-                //       if(state.claimed[i].accountId == accountId && state.claimed[i].owner == state.accountId){
-                //         let personaAccount = new nearAPI.Account(near.connection, accountId)
-                //         let keys = get(ACCOUNT_LINKS, [])
-                //         let j = 0
-                //         let pkey
-                //         while (j < keys.length){
-                //           if(keys[j].accountId == accountId){
-                //             pkey = keys[j].key
-                //             break
-                //           }
-                //           j++
-                //         }
-                //         await ceramic.getCurrentUserIdx3ID(near, personaAccount.accountId, appIdx)
-                //       break
-                //       }
-                //     i++
-                //     }
-              
-             
-              // Set Card Persona Idx
-              if(accountId && near && didRegistryContract){
-             
-                  let existingDid = await didRegistryContract.hasDID({accountId: accountId})
-
-                  if(!existingDid){
-                    let i = 0
-                    while (i < state.claimed.length) {
-                      if(state.claimed[i].accountId == accountId && state.claimed[i].owner == state.accountId){
-                        let personaAccount = new nearAPI.Account(near.connection, accountId)
-                        let keys = get(ACCOUNT_LINKS, [])
-                        let j = 0
-                        let pkey
-                        while (j < keys.length){
-                          if(keys[j].accountId == accountId){
-                            pkey = keys[j].key
-                            break
-                          }
-                          j++
-                        }
-                        let newKeyPair = KeyPair.fromString(pkey)
-                        await ceramic.getCurrentUserIdxNoDid(appIdx, didRegistryContract, personaAccount, newKeyPair, state.accountId)
-                      break
-                      }
-                    i++
-                    }
-                  }
-
-                  if(existingDid){
-                     
-                      let personaAccount = new nearAPI.Account(near.connection, accountId)
-
-                      let thisCurPersonaIdx
-                      try{
-                        thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, didRegistryContract)
-                       
-                        setCurUserIdx(thisCurPersonaIdx)
-                      } catch (err) {
-                        console.log('error retrieving idx', err)
-                      }
-
-                      let i = 0
-                   
-                      while (i < state.claimed.length) {
-                        if(state.claimed[i].accountId == accountId){
-                          let result = await thisCurPersonaIdx.get('profile', thisCurPersonaIdx.id)
-                    
-                          if(result){
-                            result.date ? setDate(result.date) : setDate('')
-                            result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-                            result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
-                            result.name ? setName(result.name) : setName('')
-                          }
-                          setClaimed(true)
-                          break
-                        }
-                        i++
-                      }
-
-                      return true
-                  }
-                }
-            }
+          if(isUpdated){}
+          if(owner == state.accountId){
+            setDisplay(true)
           }
+
+          setFinished(false)
+
+          
+          
+          // Set Card Persona Idx
+          if(accountId && near && didRegistryContract){
+
+            // generate account for this accountId
+            let personaAccount = new nearAPI.Account(near.connection, accountId)
+            
+            // see if this account already has a did
+        //    let did = await ceramic.retrieveDid(near, personaAccount, appIdx.ceramic)
+          //  console.log('accountId' + ':' + accountId + 'did:'+did)
+
+            // if(!did){
+            //   let i = 0
+            //   while (i < state.claimed.length) {
+            //     if(state.claimed[i].accountId == accountId && state.claimed[i].owner == state.accountId){
+                  
+            //       let keys = get(ACCOUNT_LINKS, [])
+            //       let j = 0
+            //       let pkey
+            //       while (j < keys.length){
+            //         if(keys[j].accountId == accountId){
+            //           pkey = keys[j].key
+            //           break
+            //         }
+            //         j++
+            //       }
+            //       let newKeyPair = KeyPair.fromString(pkey)
+            //       let thisCurPersonaIdx = await ceramic.getCurrentUserIdxNoDid(appIdx, personaAccount, newKeyPair, state.accountId, near)
+            //       console.log('thiscurpersonaidx', thisCurPersonaIdx)
+            //       setCurUserIdx(thisCurPersonaIdx)
+            //       setClaimed(true)
+            //       return true
+            //     }
+            //   i++
+            //   }
+            // }
+
+         //   if(did){
+
+                let thisCurPersonaIdx
+                try{
+                  thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, near)
+                  
+                  console.log('account: ' + personaAccount.accountId + ' did: ' + thisCurPersonaIdx.id)
+                  setCurUserIdx(thisCurPersonaIdx)
+                } catch (err) {
+                  console.log('error retrieving idx', err)
+                }
+
+                let i = 0
+                while (i < state.claimed.length) {
+                  if(state.claimed[i].accountId == accountId){
+                    if(thisCurPersonaIdx){
+                      let result = await thisCurPersonaIdx.get('profile', thisCurPersonaIdx.id)
+                      if(result){
+                        result.date ? setDate(result.date) : setDate('')
+                        result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
+                        result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
+                        result.name ? setName(result.name) : setName('')
+                      }
+                    }
+                    setClaimed(true)
+                    return true
+                  }
+                  i++
+                }
+                
+          //  }
+          }
+        
+      }
 
       fetchData()
           .then((res) => {
             setFinished(true)
           })
       
-  }, [isUpdated]
+  }, [isUpdated, near]
   )
 
   function handleUpdate(property){

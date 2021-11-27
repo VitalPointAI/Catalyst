@@ -7,7 +7,6 @@ import Footer from '../../components/common/Footer/footer'
 import DaoCard from '../DAOCard/daoCard'
 import { Header } from '../Header/header'
 import SearchBar from '../../components/common/SearchBar/search'
-import Persona from '@aluhning/get-personas-js'
 
 // Material UI components
 import { makeStyles } from '@material-ui/core/styles'
@@ -23,8 +22,6 @@ import FormHelperText from '@material-ui/core/FormHelperText'
 import Switch from '@material-ui/core/Switch'
 
 const axios = require('axios').default
-
-
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -65,7 +62,6 @@ export default function ExploreDaos(props) {
     const [resources, setResources] = useState(0)
     const [nearPrice, setNearPrice] = useState()
     const [searchDaos, setSearchDaos] = useState([])
-    const [isUpdated, setIsUpdated] = useState()
     const [contract, setContract] = useState()
    
 
@@ -76,10 +72,9 @@ export default function ExploreDaos(props) {
     const {
       currentDaosList,
       accountId,
-      near
+      near,
+      isUpdated
     } = state
-
-    const Dao = new Persona()
 
     const matches = useMediaQuery('(max-width:500px)')
 
@@ -87,8 +82,9 @@ export default function ExploreDaos(props) {
 
     useEffect(
         () => {
+            if(isUpdated){}
             async function fetchData() {
-                if(currentDaosList && near){
+                if(near){
                     setDaoCount(currentDaosList.length)
                     sortedDaos = _.sortBy(currentDaosList, 'created').reverse()
                    
@@ -139,7 +135,7 @@ export default function ExploreDaos(props) {
         return () => mounted = false
         }
 
-    }, [near, currentDaosList]
+    }, [near, isUpdated]
     )
     
     function handleEditDaoClick(property){
@@ -226,7 +222,7 @@ export default function ExploreDaos(props) {
        let i = 0
         let exists
         let someDaos = []
-        if(dao != false){
+        if(dao != false && searchDaos.length > 0){
             while(i < searchDaos.length){
                 if(searchDaos[i].contractId == dao.contractId){
                     exists = true
@@ -376,7 +372,6 @@ export default function ExploreDaos(props) {
                         link={''}
                         state={state}
                         handleEditDaoClick={handleEditDaoClick}
-                        handleUpdate={handleUpdate}
                         makeSearchDaos={makeSearchDaos}
                         status={status}
                     />

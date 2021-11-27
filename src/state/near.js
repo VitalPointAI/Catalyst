@@ -8,6 +8,8 @@ import { dao } from '../utils/dao'
 import Big from 'big.js'
 import { config } from './config'
 import { Action } from 'near-api-js/lib/transaction'
+import  { Caip10Link } from '@ceramicnetwork/stream-caip10-link'
+import { EthereumAuthProvider, NearAuthProvider } from '@ceramicnetwork/blockchain-utils-linking'
 
 export const {
     FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT, DAO_FIRST_INIT, 
@@ -18,6 +20,7 @@ export const {
     NEW_REVOCATION, INACTIVATE_COMMUNITY, NEW_INACTIVATION, NEW_CHANGE_PROPOSAL,
     networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix, tokenFactorySuffix, nftFactorySuffix, explorerUrl,
     contractName, didRegistryContractName, factoryContractName, tokenFactoryContractName,
+    REGISTRY_API_URL
 } = config
 
 export const {
@@ -121,12 +124,12 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
             return update('app.wasValidated', true)
         }
         const keyPair = KeyPair.fromRandom('ed25519')
-
+        let publicKey = keyPair.getPublicKey().toString().split(':')[1]
         let state = getState()
 
         let upLinks = await ceramic.downloadKeysSecret(state.curUserIdx, 'accountsKeys')
       
-            upLinks.push({ key: keyPair.secretKey, accountId: accountId, owner: owner, keyStored: Date.now() })
+            upLinks.push({ key: keyPair.secretKey, publicKey: publicKey, accountId: accountId, owner: owner, keyStored: Date.now() })
             await ceramic.storeKeysSecret(state.curUserIdx, upLinks, 'accountsKeys')
             set(ACCOUNT_LINKS, upLinks)
         
@@ -150,11 +153,11 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         let daoCreated = await isAccountTaken(accountId)
 
             const keyPair = KeyPair.fromRandom('ed25519')
-
+            let publicKey = keyPair.getPublicKey().toString().split(':')[1]
             let state = getState()
 
             let upLinks = await ceramic.downloadKeysSecret(state.appIdx, 'daoKeys')
-           
+   
             const daoInit = get(DAO_FIRST_INIT, [])
 
             try{
@@ -168,7 +171,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
                     i++
                 }
                 if(!exists){
-                    upLinks.push({ key: keyPair.secretKey, contractId: accountId, summoner: summoner, created: Date.now() })
+                    upLinks.push({ key: keyPair.secretKey, publicKey: publicKey, contractId: accountId, summoner: summoner, created: Date.now() })
                     let result = await ceramic.storeKeysSecret(state.appIdx, upLinks, 'daoKeys')
 
                     let link = '/dao/' + accountId
@@ -200,7 +203,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         let ftCreated = await isAccountTaken(accountId)
 
             const keyPair = KeyPair.fromRandom('ed25519')
-
+            let publicKey = keyPair.getPublicKey().toString().split(':')[1]
             let state = getState()
 
             let upLinks = await ceramic.downloadKeysSecret(state.appIdx, 'ftKeys')
@@ -218,7 +221,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
                     i++
                 }
                 if(!exists){
-                    upLinks.push({ key: keyPair.secretKey, contractId: accountId, creator: creator, created: Date.now() })
+                    upLinks.push({ key: keyPair.secretKey, publicKey: publicKey, contractId: accountId, creator: creator, created: Date.now() })
                     let result = await ceramic.storeKeysSecret(state.appIdx, upLinks, 'ftKeys')
 
                     let link = '/ft/' + accountId
@@ -269,8 +272,8 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
 
     //Initiate App Ceramic Components
 
-    const appIdx = await ceramic.getAppIdx(didRegistryContract, accountId)
-
+    const appIdx = await ceramic.getAppIdx(didRegistryContract, account, near)
+    console.log('appidx', appIdx)
     let t = 0
     let start = 0
     let end = 0
@@ -329,32 +332,45 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         console.log('error creating currentTokensList', err)
     }
 
-
-    // Set Current User Ceramic Client
-    let accountKeys = get(ACCOUNT_LINKS, [])
-    let i = 0
-    let idxKey
-    while (i < accountKeys.length){
-        if(accountKeys[i].accountId == accountId){
-        idxKey = accountKeys[i].key
-        break
-        }
-    i++
-    }
-    let curUserIdx = await ceramic.getCurrentUserIdx(account, appIdx, didRegistryContract)
-    // let curUserIdx = await ceramic.getCurrentUserIdx3ID(near, accountId, appIdx, idxKey)
-    // console.log('curuseridx', curUserIdx)
+    // // get owner of current account
+    // let allAccounts = get(ACCOUNT_LINKS, [])
+    // let kk = 0
+    // let accountOwner = null
+    // while(kk < allAccounts.length){
+    //     if(allAccounts[kk].accountId == accountId){
+    //         accountOwner = allAccounts[kk].owner
+    //         break
+    //     }
+    //     kk++
+    // }
     
+    // let did = false
+    // check for existing did and setup curuseridx
+    // try{
+    //     let nearAuthProvider = new NearAuthProvider(near, accountId, near.connection.networkId)
+    
+    //     let thisAccountId = await nearAuthProvider.accountId()
+    
+    //     let thisAccountLink = await Caip10Link.fromAccount(appIdx.ceramic, thisAccountId)
+    //     did = thisAccountLink.did
+    // } catch (err) {
+    //     console.log('problem getting did', err)
+    // }
    
-    let existingDid = await didRegistryContract.hasDID({accountId: accountId})
-
-    if(existingDid){
-        curUserIdx = await ceramic.getCurrentUserIdx(account, appIdx, didRegistryContract)
-    }
- 
-    if(!existingDid){
-        curUserIdx = await ceramic.getCurrentUserIdxNoDid(appIdx, didRegistryContract, account, null, null, accountId)
-    }
+    //let curUserIdx
+    // if(!did){
+    //     if(accountOwner == null){
+    //         accountOwner = accountId
+    //     }
+  //    curUserIdx = await ceramic.getCurrentUserIdxNoDid(appIdx, account, null, accountOwner, near)
+    //    curUserIdx = await ceramic.getCurrentUserIdx(account, appIdx, near)
+        // if(curUserIdx){   
+        //     await ceramic.makeDID(curUserIdx.ceramic, account, near, appIdx)
+        // }
+    // }
+    // if(did) {
+       let curUserIdx = await ceramic.getCurrentUserIdx(account, appIdx, near)
+    //}
  
     update('', { ftFactory, currentTokensList, didRegistryContract, appIdx, account, accountId, curUserIdx, daoFactory, currentDaosList })
     
@@ -364,7 +380,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
 
          //synch local links with what's stored for the account in ceramic
         let allAccounts = await ceramic.downloadKeysSecret(curUserIdx, 'accountsKeys')
-       
+      
         let storageLinks = get(ACCOUNT_LINKS, [])
        
       //  if(allAccounts.length != storageLinks.length){
@@ -388,6 +404,10 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
                             }
                             if(allAccounts[k].keyStored != storageLinks[j].keyStored){
                                 allAccounts[k].keyStored = storageLinks[j].keyStored
+                                didMakeChange = true
+                            }
+                            if(allAccounts[k].publicKey != storageLinks[j].publicKey){
+                                allAccounts[k].publicKey = storageLinks[j].publicKey
                                 didMakeChange = true
                             }
                         }
@@ -582,20 +602,17 @@ export const unclaimLink = (keyToFind) => async ({ update }) => {
 
 export const keyRotation = () => async ({ update, getState, dispatch }) => {
     const state = getState()
-  
+    
     const { key, accountId, publicKey, seedPhrase, owner, curUserIdx } = state.accountData
-
+    console.log('key rotate appidx', state.appIdx)
     const keyPair = KeyPair.fromString(key)
+    let thisPublicKey = keyPair.getPublicKey().toString().split(':')[1]
     const signer = await InMemorySigner.fromKeyPair(networkId, accountId, keyPair)
     const near = await nearAPI.connect({
         networkId, nodeUrl, walletUrl, deps: { keyStore: signer.keyStore },
     })
     const account = new nearAPI.Account(near.connection, accountId)
     const accessKeys = await account.getAccessKeys()
-
-   // const didContract = await ceramic.initiateDidRegistryContract(account)
-
-   // const appIdx = await ceramic.getAppIdx(didContract, accountId)
 
     let upLinks = await ceramic.downloadKeysSecret(curUserIdx, 'accountsKeys')
    
@@ -605,6 +622,7 @@ export const keyRotation = () => async ({ update, getState, dispatch }) => {
         if(upLinks[b].accountId == accountId){
             let modifiedAccount = {
                 key: key,
+                publicKey: publicKey,
                 accountId: accountId,
                 owner: owner,
                 keyStored: Date.now()
@@ -616,7 +634,7 @@ export const keyRotation = () => async ({ update, getState, dispatch }) => {
     }
 
     if(!exists){
-        upLinks.push({ key: key.secretKey, accountId: accountId, owner: owner, keyStored: Date.now() })
+        upLinks.push({ key: key.secretKey, publicKey: thisPublicKey, accountId: accountId, owner: owner, keyStored: Date.now() })
     }
     await ceramic.storeKeysSecret(curUserIdx, upLinks, 'accountsKeys')
     set(ACCOUNT_LINKS, upLinks)            
@@ -629,7 +647,7 @@ export const keyRotation = () => async ({ update, getState, dispatch }) => {
     set(SEED_PHRASE_LOCAL_COPY, seedPhrase)
 
     const result = await account.signAndSendTransaction(accountId, actions)
-    
+ //   let did = await ceramic.makeDID(curUserIdx.ceramic, account, near, state.appIdx)
     return result
 }
 
@@ -1199,7 +1217,7 @@ export async function synchDaos(state){
 
     try{
         const keyPair = KeyPair.fromRandom('ed25519')
-        
+        let publicKey = keyPair.getPublicKey().toString().split(':')[1]
         let upLinks = await ceramic.downloadKeysSecret(state.appIdx, 'daoKeys')
         let i = 0
         let exists = false
@@ -1223,7 +1241,7 @@ export async function synchDaos(state){
         i++
         }
         if(!exists){
-            upLinks.push({ key: keyPair.secretKey, contractId: contractId, summoner: summoner, created: created })
+            upLinks.push({ key: keyPair.secretKey, publicKey: publicKey, contractId: contractId, summoner: summoner, created: created })
             let result = await ceramic.storeKeysSecret(state.appIdx, upLinks, 'daoKeys')
 
             if(result){
@@ -2530,7 +2548,7 @@ export async function logProcessEvent(near, appIdx, didRegistryContract, curDaoI
             let thisCurPersonaIdx
             try{
             let personaAccount = new nearAPI.Account(near.connection, proposal.applicant)
-            thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, didRegistryContract)
+            thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, near)
             let result = await thisCurPersonaIdx.set('profile', record)    
             } catch (err) {
                 console.log('error retrieving idx', err)

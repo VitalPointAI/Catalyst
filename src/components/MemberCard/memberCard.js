@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
+import { ceramic } from '../../utils/ceramic'
+import * as nearAPI from 'near-api-js'
 import { appStore, onAppMount } from '../../state/app'
-import Persona from '@aluhning/get-personas-js'
 import MemberProfileDisplay from '../MemberProfileDisplay/memberProfileDisplay'
 import Delegation from '../Delegation/delegation'
 import ManageDelegations from '../ManageDelegations/manageDelegations'
@@ -64,7 +65,6 @@ export default function MemberCard(props) {
     const { state, dispatch, update } = useContext(appStore)
 
     const {
-      didRegistryContract,
       near, 
       appIdx,
       accountId,
@@ -98,7 +98,7 @@ export default function MemberCard(props) {
         () => {
          
         async function fetchData() {
-          isUpdated
+          if(isUpdated){}
           if(contract && parseInt(receivedDelegations) > 0){
             try{
               let delegationInfo = await contract.getDelegationInfo({member: state.accountId, delegatee: accountName})
@@ -107,15 +107,26 @@ export default function MemberCard(props) {
               console.log('error retrieving delegation info', err)
             }
           }
-          if(accountName && state){
-            const thisPersona = new Persona()
-            let result = await thisPersona.getPersona(accountName)
-        
-            if(result){
-              result.date ? setDate(result.date) : setDate('')
-              result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-              result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
-              result.name ? setName(result.name) : setName('')
+          if(accountName && near){
+            let thisCurMemberIdx
+            try{
+              let memberAccount = new nearAPI.Account(near.connection, accountName)
+              thisCurMemberIdx = await ceramic.getCurrentUserIdx(memberAccount, appIdx, near)
+              console.log('currentmemberidx', thisCurMemberIdx)
+            } catch (err) {
+              console.log('problem getting member idx', err)
+              return false
+            }
+            
+            if(thisCurMemberIdx){
+              let result = await thisCurMemberIdx.get('profile', thisCurMemberIdx.id)
+          
+              if(result){
+                result.date ? setDate(result.date) : setDate('')
+                result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
+                result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
+                result.name ? setName(result.name) : setName('')
+              }
             }
           }
           if(shares){
@@ -140,7 +151,7 @@ export default function MemberCard(props) {
       return () => mounted = false
       }
 
-    }, [avatar, currentMemberInfo, isUpdated]
+    }, [near, currentMemberInfo, isUpdated]
     )
     
     function formatDate(timestamp) {

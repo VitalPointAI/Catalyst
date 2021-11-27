@@ -100,7 +100,7 @@ export default function Opportunities(props) {
               } catch (err) {
                 console.log('no account', err)
               }
-              thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+              thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
            
               opportunities = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
               console.log('opportunities', opportunities)
@@ -123,7 +123,14 @@ export default function Opportunities(props) {
               console.log('allopps', allOpportunities)
 
               // 2. Retrieve current persona data
-              let currentPersona = await Persona.getPersona(accountId)
+              let personaAccount = new nearAPI.Account(near.connection, accountId)
+              let thisCurPersonaIdx
+              try{
+                thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, near)
+              } catch (err) {
+                console.log('error retrieving idx', err)
+              }
+              let currentPersona = await thisCurPersonaIdx.get('profile', thisCurPersonaIdx.id)
 
               // 3. Initialize recommendations array
               let currentRecommendations = []

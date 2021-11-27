@@ -60,7 +60,8 @@ let config = {
     factoryContractName: 'factory1.vitalpointai.testnet',
     tokenFactoryContractName: 'ft.vitalpointai.testnet',
     nftFactoryContractName: 'nft.vitalpointai.testnet',
-    ACCOUNT_HELPER_URL: 'https://near-contract-helper.onrender.com'
+    ACCOUNT_HELPER_URL: 'https://near-contract-helper.onrender.com',
+    REGISTRY_API_URL: 'https://api.thegraph.com/subgraphs/name/aluhning/did-registry'
 }
 
 if(process.env.ENV === 'localhost') {

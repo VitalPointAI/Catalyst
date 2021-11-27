@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react'
+import * as nearAPI from 'near-api-js'
 import { Link } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
+import { ceramic } from '../../utils/ceramic'
 import { dao } from '../../utils/dao'
 import EditDaoForm from '../EditDao/editDao'
 import DaoProfileDisplay from '../DAOProfileDisplay/daoProfileDisplay'
-import Persona from '@aluhning/get-personas-js'
 import Purpose from '../Purpose/purpose'
 
 
@@ -69,7 +70,6 @@ export default function DaoCard(props) {
     const [claimed, setClaimed] = useState(false)
     const [curDaoIdx, setCurDaoIdx] = useState()
     const [display, setDisplay] = useState(true)
-    const [isUpdated, setIsUpdated] = useState()
     const [anchorEl, setAnchorEl] = useState(null)
     const [anchorE2, setAcnhorE2] = useState(null)
     const [did, setDid] = useState()
@@ -89,15 +89,17 @@ export default function DaoCard(props) {
    } = props
  
    const {
-     accountId
+     accountId, 
+     appIdx,
+     isUpdated,
+     near
    } = state
-
-   const Dao = new Persona()
 
     useEffect(
       () => {
 
       async function fetchData() {
+        if(isUpdated){}
          let result = {}
          
          if(contractId ){
@@ -112,7 +114,18 @@ export default function DaoCard(props) {
            } catch (err) {
              console.log('error retrieving member status', err)
            }
-           result = await Dao.getDao(contractId)
+
+           let thisCurDaoIdx
+           try{
+            let daoAccount = new nearAPI.Account(near.connection, contractId)
+            thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
+            setCurDaoIdx(thisCurDaoIdx)
+            } catch (err) {
+              console.log('problem getting curdaoidx', err)
+              return false
+            }
+
+           result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
            
            if(result){
                   result.name != '' ? setsName(result.name) : setsName('')
@@ -145,7 +158,7 @@ export default function DaoCard(props) {
         return () => mounted = false
         }
 
-  }, [contractId]
+  }, [contractId, isUpdated]
   )
 
   function handleUpdate(property){

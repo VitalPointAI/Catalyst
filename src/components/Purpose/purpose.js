@@ -72,7 +72,7 @@ export default function Purpose(props) {
 
         async function fetchData(){
           if(contractId){
-            let community = await Community.getDao(contractId)
+            let community = await Community.getData('daoProfile', contractId, curDaoIdx)
             setPurpose(community.purpose)
           }
         }

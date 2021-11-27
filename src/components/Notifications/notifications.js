@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useContext}  from 'react'
-import Persona from '@aluhning/get-personas-js'
 import { appStore, onAppMount } from '../../state/app'
 import { get, set, del } from '../../utils/storage'
 import {ceramic} from '../../utils/ceramic'
@@ -41,8 +40,6 @@ export default function NotificationCard(props){
         header,
         handleNotificationClick
     }=props
-
-    const thisPersona = new Persona()
 
     useEffect(() => {
         

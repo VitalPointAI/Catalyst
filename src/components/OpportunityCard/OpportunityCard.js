@@ -8,7 +8,6 @@ import {OPPORTUNITY_NOTIFICATION, PROPOSAL_NOTIFICATION} from '../../state/near'
 import * as nearAPI from 'near-api-js'
 import { ceramic } from '../../utils/ceramic'
 import { dao } from '../../utils/dao'
-import Persona from '@aluhning/get-personas-js'
 import FundingProposal from '../FundingProposal/fundingProposal'
 import EditFundingProposalForm from '../EditProposal/editFundingProposal'
 import OpportunityProposalDetails from '../ProposalDetails/opportunityProposalDetails'
@@ -131,8 +130,8 @@ export default function OpportunityCard(props) {
     const [curUserIdx, setCurUserIdx] = useState()
     const [joined, setJoined] = useState(props.joined)
     const [contribution, setDonation] = useState()
-   // const [isUpdated, setIsUpdated] = useState()
     const [curDaoIdx, setCurDaoIdx] = useState()
+    const [curCreatorIdx, setCurCreatorIdx] = useState()
     const [status, setStatus] = useState()
     const [proposalDeposit, setProposalDeposit] = useState()
     const [memberStatus, setMemberStatus] = useState()
@@ -195,8 +194,6 @@ export default function OpportunityCard(props) {
       contractId
     } = useParams()
 
-    const data = new Persona()
-   // let useContractId
 
     useEffect(
         () => {
@@ -223,14 +220,14 @@ export default function OpportunityCard(props) {
           //     useContractId = contractId
           //     setThisContractId(contractId)
           //   }
-            if(contractId){
-              let thisCurDaoIdx
-              let daoAccount = new nearAPI.Account(near.connection, contractId)
+            // if(contractId){
+            //   let thisCurDaoIdx
+            //   let daoAccount = new nearAPI.Account(near.connection, contractId)
                
-              thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+            //   thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
             
-              setCurDaoIdx(thisCurDaoIdx)
-            }
+            //   setCurDaoIdx(thisCurDaoIdx)
+            // }
           //}
           
           
@@ -269,22 +266,44 @@ export default function OpportunityCard(props) {
           if(creator){
 
             // Get Persona data
-            let result = await data.getPersona(creator)
-        
-            if(result){
-              result.date ? setDate(result.date) : setDate('')
-              result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-              result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
-              result.name ? setName(result.name) : setName('')
+             let thisCurCreatorIdx
+            try{
+              let creatorAccount = new nearAPI.Account(near.connection, creator)
+              thisCurCreatorIdx = await ceramic.getCurrentUserIdx(creatorAccount, appIdx, near)
+              setCurCreatorIdx(thisCurCreatorIdx)
+            } catch (err) {
+              console.log('problem getting curcreatoridx', err)
+              return false
+            }
+            if(thisCurCreatorIdx){
+              let result = await thisCurCreatorIdx.get('profile', thisCurCreatorIdx.id)
+          
+              if(result){
+                result.date ? setDate(result.date) : setDate('')
+                result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
+                result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
+                result.name ? setName(result.name) : setName('')
+              }
             }
           }
 
           // get community information
-          let daoResult = await data.getDao(contractId)
-          if(daoResult){
-            daoResult.name ? setCommunityName(daoResult.name) : setCommunityName('')
-            daoResult.logo ? setLogo(daoResult.logo) : setLogo(defaultImage)
-          }
+            let thisCurDaoIdx
+            try{
+              let daoAccount = new nearAPI.Account(near.connection, contractId)
+              thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
+              setCurDaoIdx(thisCurDaoIdx)
+              } catch (err) {
+                console.log('problem getting curdaoidx', err)
+                return false
+              }
+            if(thisCurDaoIdx){
+              let daoResult = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
+              if(daoResult){
+                daoResult.name ? setCommunityName(daoResult.name) : setCommunityName('')
+                daoResult.logo ? setLogo(daoResult.logo) : setLogo(defaultImage)
+              }
+            }
 
           
 

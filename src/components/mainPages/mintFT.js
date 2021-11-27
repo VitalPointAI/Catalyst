@@ -7,7 +7,6 @@ import Footer from '../common/Footer/footer'
 import TokenCard from '../TokenCard/tokenCard'
 import { Header } from '../Header/header'
 import SearchBar from '../common/SearchBar/search'
-import Persona from '@aluhning/get-personas-js'
 
 // Material UI components
 import { makeStyles } from '@material-ui/core/styles'
@@ -80,8 +79,6 @@ export default function MintFT(props) {
       near,
       ftContract
     } = state
-
-   // const Dao = new Persona()
 
     const matches = useMediaQuery('(max-width:500px)')
 

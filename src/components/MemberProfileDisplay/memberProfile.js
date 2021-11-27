@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
+import * as nearAPI from 'near-api-js'
+import { ceramic } from '../../utils/ceramic'
 import { appStore, onAppMount } from '../../state/app'
 import { makeStyles } from '@material-ui/core/styles'
 import CommentForm from '../common/Comment/commentForm'
@@ -91,7 +93,10 @@ export default function MemberProfile(props) {
     const { state, dispatch, update } = useContext(appStore)
 
     const {
-      isUpdated
+      isUpdated,
+      curUserIdx,
+      appIdx,
+      near
     } = state
 
     const {
@@ -108,9 +113,17 @@ export default function MemberProfile(props) {
             // Get Applicant Persona Information
          
             if(member){     
-             
+              let thisCurMemberIdx
+            try{
+              let memberAccount = new nearAPI.Account(near.connection, member)
+              thisCurMemberIdx = await ceramic.getCurrentUserIdx(memberAccount, appIdx, near)
+              console.log('currentmemberidx', thisCurMemberIdx)
+            } catch (err) {
+              console.log('problem getting member idx', err)
+              return false
+            }
                               
-                  let result = await thisPersona.getPersona(member)
+                  let result = await thisCurMemberIdx.get('profile', thisCurMemberIdx.id)
                   console.log('result', result)
                       if(result){
                         result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)

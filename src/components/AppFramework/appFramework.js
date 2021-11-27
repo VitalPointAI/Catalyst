@@ -20,11 +20,13 @@ import { logInitEvent,
   synchDaos, 
   synchBudgets,
   networkId,
-  tokenFactoryContractName} from '../../state/near'
+  tokenFactoryContractName,
+  REGISTRY_API_URL} from '../../state/near'
 
 import FungibleTokens from '../../utils/fungibleTokens'
-
 const { getMetadata, getBalanceOf } = FungibleTokens;
+
+import {ApolloClient, InMemoryCache, gql} from '@apollo/client'
 
 import ActionSelector from '../ActionSelector/actionSelector'
 import ProposalList from '../ProposalList/proposalList'
@@ -102,7 +104,45 @@ const useStyles = makeStyles((theme) => ({
   }));
 
 const imageName = require('../../img/default-profile.png') // default no-image avatar
-  
+
+const registryQuery = `
+  query{
+    accounts{
+      id
+      actionLogs
+    }
+  }
+`
+
+const client = new ApolloClient({
+  uri: REGISTRY_API_URL,
+  cache: new InMemoryCache(),
+})
+
+client
+  .query({
+    query: gql(registryQuery),
+  })
+  .then((data) => {
+    console.log('Subgraph data:', data)
+      let result = data.data.accounts[0].actionLogs[0].split('"')
+      if (result[1]=='accountId'){
+      let accountName = result[3]
+      console.log('accountName', accountName)
+      }
+      if (result[5]=='did'){
+        let accountDid = result[7]
+        console.log('accountdid', accountDid)
+      }
+    console.log('a', data.data.accounts)
+    console.log('b', data.data.accounts[0].actionLogs)
+    console.log('c', data.data.accounts[0].actionLogs[0])
+    console.log('subgraph account id', data.data.accounts[0].actionLogs[0].accountId)
+  })
+  .catch((err) => {
+    console.log('Error fetching data:', err)
+  })
+
 export default function AppFramework(props) {
 
     const { state, dispatch, update } = useContext(appStore)
@@ -307,7 +347,7 @@ export default function AppFramework(props) {
                 }
                
                 try{
-                  curDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+                  curDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
                   setCurDaoIdx(curDaoIdx)
                   
                 } catch (err) {
@@ -435,9 +475,10 @@ export default function AppFramework(props) {
 
                   // check for first init to log summon and member events
                   let firstInit = get(DAO_FIRST_INIT, [])
-        
+                  
                   let c = 0
                   while(c < firstInit.length){
+                    await ceramic.makeDID(curDaoIdx.ceramic, currentDaoAccount, near, appIdx)
                     if(firstInit[c].contractId==contractId && firstInit[c].init == true){
                     
                       let logged = await logInitEvent(
@@ -1094,7 +1135,7 @@ export default function AppFramework(props) {
       try {
         let synched = await synchProposalEvent(curDaoIdx, contract)
         setAllProposals(synched.events)
-        console.log('all proposals', synched.events)
+      
      //   let budgetSynch = await synchBudgets(curDaoIdx, synched.events)
      //  console.log('budget synch', budgetSynch)
       } catch (err) {

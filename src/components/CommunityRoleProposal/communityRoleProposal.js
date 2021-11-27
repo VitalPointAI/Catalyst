@@ -88,7 +88,7 @@ export default function CommunityRoleProposal(props) {
         // get community information
       
         if(contractId){
-          let daoResult = await data.getDao(contractId)
+          let daoResult = await data.getData('daoProfile', contractId)
          
           if(daoResult){
             daoResult.name ? setCommunityName(daoResult.name) : setCommunityName('')

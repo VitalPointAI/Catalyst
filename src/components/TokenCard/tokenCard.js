@@ -1,13 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react'
-import { Link } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 import { ft } from '../../utils/ft'
 import { ceramic } from '../../utils/ceramic'
 import * as nearAPI from 'near-api-js'
-import EditDaoForm from '../EditDao/editDao'
-import DaoProfileDisplay from '../DAOProfileDisplay/daoProfileDisplay'
-import Persona from '@aluhning/get-personas-js'
-import Purpose from '../Purpose/purpose'
 import { GAS, parseNearAmount, formatNearAmount } from '../../state/near'
 
 
@@ -21,12 +16,8 @@ import Typography from '@material-ui/core/Typography'
 import { red } from '@material-ui/core/colors'
 import Button from '@material-ui/core/Button'
 import { CardActionArea, CardHeader, LinearProgress } from '@material-ui/core'
-import CheckCircleIcon from '@material-ui/icons/CheckCircle'
 import NotInterestedIcon from '@material-ui/icons/NotInterested'
-import Chip from '@material-ui/core/Chip'
-import EditIcon from '@material-ui/icons/Edit'
-import PauseCircleFilledIcon from '@material-ui/icons/PauseCircleFilled'
-import PlayCircleFilledIcon from '@material-ui/icons/PlayCircleFilled'
+
 
 import { config } from '../../state/config'
 
@@ -79,7 +70,6 @@ export default function TokenCard(props) {
     const [anchorE2, setAcnhorE2] = useState(null)
     const [did, setDid] = useState()
     const [finished, setFinished] = useState(false)
-   // const [created, setCreated] = useState()
     const [detailsClicked, setDetailsClicked] = useState(false) 
     const [amemberStatus, setaMemberStatus] = useState() 
     const [memberIcon, setMemberIcon] = useState(<NotInterestedIcon />)
@@ -107,8 +97,6 @@ export default function TokenCard(props) {
      appIdx,
      didRegistryContract
    } = state
-
-   const Creator = new Persona()
 
    useEffect(
     () => {

@@ -44,7 +44,7 @@ export default function Developers(props) {
         
           let Persona = new Personas()
          
-          let result = await Persona.getPersona(accountId)
+          let result = await Persona.getData('profile', accountId, state.appIdx)
           
        
           setResult(result)

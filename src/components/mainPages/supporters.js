@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
+import * as nearAPI from 'near-api-js'
 import { appStore, onAppMount } from '../../state/app'
 import { Header } from '../Header/header'
-import Personas from '@aluhning/get-personas-js'
 import SupporterCard from '../SupporterCard/SupporterCard'
+import { ceramic } from '../../utils/ceramic'
 import Footer from '../../components/common/Footer/footer'
 
 // Material UI components
@@ -40,6 +41,11 @@ export default function Supporters(props) {
     const { state, dispatch, update } = useContext(appStore)
 
     const {
+      near,
+      appIdx
+    } = state
+
+    const {
       contractId
     } = useParams()
 
@@ -47,16 +53,24 @@ export default function Supporters(props) {
     useEffect(
         () => {
           async function fetchData() {
-
-          let Persona = new Personas()
-          let donations = await Persona.getDonations(contractId)
-          
-       
-          setDonations(donations)
+          if(near){
+            let daoAccount = new nearAPI.Account(near.connection, contractId)
+              let thisCurDaoIdx
+                  try{
+                    thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
+                  } catch (err) {
+                    console.log('error retrieving dao idx', err)
+                  }
+              if(thisCurDaoIdx){
+                let donations = await thisCurDaoIdx.get('donations', thisCurDaoIdx.id)
+                console.log('donations', donations)
+                setDonations(donations)
+              }
+            }
           }
 
           fetchData()
-    }, []
+    }, [near]
     )
     
     return (
@@ -71,7 +85,7 @@ export default function Supporters(props) {
          
             {donations && donations.donations.length > 0 ?
               donations.donations.map((fr, i) => {
-              
+              console.log('fr', fr)
                 return(
                   <SupporterCard 
                     key={i}

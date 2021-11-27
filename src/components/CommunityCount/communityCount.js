@@ -52,19 +52,9 @@ export default function CommunityCount(props) {
     const { state, dispatch, update } = useContext(appStore)
 
     const {
-      didRegistryContract,
-      near,
-      appIdx,
       accountId,
-      curUserIdx,
-      claimed,
-      currentDaosList,
-      links
+      currentDaosList
     } = state
-
-    const {
-        balance
-    } = props
 
     const {
         contractId

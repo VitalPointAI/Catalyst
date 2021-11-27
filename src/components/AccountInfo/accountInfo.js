@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
+import * as nearAPI from 'near-api-js'
 import { appStore, onAppMount } from '../../state/app'
 import { Link } from 'react-router-dom'
 import EditPersonaForm from '../EditPersona/editPersona'
 import { makeStyles } from '@material-ui/core/styles'
-import Persona from '@aluhning/get-personas-js'
 import Purpose from '../Purpose/purpose'
+import Personas from '@aluhning/get-personas-js'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI Components
 import Avatar from '@material-ui/core/Avatar'
@@ -54,18 +56,17 @@ export default function PersonaInfo(props) {
     const [avatar, setAvatar] = useState(props.avatar)
     const [claimCount, setClaimedCount] = useState(0)
     const [daoCount, setDaoCount] = useState()
-    const [isUpdated, setIsUpdated] = useState()
 
     const { state, dispatch, update } = useContext(appStore)
 
     const {
-      didRegistryContract,
       near,
       appIdx,
       accountId,
       curUserIdx,
       claimed,
       currentDaosList,
+      isUpdated,
       links
     } = state
 
@@ -77,25 +78,30 @@ export default function PersonaInfo(props) {
         contractId
     } = useParams()
 
-    const matches = useMediaQuery('(max-width:500px)');
+    const data = new Personas()
 
-    const Dao = new Persona()
+    const matches = useMediaQuery('(max-width:500px)');
    
     useEffect(
         () => {
   
         async function fetchData() {
+            if(isUpdated){}
             setFinished(false)
-            if(state) {
-                state.isUpdated
-            
-                if (curUserIdx){
-                    let result = await curUserIdx.get('profile', curUserIdx.id)
-              
-                    if(result){
-                        result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-                    }
+            if(claimed && near) {
+                let personaAccount = new nearAPI.Account(near.connection, accountId)
+                let thisCurPersonaIdx
+                try{
+                  thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, near)
+                } catch (err) {
+                  console.log('error retrieving idx', err)
                 }
+                
+                let result = await thisCurPersonaIdx.get('profile', thisCurPersonaIdx.id)
+                if(result){
+                    result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
+                }
+              
 
                 if(claimed && claimed.length > 0){
                     let i = 0

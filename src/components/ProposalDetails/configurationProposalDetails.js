@@ -104,7 +104,8 @@ export default function ConfigurationProposalDetails(props) {
 
     const {
       accountId,
-      curUserIdx
+      curUserIdx,
+      appIdx
     } = state
 
     const {
@@ -131,7 +132,7 @@ export default function ConfigurationProposalDetails(props) {
             // Get Applicant Persona Information
             if(proposer){                    
               
-              let result = await thisPersona.getPersona(proposer)
+              let result = await thisPersona.getData('profile', proposer, appIdx)
                   if(result){
                     result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
                     result.name ? setProposerName(result.name) : setProposerName(proposer)
@@ -144,7 +145,7 @@ export default function ConfigurationProposalDetails(props) {
             // Get Current User Persona Information
             if(accountId){                    
               
-              let result = await thisPersona.getPersona(accountId)
+              let result = await thisPersona.getData('profile', accountId, appIdx)
                   if(result){
                     result.avatar ? setCurUserAvatar(result.avatar) : setCurUserAvatar(imageName)
                     result.name ? setCurUserName(result.name) : setCurUserName(accountId)
@@ -156,7 +157,7 @@ export default function ConfigurationProposalDetails(props) {
            
             if(applicant){                           
                
-                  let result = await thisPersona.getPersona(applicant)
+                  let result = await thisPersona.getData('profile', applicant, appIdx)
                       if(result){
                         result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
                         result.name ? setApplicantName(result.name) : setApplicantName(applicant)

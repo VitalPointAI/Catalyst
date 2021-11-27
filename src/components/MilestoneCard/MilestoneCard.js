@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from 'react'
 import { explorerUrl } from '../../state/near'
 import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
-import Persona from '@aluhning/get-personas-js'
 import PayoutProposal from '../PayoutProposal/payoutProposal'
 import CancelCommitmentProposal from '../CancelCommitment/cancelCommitmentProposal'
 
@@ -71,7 +70,6 @@ export default function MilestoneCard(props) {
 
     const classes = useStyles()
 
-    const thisPersona = new Persona()
 
     useEffect(
         () => {

@@ -31,7 +31,6 @@ const defaultLogo = require('../../img/default_logo.png')
 
 export default function Logo(props) {
     const [logo, setLogo] = useState(defaultLogo)
-    const [isUpdated, setIsUpdated] = useState(false)
     const [anchorEl, setAnchorEl] = useState(null)
     const [editDaoClicked, setEditDaoClicked] = useState(false)
     const [curDaoIdx, setCurDaoIdx] = useState()
@@ -47,7 +46,8 @@ export default function Logo(props) {
         didRegistryContract,
         near,
         accountId,
-        wallet
+        wallet,
+        isUpdated
       } = state
 
     const {
@@ -59,7 +59,7 @@ export default function Logo(props) {
     useEffect(() => {
 
         async function fetchData() {
-
+            if(isUpdated){}
             if(!contractId){
                 setLogo(catalystLogo)
                 setLoaded(true)
@@ -74,7 +74,7 @@ export default function Logo(props) {
                   
                 }
                     
-                thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+                thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
            
                 setCurDaoIdx(thisCurDaoIdx)
                 
@@ -122,10 +122,6 @@ export default function Logo(props) {
 
     }, [near, isUpdated]
     )
-
-    function handleUpdate(property){
-        setIsUpdated(property)
-    }
 
     const handleEditDaoClick = () => {
         handleExpanded()
@@ -236,7 +232,6 @@ export default function Logo(props) {
             state={state}
             handleEditDaoClickState={handleEditDaoClickState}
             curDaoIdx={curDaoIdx}
-            handleUpdate={handleUpdate}
             contractId={contractId}
             /> : null }
         </>

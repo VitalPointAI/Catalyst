@@ -192,7 +192,7 @@ class Ceramic {
 
 async makeSeed(account){
     let keyPair = KeyPair.fromRandom('ed25519')
-    
+    let publicKey = keyPair.getPublicKey().toString().split(':')[1]
     let owner = account.accountId
     const links = get(ACCOUNT_LINKS, [])
     let c = 0
@@ -200,7 +200,7 @@ async makeSeed(account){
     while(c < links.length) {
         if(links[c].accountId == account.accountId){
             accountExists = true
-            links[c] = { key: keyPair.secretKey, accountId: account.accountId, owner: owner, keyStored: Date.now() }
+            links[c] = { key: keyPair.secretKey, publicKey: publicKey, accountId: account.accountId, owner: owner, keyStored: Date.now() }
             set(ACCOUNT_LINKS, links)
             break
         } else {
@@ -209,7 +209,7 @@ async makeSeed(account){
     c++
     }
     if(!accountExists){
-      links.push({ key: keyPair.secretKey, accountId: account.accountId, owner: owner, keyStored: Date.now() })
+      links.push({ key: keyPair.secretKey, publicKey: publicKey, accountId: account.accountId, owner: owner, keyStored: Date.now() })
       set(ACCOUNT_LINKS, links)
     }
 }
@@ -922,7 +922,7 @@ async makeSeed(account){
           schema: schemaURL.commitId.toUrl()
         })
      //   let didContract = await this.useDidContractFullAccessKey()
-        await contract.storeAlias({alias: accountId+':'+aliasName, definition: definition.id.toString()})
+        await contract.storeAlias({alias: accountId+':'+aliasName, definition: definition.id.toString(), description: description})
         return definition.id.toString()
       }
     } catch (err) {
@@ -933,9 +933,19 @@ async makeSeed(account){
 
   // application IDX - maintains most up to date schemas and definitions ensuring chain always has the most recent commit
   
-  async getAppIdx(contract, accountId){
+  async getAppIdx(contract, account, near){
+  
+    const appClient = await this.getAppCeramic(account.accountId)
 
-    const appClient = await this.getAppCeramic(accountId)
+    // const nearAuthProvider = new NearAuthProvider(near, accountId, near.connection.networkId)
+    // const thisAccountId = await nearAuthProvider.accountId()
+    // console.log('thisaccountid', thisAccountId)
+    // const thisAccountLink = await Caip10Link.fromAccount(appClient, thisAccountId)
+    // console.log('thisaccountlink 1', thisAccountLink)
+    // await thisAccountLink.setDid(appClient.did.id, nearAuthProvider)
+    
+    // const thisAccountLink2 = await Caip10Link.fromAccount(appClient, thisAccountId)
+    // console.log('thisaccountlink2', thisAccountLink2)
 
     const appDid = this.associateAppDID(APP_OWNER_ACCOUNT, contract, appClient)
 
@@ -1062,7 +1072,9 @@ async makeSeed(account){
     }
 
     const appIdx = new IDX({ ceramic: appClient, aliases: rootAliases})
-   
+    
+   // let did = await this.makeDID(appClient, account, near, appIdx)
+
     return appIdx
   }
 
@@ -1075,8 +1087,8 @@ async makeSeed(account){
 // }
 
   // current user IDX (account currently logged in)
-  async getCurrentUserIdx(account, appIdx, contract){
-   
+  async getCurrentUserIdx(account, appIdx, near){
+      
       set(KEY_REDIRECT, {action: false, link: ''})
       let seed = await this.getLocalAccountSeed(account.accountId)
   
@@ -1084,16 +1096,16 @@ async makeSeed(account){
         set(KEY_REDIRECT, {action: true, link: '/newKey'})
         return false
       }
+
       let currentUserCeramicClient = await this.getCeramic(account, seed)
-     
-      this.associateDID(account.accountId, contract, currentUserCeramicClient)
+      
+      let did = await this.makeDID(currentUserCeramicClient, account, near, appIdx)
       let curUserIdx = new IDX({ ceramic: currentUserCeramicClient, aliases: appIdx._aliases})
-     
       return curUserIdx
   }
 
   // current dao IDX
-  async getCurrentDaoIdx(contractAccount, appIdx, contract){
+  async getCurrentDaoIdx(contractAccount, appIdx, near){
     
     let seed
     let daoKeys =  await this.downloadKeysSecret(appIdx, 'daoKeys')
@@ -1111,7 +1123,7 @@ async makeSeed(account){
       return false
     }
     let currentDaoCeramicClient = await this.getCeramic(contractAccount, seed)
-    this.associateDID(contractAccount.accountId, contract, currentDaoCeramicClient)
+   
     let curDaoIdx = new IDX({ceramic: currentDaoCeramicClient, aliases: appIdx._aliases})
     return curDaoIdx
 }
@@ -1141,19 +1153,19 @@ async getCurrentFTIdx(contractAccount, appIdx, contract){
 }
 
 
-  async getCurrentUserIdxNoDid(appIdx, contract, account, keyPair, owner) {
-    
-    owner = owner == undefined ? account.accountId : owner 
-
+  async getCurrentUserIdxNoDid(appIdx, account, keyPair, owner, near) {
+   
     if(keyPair == undefined){
-      keyPair = KeyPair.fromRandom('ed25519')   
+      keyPair = KeyPair.fromRandom('ed25519')
+      let publicKey = keyPair.getPublicKey().toString().split(':')[1]
       const links = get(ACCOUNT_LINKS, [])
+      console.log('links', links)
       let c = 0
       let accountExists
       while(c < links.length) {
           if(links[c].accountId == account.accountId){
               accountExists = true
-              links[c] = { key: keyPair.secretKey, accountId: account.accountId, owner: owner, keyStored: Date.now() }
+              links[c] = { key: keyPair.secretKey, publicKey: publicKey, accountId: account.accountId, owner: owner, keyStored: Date.now() }
               set(ACCOUNT_LINKS, links)
               break
           } else {
@@ -1162,17 +1174,21 @@ async getCurrentFTIdx(contractAccount, appIdx, contract){
       c++
       }
       if(!accountExists){
-        links.push({ key: keyPair.secretKey, accountId: account.accountId, owner: owner, keyStored: Date.now() })
+        if(owner == null){
+          owner = account.accountId
+        }
+        links.push({ key: keyPair.secretKey, publicKey: publicKey, accountId: account.accountId, owner: owner, keyStored: Date.now() })
         set(ACCOUNT_LINKS, links)
       }
     } else {
+      let publicKey = keyPair.getPublicKey().toString().split(':')[1]
       const links = get(ACCOUNT_LINKS, [])
       let c = 0
       let accountExists
       while(c < links.length) {
           if(links[c].accountId == account.accountId){
               accountExists = true
-              links[c] = { key: keyPair.secretKey, accountId: account.accountId, owner: owner, keyStored: Date.now() }
+              links[c] = { key: keyPair.secretKey,  publicKey: publicKey, accountId: account.accountId, owner: owner, keyStored: Date.now() }
               break
           } else {
               accountExists = false
@@ -1180,7 +1196,7 @@ async getCurrentFTIdx(contractAccount, appIdx, contract){
       c++
       }
       if(!accountExists){
-        links.push({ key: keyPair.secretKey, accountId: account.accountId, owner: owner, keyStored: Date.now() })
+        links.push({ key: keyPair.secretKey,  publicKey: publicKey, accountId: account.accountId, owner: owner, keyStored: Date.now() })
         set(ACCOUNT_LINKS, links)
       }
     }
@@ -1191,14 +1207,151 @@ async getCurrentFTIdx(contractAccount, appIdx, contract){
     // Initiate new User Ceramic Client
     let newUserCeramicClient = await this.getCeramic(account, seed)
     
-    let associate = this.associateDID(account.accountId, contract, newUserCeramicClient)
-    
+   // let associate = this.associateDID(account.accountId, contract, newUserCeramicClient)
+    let did = await this.makeDID(newUserCeramicClient, account, near, appIdx)
     const curUserIdx = new IDX({ ceramic: newUserCeramicClient, aliases: appIdx._aliases})
     // Store it's new seed/list of accounts for later retrieval
     const updatedLinks = get(ACCOUNT_LINKS, [])
     await this.storeKeysSecret(curUserIdx, updatedLinks, 'accountsKeys')
 
     return curUserIdx
+  }
+
+  async makeDID(client, account, near, appIdx){
+      let did
+    
+      const accessKeys = await account.getAccessKeys()
+
+      if(accessKeys.length == 0){
+       
+        // did = await this.retrieveDid(near, account, client)
+        // if(did && did == client.did.id) {
+        //   return did
+        // }
+
+        // if(!did || did != client.did.id){
+          let keys = await this.downloadKeysSecret(appIdx, 'daoKeys')
+         
+          let j = 0
+          while (j < keys.length){
+            if(keys[j].contractId == account.accountId){
+              // set temporary key
+              set('near-api-js:keystore:'+account.accountId+':'+near.connection.networkId, keys[j].key)
+              let nearAuthProvider = new NearAuthProvider(near, account.accountId, near.connection.networkId)
+              let insideAccountId = await nearAuthProvider.accountId()
+              let insideAccountLink = await Caip10Link.fromAccount(client, insideAccountId)
+              await insideAccountLink.setDid(client.did.id, nearAuthProvider)
+              did = insideAccountLink.did
+              del('near-api-js:keystore:'+account.accountId+':'+near.connection.networkId)
+              break
+            }
+            j++
+          }
+       // }
+      }
+      
+      if(accessKeys.length > 0){
+
+        // look for an existing DID
+        // let existingDid = await this.retrieveDid(near, account, client)
+      
+        // if(!existingDid){
+
+          let keys = get(ACCOUNT_LINKS, [])
+          let j = 0
+          let pkey
+          while (j < keys.length){
+            if(keys[j].accountId == account.accountId){
+              pkey = keys[j].key
+              break
+            }
+            j++
+          }
+          let newKeyPair = KeyPair.fromString(pkey)
+          let publicKey = newKeyPair.getPublicKey().toString()
+ 
+          let z = 0
+          while(z < accessKeys.length){
+            if(accessKeys[z].public_key == publicKey){
+              try{            
+                let thisPublicKey = accessKeys[z].public_key.split(':')[1]
+                let insideAccountLink = await Caip10Link.fromAccount(
+                    client,
+                    thisPublicKey+'@near:'+near.connection.networkId)
+                if(insideAccountLink.did == null){
+                  let nearAuthProvider = new NearAuthProvider(near, account.accountId, near.connection.networkId)
+                  await insideAccountLink.setDid(client.did.id, nearAuthProvider)
+                  did = insideAccountLink.did
+                } else {
+                  did = insideAccountLink.did
+                }
+              } catch (err) {
+                console.log('problem getting did', err)
+              }
+            }
+            z++
+          }
+        // } else {
+        //   let nearAuthProvider = new NearAuthProvider(near, account.accountId, near.connection.networkId)
+        //   let thisAccountId = await nearAuthProvider.accountId()
+        //   let thisAccountLink = await Caip10Link.fromAccount(client, thisAccountId)
+
+          
+        //   if(thisAccountLink.did && (thisAccountLink.did == client.did.id || thisAccountLink.did == existingDid)){
+        //     did = thisAccountLink.did
+        //   } else {
+        //     await thisAccountLink.setDid(client.did.id, nearAuthProvider)
+        //     did = thisAccountLink.did
+        //   }
+        // // }
+      }
+    return did
+  } 
+
+  async getDid(near, accountId, appIdx){
+    let nearAuthProvider = new NearAuthProvider(near, accountId, near.connection.networkId)
+    let insideAccountId = await nearAuthProvider.accountId()
+    let insideAccountLink = await Caip10Link.fromAccount(appIdx.ceramic, insideAccountId)
+    
+    let did = insideAccountLink.did
+    if(did != null){
+      return did
+    } else {
+      return false
+    }
+  }
+
+  async retrieveDid(near, account, client){
+    console.log('account', account.accountId)
+    console.log('account client', client)
+    console.log('account near', near)
+    let nearAuthProvider = new NearAuthProvider(near, account.accountId, near.connection.networkId)
+    const accessKeys = await account.getAccessKeys()
+    
+    // look for an existing DID
+    let existingDid = false
+    let i = 0
+    
+    while(i < accessKeys.length){
+     
+      let publicKey = accessKeys[i].public_key.split(':')[1]
+      console.log('account publickey', publicKey)
+      let insideAccountLink = await Caip10Link.fromAccount(
+          client,
+          publicKey+'@near:'+near.connection.networkId)
+      console.log('account link did', insideAccountLink.did)
+      if(insideAccountLink.did != null){
+        existingDid = insideAccountLink.did
+        break
+      } else {
+        await insideAccountLink.setDid(client.did.id, nearAuthProvider)
+        did = insideAccountLink.did
+      }
+     
+      i++
+    }
+    
+    return existingDid
   }
 
 }

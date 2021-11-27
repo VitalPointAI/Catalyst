@@ -66,6 +66,8 @@ export const PersonaPage = ({ state, update, dispatch }) => {
             set(PERSONAS_ARRIVAL, newVisit)
             setStepsEnabled(true) 
         }
+
+
         async function fetchData() {
             setLoaded(false)
             let i = 0
@@ -97,7 +99,6 @@ export const PersonaPage = ({ state, update, dispatch }) => {
         
     }, [countOfClaims, countOfLinks, claimed]
     )
-
 
     function handleEditPersonaClick(property){
         setStepsEnabled(false)
@@ -152,6 +153,7 @@ export const PersonaPage = ({ state, update, dispatch }) => {
                                 owner={owner}
                                 link={getLink(accountId, key, wallet, owner)}
                                 state={state}
+                                claim={false}
                                 handleEditPersonaClick={handleEditPersonaClick}
                                 />
                         )}
@@ -183,6 +185,7 @@ export const PersonaPage = ({ state, update, dispatch }) => {
                                     owner={owner}
                                     link={''}
                                     state={state}
+                                    claim={true}
                                     handleEditPersonaClick={handleEditPersonaClick}
                                 />              
                             )}

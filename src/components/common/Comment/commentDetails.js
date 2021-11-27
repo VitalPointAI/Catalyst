@@ -15,12 +15,9 @@ import CardHeader from '@material-ui/core/CardHeader'
 import Typography from '@material-ui/core/Typography'
 import Avatar from '@material-ui/core/Avatar'
 import IconButton from '@material-ui/core/IconButton'
-import ReplyIcon from '@material-ui/icons/Reply';
+import ReplyIcon from '@material-ui/icons/Reply'
 import Grid from '@material-ui/core/Grid'
 import { CardActionArea, CardActions, Divider } from '@material-ui/core'
-import { FormControlLabel } from '@material-ui/core'
-import Switch from '@material-ui/core/Switch'
-import TextField from '@material-ui/core/TextField'
 
 const useStyles = makeStyles((theme) => ({
     title: {
@@ -50,15 +47,15 @@ export default function CommentDetails(props) {
     const [avatar, setAvatar] = useState()
     const [name, setName] = useState('')
     const [replyEnabled, setReplyEnabled] = useState(false)
+
     const { state, dispatch, update } = useContext(appStore)
-    
     const { register, handleSubmit, watch, errors } = useForm()
 
     const {
-      didRegistryContract,
       near,
       appIdx,
-      accountId
+      accountId,
+      isUpdated
     } = state
 
     const {
@@ -83,7 +80,7 @@ export default function CommentDetails(props) {
          
             if(commentAuthor){
                 const thisPersona = new Persona()
-                let result = await thisPersona.getPersona(commentAuthor)
+                let result = await thisPersona.getData('profile', commentAuthor)
                     if(result){
                       result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                       result.name ? setName(result.name) : setName('')
@@ -100,7 +97,7 @@ export default function CommentDetails(props) {
             setFinished(true)
           })
         
-    },[])
+    },[isUpdated])
 
 
     const handleDelete = () => {
@@ -109,11 +106,9 @@ export default function CommentDetails(props) {
     }
 
     let formatCommentDate
-
     if(commentPostDate) {
         let intDate = parseInt(commentPostDate)
         formatCommentDate = new Date(intDate).toLocaleString()
-     
     } else {
         formatCommentDate = 'undefined'
     }

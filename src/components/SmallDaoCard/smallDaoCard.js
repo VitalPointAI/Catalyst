@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { Link } from 'react-router-dom'
+import * as nearAPI from 'near-api-js'
 import { appStore, onAppMount } from '../../state/app'
 import { dao } from '../../utils/dao'
+import { ceramic } from '../../utils/ceramic'
 import EditDaoForm from '../EditDao/editDao'
 import DaoProfileDisplay from '../DAOProfileDisplay/daoProfileDisplay'
-import Persona from '@aluhning/get-personas-js'
 import Purpose from '../Purpose/purpose'
 
 
@@ -66,7 +67,6 @@ export default function SmallDaoCard(props) {
     const [claimed, setClaimed] = useState(false)
     const [curDaoIdx, setCurDaoIdx] = useState()
     const [display, setDisplay] = useState(true)
-   // const [isUpdated, setIsUpdated] = useState()
     const [anchorEl, setAnchorEl] = useState(null)
     const [anchorE2, setAcnhorE2] = useState(null)
     const [did, setDid] = useState()
@@ -75,6 +75,7 @@ export default function SmallDaoCard(props) {
     const [detailsClicked, setDetailsClicked] = useState(false) 
     const [amemberStatus, setaMemberStatus] = useState()
     const [totalMembers, setTotalMembers] = useState()
+    const [initialized, setInitialized] = useState(true)
     const [memberIcon, setMemberIcon] = useState(<NotInterestedIcon />)
 
     const classes = useStyles();
@@ -91,14 +92,11 @@ export default function SmallDaoCard(props) {
  
    const {
      near,
-     didRegistryContract,
      appIdx, 
      accountId,
      wallet,
      isUpdated
    } = state
-
-   const Dao = new Persona()
 
     useEffect(
       () => {
@@ -106,8 +104,15 @@ export default function SmallDaoCard(props) {
       async function fetchData() {
          if(isUpdated){}
          if(contractId && wallet){
-          
-           let result = await Dao.getDao(contractId, appIdx)
+            let thisCurDaoIdx
+            try{
+              let daoAccount = new nearAPI.Account(near.connection, contractId)
+              thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
+              setCurDaoIdx(thisCurDaoIdx)
+            } catch (err) {
+              console.log('problem getting curdaoidx', err)
+              return false
+            }
           
            let memberStatus
            try{
@@ -116,10 +121,15 @@ export default function SmallDaoCard(props) {
             setaMemberStatus(memberStatus)
             memberStatus ? setMemberIcon(<CheckCircleIcon />) : setMemberIcon(<NotInterestedIcon />)
             let allMembers = await contract.getTotalMembers()
+            allMembers == 0 ? setInitialized(false) : setInitialized(true)
             setTotalMembers(allMembers)
            } catch (err) {
              console.log('error retrieving member status', err)
+             setInitialized(false)
            }
+
+           let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
+           console.log('small result', result)
            if(result){
                   result.name != '' ? setsName(result.name) : setsName('')
                   result.date ? setsDate(result.date) : setsDate('')
@@ -224,24 +234,33 @@ export default function SmallDaoCard(props) {
                 <Chip variant="outlined" label={status} icon={status=='active'? <PlayCircleFilledIcon style={{ color: 'green[500]'}} /> : <PauseCircleFilledIcon style={{color: 'red[500]'}}/>} style={{marginTop: '10px'}}/><br></br>
 
                 <Typography  variant="overline" display="inline" noWrap={true} style={{lineHeight: 0}}>
-                  {totalMembers} {totalMembers == 1 ? 'Member' : 'Members'}
+                  {totalMembers ? totalMembers : '0'} {totalMembers == 1 ? ' Member' : ' Members'}
                 </Typography>
               </CardContent>
               <CardActions>
-                <Link to={`/dao/${contractId}`}>
+                {!initialized && summoner == state.accountId ? (
+                  <Link to={`/dao/${contractId}`}>
+                  <Button color="primary" style={{float: 'left'}}>
+                    Initialize
+                  </Button>
+                  </Link>
+                ) : null}
+                {initialized ? (
+                  <Link to={`/dao/${contractId}`}>
                   <Button color="primary" style={{float: 'left'}}>
                     Visit
                   </Button>
-                </Link>
+                  </Link>
+                ) : null }
                 {state.accountId == summoner ? (
-                <Button color="primary" onClick={handleEditDaoClick} style={{float: 'right'}}>
-                  Edit Details
-                </Button>
-                ) : 
-                <Button color="primary" onClick={handleDetailsClick} style={{marginLeft:45, float: 'right'}}>
-                  Details
-                </Button>
-                }
+                  <Button color="primary" onClick={handleEditDaoClick} style={{float: 'right'}}>
+                    Edit Details
+                  </Button>
+                  ) : ( 
+                  <Button color="primary" onClick={handleDetailsClick} style={{marginLeft:45, float: 'right'}}>
+                    Details
+                  </Button>
+                  )}
 
               </CardActions>
             </Card>

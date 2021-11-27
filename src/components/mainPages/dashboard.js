@@ -5,7 +5,6 @@ import { appStore, onAppMount } from '../../state/app'
 import * as d3 from 'd3'
 import "d3-time-format"
 import WarningConfirmation from '../Confirmation/warningConfirmation'
-import Persona from '@aluhning/get-personas-js'
 import { formatNearAmount } from 'near-api-js/lib/utils/format'
 import { dao } from '../../utils/dao'
 import { getStatus, synchProposalEvent, generateId, formatDateString } from '../../state/near'
@@ -144,8 +143,6 @@ title: {
 const parseTime = d3.timeParse("%B %d, %Y")
 const formatTime = d3.timeFormat("%B %d, %Y")
 
-const data = new Persona()
-
 const defaultLogo = require('../../img/default_logo.png')
 
 const CARDS_TO_SHOW = 1
@@ -251,20 +248,41 @@ export default function Dashboard(props) {
                     : 'vitalpointai.testnet'
                     setContractId(mostRecentContractId)
                     thisContractId = mostRecentContractId
-                  
-                    memData = await data.getMemberStats(mostRecentContractId)
-                  
-                    memData ? setMemberData(memData) : false
-                    propData = await data.getProposalStats(mostRecentContractId)
-                  
-                    propData && Object.keys(propData).length > 0 ? setProposalData(propData) : false
+
+                    let thisCurDaoIdx
+                    try{
+                        let daoAccount = new nearAPI.Account(near.connection, mostRecentContractId)
+                        thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
+                    } catch (err) {
+                    console.log('problem getting curdaoidx', err)
+                    return false
+                    }
+
+                    if(thisCurDaoIdx){
+                        memData = await thisCurDaoIdx.get('memberData', thisCurDaoIdx.id)
+                    
+                        memData ? setMemberData(memData) : false
+                        propData = await thisCurDaoIdx.get('proposalData', thisCurDaoIdx.id)
+                    
+                        propData && Object.keys(propData).length > 0 ? setProposalData(propData) : false
+                    }
                 } else {
-                    memData = await data.getMemberStats(contractId)
-                
-                    memData ? setMemberData(memData) : false
-                    propData = await data.getProposalStats(contractId)
-                  
-                    propData && Object.keys(propData).length > 0 ? setProposalData(propData) : false
+                    let thisCurDaoIdx
+                    try{
+                        let daoAccount = new nearAPI.Account(near.connection, contractId)
+                        thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
+                    } catch (err) {
+                    console.log('problem getting curdaoidx', err)
+                    return false
+                    }
+                    if(thisCurDaoIdx){
+                        memData = await thisCurDaoIdx.get('memberData', thisCurDaoIdx.id)
+                    
+                        memData ? setMemberData(memData) : false
+                        propData = await thisCurDaoIdx.get('proposalData', thisCurDaoIdx.id)
+                    
+                        propData && Object.keys(propData).length > 0 ? setProposalData(propData) : false
+                    }
                 }
 
                     // construct new member data frame
@@ -314,7 +332,9 @@ export default function Dashboard(props) {
                     const binArrayToString = array => array.map(byte => String.fromCharCode(parseInt(byte, 2))).join('')
 
                     // construct proposals data frame
-                    if(propData && propData.data.length > 0){
+                    if(propData > 0) {
+                        console.log('propdata', propData)
+                        if (propData.data.length > 0){
                      
                         let k = 0
                         let totalProposals = propData.data.length
@@ -393,10 +413,20 @@ export default function Dashboard(props) {
                         console.log('near price', getNearPrice)
                         let value = (getNearPrice.data.near.usd * balance).toFixed(2)
 
-                        let result = await data.getDao(contractId)
-                        console.log('result', result)
-                        if(result){
-                            result.logo ? setLogo(result.logo) : setLogo(defaultLogo)
+                        let thisCurDaoIdx
+                        try{
+                            let daoAccount = new nearAPI.Account(near.connection, contractId)
+                            thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
+                        } catch (err) {
+                        console.log('problem getting curdaoidx', err)
+                        return false
+                        }
+                        if(thisCurDaoIdx){
+                            let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
+                            console.log('result', result)
+                            if(result){
+                                result.logo ? setLogo(result.logo) : setLogo(defaultLogo)
+                            }
                         }
 
                         const daoContract = await dao.initDaoContract(wallet.account(), contractId)
@@ -423,7 +453,7 @@ export default function Dashboard(props) {
                         setFinalPropDataFrame(proposalDataFrame)
 
                         console.log('proposaldataframe', proposalDataFrame)
-
+                        }
                     }
 
                     // Persona Opportunity Recommendations
@@ -443,8 +473,7 @@ export default function Dashboard(props) {
                                 console.log('no account', err)
                                 }
                                 try{
-                                    thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
-                                    console.log('curdaoidx here', thisCurDaoIdx)
+                                    thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
                                     setCurDaoIdx(thisCurDaoIdx)
                                 } catch (err) {
                                     console.log('error getting dao idx', err)
@@ -452,10 +481,10 @@ export default function Dashboard(props) {
                                 if(thisCurDaoIdx){
                                     let daoContract = await dao.initDaoContract(state.wallet.account(), currentDaosList[i].contractId)
                                     let synch = await synchProposalEvent(thisCurDaoIdx, daoContract)
-                                    console.log('synch', synch)
+                                    
                                     try{
                                         singleDaoOpportunity = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
-                                        console.log('singledaoopp', singleDaoOpportunity)
+                                        
                                     } catch (err) {
                                         console.log('error loading singledao opportunity', err)
                                     }
@@ -475,8 +504,18 @@ export default function Dashboard(props) {
                     console.log('all opportunities', allOpportunities)
 
                     // 2. Retrieve current persona data
-                    let currentPersona = await data.getPersona(accountId)
-                    console.log('all opp persona', currentPersona)
+                    let personaIdx
+                    let personaAccount = new nearAPI.Account(near.connection, accountId)
+                    try{
+                        personaIdx = await ceramic.getCurrentDaoIdx(personaAccount, appIdx, near)
+                    } catch (err) {
+                        console.log('error getting dao idx', err)
+                    }
+                    let currentPersona
+                    if(personaIdx){
+                        currentPersona = await personaIdx.get('profile', personaIdx.id)
+                        console.log('all opp persona', currentPersona)
+                    }
 
                     // 3. Initialize recommendations array
                     let currentRecommendations = []
@@ -582,9 +621,16 @@ export default function Dashboard(props) {
                             propFlags = await thisContract.getProposalFlags({proposalId: parseInt(allOpportunities[j].opportunityId)})
                             
                             let status = getStatus(propFlags)
-                            let data = new Persona()
-                            console.log('status', status)
-                            let result = await data.getDao(allOpportunities[j].contractId)
+                            
+                            let thisCurDaoIdx
+                            try{
+                                let daoAccount = new nearAPI.Account(near.connection, allOpportunities[j].contractId)
+                                thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
+                            } catch (err) {
+                            console.log('problem getting curdaoidx', err)
+                            return false
+                            }
+                            let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
                             console.log('dao result', result)
                             
                             if(status == 'Passed' && allOpportunities[j].budget > 0 && Date.now() <= new Date(allOpportunities[j].deadline)){

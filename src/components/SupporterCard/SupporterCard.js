@@ -2,6 +2,8 @@ import React, { useState, useEffect, useContext } from 'react'
 import { explorerUrl } from '../../state/near'
 import { appStore, onAppMount } from '../../state/app'
 import Persona from '@aluhning/get-personas-js'
+import * as nearAPI from 'near-api-js'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI Components
 import { makeStyles } from '@material-ui/core/styles'
@@ -70,14 +72,24 @@ export default function SupporterCard(props) {
          
         async function fetchData() {
 
-          if(accountId){
-            let result = await thisPersona.getPersona(accountId)
-          
-            if(result){
-              result.date ? setDate(result.date) : setDate('')
-              result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-              result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
-              result.name ? setName(result.name) : setName('')
+          if(accountId && near){
+            let personaAccount = new nearAPI.Account(near.connection, accountId)
+             let thisCurPersonaIdx
+                try{
+                  thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, near)
+                  setCurUserIdx(thisCurPersonaIdx)
+                } catch (err) {
+                  console.log('error retrieving idx', err)
+                }
+            if(thisCurPersonaIdx){
+              let result = await thisCurPersonaIdx.get('profile', thisCurPersonaIdx.id)
+            
+              if(result){
+                result.date ? setDate(result.date) : setDate('')
+                result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
+                result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
+                result.name ? setName(result.name) : setName('')
+              }
             }
           }
         }
@@ -87,7 +99,7 @@ export default function SupporterCard(props) {
            
           })
 
-    }, [avatar]
+    }, [accountId, near]
     )
     
     function formatDate(timestamp) {

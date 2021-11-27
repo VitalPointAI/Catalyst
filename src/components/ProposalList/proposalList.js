@@ -194,7 +194,7 @@ export default function ProposalList(props) {
       let i = 0
       let result
       let didVote = false
-      console.log('proposalEvents', proposalEvents)
+      
       while (i < proposalEvents.length) {
       
           try{

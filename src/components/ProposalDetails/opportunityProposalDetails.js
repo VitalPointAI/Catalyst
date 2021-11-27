@@ -169,7 +169,7 @@ export default function OpportunityProposalDetails(props) {
              // Get Applicant Persona Information
            if(proposer){                    
               
-            let result = await thisPersona.getPersona(proposer)
+            let result = await thisPersona.getData('profile', proposer, appIdx)
                 if(result){
                   result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
                   result.name ? setProposerName(result.name) : setProposerName(proposer)
@@ -182,7 +182,7 @@ export default function OpportunityProposalDetails(props) {
           // Get Current User Persona Information
           if(accountId){                    
             
-            let result = await thisPersona.getPersona(accountId)
+            let result = await thisPersona.getData('profile', accountId, appIdx)
                 if(result){
                   result.avatar ? setCurUserAvatar(result.avatar) : setCurUserAvatar(imageName)
                   result.name ? setCurUserName(result.name) : setCurUserName(accountId)
@@ -194,7 +194,7 @@ export default function OpportunityProposalDetails(props) {
          
           if(applicant){                           
              
-                let result = await thisPersona.getPersona(applicant)
+                let result = await thisPersona.getData('profile', applicant, appIdx)
                     if(result){
                       result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
                       result.name ? setApplicantName(result.name) : setApplicantName(applicant)
@@ -237,7 +237,7 @@ export default function OpportunityProposalDetails(props) {
               if(contractId){
                 let daoAccount = new nearAPI.Account(near.connection, contractId)
                  
-                loadCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+                loadCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
               
                 setThisCurDaoIdx(loadCurDaoIdx)
 

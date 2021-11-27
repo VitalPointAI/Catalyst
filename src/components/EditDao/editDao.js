@@ -84,7 +84,7 @@ export default function EditDaoForm(props) {
     const [loaded, setLoaded] = useState(false)
     const [date, setDate] = useState('')
     const [name, setName] = useState('')
-    const [isUpdated, setIsUpdated] = useState(false)
+   // const [isUpdated, setIsUpdated] = useState(false)
     const [logo, setLogo] = useState(imageName)
     const [purpose, setPurpose] = useState(EditorState.createEmpty())
     const [category, setCategory] = useState('')
@@ -130,7 +130,6 @@ export default function EditDaoForm(props) {
     const { state, dispatch, update } = useContext(appStore)
 
     const {
-        handleUpdate,
         handleEditDaoClickState,
         contractId
     } = props
@@ -138,7 +137,7 @@ export default function EditDaoForm(props) {
     const {
       near,
       appIdx,
-      didRegistryContract
+      isUpdated
     } = state
     
     const classes = useStyles()
@@ -153,7 +152,7 @@ export default function EditDaoForm(props) {
                                
               let daoAccount = new nearAPI.Account(near.connection, contractId)
             
-              let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+              let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
               setCurDaoIdx(thisCurDaoIdx)
 
               let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
@@ -322,9 +321,10 @@ export default function EditDaoForm(props) {
 
         let result2 = await ceramic.storeKeysSecret(curDaoIdx, hookArray, 'apiKeys', curDaoIdx.id)
      
-      setIsUpdated(true)
+      //setIsUpdated(true)
       setFinished(true)
-      handleUpdate(true)
+      update('', {isUpdated: !isUpdated})
+      
       setOpen(false)
       handleClose()
     }

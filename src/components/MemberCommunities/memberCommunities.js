@@ -42,7 +42,6 @@ const useStyles = makeStyles((theme) => ({
 export default function MemberCommunities(props) {
    
     const[daos, setDaos] = useState([])
-  //  const [isUpdated, setIsUpdated] = useState(false)
 
     const classes = useStyles()
 

@@ -1,11 +1,13 @@
 import anime from 'animejs/lib/anime.es.js'
 import { generateSeedPhrase } from 'near-seed-phrase'
+import { get, set, del } from '../utils/storage'
 import { State } from '../utils/state'
 import { initNear, hasKey } from './near'
 import * as nearAPI from 'near-api-js'
 import { ceramic } from '../utils/ceramic'
 
 import { config } from './config'
+import { Caip10Link } from '@ceramicnetwork/stream-caip10-link'
 
 export const {
     FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT, DAO_FIRST_INIT, CURRENT_DAO, REDIRECT,
@@ -68,6 +70,10 @@ export const onAppMount = () => async ({ update, getState, dispatch }) => {
             networkId, nodeUrl, walletUrl, deps: { keyStore: new nearAPI.keyStores.BrowserLocalStorageKeyStore() },
         })
 
+        // set temporary key - remains until it's changed on the user's next login
+        set('near-api-js:keystore:'+accountId+':'+near.connection.networkId, key)
+
+
         const wallet = new nearAPI.WalletAccount(near)
 
         wallet.signedIn = wallet.isSignedIn()
@@ -81,27 +87,39 @@ export const onAppMount = () => async ({ update, getState, dispatch }) => {
            
             //Initiate App Ceramic Components
     
-            const appIdx = await ceramic.getAppIdx(didRegistryContract)
+            const appIdx = await ceramic.getAppIdx(didRegistryContract, account, near)
            
             // let curUserIdx = await ceramic.getCurrentUserIdx3ID(near, loggedInAccountId, appIdx)
             // console.log('curUserIdx app', curUserIdx)
             // update('accountData', { curUserIdx })
             
+            // const accountLink = await Caip10Link.fromAccount(
+            //     appIdx.ceramic,
+            //     account.accountId+'@near:'+near.connection.networkId
+            //   )
 
-            let curUserIdx
-            if(didRegistryContract) {
-                let existingDid = await didRegistryContract.hasDID({accountId: loggedInAccountId})
+          //  let curUserIdx
+          //  if (accountLink.did){
+                let curUserIdx = await ceramic.getCurrentUserIdx(account, appIdx, near)
+                update('accountData', { curUserIdx })
+            // } else {
+            //     curUserIdx = await ceramic.getCurrentUserIdxNoDid(appIdx, account, null, loggedInAccountId, near)
+            //     update('accountData', { curUserIdx })
+            // }
+           
+            // if(didRegistryContract) {
+            //     let existingDid = await didRegistryContract.hasDID({accountId: loggedInAccountId})
 
-                if(existingDid){
-                    curUserIdx = await ceramic.getCurrentUserIdx(account, appIdx, didRegistryContract)
-                    update('accountData', { curUserIdx })
-                }
+            //     if(existingDid){
+            //         curUserIdx = await ceramic.getCurrentUserIdx(account, appIdx, didRegistryContract, near)
+            //         update('accountData', { curUserIdx })
+            //     }
             
-                if(!existingDid){
-                    curUserIdx = await ceramic.getCurrentUserIdxNoDid(appIdx, didRegistryContract, account, null, null, loggedInAccountId)
-                    update('accountData', { curUserIdx })
-                }
-            }
+            //     if(!existingDid){
+            //         curUserIdx = await ceramic.getCurrentUserIdxNoDid(appIdx, didRegistryContract, account, null, null, loggedInAccountId)
+            //         update('accountData', { curUserIdx })
+            //     }
+            // }
         }
     } else {
         dispatch(initNear());

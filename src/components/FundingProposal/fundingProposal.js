@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { submitProposal, STORAGE } from '../../state/near'
-import Persona from '@aluhning/get-personas-js'
 
 // Material UI components
 import Button from '@material-ui/core/Button'

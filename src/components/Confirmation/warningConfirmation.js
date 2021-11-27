@@ -75,7 +75,6 @@ export default function WarningConfirmation(props) {
   const {
       near,
       accountId,
-      didRegistryContract,
       appIdx
   } = state
 

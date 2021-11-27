@@ -93,6 +93,7 @@ export default function MemberProfileDisplay(props) {
     const {
       accountId,
       curUserIdx,
+      appIdx,
       isUpdated
     } = state
 
@@ -113,7 +114,7 @@ export default function MemberProfileDisplay(props) {
             if(member){     
              
                               
-                  let result = await thisPersona.getPersona(member)
+                  let result = await thisPersona.getData('profile', member, curUserIdx)
                       if(result){
                         result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                         result.name ? setName(result.name) : setName('')

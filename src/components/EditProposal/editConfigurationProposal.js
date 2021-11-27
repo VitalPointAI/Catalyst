@@ -92,7 +92,7 @@ export default function EditConfigurationProposalForm(props) {
             // Set Existing Persona Data      
             if(applicant){
               const thisPersona = new Persona()
-              let result = await thisPersona.getPersona(applicant)
+              let result = await thisPersona.getData('profile', applicant, curDaoIdx)
                   if(result){
                     result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                     result.name ? setName(result.name) : setName('')
