@@ -69,6 +69,8 @@ export default function MemberCard(props) {
       appIdx,
       accountId,
       isUpdated,
+      didRegistryContract,
+      daoFactory
     } = state
 
     const classes = useStyles();
@@ -108,26 +110,29 @@ export default function MemberCard(props) {
             }
           }
           if(accountName && near){
-            let thisCurMemberIdx
-            try{
-              let memberAccount = new nearAPI.Account(near.connection, accountName)
-              thisCurMemberIdx = await ceramic.getCurrentUserIdx(memberAccount, appIdx, near)
-              console.log('currentmemberidx', thisCurMemberIdx)
-            } catch (err) {
-              console.log('problem getting member idx', err)
-              return false
-            }
+            // let thisCurMemberIdx
+            // let did
+            // try{
+            //   let memberAccount = new nearAPI.Account(near.connection, accountName)
+            //   did = await ceramic.retrieveDid(near, memberAccount, appIdx.ceramic)
+            // } catch (err) {
+            //   console.log('problem getting member idx', err)
+            //   return false
+            // }
             
-            if(thisCurMemberIdx){
-              let result = await thisCurMemberIdx.get('profile', thisCurMemberIdx.id)
-          
-              if(result){
-                result.date ? setDate(result.date) : setDate('')
-                result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-                result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
-                result.name ? setName(result.name) : setName('')
+            // if(did){
+             // let result = await thisCurMemberIdx.get('profile', thisCurMemberIdx.id)
+              let did = await ceramic.getDid(accountName, daoFactory, didRegistryContract)
+              if(did){
+                let result = await appIdx.get('profile', did)
+                if(result){
+                  result.date ? setDate(result.date) : setDate('')
+                  result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
+                  result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
+                  result.name ? setName(result.name) : setName('')
+                }
               }
-            }
+           // }
           }
           if(shares){
             let combinedShares = parseInt(shares) + parseInt(receivedDelegations)

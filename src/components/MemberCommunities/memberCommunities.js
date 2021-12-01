@@ -41,54 +41,23 @@ const useStyles = makeStyles((theme) => ({
   
 export default function MemberCommunities(props) {
    
-    const[daos, setDaos] = useState([])
+    const [daos, setDaos] = useState([])
+    const [contract, setContract] = useState()
 
     const classes = useStyles()
 
     const { state, dispatch, update } = useContext(appStore)
 
     const {
-      accountId,
-      currentDaosList,
-      isUpdated
-    } = state
+      memberDaos
+    } = props
 
-    
     useEffect(
-        () => {
-            async function fetchData() {
-              if(isUpdated){}
-            if(currentDaosList && state){
-                let sortedDaos = _.sortBy(currentDaosList, 'created')
-                let contract
-                let memberDaos = []
-                let i = 0
-                while (i < sortedDaos.length){
-                    try{
-                        contract = await dao.initDaoContract(state.wallet.account(), sortedDaos[i].contractId)
-                      } catch (err) {
-                        console.log('problem initializing dao contract', err)
-                      }
-
-                    let thisMemberStatus
-                    let thisMemberInfo
-                    try {
-                      thisMemberInfo = await contract.getMemberInfo({member: accountId})
-                      thisMemberStatus = await contract.getMemberStatus({member: accountId})
-                      if(thisMemberStatus && thisMemberInfo[0].active){
-                        memberDaos.push(sortedDaos[i])
-                      } 
-                    } catch (err) {
-                      console.log('no member info yet')
-                    }
-                i++
-                }
-                setDaos(memberDaos)
-            }
-        }
-        fetchData()
-           
-    }, [currentDaosList, isUpdated]
+      () => {
+       if(memberDaos && memberDaos.length > 0){
+         setDaos(memberDaos)
+       }
+      }, [memberDaos]
     )
 
     return (
@@ -99,11 +68,7 @@ export default function MemberCommunities(props) {
         <Grid container alignItems="center" justifyContent="space-between" spacing={3} style={{padding: '20px'}} >
             { daos && daos.length > 0 ? 
                 (<>
-                  <Grid container alignItems="center" justifyContent="space-between" spacing={0} >
-                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                     
-                    </Grid>
-                  </Grid>
+                  
                 <Grid container alignItems="center" justifyContent="center" spacing={3} style={{padding: '20px'}}>
                 
                 {daos.reverse().map(({ contractId, status }, i) =>

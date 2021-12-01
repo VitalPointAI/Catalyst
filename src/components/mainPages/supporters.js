@@ -42,7 +42,8 @@ export default function Supporters(props) {
 
     const {
       near,
-      appIdx
+      appIdx,
+      didRegistryContract
     } = state
 
     const {
@@ -57,7 +58,7 @@ export default function Supporters(props) {
             let daoAccount = new nearAPI.Account(near.connection, contractId)
               let thisCurDaoIdx
                   try{
-                    thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
+                    thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
                   } catch (err) {
                     console.log('error retrieving dao idx', err)
                   }

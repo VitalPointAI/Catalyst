@@ -48,71 +48,26 @@ export default function MemberCommunityCount(props) {
     
     const [finished, setFinished] = useState(false)
     const [daoCount, setDaoCount] = useState()
-    const [memberCount, setMemberCount] = useState('0')
- //   const [isUpdated, setIsUpdated] = useState()
-
-    const { state, dispatch, update } = useContext(appStore)
-
-    const {
-      didRegistryContract,
-      near,
-      appIdx,
-      accountId,
-      curUserIdx,
-      claimed,
-      currentDaosList,
-      links,
-      isUpdated
-    } = state
-
-    const {
-        balance
-    } = props
+    const [memberCount, setMemberCount] = useState(0)
 
     const {
         contractId
     } = useParams()
 
+    const {
+        memberDaos
+    } = props
+
     const matches = useMediaQuery('(max-width:500px)')
    
     useEffect(
         () => {
-  
-            async function fetchData() {
-                if(isUpdated){}
-                if(currentDaosList && state){
-                   
-                    let contract
-                    let memberDaos = []
-                    let i = 0
-                    while (i < currentDaosList.length){
-                        try{
-                            contract = await dao.initDaoContract(state.wallet.account(), currentDaosList[i].contractId)
-                          } catch (err) {
-                            console.log('problem initializing dao contract', err)
-                          }
-    
-                        let thisMemberStatus
-                        let thisMemberInfo
-                        try {
-                          thisMemberInfo = await contract.getMemberInfo({member: accountId})
-                          thisMemberStatus = await contract.getMemberStatus({member: accountId})
-                         
-                          if(thisMemberStatus && thisMemberInfo[0].active){
-                            memberDaos.push(currentDaosList[i])
-                            setMemberCount(memberDaos.length)
-                          } 
-                        } catch (err) {
-                          console.log('no member info yet')
-                        }
-                    i++
-                    }
-                  
-                }
+            if(memberDaos && memberDaos.length > 0){
+                console.log('memberdaos', memberDaos)
+                setMemberCount(memberDaos.length)
             }
-            fetchData()
-        
-    }, [isUpdated, currentDaosList]
+  
+    }, [memberDaos]
     )
 
 const classes = useStyles()  

@@ -237,7 +237,7 @@ export default function OpportunityProposalDetails(props) {
               if(contractId){
                 let daoAccount = new nearAPI.Account(near.connection, contractId)
                  
-                loadCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
+                loadCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
               
                 setThisCurDaoIdx(loadCurDaoIdx)
 

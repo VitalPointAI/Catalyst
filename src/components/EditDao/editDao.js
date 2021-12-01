@@ -84,12 +84,12 @@ export default function EditDaoForm(props) {
     const [loaded, setLoaded] = useState(false)
     const [date, setDate] = useState('')
     const [name, setName] = useState('')
-   // const [isUpdated, setIsUpdated] = useState(false)
+    const [curDaoIdx, setCurDaoIdx] = useState()
     const [logo, setLogo] = useState(imageName)
     const [purpose, setPurpose] = useState(EditorState.createEmpty())
     const [category, setCategory] = useState('')
     const [webhook, setWebhook] = useState('')
-    const [curDaoIdx, setCurDaoIdx] = useState()
+  
 
     const [discordActivated, setDiscordActivated] = useState(false)
     const [proposalsActivated, setProposalsActivated] = useState(false)
@@ -131,13 +131,15 @@ export default function EditDaoForm(props) {
 
     const {
         handleEditDaoClickState,
-        contractId
+        contractId,
     } = props
 
     const {
       near,
       appIdx,
-      isUpdated
+      isUpdated,
+      didRegistryContract,
+      daoFactory
     } = state
     
     const classes = useStyles()
@@ -149,13 +151,19 @@ export default function EditDaoForm(props) {
            // Set Card Persona Idx       
            if(contractId && near){
              // Set Dao Idx
-                               
+             let thisCurDaoIdx
+             try{
               let daoAccount = new nearAPI.Account(near.connection, contractId)
-            
-              let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
+              thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
               setCurDaoIdx(thisCurDaoIdx)
-
-              let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
+            } catch (err) {
+              console.log('problem getting curdaoidx', err)
+              return false
+            }
+                               
+              
+              let did = await ceramic.getDid(contractId, daoFactory, didRegistryContract)
+              let result = await appIdx.get('daoProfile', did)
             
               let webhook = await ceramic.downloadKeysSecret(thisCurDaoIdx, 'apiKeys')
       

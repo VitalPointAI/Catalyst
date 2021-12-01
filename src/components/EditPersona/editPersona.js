@@ -155,13 +155,15 @@ export default function EditPersonaForm(props) {
         handleEditPersonaClickState,
         curPersonaIdx,
         accountId,
+        did
     } = props
 
     const {
       near,
       appIdx,
       currentDaosList,
-      isUpdated
+      isUpdated,
+      didRegistryContract
     } = state
 
     const {
@@ -181,18 +183,11 @@ export default function EditPersonaForm(props) {
         async function fetchData() {
           setLoaded(false)
 
-          // // Set Dao Idx
-          // let personaAccount = new nearAPI.Account(near.connection, accountId)
-          // let thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, near)
-          // console.log('crazy', thisCurPersonaIdx)
-          // setCurPersonaIdx(thisCurPersonaIdx)
-          
-
            // Set Card Persona Idx       
            if(accountId && currentDaosList){
-              let result = await curPersonaIdx.get('profile', curPersonaIdx.id)
-           //   let result = await data.getData('profile', accountId, curPersonaIdx)   
-              console.log('profile', result)
+          
+              let result = await appIdx.get('profile', did)   
+           
               if(result) {
                 result.date ? setDate(result.date) : setDate('')
                 result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
@@ -270,7 +265,7 @@ export default function EditPersonaForm(props) {
           if(currentDaosList[i].status == 'active'){
             let daoAccount = new nearAPI.Account(near.connection, currentDaosList[i].contractId)
             
-            let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
+            let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
             console.log('currentskills', currentSkills)
             // Get Existing Community Skills
             if(thisCurDaoIdx){

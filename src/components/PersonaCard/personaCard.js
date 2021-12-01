@@ -79,7 +79,8 @@ export default function PersonaCard(props) {
       appIdx,
       didRegistryContract,
       near,
-      isUpdated
+      isUpdated,
+      daoFactory
     } = state
 
     const { 
@@ -107,43 +108,10 @@ export default function PersonaCard(props) {
 
             // generate account for this accountId
             let personaAccount = new nearAPI.Account(near.connection, accountId)
-            
-            // see if this account already has a did
-        //    let did = await ceramic.retrieveDid(near, personaAccount, appIdx.ceramic)
-          //  console.log('accountId' + ':' + accountId + 'did:'+did)
-
-            // if(!did){
-            //   let i = 0
-            //   while (i < state.claimed.length) {
-            //     if(state.claimed[i].accountId == accountId && state.claimed[i].owner == state.accountId){
-                  
-            //       let keys = get(ACCOUNT_LINKS, [])
-            //       let j = 0
-            //       let pkey
-            //       while (j < keys.length){
-            //         if(keys[j].accountId == accountId){
-            //           pkey = keys[j].key
-            //           break
-            //         }
-            //         j++
-            //       }
-            //       let newKeyPair = KeyPair.fromString(pkey)
-            //       let thisCurPersonaIdx = await ceramic.getCurrentUserIdxNoDid(appIdx, personaAccount, newKeyPair, state.accountId, near)
-            //       console.log('thiscurpersonaidx', thisCurPersonaIdx)
-            //       setCurUserIdx(thisCurPersonaIdx)
-            //       setClaimed(true)
-            //       return true
-            //     }
-            //   i++
-            //   }
-            // }
-
-         //   if(did){
 
                 let thisCurPersonaIdx
                 try{
-                  thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, near)
-                  
+                  thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, near, didRegistryContract)
                   console.log('account: ' + personaAccount.accountId + ' did: ' + thisCurPersonaIdx.id)
                   setCurUserIdx(thisCurPersonaIdx)
                 } catch (err) {
@@ -154,12 +122,18 @@ export default function PersonaCard(props) {
                 while (i < state.claimed.length) {
                   if(state.claimed[i].accountId == accountId){
                     if(thisCurPersonaIdx){
-                      let result = await thisCurPersonaIdx.get('profile', thisCurPersonaIdx.id)
-                      if(result){
-                        result.date ? setDate(result.date) : setDate('')
-                        result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-                        result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
-                        result.name ? setName(result.name) : setName('')
+                      let did = await ceramic.getDid(personaAccount.accountId, daoFactory, didRegistryContract )
+                     
+                      if(did){
+                        setDid(did)
+                        let result = await appIdx.get('profile', did)
+                        
+                        if(result){
+                          result.date ? setDate(result.date) : setDate('')
+                          result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
+                          result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
+                          result.name ? setName(result.name) : setName('')
+                        }
                       }
                     }
                     setClaimed(true)
@@ -167,8 +141,6 @@ export default function PersonaCard(props) {
                   }
                   i++
                 }
-                
-          //  }
           }
         
       }

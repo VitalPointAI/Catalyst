@@ -100,7 +100,7 @@ export default function Opportunities(props) {
               } catch (err) {
                 console.log('no account', err)
               }
-              thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
+              thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
            
               opportunities = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
               console.log('opportunities', opportunities)
@@ -126,7 +126,7 @@ export default function Opportunities(props) {
               let personaAccount = new nearAPI.Account(near.connection, accountId)
               let thisCurPersonaIdx
               try{
-                thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, near)
+                thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, near, didRegistryContract)
               } catch (err) {
                 console.log('error retrieving idx', err)
               }

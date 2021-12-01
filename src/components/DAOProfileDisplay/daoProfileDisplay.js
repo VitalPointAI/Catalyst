@@ -106,7 +106,7 @@ export default function DaoProfileDisplay(props) {
                                
               let daoAccount = new nearAPI.Account(near.connection, contractId)
             
-              let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
+              let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
               setCurDaoIdx(thisCurDaoIdx)
 
               let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)

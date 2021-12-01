@@ -88,38 +88,9 @@ export const onAppMount = () => async ({ update, getState, dispatch }) => {
             //Initiate App Ceramic Components
     
             const appIdx = await ceramic.getAppIdx(didRegistryContract, account, near)
+            let curUserIdx = await ceramic.getCurrentUserIdx(account, appIdx, near, didRegistryContract)
+            update('accountData', { curUserIdx })
            
-            // let curUserIdx = await ceramic.getCurrentUserIdx3ID(near, loggedInAccountId, appIdx)
-            // console.log('curUserIdx app', curUserIdx)
-            // update('accountData', { curUserIdx })
-            
-            // const accountLink = await Caip10Link.fromAccount(
-            //     appIdx.ceramic,
-            //     account.accountId+'@near:'+near.connection.networkId
-            //   )
-
-          //  let curUserIdx
-          //  if (accountLink.did){
-                let curUserIdx = await ceramic.getCurrentUserIdx(account, appIdx, near)
-                update('accountData', { curUserIdx })
-            // } else {
-            //     curUserIdx = await ceramic.getCurrentUserIdxNoDid(appIdx, account, null, loggedInAccountId, near)
-            //     update('accountData', { curUserIdx })
-            // }
-           
-            // if(didRegistryContract) {
-            //     let existingDid = await didRegistryContract.hasDID({accountId: loggedInAccountId})
-
-            //     if(existingDid){
-            //         curUserIdx = await ceramic.getCurrentUserIdx(account, appIdx, didRegistryContract, near)
-            //         update('accountData', { curUserIdx })
-            //     }
-            
-            //     if(!existingDid){
-            //         curUserIdx = await ceramic.getCurrentUserIdxNoDid(appIdx, didRegistryContract, account, null, null, loggedInAccountId)
-            //         update('accountData', { curUserIdx })
-            //     }
-            // }
         }
     } else {
         dispatch(initNear());

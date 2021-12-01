@@ -13,7 +13,7 @@ import Typography from '@material-ui/core/Typography'
 const Receiver = ({state}) => {
 
     const {
-        app, wallet, links, claimed, accountId, curInfo, finished, appIdx, near
+        app, wallet, links, claimed, accountId, curInfo, finished, appIdx, near, didRegistryContract
     } = state
     const [sname, setsName] = useState('')
     const linkArray = (window.location.pathname.split("/")).slice(2);
@@ -25,7 +25,7 @@ const Receiver = ({state}) => {
             let thisCurDaoIdx
             try{
                 let daoAccount = new nearAPI.Account(near.connection, `${linkArray[0]}` + "." + `${config.factoryContractName}`)
-                thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
+                thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
             } catch (err) {
               console.log('problem getting curdaoidx', err)
               return false

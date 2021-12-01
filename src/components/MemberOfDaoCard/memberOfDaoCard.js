@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 import { dao } from '../../utils/dao'
 import { ceramic } from '../../utils/ceramic'
-import * as nearAPI from 'near-api-js'
 
 // Material UI Components
 import { makeStyles } from '@material-ui/core/styles'
@@ -46,8 +45,9 @@ export default function MemberOfDaoCard(props) {
     const {
       wallet,
       isUpdated,
-      appIdx, 
-      near
+      appIdx,
+      didRegistryContract,
+      daoFactory
     } = state
 
     const {
@@ -65,26 +65,21 @@ export default function MemberOfDaoCard(props) {
            try{
             let contract = await dao.initDaoContract(wallet.account(), contractId)
             let allMembers = await contract.getTotalMembers()
-          
             setTotalMembers(allMembers)
+            
            } catch (err) {
              console.log('error retrieving member count', err)
            }
 
-           let thisCurDaoIdx
-           try{
-            let daoAccount = new nearAPI.Account(near.connection, contractId)
-            thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
-            } catch (err) {
-              console.log('problem getting curdaoidx', err)
-              return false
-            }
-           let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
+           let did = await ceramic.getDid(contractId, daoFactory, didRegistryContract)
+            if(did){
+            let result = await appIdx.get('daoProfile', did)
            
-           if(result){
-                  result.name != '' ? setsName(result.name) : setsName('')
-                  result.logo !='' ? setsLogo(result.logo) : setsLogo(imageName)
-           }
+              if(result){
+                      result.name != '' ? setsName(result.name) : setsName('')
+                      result.logo !='' ? setsLogo(result.logo) : setsLogo(imageName)
+              }
+            }
          }
       }
         
@@ -97,7 +92,7 @@ export default function MemberOfDaoCard(props) {
       return () => mounted = false
       }
       
-  }, [isUpdated]
+  }, [wallet, isUpdated]
   )
   
     return(

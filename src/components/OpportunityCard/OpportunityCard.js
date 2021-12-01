@@ -211,26 +211,6 @@ export default function OpportunityCard(props) {
             
           }       
 
-          // if(didRegistryContract && near){
-          //   if(!contractId && passedContractId) {
-          //     useContractId = passedContractId
-          //     setThisContractId(passedContractId)
-          //   }
-          //   if(contractId) {
-          //     useContractId = contractId
-          //     setThisContractId(contractId)
-          //   }
-            // if(contractId){
-            //   let thisCurDaoIdx
-            //   let daoAccount = new nearAPI.Account(near.connection, contractId)
-               
-            //   thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
-            
-            //   setCurDaoIdx(thisCurDaoIdx)
-            // }
-          //}
-          
-          
           if(contractId && near){
             let contract = await dao.initDaoContract(state.wallet.account(), contractId)
             try {

@@ -134,9 +134,14 @@ client
         let accountDid = result[7]
         console.log('accountdid', accountDid)
       }
+      let parseIt = JSON.parse(`{\"EVENT_JSON\":{\"standard\":nep171,version:'1.0.0',event:'create a community (createDAO) is triggered',data:{communityName:'accountId',did:'did',deposit:'2',created:'123456',owner:'owner'}}}`)
+      console.log('parse it', parseIt)
     console.log('a', data.data.accounts)
     console.log('b', data.data.accounts[0].actionLogs)
     console.log('c', data.data.accounts[0].actionLogs[0])
+    let parsedJSON = JSON.parse(data.data.accounts[0].actionLogs[0])
+    
+    console.log('parsedJSON', parsedJSON)
     console.log('subgraph account id', data.data.accounts[0].actionLogs[0].accountId)
   })
   .catch((err) => {
@@ -230,31 +235,6 @@ export default function AppFramework(props) {
     const {
       contractId
     } = useParams()
-
-    // useEffect(
-    //   () => {
-    //     // Determine type of contract - DAO or FT
-    //     let type = contractId.split('.')
-    //     console.log('type', type)
-    //     if(networkId == 'testnet'){
-    //       let combined = type[1]+'.'+type[2]+'.'+type[3]
-    //       console.log('combined', combined)
-    //       if(combined == tokenFactoryContractName){
-    //         setContractType('ft')
-    //       } else {
-    //         setContractType('dao')
-    //       }
-    //     }
-    //     if(networkId == 'mainnet'){
-    //       let combined = type[1]+'.'+type[2]
-    //       if(combined == tokenFactoryContractName){
-    //         setContractType('ft')
-    //       } else {
-    //         setContractType('dao')
-    //       }
-    //     }
-    // }, [contractId]
-    // )
     
 
     const matches = useMediaQuery('(max-width:500px)')
@@ -347,7 +327,7 @@ export default function AppFramework(props) {
                 }
                
                 try{
-                  curDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
+                  curDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
                   setCurDaoIdx(curDaoIdx)
                   
                 } catch (err) {
@@ -364,15 +344,6 @@ export default function AppFramework(props) {
                   return false
                 }
               }
-
-              // if(contractId && contractType == 'ft'){
-              //   try{
-              //     ftContract = await ft.initFTContract(state.wallet.account(), contractId)
-              //     setFTContract(ftContract)
-              //   } catch (err) {
-              //     console.log('problem initializing ft contract', err)
-              //   }
-              // }
               
               return true
             }
@@ -395,7 +366,7 @@ export default function AppFramework(props) {
           const urlParameters = new URLSearchParams(urlVariables)
           let transactionHash = urlParameters.get('transactionHashes')
           let errorCode = urlParameters.get('errorCode')
-          console.log('errorCode', errorCode)
+      
 
         
 
@@ -478,7 +449,7 @@ export default function AppFramework(props) {
                   
                   let c = 0
                   while(c < firstInit.length){
-                    await ceramic.makeDID(curDaoIdx.ceramic, currentDaoAccount, near, appIdx)
+                  //  await ceramic.makeDID(curDaoIdx.ceramic, currentDaoAccount, near, appIdx)
                     if(firstInit[c].contractId==contractId && firstInit[c].init == true){
                     
                       let logged = await logInitEvent(
@@ -785,19 +756,21 @@ export default function AppFramework(props) {
           async function fetchData() {
             if(isUpdated){}
             //************ LOAD COMMUNITY SETTINGS AND INFORMATION */
-                
-                  try{
-                    let result = await curDaoIdx.get('daoProfile', curDaoIdx.id)
-                    if(result){
-                      result.name ? setName(result.name) : setName('')
-                      result.date ? setDate(result.date) : setDate('')
-                      result.logo ? setLogo(result.logo) : setLogo(imageName)
-                      result.purpose ? setPurpose(result.purpose) : setPurpose('')
-                      result.category ? setCategory(result.category) : setCategory('')
+                  if(curDaoIdx){
+                    try{
+                      let result = await curDaoIdx.get('daoProfile', curDaoIdx.id)
+                      if(result){
+                        result.name ? setName(result.name) : setName('')
+                        result.date ? setDate(result.date) : setDate('')
+                        result.logo ? setLogo(result.logo) : setLogo(imageName)
+                        result.purpose ? setPurpose(result.purpose) : setPurpose('')
+                        result.category ? setCategory(result.category) : setCategory('')
+                      }
+                    } catch (err) {
+                      console.log('problem retrieving DAO profile')
                     }
-                  } catch (err) {
-                    console.log('problem retrieving DAO profile')
                   }
+
                   let init
                   if(daoContract){
                     try{
@@ -845,7 +818,7 @@ export default function AppFramework(props) {
                       try {
                         let tokens = await daoContract.getApprovedTokens()
                         setApprovedTokens(tokens)
-                        console.log('approved tokens', tokens)
+                        
                       } catch (err) {
                         console.log('no approved tokens yet')
                       }
@@ -1008,7 +981,7 @@ export default function AppFramework(props) {
                       try {
                         gbalance = await daoContract.getGuildTokenBalances()  
                       
-                        console.log('guild balance', gbalance)
+                      
                         
                        // gbalance = balance.available
                         setGuildBalance(gbalance)
@@ -1018,8 +991,7 @@ export default function AppFramework(props) {
                         let tokenUSDValue
                         if(gbalance && gbalance.length > 0){
                           Accounts = await Promise.all(gbalance.map(async(element, index) => {
-                         //   const element = await elements
-                            console.log('element', element)
+                        
                             if(element.token == 'Ⓝ'){
                               tokenUSDValue = (parseFloat(formatNearAmount(element.balance, 3))*getNearPrice.data.near.usd).toFixed(2)
                               setCurrentTreasuryTotal(tokenUSDValue)
@@ -1135,9 +1107,6 @@ export default function AppFramework(props) {
       try {
         let synched = await synchProposalEvent(curDaoIdx, contract)
         setAllProposals(synched.events)
-      
-     //   let budgetSynch = await synchBudgets(curDaoIdx, synched.events)
-     //  console.log('budget synch', budgetSynch)
       } catch (err) {
         console.log('no proposals yet', err)
       }
@@ -1205,7 +1174,6 @@ export default function AppFramework(props) {
       }
     }
 
-   // <Typography variant="overline" style={{fontSize: '55%', fontWeight: 'bold'}} color="textPrimary" align="center">Fund: {guildBalanceChip} {guildBalance ? guildBalance > 0 && active ? '($' + (parseFloat(formatNearAmount(guildBalance)) * nearPrice).toFixed(2) + ' USD)' : '($0.00 USD)' : <LinearProgress /> } </Typography>
     return (
       <>
             <div className={classes.root}>

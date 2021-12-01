@@ -74,7 +74,7 @@ export default function Logo(props) {
                   
                 }
                     
-                thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
+                thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
            
                 setCurDaoIdx(thisCurDaoIdx)
                 

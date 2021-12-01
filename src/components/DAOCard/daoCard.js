@@ -92,7 +92,8 @@ export default function DaoCard(props) {
      accountId, 
      appIdx,
      isUpdated,
-     near
+     near,
+     didRegistryContract
    } = state
 
     useEffect(
@@ -118,7 +119,7 @@ export default function DaoCard(props) {
            let thisCurDaoIdx
            try{
             let daoAccount = new nearAPI.Account(near.connection, contractId)
-            thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
+            thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
             setCurDaoIdx(thisCurDaoIdx)
             } catch (err) {
               console.log('problem getting curdaoidx', err)

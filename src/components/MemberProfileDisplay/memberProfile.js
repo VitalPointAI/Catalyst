@@ -1,17 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react'
-import * as nearAPI from 'near-api-js'
-import { ceramic } from '../../utils/ceramic'
 import { appStore, onAppMount } from '../../state/app'
 import { makeStyles } from '@material-ui/core/styles'
-import CommentForm from '../common/Comment/commentForm'
-import CommentDetails from '../common/Comment/commentDetails'
-import Persona from '@aluhning/get-personas-js'
+
 
 // Material UI components
-import Button from '@material-ui/core/Button'
-import Dialog from '@material-ui/core/Dialog'
-import DialogActions from '@material-ui/core/DialogActions'
-import DialogContent from '@material-ui/core/DialogContent'
 import Grid from '@material-ui/core/Grid'
 import Avatar from '@material-ui/core/Avatar'
 import CircularProgress from '@material-ui/core/CircularProgress'
@@ -73,7 +65,6 @@ export default function MemberProfile(props) {
     const [avatar, setAvatar] = useState()
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
-   // const [isUpdated, setIsUpdated] = useState(false)
     const [finished, setFinished] = useState(false)
     const [twitter, setTwitter] = useState('')
     const [reddit, setReddit] = useState('')
@@ -96,63 +87,46 @@ export default function MemberProfile(props) {
       isUpdated,
       curUserIdx,
       appIdx,
-      near
+      near,
+      did
     } = state
 
     const {
-        member,
-    } = props
-
-    const thisPersona = new Persona()
+      member
+    }= props
    
     useEffect(
         () => {
  
           async function fetchData() {
             if(isUpdated){}
-            // Get Applicant Persona Information
-         
-            if(member){     
-              let thisCurMemberIdx
-            try{
-              let memberAccount = new nearAPI.Account(near.connection, member)
-              thisCurMemberIdx = await ceramic.getCurrentUserIdx(memberAccount, appIdx, near)
-              console.log('currentmemberidx', thisCurMemberIdx)
-            } catch (err) {
-              console.log('problem getting member idx', err)
-              return false
+            if(did){
+              let result = await appIdx.get('profile', did)
+            
+              result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
+              result.name ? setName(result.name) : setName('')
+              result.email ? setEmail(result.email) : setEmail('')
+              result.discord? setDiscord(result.discord) : setDiscord('')
+              result.reddit ? setReddit(result.reddit) : setReddit('')
+              result.twitter ? setTwitter(result.twitter) : setTwitter('')
+              result.country ? setCountry(result.country) : setCountry('')
+              result.birthdate ? setBirthdate(result.birthdate) : setBirthdate('')
+              result.language ? setLanguage(result.language) : setLanguage([])
+              result.skill ? setSkill(result.skill) : setSkill([])
+              result.familiarity ? setFamiliarity(result.familiarity): setFamiliarity('')
+              if(result.skillSet){
+                setSkillSet(result.skillSet)
+              }
+              if(result.developerSkillSet){
+              setDeveloperSkillSet(result.developerSkillSet)
+              }
+              if(result.personaSkills){
+                setPersonaSkillSet(result.personaSkills)
+              }
+              if(result.personaSpecificSkills){
+                setPersonaSpecificSkillSet(result.personaSpecificSkills)
+              }
             }
-                              
-                  let result = await thisCurMemberIdx.get('profile', thisCurMemberIdx.id)
-                  console.log('result', result)
-                      if(result){
-                        result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-                        result.name ? setName(result.name) : setName('')
-                        result.email ? setEmail(result.email) : setEmail('')
-                        result.discord? setDiscord(result.discord) : setDiscord('')
-                        result.reddit ? setReddit(result.reddit) : setReddit('')
-                        result.twitter ? setTwitter(result.twitter) : setTwitter('')
-                        result.country ? setCountry(result.country) : setCountry('')
-                        result.birthdate ? setBirthdate(result.birthdate) : setBirthdate('')
-                        result.language ? setLanguage(result.language) : setLanguage([])
-                        result.skill ? setSkill(result.skill) : setSkill([])
-                        result.familiarity ? setFamiliarity(result.familiarity): setFamiliarity('')
-                        if(result.skillSet){
-                          setSkillSet(result.skillSet)
-                        }
-                        if(result.developerSkillSet){
-                        setDeveloperSkillSet(result.developerSkillSet)
-                        }
-                        if(result.personaSkills){
-                          setPersonaSkillSet(result.personaSkills)
-                        }
-                        if(result.personaSpecificSkills){
-                          setPersonaSpecificSkillSet(result.personaSpecificSkills)
-                        }
-                      }
-            }         
-                    
-            return true  
           }
 
           fetchData()
@@ -160,7 +134,7 @@ export default function MemberProfile(props) {
               setFinished(true)
             })
           
-    }, [member, avatar, isUpdated]
+    }, [did, isUpdated]
     )
 
  

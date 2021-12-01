@@ -166,6 +166,7 @@ export default function Dashboard(props) {
     const [proposer, setProposer] = useState()
     const [rowContractId, setRowContractId] = useState()
     const [curDaoIdx, setCurDaoIdx] = useState()
+    const [memberDaos, setMemberDaos] = useState([])
     const [options, setOptions] = useState( {
         doneLabel: 'Next',
         showButtons: true,
@@ -206,7 +207,46 @@ export default function Dashboard(props) {
       wallet,
       appIdx,
       didRegistryContract,
+      daoFactory
     } = state
+
+    useEffect(
+        () => {
+            async function fetchMemberData() {
+                let contract
+                let memberDaos = []
+                let j = 0
+                while (j < currentDaosList.length){
+                    try{
+                        contract = await dao.initDaoContract(state.wallet.account(), currentDaosList[j].contractId)
+                      } catch (err) {
+                        console.log('problem initializing dao contract', err)
+                      }
+
+                    let thisMemberStatus
+                    let thisMemberInfo
+                    try {
+                      thisMemberInfo = await contract.getMemberInfo({member: accountId})
+                      thisMemberStatus = await contract.getMemberStatus({member: accountId})
+                     
+                      if(thisMemberStatus && thisMemberInfo[0].active){
+                        memberDaos.push(currentDaosList[j])
+                      } 
+                    } catch (err) {
+                      console.log('no member info yet')
+                    }
+                j++
+                }
+                setMemberDaos(memberDaos)
+            }
+            
+            fetchMemberData()
+            .then((res) => {
+
+            })
+
+        }, [currentDaosList]
+    )
     
     useEffect(
         () => {
@@ -220,24 +260,22 @@ export default function Dashboard(props) {
             
             if(currentDaosList.length > 0){
                 let i = 0
-               
                 while (i < currentDaosList.length){
                     if(currentDaosList[i].summoner == accountId){
-                       
                         let name = currentDaosList[i].contractId.split('.')
                         communities.push({contractId: currentDaosList[i].contractId, communityName: name[0]})
-                      
                         setMemberCommunities(communities)
                     }
                 i++
                 }
             }
-            if(contractId == '' && communities.length > 0){
-                let mostRecentContractId = communities[communities.length-1].contractId
-                setContractId(mostRecentContractId)
-            }
+        
+            // if(contractId == '' && communities.length > 0){
+            //     let mostRecentContractId = communities[communities.length-1].contractId
+            //     setContractId(mostRecentContractId)
+            // }
 
-            async function fetchData() {
+            async function fetchTab2Data() {
                 let memData
                 let propData = []
                 let thisContractId
@@ -249,213 +287,198 @@ export default function Dashboard(props) {
                     setContractId(mostRecentContractId)
                     thisContractId = mostRecentContractId
 
-                    let thisCurDaoIdx
-                    try{
-                        let daoAccount = new nearAPI.Account(near.connection, mostRecentContractId)
-                        thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
-                    } catch (err) {
-                    console.log('problem getting curdaoidx', err)
-                    return false
-                    }
-
-                    if(thisCurDaoIdx){
-                        memData = await thisCurDaoIdx.get('memberData', thisCurDaoIdx.id)
+                    let mostRecentContractDid = await ceramic.getDid(mostRecentContractId, daoFactory, didRegistryContract)
+                    if(mostRecentContractDid){
+                        memData = await appIdx.get('memberData', mostRecentContractDid)
                     
                         memData ? setMemberData(memData) : false
-                        propData = await thisCurDaoIdx.get('proposalData', thisCurDaoIdx.id)
+                        propData = await appIdx.get('proposalData', mostRecentContractDid)
                     
                         propData && Object.keys(propData).length > 0 ? setProposalData(propData) : false
                     }
+                    
                 } else {
-                    let thisCurDaoIdx
-                    try{
-                        let daoAccount = new nearAPI.Account(near.connection, contractId)
-                        thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
-                    } catch (err) {
-                    console.log('problem getting curdaoidx', err)
-                    return false
-                    }
-                    if(thisCurDaoIdx){
-                        memData = await thisCurDaoIdx.get('memberData', thisCurDaoIdx.id)
+                   
+                    let contractDid = await ceramic.getDid(contractId, daoFactory, didRegistryContract)
+                    if(contractDid){
+                        memData = await appIdx.get('memberData', contractDid)
                     
                         memData ? setMemberData(memData) : false
-                        propData = await thisCurDaoIdx.get('proposalData', thisCurDaoIdx.id)
+                        propData = await appIdx.get('proposalData', contractDid)
                     
                         propData && Object.keys(propData).length > 0 ? setProposalData(propData) : false
                     }
+               
                 }
 
-                    // construct new member data frame
-                    if(memData && memData.data.length > 0 ){
-                       
-                        let j = 0
-                        while (j < memData.data.length){
+                // construct new member data frame
+                if(memData && memData.data.length > 0 ){
+                    
+                    let j = 0
+                    while (j < memData.data.length){
+                    
+                        if(memData.data[j].dataType =='newSummoner') {
                         
-                            if(memData.data[j].dataType =='newSummoner') {
-                            
-                                newMemberDataFrame.push({
-                                    type: 'Summon',
-                                    joined: formatDateString(memData.data[j].data.summonTime), 
-                                    number: 1
-                                })
-                                activityDataFrame.push({
-                                    type: 'Summon',
-                                    timeStamp: formatDateString(memData.data[j].data.summonTime), 
-                                    number: 1
-                                })
-                            }
-                            if(memData.data[j].dataType == 'newMember'){
-                                newMemberDataFrame.push({
-                                    type: 'New Member',
-                                    joined: formatDateString(memData.data[j].data.joined), 
-                                    number: 1
-                                })
-                                activityDataFrame.push({
-                                    type: 'New Member',
-                                    timeStamp: formatDateString(memData.data[j].data.joined), 
-                                    number: 1
-                                })
-                            }
-                            if(memData.data[j].dataType == 'changeMember'){
-                                activityDataFrame.push({
-                                    type: 'Update Member',
-                                    timeStamp: formatDateString(memData.data[j].data.changeTime), 
-                                    number: 1
-                                })
-                            }
-                        j++
+                            newMemberDataFrame.push({
+                                type: 'Summon',
+                                joined: formatDateString(memData.data[j].data.summonTime), 
+                                number: 1
+                            })
+                            activityDataFrame.push({
+                                type: 'Summon',
+                                timeStamp: formatDateString(memData.data[j].data.summonTime), 
+                                number: 1
+                            })
                         }
+                        if(memData.data[j].dataType == 'newMember'){
+                            newMemberDataFrame.push({
+                                type: 'New Member',
+                                joined: formatDateString(memData.data[j].data.joined), 
+                                number: 1
+                            })
+                            activityDataFrame.push({
+                                type: 'New Member',
+                                timeStamp: formatDateString(memData.data[j].data.joined), 
+                                number: 1
+                            })
+                        }
+                        if(memData.data[j].dataType == 'changeMember'){
+                            activityDataFrame.push({
+                                type: 'Update Member',
+                                timeStamp: formatDateString(memData.data[j].data.changeTime), 
+                                number: 1
+                            })
+                        }
+                    j++
                     }
-                    console.log('newmemberdataframe', newMemberDataFrame)
+                }
+                console.log('newmemberdataframe', newMemberDataFrame)
 
                     // For each byte in our array, retrieve the char code value of the binary value
-                    const binArrayToString = array => array.map(byte => String.fromCharCode(parseInt(byte, 2))).join('')
+                   // const binArrayToString = array => array.map(byte => String.fromCharCode(parseInt(byte, 2))).join('')
 
-                    // construct proposals data frame
-                    if(propData > 0) {
-                        console.log('propdata', propData)
-                        if (propData.data.length > 0){
-                     
-                        let k = 0
-                        let totalProposals = propData.data.length
-                        let communityName = contractId.split('.')[0]
-                        let passed = 0
-                        let notPassed = 0
-                        let inProgress = 0
-                        while(k < propData.data.length) {
-                            //count number of passed proposals
-                            if(propData.data[k].data.proposalType && propData.data[k].data.proposalType[1]==true && propData.data[k].data.proposalType[2]==true){
-                                passed++
-                                activityDataFrame.push({
-                                    type: 'Proposal Passed',
-                                    timeStamp: formatDateString(propData.data[k].data.processTime), 
-                                    number: 1
-                                })
-                            }
-                            //count number of failed proposals
-                            if(propData.data[k].data.proposalType && propData.data[k].data.proposalType[1]==true && propData.data[k].data.proposalType[2]==false){
-                                notPassed++
-                                activityDataFrame.push({
-                                    type: 'Proposal Failed',
-                                    timeStamp: formatDateString(propData.data[k].data.processTime), 
-                                    number: 1
-                                })
-                            }
-                            //count number of proposals in process (sponsored but not processed, thus in voting period)
-                            if(propData.data[k].data.proposalType && propData.data[k].data.proposalType[0]==true && propData.data[k].data.proposalType[1]==false){
-                                inProgress++
-                                activityDataFrame.push({
-                                    type: 'Proposal Sponsored',
-                                    timeStamp: formatDateString(propData.data[k].data.sponsorTime), 
-                                    number: 1
-                                })
-                            }
-                        k++
+                // construct proposals data frame
+                if(propData > 0) {
+                    console.log('propdata', propData)
+                    if (propData.data.length > 0){
+                    
+                    let k = 0
+                    let totalProposals = propData.data.length
+                    let communityName = contractId.split('.')[0]
+                    let passed = 0
+                    let notPassed = 0
+                    let inProgress = 0
+                    while(k < propData.data.length) {
+                        //count number of passed proposals
+                        if(propData.data[k].data.proposalType && propData.data[k].data.proposalType[1]==true && propData.data[k].data.proposalType[2]==true){
+                            passed++
+                            activityDataFrame.push({
+                                type: 'Proposal Passed',
+                                timeStamp: formatDateString(propData.data[k].data.processTime), 
+                                number: 1
+                            })
                         }
-                        console.log('activitydataframe', activityDataFrame)
+                        //count number of failed proposals
+                        if(propData.data[k].data.proposalType && propData.data[k].data.proposalType[1]==true && propData.data[k].data.proposalType[2]==false){
+                            notPassed++
+                            activityDataFrame.push({
+                                type: 'Proposal Failed',
+                                timeStamp: formatDateString(propData.data[k].data.processTime), 
+                                number: 1
+                            })
+                        }
+                        //count number of proposals in process (sponsored but not processed, thus in voting period)
+                        if(propData.data[k].data.proposalType && propData.data[k].data.proposalType[0]==true && propData.data[k].data.proposalType[1]==false){
+                            inProgress++
+                            activityDataFrame.push({
+                                type: 'Proposal Sponsored',
+                                timeStamp: formatDateString(propData.data[k].data.sponsorTime), 
+                                number: 1
+                            })
+                        }
+                    k++
+                    }
+                    console.log('activitydataframe', activityDataFrame)
                        
-                        let account
-                        let balance = 0
-                        if(contractId != ''){
-                            try {
-                                account = await near.connection.provider.query({
-                                    request_type: "view_account",
-                                    finality: "final",
-                                    account_id: contractId,
-                                })
-                            } catch (err) {
-                                console.log('problem retrieving account', err)
-                            }
-                            try {
-                                balance = await near.connection.provider.query({
-                                    request_type: "call_function",
-                                    finality: "final",
-                                    account_id: contractId,
-                                    method_name: "getGuildTokenBalances",
-                                    args_base64: "",
-                                })
-                                balance = balance.result.map(c => String.fromCharCode(c)).join('')
-                                let converted = balance.split(':')[2]
-                                balance = formatNearAmount(converted.replace(/[^a-zA-Z0-9 ]/g, ""))
-                                
-                            } catch (err) {
-                                console.log('problem retrieving community balance', err)
-                            }
-                        }
-                        if(account){
-                            console.log('account', account)
-                            let formatted = formatNearAmount(account.amount)
-                            balance = parseFloat(formatted)
-                            console.log('balance', balance)
-                        }
-                            
-                        let getNearPrice = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd')
-                        console.log('near price', getNearPrice)
-                        let value = (getNearPrice.data.near.usd * balance).toFixed(2)
-
-                        let thisCurDaoIdx
-                        try{
-                            let daoAccount = new nearAPI.Account(near.connection, contractId)
-                            thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
-                        } catch (err) {
-                        console.log('problem getting curdaoidx', err)
-                        return false
-                        }
-                        if(thisCurDaoIdx){
-                            let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
-                            console.log('result', result)
-                            if(result){
-                                result.logo ? setLogo(result.logo) : setLogo(defaultLogo)
-                            }
-                        }
-
-                        const daoContract = await dao.initDaoContract(wallet.account(), contractId)
-
-                        let totalMembers
+                    let account
+                    let balance = 0
+                    if(contractId != ''){
                         try {
-                            totalMembers = await daoContract.getTotalMembers()
-                            console.log('total Members', totalMembers)
+                            account = await near.connection.provider.query({
+                                request_type: "view_account",
+                                finality: "final",
+                                account_id: contractId,
+                            })
                         } catch (err) {
-                            console.log('no members', err)
+                            console.log('problem retrieving account', err)
                         }
-
-                        proposalDataFrame.push({
-                            communityName: communityName,
-                            totalMembers: parseInt(totalMembers),
-                            communityFund: balance, 
-                            communityValue: value, 
-                            totalProposals: totalProposals, 
-                            passedProposals: passed, 
-                            failedProposals: notPassed, 
-                            inProgressProposals: inProgress
-                        })
-
-                        setFinalPropDataFrame(proposalDataFrame)
-
-                        console.log('proposaldataframe', proposalDataFrame)
+                        try {
+                            balance = await near.connection.provider.query({
+                                request_type: "call_function",
+                                finality: "final",
+                                account_id: contractId,
+                                method_name: "getGuildTokenBalances",
+                                args_base64: "",
+                            })
+                            balance = balance.result.map(c => String.fromCharCode(c)).join('')
+                            let converted = balance.split(':')[2]
+                            balance = formatNearAmount(converted.replace(/[^a-zA-Z0-9 ]/g, ""))
+                            
+                        } catch (err) {
+                            console.log('problem retrieving community balance', err)
                         }
                     }
+                    if(account){
+                        console.log('account', account)
+                        let formatted = formatNearAmount(account.amount)
+                        balance = parseFloat(formatted)
+                        console.log('balance', balance)
+                    }
+                        
+                    let getNearPrice = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd')
+                    console.log('near price', getNearPrice)
+                    let value = (getNearPrice.data.near.usd * balance).toFixed(2)
 
+                       
+                    let contractDid = await ceramic.getDid(contractId, daoFactory, didRegistryContract)
+                    if(contractDid){
+                        let result = await appIdx.get('daoProfile', contractDid)
+                        console.log('result', result)
+                        if(result){
+                            result.logo ? setLogo(result.logo) : setLogo(defaultLogo)
+                        }
+                    }
+                
+
+                    const daoContract = await dao.initDaoContract(wallet.account(), contractId)
+
+                    let totalMembers
+                    try {
+                        totalMembers = await daoContract.getTotalMembers()
+                        console.log('total Members', totalMembers)
+                    } catch (err) {
+                        console.log('no members', err)
+                    }
+
+                    proposalDataFrame.push({
+                        communityName: communityName,
+                        totalMembers: parseInt(totalMembers),
+                        communityFund: balance, 
+                        communityValue: value, 
+                        totalProposals: totalProposals, 
+                        passedProposals: passed, 
+                        failedProposals: notPassed, 
+                        inProgressProposals: inProgress
+                    })
+
+                    setFinalPropDataFrame(proposalDataFrame)
+
+                    console.log('proposaldataframe', proposalDataFrame)
+                    }
+                }
+            }
+
+            async function fetchTab1Data(){
                     // Persona Opportunity Recommendations
 
                     // 1. Build complete list of all opportuntities for all active DAOs
@@ -464,26 +487,27 @@ export default function Dashboard(props) {
                         let i = 0
                         while (i < currentDaosList.length){
                             if(currentDaosList[i].status == 'active'){
-                                let thisCurDaoIdx
-                                let daoAccount
+                              //  let thisCurDaoIdx
+                              //  let daoAccount
                                 let singleDaoOpportunity
-                                try{
-                                daoAccount = new nearAPI.Account(near.connection, currentDaosList[i].contractId)
-                                } catch (err) {
-                                console.log('no account', err)
-                                }
-                                try{
-                                    thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
-                                    setCurDaoIdx(thisCurDaoIdx)
-                                } catch (err) {
-                                    console.log('error getting dao idx', err)
-                                }
-                                if(thisCurDaoIdx){
-                                    let daoContract = await dao.initDaoContract(state.wallet.account(), currentDaosList[i].contractId)
-                                    let synch = await synchProposalEvent(thisCurDaoIdx, daoContract)
+                            //     try{
+                            //   //  daoAccount = new nearAPI.Account(near.connection, currentDaosList[i].contractId)
+                            //     } catch (err) {
+                            //     console.log('no account', err)
+                            //     }
+                            //     try{
+                            //         thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
+                            //         setCurDaoIdx(thisCurDaoIdx)
+                            //     } catch (err) {
+                            //         console.log('error getting dao idx', err)
+                            //     }
+                            //     if(thisCurDaoIdx){
+                                 //   let daoContract = await dao.initDaoContract(state.wallet.account(), currentDaosList[i].contractId)
+                                 //   let synch = await synchProposalEvent(thisCurDaoIdx, daoContract)
                                     
                                     try{
-                                        singleDaoOpportunity = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
+                                        let contractDid = await ceramic.getDid(currentDaosList[i].contractId, daoFactory, didRegistryContract)
+                                        singleDaoOpportunity = await appIdx.get('opportunities', contractDid)
                                         
                                     } catch (err) {
                                         console.log('error loading singledao opportunity', err)
@@ -496,7 +520,7 @@ export default function Dashboard(props) {
                                         j++
                                         }
                                     }
-                                }
+                              //  }
                             }
                         i++
                         }
@@ -504,16 +528,10 @@ export default function Dashboard(props) {
                     console.log('all opportunities', allOpportunities)
 
                     // 2. Retrieve current persona data
-                    let personaIdx
-                    let personaAccount = new nearAPI.Account(near.connection, accountId)
-                    try{
-                        personaIdx = await ceramic.getCurrentDaoIdx(personaAccount, appIdx, near)
-                    } catch (err) {
-                        console.log('error getting dao idx', err)
-                    }
                     let currentPersona
-                    if(personaIdx){
-                        currentPersona = await personaIdx.get('profile', personaIdx.id)
+                    let personaDid = await ceramic.getDid(accountId, daoFactory, didRegistryContract)
+                    if(personaDid){
+                        currentPersona = await appIdx.get('profile', personaDid)
                         console.log('all opp persona', currentPersona)
                     }
 
@@ -522,7 +540,6 @@ export default function Dashboard(props) {
 
                     // 3. For each opportunity, compare opportunity skillset requirements to persona skillsets and add to recommendations array if the same
                     // calculate a suitability percentage from skills required (true) (total skills possessed / total skills)
-                    
                     let skillMatch
                     let combinedOpportunitySkills = []
 
@@ -540,6 +557,7 @@ export default function Dashboard(props) {
                         }
                         }
                     }
+
                     if (currentPersona && currentPersona.personaSkills.length > 0){
                       currentPersona.personaSkills.map((values, index) => {
                         if(values.name){
@@ -547,6 +565,7 @@ export default function Dashboard(props) {
                         }
                       })
                     }
+
                     if (currentPersona && currentPersona.personaSpecificSkills.length > 0){
                       currentPersona.personaSpecificSkills.map((values, index) => {
                         if(values.name){
@@ -622,17 +641,20 @@ export default function Dashboard(props) {
                             
                             let status = getStatus(propFlags)
                             
-                            let thisCurDaoIdx
-                            try{
-                                let daoAccount = new nearAPI.Account(near.connection, allOpportunities[j].contractId)
-                                thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
-                            } catch (err) {
-                            console.log('problem getting curdaoidx', err)
-                            return false
+                            // let thisCurDaoIdx
+                            // try{
+                            //     let daoAccount = new nearAPI.Account(near.connection, allOpportunities[j].contractId)
+                            //     thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
+                            // } catch (err) {
+                            // console.log('problem getting curdaoidx', err)
+                            // return false
+                            // }
+                            let contractDid = await ceramic.getDid(allOpportunities[j].contractId, daoFactory, didRegistryContract)
+                            let result
+                            if(contractDid){
+                                let result = await appIdx.get('daoProfile', contractDid)
+                                console.log('dao result', result)
                             }
-                            let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
-                            console.log('dao result', result)
-                            
                             if(status == 'Passed' && allOpportunities[j].budget > 0 && Date.now() <= new Date(allOpportunities[j].deadline)){
                                 currentRecommendations.push({
                                     opportunity: allOpportunities[j],
@@ -653,11 +675,11 @@ export default function Dashboard(props) {
                     setRecommendationsLoaded(true)
                     console.log('recommendations', currentRecommendations)
             
-        }
+            }
         
         let mounted = true
-        if(mounted){
-            fetchData()
+        if(mounted && value == '2'){
+            fetchTab2Data()
             .then(res => {
                 d3.selectAll("#d3-members > *").remove()
                 createMemberGraph()
@@ -668,7 +690,17 @@ export default function Dashboard(props) {
             mounted = false
             } 
         }
-    }, [contractId, isUpdated, triggerSteps]
+
+        if(mounted && value == '1'){
+            fetchTab1Data()
+            .then(res => {
+                
+            })
+            return () => {
+            mounted = false
+            } 
+        }
+    }, [currentDaosList, isUpdated, value, triggerSteps]
     )
 
     const handleContractIdChange = (event) => {
@@ -832,8 +864,6 @@ export default function Dashboard(props) {
         }
     ]
   
-      
-      
       
     EnhancedTableHead.propTypes = {
         classes: PropTypes.object.isRequired,
@@ -1036,6 +1066,8 @@ export default function Dashboard(props) {
         }
         setStepsTriggered(triggerSteps + 1)
     }
+
+
     return (
         <>
         <Steps 
@@ -1077,8 +1109,8 @@ export default function Dashboard(props) {
             <Grid className="communities" item xs={12} sm={12} md={8} lg={8} xl={8} align="center">
                 <CommunityCount />
                 <Communities />
-                <MemberCommunityCount />
-                <MemberCommunities state={state}/>
+                <MemberCommunityCount memberDaos={memberDaos}/>
+                <MemberCommunities memberDaos={memberDaos} />
             </Grid>
             <Grid className="opportunities" item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '40px'}}>
                 

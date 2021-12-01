@@ -65,9 +65,7 @@ export default function Communities(props) {
         setEditDaoClicked(property)
     }
 
-    function handleUpdate(){
-        setIsUpdated(!isUpdated)
-    }
+   
 
     return (
         <>
@@ -93,9 +91,8 @@ export default function Communities(props) {
                         created={created}
                         link={''}
                         state={state}
-                        handleEditDaoClick={handleEditDaoClick}
-                        handleUpdate={handleUpdate}
                         status={status}
+                        handleEditDaoClick={handleEditDaoClick}
                     />   
                     )}
                

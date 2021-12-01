@@ -320,43 +320,28 @@ export default function ProposalCard(props) {
             if(isUpdated){}
             // Get Persona Information           
             if(applicant){
-              
-              let applicantIdx
-              try{
-                const applicantAccount = new nearAPI.Account(near.connection, applicant)
-                applicantIdx = await ceramic.getCurrentUserIdx(applicantAccount, appIdx, near)
-                
-              } catch (err) {
-                console.log('problem getting curdaoidx', err)
-                return false
-              }
-
+             // const applicantAccount = new nearAPI.Account(near.connection, applicant)
+              // let applicantDid = await ceramic.retrieveDid(near, applicantAccount, appIdx.ceramic)
+              let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
               // Applicant
-              if(applicantIdx){
-              let result = await applicantIdx.get('profile', applicantIdx.id)
+              
+              let result = await appIdx.get('profile', applicantDid)
                   if(result){
                     result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
                     result.name ? setApplicantName(result.name) : setApplicantName('')
                   }
-              }
+              
               // Proposer
-              let proposerIdx
-              try{
-                const proposerAccount = new nearAPI.Account(near.connection, proposer)
-                proposerIdx = await ceramic.getCurrentUserIdx(proposerAccount, appIdx, near)
-                
-              } catch (err) {
-                console.log('problem getting proposer idx', err)
-                return false
-              }
-              if(proposerIdx){
-                let resultb = await proposerIdx.get('profile', proposerIdx.id)
+              //const proposerAccount = new nearAPI.Account(near.connection, proposer)
+              //let proposerDid = await ceramic.retrieveDid(near, proposerAccount, appIdx.ceramic)
+              let proposerDid = await ceramic.getDid(proposerId, daoFactory, didRegistryContract)
+              let resultb = await appIdx.get('profile', proposerDid)
                 if(resultb){
                   resultb.avatar ? setProposerAvatar(resultb.avatar) : setProposerAvatar(imageName)
                   resultb.name ? setProposerName(resultb.name) : setProposerName('')
                 }
-              }
-             }
+            }
+             
 
              // Check for reference titles first
               // set title to opportunity title if it exists

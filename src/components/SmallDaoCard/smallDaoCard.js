@@ -77,17 +77,13 @@ export default function SmallDaoCard(props) {
     const [totalMembers, setTotalMembers] = useState()
     const [initialized, setInitialized] = useState(true)
     const [memberIcon, setMemberIcon] = useState(<NotInterestedIcon />)
+    const [status, setStatus] = useState(props.status)
 
     const classes = useStyles();
 
     const { 
       summoner,
-      contractId,
-      link,
-      contract,
-      makeSearchDaos,
-      memberStatus,
-      status
+      contractId
    } = props
  
    const {
@@ -95,7 +91,9 @@ export default function SmallDaoCard(props) {
      appIdx, 
      accountId,
      wallet,
-     isUpdated
+     isUpdated,
+     didRegistryContract,
+     daoFactory
    } = state
 
     useEffect(
@@ -104,22 +102,9 @@ export default function SmallDaoCard(props) {
       async function fetchData() {
          if(isUpdated){}
          if(contractId && wallet){
-            let thisCurDaoIdx
-            try{
-              let daoAccount = new nearAPI.Account(near.connection, contractId)
-              thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
-              setCurDaoIdx(thisCurDaoIdx)
-            } catch (err) {
-              console.log('problem getting curdaoidx', err)
-              return false
-            }
-          
-           let memberStatus
+            
            try{
             let contract = await dao.initDaoContract(wallet.account(), contractId)
-            memberStatus = await contract.getMemberStatus({member: accountId})
-            setaMemberStatus(memberStatus)
-            memberStatus ? setMemberIcon(<CheckCircleIcon />) : setMemberIcon(<NotInterestedIcon />)
             let allMembers = await contract.getTotalMembers()
             allMembers == 0 ? setInitialized(false) : setInitialized(true)
             setTotalMembers(allMembers)
@@ -127,8 +112,9 @@ export default function SmallDaoCard(props) {
              console.log('error retrieving member status', err)
              setInitialized(false)
            }
-
-           let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
+           let did = await ceramic.getDid(contractId, daoFactory, didRegistryContract )
+           if(did){
+           let result = await appIdx.get('daoProfile', did)
            console.log('small result', result)
            if(result){
                   result.name != '' ? setsName(result.name) : setsName('')
@@ -137,9 +123,9 @@ export default function SmallDaoCard(props) {
                   result.purpose != '' ? setsPurpose(result.purpose) : setsPurpose('')
                   result.category != '' ? setsCategory(result.category) : setsCategory('')
                   result.owner != '' ? setOwner(result.owner) : setOwner('')
-                  result.status = memberStatus
-                 
-           }
+                  !status ? setStatus('inactive') : null
+                }
+          }
            
          }
         setFinished(false)
@@ -157,10 +143,6 @@ export default function SmallDaoCard(props) {
       
   }, [isUpdated]
   )
-
-  function handleUpdate(property){
-    setIsUpdated(property)
-  }
 
   const handleEditDaoClick = () => {
     handleExpanded()
@@ -271,16 +253,12 @@ export default function SmallDaoCard(props) {
           {editDaoClicked ? <EditDaoForm
             state={state}
             handleEditDaoClickState={handleEditDaoClickState}
-            curDaoIdx={curDaoIdx}
-            handleUpdate={handleUpdate}
             contractId={contractId}
             /> : null }
           
            {detailsClicked ? <DaoProfileDisplay
             state={state}
             handleDetailsClickedState={handleDetailsClickedState}
-            curDaoIdx={curDaoIdx}
-            handleUpdate={handleUpdate}
             contractId={contractId}
             /> : null }
 

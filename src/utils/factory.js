@@ -15,7 +15,8 @@ class Factory {
             viewMethods: [
                 'getDaoList',
                 'getDaoListLength',
-                'getDaoIndex'
+                'getDaoIndex',
+                'getDaoByAccount'
             ],
             // Change methods can modify the state. But you don't receive the returned value when called.
             changeMethods: [

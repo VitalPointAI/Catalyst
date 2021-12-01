@@ -6,7 +6,6 @@ import { Link } from 'react-router-dom'
 import EditPersonaForm from '../EditPersona/editPersona'
 import { makeStyles } from '@material-ui/core/styles'
 import Purpose from '../Purpose/purpose'
-import Personas from '@aluhning/get-personas-js'
 import { ceramic } from '../../utils/ceramic'
 
 // Material UI Components
@@ -67,7 +66,8 @@ export default function PersonaInfo(props) {
       claimed,
       currentDaosList,
       isUpdated,
-      links
+      links,
+      did
     } = state
 
     const {
@@ -78,8 +78,6 @@ export default function PersonaInfo(props) {
         contractId
     } = useParams()
 
-    const data = new Personas()
-
     const matches = useMediaQuery('(max-width:500px)');
    
     useEffect(
@@ -88,16 +86,8 @@ export default function PersonaInfo(props) {
         async function fetchData() {
             if(isUpdated){}
             setFinished(false)
-            if(claimed && near) {
-                let personaAccount = new nearAPI.Account(near.connection, accountId)
-                let thisCurPersonaIdx
-                try{
-                  thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, near)
-                } catch (err) {
-                  console.log('error retrieving idx', err)
-                }
-                
-                let result = await thisCurPersonaIdx.get('profile', thisCurPersonaIdx.id)
+            if(claimed && did) {
+                let result = await appIdx.get('profile', did)
                 if(result){
                     result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                 }
@@ -140,7 +130,7 @@ export default function PersonaInfo(props) {
              setFinished(true)
             })
         
-    }, [isUpdated, currentDaosList]
+    }, [isUpdated, did, claimed, currentDaosList]
     )
 
 const classes = useStyles()
@@ -233,7 +223,7 @@ const classes = useStyles()
             {editPersonaClicked ? <EditPersonaForm
                 state={state}
                 handleEditPersonaClickState={handleEditPersonaClickState}
-                curPersonaIdx={state.curUserIdx}
+                curPersonaIdx={curUserIdx}
                 handleUpdate={handleUpdate}
                 accountId={accountId}
                 /> : null }
