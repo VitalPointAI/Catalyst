@@ -105,48 +105,48 @@ const useStyles = makeStyles((theme) => ({
 
 const imageName = require('../../img/default-profile.png') // default no-image avatar
 
-const registryQuery = `
-  query{
-    accounts{
-      id
-      actionLogs
-    }
-  }
-`
+// const registryQuery = `
+//   query{
+//     accounts{
+//       id
+//       actionLogs
+//     }
+//   }
+// `
 
-const client = new ApolloClient({
-  uri: REGISTRY_API_URL,
-  cache: new InMemoryCache(),
-})
+// const client = new ApolloClient({
+//   uri: REGISTRY_API_URL,
+//   cache: new InMemoryCache(),
+// })
 
-client
-  .query({
-    query: gql(registryQuery),
-  })
-  .then((data) => {
-    console.log('Subgraph data:', data)
-      let result = data.data.accounts[0].actionLogs[0].split('"')
-      if (result[1]=='accountId'){
-      let accountName = result[3]
-      console.log('accountName', accountName)
-      }
-      if (result[5]=='did'){
-        let accountDid = result[7]
-        console.log('accountdid', accountDid)
-      }
-      let parseIt = JSON.parse(`{\"EVENT_JSON\":{\"standard\":nep171,version:'1.0.0',event:'create a community (createDAO) is triggered',data:{communityName:'accountId',did:'did',deposit:'2',created:'123456',owner:'owner'}}}`)
-      console.log('parse it', parseIt)
-    console.log('a', data.data.accounts)
-    console.log('b', data.data.accounts[0].actionLogs)
-    console.log('c', data.data.accounts[0].actionLogs[0])
-    let parsedJSON = JSON.parse(data.data.accounts[0].actionLogs[0])
+// client
+//   .query({
+//     query: gql(registryQuery),
+//   })
+//   .then((data) => {
+//     console.log('Subgraph data:', data)
+//       let result = data.data.accounts[0].actionLogs[0].split('"')
+//       if (result[1]=='accountId'){
+//       let accountName = result[3]
+//       console.log('accountName', accountName)
+//       }
+//       if (result[5]=='did'){
+//         let accountDid = result[7]
+//         console.log('accountdid', accountDid)
+//       }
+//       let parseIt = JSON.parse(`{\"EVENT_JSON\":{\"standard\":nep171,version:'1.0.0',event:'create a community (createDAO) is triggered',data:{communityName:'accountId',did:'did',deposit:'2',created:'123456',owner:'owner'}}}`)
+//       console.log('parse it', parseIt)
+//     console.log('a', data.data.accounts)
+//     console.log('b', data.data.accounts[0].actionLogs)
+//     console.log('c', data.data.accounts[0].actionLogs[0])
+//     let parsedJSON = JSON.parse(data.data.accounts[0].actionLogs[0])
     
-    console.log('parsedJSON', parsedJSON)
-    console.log('subgraph account id', data.data.accounts[0].actionLogs[0].accountId)
-  })
-  .catch((err) => {
-    console.log('Error fetching data:', err)
-  })
+//     console.log('parsedJSON', parsedJSON)
+//     console.log('subgraph account id', data.data.accounts[0].actionLogs[0].accountId)
+//   })
+//   .catch((err) => {
+//     console.log('Error fetching data:', err)
+//   })
 
 export default function AppFramework(props) {
 
@@ -208,6 +208,8 @@ export default function AppFramework(props) {
     const [contractType, setContractType] = useState()
     const [currentTreasuryTotal, setCurrentTreasuryTotal] = useState()
     const [escrowCurrentTreasuryTotal, setEscrowCurrentTreasuryTotal] = useState()
+    const [date, setDate] = useState()
+
     const classes = useStyles()
 
     const {
@@ -365,9 +367,6 @@ export default function AppFramework(props) {
           let urlVariables = window.location.search
           const urlParameters = new URLSearchParams(urlVariables)
           let transactionHash = urlParameters.get('transactionHashes')
-          let errorCode = urlParameters.get('errorCode')
-      
-
         
 
             // *********CHECK FOR TRIGGERS AND EXECUTE*************
@@ -449,7 +448,7 @@ export default function AppFramework(props) {
                   
                   let c = 0
                   while(c < firstInit.length){
-                  //  await ceramic.makeDID(curDaoIdx.ceramic, currentDaoAccount, near, appIdx)
+      
                     if(firstInit[c].contractId==contractId && firstInit[c].init == true){
                     
                       let logged = await logInitEvent(
@@ -756,7 +755,7 @@ export default function AppFramework(props) {
           async function fetchData() {
             if(isUpdated){}
             //************ LOAD COMMUNITY SETTINGS AND INFORMATION */
-                  if(curDaoIdx){
+                
                     try{
                       let result = await curDaoIdx.get('daoProfile', curDaoIdx.id)
                       if(result){
@@ -769,7 +768,7 @@ export default function AppFramework(props) {
                     } catch (err) {
                       console.log('problem retrieving DAO profile')
                     }
-                  }
+                  
 
                   let init
                   if(daoContract){
@@ -980,10 +979,7 @@ export default function AppFramework(props) {
                       let guildRow
                       try {
                         gbalance = await daoContract.getGuildTokenBalances()  
-                      
-                      
-                        
-                       // gbalance = balance.available
+        
                         setGuildBalance(gbalance)
 
                         let Accounts

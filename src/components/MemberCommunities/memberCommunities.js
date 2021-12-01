@@ -71,7 +71,7 @@ export default function MemberCommunities(props) {
                   
                 <Grid container alignItems="center" justifyContent="center" spacing={3} style={{padding: '20px'}}>
                 
-                {daos.reverse().map(({ contractId, status }, i) =>
+                {daos.map(({ contractId, status }, i) =>
                     <MemberOfDaoCard
                         key={i}
                         contractId={contractId}

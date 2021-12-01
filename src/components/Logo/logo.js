@@ -47,7 +47,8 @@ export default function Logo(props) {
         near,
         accountId,
         wallet,
-        isUpdated
+        isUpdated,
+        daoFactory
       } = state
 
     const {
@@ -64,63 +65,46 @@ export default function Logo(props) {
                 setLogo(catalystLogo)
                 setLoaded(true)
             }
-            let thisCurDaoIdx
-            if(near && contractId){
-                let daoAccount
+            
+            if(contractId && daoFactory && didRegistryContract){    
                 try{
-                    daoAccount = new nearAPI.Account(near.connection, contractId)
-                } catch (err) {
-                    console.log('dao account does not exist', err)
-                  
-                }
+                    let did = await ceramic.getDid(contractId, daoFactory, didRegistryContract)
+                    let result = await appIdx.get('daoProfile', did)
                     
-                thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
-           
-                setCurDaoIdx(thisCurDaoIdx)
-                
-                if(thisCurDaoIdx){
-                    try{
-                        let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
-                     
-                        if(result){
-                        result.logo ? setLogo(result.logo) : setLogo(defaultLogo)
-                        setLoaded(true)
-                        }
-                        if(!result){
-                            setLogo(defaultLogo)
-                            setLoaded(true)
-                        }
-                    } catch (err) {
-                        console.log('problem retrieving DAO profile')
-                    }
-                }
-
-                if(!thisCurDaoIdx){
-                    setLogo(defaultLogo)
+                    if(result){
+                    result.logo ? setLogo(result.logo) : setLogo(defaultLogo)
                     setLoaded(true)
-                }
-
-                let contract
-                try{
-                    contract = await dao.initDaoContract(wallet.account(), contractId)
+                    }
+                    if(!result){
+                        setLogo(defaultLogo)
+                        setLoaded(true)
+                    }
                 } catch (err) {
-                    console.log('error retrieving contract', err)
-                }
-                
-                try{
-                let owner = await contract.getSummoner()
-                setSummoner(owner)
-                } catch (err) {
-                    console.log('error retrieving summoner', err)
+                    console.log('problem retrieving DAO profile')
                 }
             }
+
+            let contract
+            try{
+                contract = await dao.initDaoContract(wallet.account(), contractId)
+            } catch (err) {
+                console.log('error retrieving contract', err)
+            }
+            
+            try{
+            let owner = await contract.getSummoner()
+            setSummoner(owner)
+            } catch (err) {
+                console.log('error retrieving summoner', err)
+            }
+            
         }
 
         fetchData((res) => {
             
         })
 
-    }, [near, isUpdated]
+    }, [didRegistryContract, isUpdated]
     )
 
     const handleEditDaoClick = () => {
@@ -231,7 +215,6 @@ export default function Logo(props) {
         {editDaoClicked ? <EditDaoForm
             state={state}
             handleEditDaoClickState={handleEditDaoClickState}
-            curDaoIdx={curDaoIdx}
             contractId={contractId}
             /> : null }
         </>

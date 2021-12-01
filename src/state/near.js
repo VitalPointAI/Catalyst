@@ -1217,7 +1217,7 @@ export async function synchDaos(state){
             let result = await ceramic.storeKeysSecret(state.appIdx, upLinks, 'daoKeys')
 
             if(result){
-                window.location.assign('/')
+             //   window.location.assign('/')
             }
         }
     } catch (err) {

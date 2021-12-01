@@ -641,21 +641,13 @@ export default function Dashboard(props) {
                             
                             let status = getStatus(propFlags)
                             
-                            // let thisCurDaoIdx
-                            // try{
-                            //     let daoAccount = new nearAPI.Account(near.connection, allOpportunities[j].contractId)
-                            //     thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near)
-                            // } catch (err) {
-                            // console.log('problem getting curdaoidx', err)
-                            // return false
-                            // }
                             let contractDid = await ceramic.getDid(allOpportunities[j].contractId, daoFactory, didRegistryContract)
                             let result
                             if(contractDid){
                                 let result = await appIdx.get('daoProfile', contractDid)
-                                console.log('dao result', result)
+                               
                             }
-                            if(status == 'Passed' && allOpportunities[j].budget > 0 && Date.now() <= new Date(allOpportunities[j].deadline)){
+                            if(result && status == 'Passed' && allOpportunities[j].budget > 0 && Date.now() <= new Date(allOpportunities[j].deadline)){
                                 currentRecommendations.push({
                                     opportunity: allOpportunities[j],
                                     status: status,

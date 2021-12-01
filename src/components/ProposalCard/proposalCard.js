@@ -254,6 +254,7 @@ export default function ProposalCard(props) {
 
     const {
       didRegistryContract,
+      daoFactory,
       near,
       appIdx,
       accountId,
@@ -320,8 +321,6 @@ export default function ProposalCard(props) {
             if(isUpdated){}
             // Get Persona Information           
             if(applicant){
-             // const applicantAccount = new nearAPI.Account(near.connection, applicant)
-              // let applicantDid = await ceramic.retrieveDid(near, applicantAccount, appIdx.ceramic)
               let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
               // Applicant
               
@@ -332,9 +331,7 @@ export default function ProposalCard(props) {
                   }
               
               // Proposer
-              //const proposerAccount = new nearAPI.Account(near.connection, proposer)
-              //let proposerDid = await ceramic.retrieveDid(near, proposerAccount, appIdx.ceramic)
-              let proposerDid = await ceramic.getDid(proposerId, daoFactory, didRegistryContract)
+              let proposerDid = await ceramic.getDid(proposer, daoFactory, didRegistryContract)
               let resultb = await appIdx.get('profile', proposerDid)
                 if(resultb){
                   resultb.avatar ? setProposerAvatar(resultb.avatar) : setProposerAvatar(imageName)
