@@ -3,8 +3,8 @@ import { appStore, onAppMount } from '../../state/app'
 import { makeStyles } from '@material-ui/core/styles'
 import CommentForm from '../common/Comment/commentForm'
 import CommentDetails from '../common/Comment/commentDetails'
-import Persona from '@aluhning/get-personas-js'
 import { formatNearAmount } from '../../state/near'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -73,6 +73,37 @@ const useStyles = makeStyles((theme) => ({
     const imageName = require('../../img/default-profile.png') // default no-image avatar
 
 export default function ConfigurationProposalDetails(props) {
+
+  const { state, dispatch, update } = useContext(appStore)
+
+    const {
+      accountId,
+      curUserIdx,
+      appIdx,
+      daoFactory,
+      didRegistryContract,
+      periodDuration,
+      votingPeriodLength,
+      gracePeriodLength,
+      proposalDeposit,
+      dilutionBound,
+      voteThreshold,
+      platformPercent,
+      platformAccount,
+      curDaoIdx,
+      memberStatus,
+      contract
+    } = state
+
+    const {
+      handleConfigurationProposalDetailsClickState,
+      proposalId,
+      applicant,
+      proposer,
+      configuration,
+      status
+  } = props
+
     const [open, setOpen] = useState(true)
 
     const [title, setTitle] = useState()
@@ -89,39 +120,8 @@ export default function ConfigurationProposalDetails(props) {
     const [isUpdated, setIsUpdated] = useState(false)
     const [proposalComments, setProposalComments] = useState([])
     const [finished, setFinished] = useState(false)
-
-    const [currentPeriodDuration, setCurrentPeriodDuration] = useState()
-    const [currentVotingPeriodLength, setCurrentVotingPeriodLength] = useState()
-    const [currentGracePeriodLength, setCurrentGracePeriodLength] = useState()
-    const [currentProposalDeposit, setCurrentProposalDeposit] = useState()
-    const [currentDilutionBound, setCurrentDilutionBound] = useState()
-    const [currentVoteThreshold, setCurrentVoteThreshold] = useState()
-    const [currentPlatformPercent, setCurrentPlatformPercent] = useState()
-
+   
     const classes = useStyles()
-
-    const { state, dispatch, update } = useContext(appStore)
-
-    const {
-      accountId,
-      curUserIdx,
-      appIdx
-    } = state
-
-    const {
-        handleConfigurationProposalDetailsClickState,
-        proposalId,
-        status,
-        curDaoIdx,
-        curPersonaIdx,
-        applicant,
-        proposer,
-        configuration,
-        contract,
-        memberStatus
-    } = props
-
-    const thisPersona = new Persona()
 
     useEffect(
         () => {
@@ -131,8 +131,8 @@ export default function ConfigurationProposalDetails(props) {
          
             // Get Applicant Persona Information
             if(proposer){                    
-              
-              let result = await thisPersona.getData('profile', proposer, appIdx)
+              let proposerDid = await ceramic.getDid(proposer, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', proposerDid)
                   if(result){
                     result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
                     result.name ? setProposerName(result.name) : setProposerName(proposer)
@@ -144,8 +144,8 @@ export default function ConfigurationProposalDetails(props) {
 
             // Get Current User Persona Information
             if(accountId){                    
-              
-              let result = await thisPersona.getData('profile', accountId, appIdx)
+              let accountDid = await ceramic.getDid(accountId, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', accountDid)
                   if(result){
                     result.avatar ? setCurUserAvatar(result.avatar) : setCurUserAvatar(imageName)
                     result.name ? setCurUserName(result.name) : setCurUserName(accountId)
@@ -156,8 +156,8 @@ export default function ConfigurationProposalDetails(props) {
             }
            
             if(applicant){                           
-               
-                  let result = await thisPersona.getData('profile', applicant, appIdx)
+              let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', applicantDid)
                       if(result){
                         result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
                         result.name ? setApplicantName(result.name) : setApplicantName(applicant)
@@ -165,23 +165,7 @@ export default function ConfigurationProposalDetails(props) {
                         setApplicantAvatar(imageName)
                         setApplicantName(applicant)
                       } 
-            }
-
-            if(contract){
-              try {
-                let result = await contract.getInitSettings({})
-                result[0][1] ? setCurrentPeriodDuration(result[0][1]) : setCurrentPeriodDuration('')
-                result[0][2] ? setCurrentVotingPeriodLength(result[0][2]) : setCurrentVotingPeriodLength('')
-                result[0][3] ? setCurrentGracePeriodLength(result[0][3]) : setCurrentGracePeriodLength('')
-                result[0][4] ? setCurrentProposalDeposit(formatNearAmount(result[0][4])) : setCurrentProposalDeposit('')
-                result[0][5] ? setCurrentDilutionBound(result[0][5]) : setCurrentDilutionBound('')
-                result[0][6] ? setCurrentVoteThreshold(result[0][6]) : setCurrentVoteThreshold('')
-                result[0][8] ? setCurrentPlatformPercent(formatNearAmount(result[0][8], 5)) : setCurrentPlatformPercent('')
-              } catch (err) {
-                console.log('error retrieving current init settings', err)
-              }
-            }
-            
+            }        
 
             // Set Existing Proposal Data       
             if(curDaoIdx){
@@ -270,25 +254,19 @@ export default function ConfigurationProposalDetails(props) {
                    In reply to {author}{preview}
                    </Typography>
                  : null}
-                    <CommentDetails
-                        proposalId={proposalId}
-                        proposalApplicant={applicant}
-                        accountId={accountId}
-                        handleUpdate={handleUpdate}
-                        curDaoIdx={curDaoIdx}
-                        key={comment.commentId}
-                        commentId={comment.commentId}
-                        comments={proposalComments}
-                        commentAuthor={comment.author}
-                        commentParent={comment.parent}
-                        commentPublished={comment.published}
-                        commentBody={comment.body}
-                        commentPostDate={comment.postDate}
-                        commentSubject={comment.subject}
-                        accountId={accountId}
-                        curUserIdx={curUserIdx}
-                        memberStatus={memberStatus}
-                    />
+                 <CommentDetails
+                    key={comment.commentId}
+                    proposalId={proposalId}
+                    proposalApplicant={applicant}
+                    commentId={comment.commentId}
+                    comments={proposalComments}
+                    commentAuthor={comment.author}
+                    commentParent={comment.parent}
+                    commentPublished={comment.published}
+                    commentBody={comment.body}
+                    commentPostDate={comment.postDate}
+                    commentSubject={comment.subject}
+                />
                 </div>
                   )
           })
@@ -329,10 +307,10 @@ export default function ConfigurationProposalDetails(props) {
                                 Period Duration
                               </TableCell>
                               <TableCell>
-                                {currentPeriodDuration ? currentPeriodDuration : <CircularProgress />}
+                                {periodDuration ? periodDuration : <CircularProgress />}
                               </TableCell>
                               <TableCell style={{ 
-                                backgroundColor: currentPeriodDuration != configuration[0] ? 'yellow' : ''
+                                backgroundColor: periodDuration.toString() != configuration[0] ? 'yellow' : ''
                               }}>
                                 {configuration.length > 0 ? configuration[0] : <CircularProgress />} seconds
                               </TableCell>
@@ -342,10 +320,10 @@ export default function ConfigurationProposalDetails(props) {
                                 Voting Period Length
                               </TableCell>
                               <TableCell>
-                                {currentVotingPeriodLength ? currentVotingPeriodLength : <CircularProgress />}
+                                {votingPeriodLength ? votingPeriodLength : <CircularProgress />}
                               </TableCell>
                               <TableCell style={{ 
-                                backgroundColor: currentVotingPeriodLength != configuration[1] ? 'yellow' : ''
+                                backgroundColor: votingPeriodLength.toString() != configuration[1] ? 'yellow' : ''
                               }}>
                                 {configuration.length > 0 ? configuration[1] : <CircularProgress />} {configuration.length > 0 ? parseInt(configuration[1]) > 1 ? 'periods' : 'period' : null}
                               </TableCell>
@@ -355,10 +333,10 @@ export default function ConfigurationProposalDetails(props) {
                                 Grace Period Length
                               </TableCell>
                               <TableCell>
-                                {currentGracePeriodLength ? currentGracePeriodLength : <CircularProgress />}
+                                {gracePeriodLength ? gracePeriodLength : <CircularProgress />}
                               </TableCell>
                               <TableCell style={{ 
-                                backgroundColor: currentGracePeriodLength != configuration[2] ? 'yellow' : ''
+                                backgroundColor: gracePeriodLength.toString() != configuration[2] ? 'yellow' : ''
                               }}>
                                 {configuration.length > 0 ? configuration[2] : <CircularProgress />} {configuration.length > 0 ? parseInt(configuration[2]) > 1 ? 'periods' : 'period' : null}
                               </TableCell>
@@ -368,10 +346,10 @@ export default function ConfigurationProposalDetails(props) {
                                 Proposal Deposit
                               </TableCell>
                               <TableCell>
-                                {currentProposalDeposit ? currentProposalDeposit : <CircularProgress />}
+                                {proposalDeposit ? proposalDeposit : <CircularProgress />}
                               </TableCell>
                               <TableCell style={{ 
-                                backgroundColor: currentProposalDeposit != configuration[3] ? 'yellow' : ''
+                                backgroundColor: proposalDeposit != configuration[3] ? 'yellow' : ''
                               }}>
                                 {configuration.length > 0 ? configuration[3] : <CircularProgress />} Ⓝ
                               </TableCell>
@@ -381,10 +359,10 @@ export default function ConfigurationProposalDetails(props) {
                                 Dilution Bound
                               </TableCell>
                               <TableCell>
-                                {currentDilutionBound ? currentDilutionBound : <CircularProgress />}
+                                {dilutionBound ? dilutionBound : <CircularProgress />}
                               </TableCell>
                               <TableCell style={{ 
-                                backgroundColor: currentDilutionBound != configuration[4] ? 'yellow' : ''
+                                backgroundColor: dilutionBound.toString() != configuration[4] ? 'yellow' : ''
                               }}>
                                 {configuration.length > 0 ? configuration[4] : <CircularProgress />}
                               </TableCell>
@@ -394,10 +372,10 @@ export default function ConfigurationProposalDetails(props) {
                                 Vote Threshold
                               </TableCell>
                               <TableCell>
-                                {currentVoteThreshold ? currentVoteThreshold : <CircularProgress />}
+                                {voteThreshold ? voteThreshold : <CircularProgress />}
                               </TableCell>
                               <TableCell style={{ 
-                                backgroundColor: currentVoteThreshold != configuration[5] ? 'yellow' : ''
+                                backgroundColor: voteThreshold.toString() != configuration[5] ? 'yellow' : ''
                               }}>
                                 {configuration.length > 0 ? configuration[5] : <CircularProgress />}
                               </TableCell>
@@ -407,14 +385,27 @@ export default function ConfigurationProposalDetails(props) {
                                 Platform Support
                               </TableCell>
                               <TableCell>
-                                {currentPlatformPercent ? currentPlatformPercent : <CircularProgress />}
+                                {platformPercent ? formatNearAmount(platformPercent, 5) : <CircularProgress />}
                               </TableCell>
                               <TableCell style={{ 
-                                backgroundColor: currentPlatformPercent != configuration[6] ? 'yellow' : ''
+                                backgroundColor: formatNearAmount(platformPercent, 5) != configuration[6] ? 'yellow' : ''
                               }}>
                                 {configuration.length > 0 ? configuration[6] : <CircularProgress />}
                               </TableCell>
                             </TableRow>
+                            <TableRow>
+                            <TableCell component="th" scope="row">
+                              Platform Support Account
+                            </TableCell>
+                            <TableCell>
+                              {platformAccount ? platformAccount : <CircularProgress />}
+                            </TableCell>
+                            <TableCell style={{ 
+                              backgroundColor: platformAccount != configuration[7] ? 'yellow' : ''
+                            }}>
+                              {configuration.length > 0 ? configuration[7] : <CircularProgress />}
+                            </TableCell>
+                          </TableRow>
                                     
                           </TableBody>
                         </Table>
@@ -451,17 +442,13 @@ export default function ConfigurationProposalDetails(props) {
               {status != 'Passed' && status != 'Not Passed' && memberStatus ? (
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
               <Typography variant="h5" style={{marginLeft: '10px'}}>Leave a Comment/Ask a Question</Typography>
-                  <CommentForm
-                    reply={false}
-                    proposalApplicant={applicant}
-                    avatar={curUserAvatar}
-                    name={curUserName}
-                    proposalId={proposalId}
-                    accountId={accountId}
-                    contract={contract}
-                    handleUpdate={handleUpdate}
-                    curDaoIdx={curDaoIdx}
-                  />
+                <CommentForm
+                  reply={false}
+                  proposalApplicant={applicant}
+                  avatar={curUserAvatar}
+                  name={curUserName}
+                  proposalId={proposalId}
+                />
               </Grid>
               ) : null }
               </Grid>

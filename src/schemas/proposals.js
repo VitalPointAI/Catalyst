@@ -97,13 +97,13 @@ export const proposalSchema = {
           "type": "array",
         },
         "roleConfiguration": {
-          "type": "object",
+          "type": "array",
         },
         "reputationConfiguration": {
-          "type": "object",
+          "type": "array",
         },
         "memberRoleConfiguration": {
-          "type": "object",
+          "type": "array",
         },
         "referenceIds": {
           "type": "array",

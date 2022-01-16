@@ -54,7 +54,26 @@ const useStyles = makeStyles((theme) => ({
 
 export default function CommentForm(props) {
 
-  const { state, dispatch, update } = useContext(appStore);
+  const { state, dispatch, update } = useContext(appStore)
+
+  const {
+    appIdx,
+    isUpdated,
+    didRegistryContract,
+    near,
+    curDaoIdx,
+    accountId
+  } = state
+
+  const {
+      reply,
+      proposalApplicant,
+      originalAuthor, 
+      originalContent, 
+      proposalId,
+      avatar,
+      name
+  } = props
 
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
@@ -64,45 +83,12 @@ export default function CommentForm(props) {
     const [commentAuthor, setCommentAuthor] = useState(props.accountId)
     const [commentId, setCommentId] = useState()   
     const [submitted, setSubmitted] = useState(false)
-    const [memberStatus, setMemberStatus] = useState(getStatus(props.accountId))
+    
     const { register, handleSubmit, watch, errors } = useForm()
    
-    const {
-      appIdx,
-      isUpdated,
-      didRegistryContract,
-      near
-    } = state
-
-    const {
-        reply,
-        proposalApplicant,
-        originalAuthor, 
-        originalContent, 
-        proposalId,
-        accountId,
-        curDaoIdx,
-        handleUpdate,
-        avatar,
-        name
-    } = props
-
-
     const location = useLocation().pathname
 
     const classes = useStyles()
-
-    useEffect(() => {
-        async function fetchData() {
-         
-            
-        }
-       
-        fetchData()
-          .then((res) => {
-        
-          })
-    },[])
 
     const handleCommentSubjectChange = (event) => {
         let value = event.target.value;
@@ -260,10 +246,9 @@ export default function CommentForm(props) {
         }
         
       handleReset()
+      update('', {isUpdated: !isUpdated})
       setFinished(true)
       setSubmitted(true)
-      update('', {isUpdated: !isUpdated})
-      handleUpdate(true)
     }
     
         return (

@@ -6,6 +6,7 @@ import CommentDetails from '../common/Comment/commentDetails'
 import Persona from '@aluhning/get-personas-js'
 import FungibleTokens from '../../utils/fungibleTokens'
 import { getStatus, formatDate } from '../../state/near'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -70,6 +71,29 @@ const useStyles = makeStyles((theme) => ({
     const defaultToken = require('../../img/default-coin.png') // default no-token image
 
 export default function WhitelistProposalDetails(props) {
+
+  const { state, dispatch, update } = useContext(appStore)
+
+  const {
+    accountId,
+    curUserIdx, 
+    isUpdated,
+    appIdx,
+    daoFactory,
+    didRegistryContract,
+    curDaoIdx,
+    contract,
+    memberStatus
+  } = state
+
+  const {
+      handleWhitelistProposalDetailsClickState,
+      proposalId,
+      status,
+      applicant,
+      proposer
+  } = props
+
     const [open, setOpen] = useState(true)
 
     const [title, setTitle] = useState()
@@ -93,25 +117,7 @@ export default function WhitelistProposalDetails(props) {
 
     const classes = useStyles()
 
-    const { state, dispatch, update } = useContext(appStore)
-
-    const {
-      accountId,
-      curUserIdx, 
-      isUpdated,
-      appIdx
-    } = state
-
-    const {
-        handleWhitelistProposalDetailsClickState,
-        proposalId,
-        status,
-        curDaoIdx,
-        applicant,
-        proposer,
-        contract,
-        memberStatus
-    } = props
+   
 
     const { getMetadata } = FungibleTokens
 
@@ -142,8 +148,8 @@ export default function WhitelistProposalDetails(props) {
             if(isUpdated){}
              // Get Applicant Persona Information
              if(proposer){                    
-              
-              let result = await thisPersona.getData('profile', proposer, appIdx)
+              let proposerDid = await ceramic.getDid(proposer, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', proposerDid)
                 if(result){
                   result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
                   result.name ? setProposerName(result.name) : setProposerName(proposer)
@@ -155,8 +161,8 @@ export default function WhitelistProposalDetails(props) {
 
             // Get Current User Persona Information
             if(accountId){                    
-              
-              let result = await thisPersona.getData('profile', accountId, appIdx)
+              let accountDid = await ceramic.getDid(accountId, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', accountDid)
                   if(result){
                     result.avatar ? setCurUserAvatar(result.avatar) : setCurUserAvatar(imageName)
                     result.name ? setCurUserName(result.name) : setCurUserName(accountId)
@@ -167,8 +173,8 @@ export default function WhitelistProposalDetails(props) {
             }
           
             if(applicant){                           
-              
-                  let result = await thisPersona.getData('profile', applicant, appIdx)
+              let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', applicantDid)
                       if(result){
                         result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
                         result.name ? setApplicantName(result.name) : setApplicantName(applicant)
@@ -268,25 +274,19 @@ export default function WhitelistProposalDetails(props) {
                  <Typography>
                  In reply to {author}{preview}
                  </Typography>: null}
-                    <CommentDetails
-                        proposalId={proposalId}
-                        proposalApplicant={applicant}
-                        accountId={accountId}
-                        handleUpdate={handleUpdate}
-                        curDaoIdx={curDaoIdx}
-                        key={comment.commentId}
-                        commentId={comment.commentId}
-                        comments={proposalComments}
-                        commentAuthor={comment.author}
-                        commentParent={comment.parent}
-                        commentPublished={comment.published}
-                        commentBody={comment.body}
-                        commentPostDate={comment.postDate}
-                        commentSubject={comment.subject}
-                        accountId={accountId}
-                        curUserIdx={curUserIdx}
-                        memberStatus={memberStatus}
-                    />
+                 <CommentDetails
+                    key={comment.commentId}
+                    proposalId={proposalId}
+                    proposalApplicant={applicant}
+                    commentId={comment.commentId}
+                    comments={proposalComments}
+                    commentAuthor={comment.author}
+                    commentParent={comment.parent}
+                    commentPublished={comment.published}
+                    commentBody={comment.body}
+                    commentPostDate={comment.postDate}
+                    commentSubject={comment.subject}
+                />
                 </div>
                   )
           })
@@ -358,10 +358,6 @@ export default function WhitelistProposalDetails(props) {
                     avatar={curUserAvatar}
                     name={curUserName}
                     proposalId={proposalId}
-                    accountId={accountId}
-                    contract={contract}
-                    handleUpdate={handleUpdate}
-                    curDaoIdx={curDaoIdx}
                   />
               </Grid>
               ) : null }

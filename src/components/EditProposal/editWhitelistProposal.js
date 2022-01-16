@@ -11,7 +11,8 @@ import { Editor } from "react-draft-wysiwyg"
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
 import draftToHtml from 'draftjs-to-html'
 import htmlToDraft from 'html-to-draftjs'
-import FungibleTokens from '../../utils/fungibleTokens';
+import FungibleTokens from '../../utils/fungibleTokens'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -53,6 +54,25 @@ const imageName = require('../../img/default-profile.png') // default no-image a
 const defaultToken = require('../../img/default-coin.png') // default no-token image
 
 export default function EditWhitelistProposalForm(props) {
+
+  const { state, dispatch, update } = useContext(appStore)
+
+  const {
+    isUpdated,
+    daoFactory,
+    didRegistryContract,
+    appIdx,
+    curDaoIdx
+  } = state
+
+  const {
+    handleEditWhitelistProposalDetailsClickState,
+    applicant,
+    proposer,
+    proposalId,
+    tokenName
+  } = props
+
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
     const [loaded, setLoaded] = useState(false)
@@ -72,24 +92,11 @@ export default function EditWhitelistProposalForm(props) {
     const [details, setDetails] = useState(EditorState.createEmpty())
     const [thisTokenName, setThisTokenName] = useState('')
     const [tokenImage, setTokenImage] = useState(defaultToken)
-    const { state, dispatch, update } = useContext(appStore)
+    
     const { register, handleSubmit, watch, errors } = useForm()
-
-    const {
-        handleEditWhitelistProposalDetailsClickState,
-        applicant,
-        proposer,
-        curDaoIdx,
-        proposalId,
-        tokenName
-    } = props
 
     const { getMetadata } = FungibleTokens
 
-    const {
-      isUpdated
-    } = state
-    
     const classes = useStyles()
 
     useEffect(
@@ -116,8 +123,8 @@ export default function EditWhitelistProposalForm(props) {
            
             // Set Existing Persona Data      
             if(applicant){
-              const thisPersona = new Persona()
-              let result = await thisPersona.getData('profile', applicant, curDaoIdx)
+              let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', applicantDid)
                   if(result){
                     result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                     result.name ? setName(result.name) : setName('')

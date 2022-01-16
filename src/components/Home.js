@@ -76,36 +76,40 @@ export const Home = ({ children }) => {
         {finished ? 
            
             wallet && wallet.signedIn ?  
-                key ? (<div className={classes.root}>
+                key ? (<><div className={classes.root}>
                         <Header state={state}/>
                             <Import />
+                        </div>
                         <Footer />
-                        </div>) 
-                    : (
+                        </>) 
+                    : (<>
                         <div className={classes.root}>
                         <Header state={state}/>
                             <Dashboard />
+                        </div>
                         <Footer />
-                        </div>)
+                        </>)
 
             : window.location.replace('https://vitalpoint.ai/catalyst')
             //:  (<div className={classes.root}><Header state={state}/><FrontPage /> <Footer /></div>)
-            : state.accountData ? (
+            : state.accountData ? (<>
                 <div className={classes.root}>
                 <Header state={state}/>
                     {children}
-                <Footer />
                 </div>
+                <Footer /></>
             ) 
-            : (<div className={classes.root}>
+            : (<><div className={classes.root}>
                 <Header state={state}/>
                 <div className={classes.centered}>
                     <CircularProgress/><br></br>
                     <Typography variant="h6">Setting Things Up...</Typography><br></br>
                     <RandomPhrase />
                 </div>
+               
+                </div>
                 <Footer />
-                </div>)
+                </>)
         }    
        
         { state.app.alert &&

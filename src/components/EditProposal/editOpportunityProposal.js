@@ -11,6 +11,7 @@ import { Editor } from "react-draft-wysiwyg"
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
 import draftToHtml from 'draftjs-to-html'
 import htmlToDraft from 'html-to-draftjs'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -70,6 +71,28 @@ const useStyles = makeStyles((theme) => ({
 const imageName = require('../../img/default-profile.png') // default no-image avatar
 
 export default function EditOpportunityProposalForm(props) {
+
+  const { state, dispatch, update } = useContext(appStore)
+  
+  const {
+    isUpdated,
+    daoFactory,
+    didRegistryContract,
+    appIdx,
+    nearPrice,
+    curDaoIdx
+  } = state
+
+  const {
+    contractId
+  } = useParams()
+
+  const {
+      handleEditOpportunityProposalDetailsClickState,
+      proposer,
+      opportunityId,
+  } = props
+
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
     const [loaded, setLoaded] = useState(false)
@@ -93,13 +116,15 @@ export default function EditOpportunityProposalForm(props) {
     const [budget, setBudget] = useState(0)
     const [category, setCategory] = useState('')
     const [projectName, setProjectName] = useState('')
+    const [usd, setUsd] = useState()
     const [status, setStatus] = useState(false)
     const [permission, setPermission] = useState('')
     const [familiarity, setFamiliarity] = useState('0')
+    const [submitDate, setSubmitDate] = useState(0)
     const [communitySkills, setCommunitySkills] = useState({})
     const [desiredSkillSet, setDesiredSkillSet] = useState({})
     const [desiredDeveloperSkillSet, setDesiredDeveloperSkillSet] = useState({})
-    const { state, dispatch, update } = useContext(appStore)
+    
     const { register, handleSubmit, watch, errors, control, reset, setValue, getValues } = useForm()
 
     const {
@@ -111,44 +136,27 @@ export default function EditOpportunityProposalForm(props) {
     })
 
     const opportunitySkills = watch('opportunitySkills', opportunitySkillsFields)
-
-    const {
-      isUpdated
-    } = state
-
-    const {
-      contractId
-    } = useParams()
-
-    const {
-        handleUpdate,
-        handleEditOpportunityProposalDetailsClickState,
-        applicant,
-        proposer,
-        curDaoIdx,
-        curPersonaIdx,
-        opportunityId,
-    } = props
-    
     
     const classes = useStyles()
+
+    useEffect(() => {
+      if(nearPrice){
+        if(usd > 0 && nearPrice > 0){
+          let near = (usd / nearPrice).toFixed(3)
+          let parse = parseNearAmount(near)
+          let formatNear = formatNearAmount(parse, 3)
+          setReward(formatNear)
+        }
+      }
+    }, [usd, nearPrice]
+    )
     
     useEffect(() => {
         async function fetchData() {
           if(isUpdated){}
+          if(!state){update('')}
           setLoaded(false)
            
-            // Set Existing Persona Data      
-            if(curPersonaIdx){
-              let result = await curPersonaIdx.get('profile', curPersonaIdx.id)
-             
-              if(result) {
-                result.date ? setDate(result.date) : setDate('')
-                result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-                result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
-                result.name ? setName(result.name) : setName('')
-              }
-           }
             // Get Existing Community Skills
             if(curDaoIdx){
               let daoProfileResult = await curDaoIdx.get('daoProfile', curDaoIdx.id)
@@ -170,7 +178,7 @@ export default function EditOpportunityProposalForm(props) {
            // Set Existing Proposal Data       
            if(curDaoIdx){
               let propResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
-            console.log('budget propresult', propResult)
+           console.log('propResult', propResult)
               if(propResult) {
                 let i = 0
                 while (i < propResult.opportunities.length){
@@ -193,9 +201,11 @@ export default function EditOpportunityProposalForm(props) {
                     propResult.opportunities[i].status ? setStatus(propResult.opportunities[i].status) : setStatus(false)
                     propResult.opportunities[i].permission ? setPermission(propResult.opportunities[i].permission) : setPermission('')
                     propResult.opportunities[i].deadline ? setDeadline(propResult.opportunities[i].deadline) : setDeadline('')
+                    propResult.opportunities[i].submitDate ? setSubmitDate(propResult.opportunities[i].submitDate) : setSubmitDate(0)
                     propResult.opportunities[i].familiarity ? setFamiliarity(propResult.opportunities[i].familiarity) : setFamiliarity('0')
                     propResult.opportunities[i].opportunitySkills ? setValue('opportunitySkills', propResult.opportunities[i].opportunitySkills) : setValue('opportunitySkills', {'name': ''})
                     propResult.opportunities[i].budget ? setBudget(propResult.opportunities[i].budget) : setBudget(0)
+                    propResult.opportunities[i].usd ? setUsd(propResult.opportunities[i].usd) : setUsd(0)
                     propResult.opportunities[i].desiredSkillSet ? setDesiredSkillSet(propResult.opportunities[i].desiredSkillSet): setDesiredSkillSet({})
                     propResult.opportunities[i].desiredDeveloperSkillSet ? setDesiredDeveloperSkillSet(propResult.opportunities[i].desiredDeveloperSkillSet): setDesiredDeveloperSkillSet({})
                     propResult.opportunities[i].likes ? setCurrentLikes(propResult.opportunities[i].likes) : setCurrentLikes([])
@@ -208,9 +218,7 @@ export default function EditOpportunityProposalForm(props) {
                 }
               }
            }
-
-           
-           
+ 
         }
         let mounted = true
         if(mounted){
@@ -220,7 +228,7 @@ export default function EditOpportunityProposalForm(props) {
           })
         return () => mounted = false
         }
-    },[curPersonaIdx, isUpdated])
+    },[curDaoIdx, isUpdated])
 
     function handleFileHash(hash) {
       setAvatar(IPFS_PROVIDER + hash)
@@ -249,14 +257,17 @@ export default function EditOpportunityProposalForm(props) {
       let value = event.target.value.toString();
       setDeadline(value)
     }
-    const handleRewardChange = (event) => {
-      let value = event.target.value;
-      setReward(value)
-    }
+
     const handleBudgetChange = (event) => {
       let value = event.target.value;
       setBudget(value)
     }
+
+    const handleUsdChange = (event) => {
+      let value = event.target.value;
+      setUsd(value)
+    }
+
     const handleCategoryChange = (event) => {
       let value = event.target.value;
       setCategory(value)
@@ -286,8 +297,7 @@ export default function EditOpportunityProposalForm(props) {
       setDetails(editorState)
     }
 
-    
-
+  
     const onSubmit = async (values) => {
    
       event.preventDefault()
@@ -310,12 +320,14 @@ export default function EditOpportunityProposalForm(props) {
           contractId: contractId,
           details: draftToHtml(convertToRaw(details.getCurrentContent())),
           proposer: proposer,
-          submitDate: now,
+          submitDate: submitDate,
+          updatedDate: now,
           reward: reward,
           category: category,
           projectName: projectName,
           deadline: deadline, 
           budget: parseFloat(budget),
+          usd: parseFloat(usd),
           status: status,
           permission: permission,
           familiarity: familiarity,
@@ -334,11 +346,8 @@ export default function EditOpportunityProposalForm(props) {
       let i = 0
       while (i < detailRecords.opportunities.length){
         if(detailRecords.opportunities[i].opportunityId == opportunityId.toString()){
-          console.log('here detailrecords', detailRecords.opportunities[i])
           detailRecords.opportunities[i] = proposalRecord
-          console.log('here2 detailrecords', detailRecords.opportunities[i])
           await curDaoIdx.set('opportunities', detailRecords)
-          console.log('gtg1')
           exists = true
           break
         }
@@ -348,15 +357,11 @@ export default function EditOpportunityProposalForm(props) {
       // Add record if it doesn't exist
       if(!exists){
         detailRecords.opportunities.push(proposalRecord)
-      
         await curDaoIdx.set('opportunities', detailRecords)
-        console.log('gtg2')
       }
-      let newopps = await curDaoIdx.get('opportunities', curDaoIdx.id)
-      console.log('newopps', newopps)
+
       setFinished(true)
       update('', { isUpdated: !isUpdated })
-      //handleUpdate(true)
       setOpen(false)
       handleClose()
     }
@@ -420,27 +425,29 @@ export default function EditOpportunityProposalForm(props) {
                     />
                   </Grid>
                   <Grid item xs={12} sm={12} md={6} lg={6} xl={6} style={{marginBottom: '10px'}}>
-                    <TextField
-                      margin="dense"
-                      id="base-reward"
-                      variant="outlined"
-                      required={true}
-                      name="baseReward"
-                      label="Base Reward"
-                      placeholder="10"
-                      value={reward}
-                      onChange={handleRewardChange}
-                      inputRef={register({
-                          required: true, 
-                      })}
-                      InputProps={{
-                        endAdornment: <><InputAdornment position="end">Ⓝ</InputAdornment>
-                        <Tooltip TransitionComponent={Zoom} title="Minimum (base) reward amount in NEAR that will be paid out for completion of this opportunity">
-                            <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
-                        </Tooltip>
-                        </>
-                      }}
-                    />
+                      <TextField
+                        margin="dense"
+                        id="usd"
+                        variant="outlined"
+                        required={true}
+                        name="USD"
+                        label="Opportunity Valuation"
+                        placeholder="10"
+                        value={usd}
+                        onChange={handleUsdChange}
+                        inputRef={register({
+                            required: true, 
+                        })}
+                        InputProps={{
+                          endAdornment: <><InputAdornment position="end">USD</InputAdornment>
+                          <Tooltip TransitionComponent={Zoom} title="What you will pay for the opportunity to be completed in USD.">
+                              <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                          </Tooltip>
+                          </>
+                        }}
+                      />
+                      <Typography variant="overline">{reward} Ⓝ</Typography>
+                    
                   </Grid>
                   <Grid item xs={12} sm={12} md={6} lg={6} xl={6} style={{marginBottom: '10px'}}>
                      <TextField
@@ -475,8 +482,8 @@ export default function EditOpportunityProposalForm(props) {
                             min: 0                      
                         })}
                         InputProps={{
-                          endAdornment: <><InputAdornment position="end">Ⓝ</InputAdornment>
-                          <Tooltip TransitionComponent={Zoom} title="The budget that is available for the sum of all instances of this opportunity">
+                          endAdornment: <><InputAdornment position="end">USD</InputAdornment>
+                          <Tooltip TransitionComponent={Zoom} title="The budget that is available for the sum of all instances of this opportunity.">
                           <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
                           </Tooltip>
                           </>

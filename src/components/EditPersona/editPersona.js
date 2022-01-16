@@ -8,7 +8,6 @@ import { flexClass } from '../../App'
 import { ceramic, IPFS_PROVIDER } from '../../utils/ceramic' 
 import { config } from '../../state/config'
 import * as nearAPI from 'near-api-js'
-import Personas from '@aluhning/get-personas-js'
 
 // Material UI components
 import InfoIcon from '@material-ui/icons/Info'
@@ -51,8 +50,6 @@ import AddBoxIcon from '@material-ui/icons/AddBox'
 
 const axios = require('axios').default
 
-const Airtable = require('airtable')
-
 const useStyles = makeStyles((theme) => ({
     progress: {
       width: '100%',
@@ -81,6 +78,9 @@ const useStyles = makeStyles((theme) => ({
     formControl: {
       margin: theme.spacing(3),
     },
+    hide: {
+      display: 'none'
+    },
     waiting: {
       minWidth: '100%',
       minHeight: '100%',
@@ -91,7 +91,6 @@ const useStyles = makeStyles((theme) => ({
 
 const imageName = require('../../img/default-profile.png') // default no-image avatar
 const discordIcon = require('../../img/discord-icon.png')
-const data = new Personas()
 
 export const {
   FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT, DAO_FIRST_INIT, CURRENT_DAO, REDIRECT,
@@ -118,11 +117,12 @@ export default function EditPersonaForm(props) {
     const [language, setLanguage] = useState([])
     const [skill, setSkill] = useState([])
     const [familiarity, setFamiliarity] = useState('0')
-    const [airtableClicked, setAirtableClicked] = useState(false)
-    const [airtableData, setAirtableData] = useState(false)
     
     const [otherSkills, setOtherSkills] = useState([])
     const [notifications, setNotifications] = useState([])
+
+    const [avatarLoaded, setAvatarLoaded] = useState(true)
+    const [progress, setProgress] = useState(false)
 
     const { state, dispatch, update } = useContext(appStore)
 
@@ -153,7 +153,7 @@ export default function EditPersonaForm(props) {
 
     const {
         handleEditPersonaClickState,
-        curPersonaIdx,
+        curUserIdx,
         accountId,
         did
     } = props
@@ -180,6 +180,16 @@ export default function EditPersonaForm(props) {
     let currentSpecificSkills = {}
 
     useEffect(() => {
+      if(avatar != imageName && avatarLoaded){
+        setProgress(false)
+      }
+      if(avatar != imageName && !avatarLoaded){
+        setProgress(true)
+      }
+    }, [avatar, avatarLoaded]
+    )
+
+    useEffect(() => {
         async function fetchData() {
           setLoaded(false)
 
@@ -201,60 +211,32 @@ export default function EditPersonaForm(props) {
                 result.skill ? setSkill(result.skill): setSkill([])
                 result.familiarity? setFamiliarity(result.familiarity): setFamiliarity('0')
                 result.notifications? setNotifications(result.notifications): setNotifications([])
-               // result.skillSet? setSkillSet(result.skillSet): setSkillSet({})
-               // result.developerSkillSet? setDeveloperSkillSet(result.developerSkillSet): setDeveloperSkillSet({})
                if(result.skillSet){
-                // let skillArray = []
-                // skillArray.push(result.skillSet)
                 setSkillSet(result.skillSet)
-               
               }
               if(result.developerSkillSet){
-                // let developerSkillSetArray = []      
-                // developerSkillSetArray.push(result.developerSkillSet)
                 setDeveloperSkillSet(result.developerSkillSet)
-               
               } 
                 result.personaSkills? setValue('personaSkills', result.personaSkills): setValue('personaSkills', {name: ''})
                 result.personaSpecificSkills? setValue('personaSpecificSkills', result.personaSpecificSkills): setValue('personaSpecificSkills', {name: ''})
               } else {
                 await refreshSkills(currentDaosList)
               }
-
-              let accessVariables = await axios.get('https://vpbackend-apim.azure-api.net/airtable')    
-              base = new Airtable({apiKey: accessVariables.data.airtableKey}).base(accessVariables.data.contributorBase)
-              
-              base(accessVariables.data.contributorTable).select({
-                pageSize: 20, 
-                view: "Grid view"
-              }).eachPage(function page(records, fetchNextPage) {
-                
-                records.forEach(function(record) {
-                  try{
-                    if(record.get('NEAR Wallet Address') == state.accountId){
-                      setAirtableData(true)
-                    }
-                  } catch (err) {
-                    console.log('error checking account against airtable', err)
-                  }
-                })
-              })
            }
         }
        
         fetchData()
           .then((res) => {
             setLoaded(true)
-          //  currentSkillsArray.push(currentSkills)
-          //  setSkillSet(currentSkills)
-          //  console.log('currentskillsarray', currentSkillsArray)
-          //  currentSpecificSkillsArray.push(currentSpecificSkills)
-          //  setDeveloperSkillSet(currentSpecificSkills)
           })
     },[currentDaosList])
 
-    function handleFileHash(hash) {
+    function handleFileHash(hash) {  
       setAvatar(IPFS_PROVIDER + hash)
+    }
+
+    function handleAvatarLoaded(property){
+      setAvatarLoaded(property)
     }
 
     async function refreshSkills(daos){
@@ -266,14 +248,10 @@ export default function EditPersonaForm(props) {
             let daoAccount = new nearAPI.Account(near.connection, currentDaosList[i].contractId)
             
             let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
-            console.log('currentskills', currentSkills)
+            
             // Get Existing Community Skills
             if(thisCurDaoIdx){
               let daoProfileResult = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
-              console.log('daoProfile', daoProfileResult)
-             // let currentSkills = {...skillSet[0]}
-             // console.log('currentskills', currentSkills)
-             // let currentSpecificSkills = {...developerSkillSet[0]}
               
               if(daoProfileResult){
                 daoProfileResult.skills.map((name, value) => {
@@ -366,107 +344,19 @@ export default function EditPersonaForm(props) {
       return new Date(intDate).toLocaleString('en-US', options)
     }
     const handleSkillSetChange = (event) => {
-    //  let tempSkillArray = []
       let newSkills = { ...skillSet, [event.target.name]: event.target.checked }
-    //  tempSkillArray.push(newSkills)
       setSkillSet(newSkills)
     }
   
     const handleDeveloperSkillSetChange = (event) => {
-  //    let tempDevArray = []
       let newSkills = { ...developerSkillSet, [event.target.name]: event.target.checked }
-    //  tempDevArray.push(newSkills)
       setDeveloperSkillSet(newSkills)
     }
 
     const handleOtherSkillsChange = (event) => {
       setOtherSkills(event.target.value.split(","))
     }
-    const handleAirtableClick = async function(){
-      if(airtableClicked == false)
-      {
-        base(accessVariables.data.contributorTable).select({
-            pageSize: 20, 
-            view: "Grid view"
-        }).eachPage(function page(records, fetchNextPage) {
-            
-            records.forEach(function(record) {
-              try{
-                
-                if(record.get('NEAR Wallet Address') == state.accountId){
-                  record.get("Name") ? setName(record.get("Name")) : null
-                  record.get("Email") ? setEmail(record.get("Email")): null
-                  record.get("Country") ? setCountry(record.get("Country")): null
-                  record.get("Discord Handle")? setDiscord(record.get("Discord Handle")): null 
-                  record.get("Languages")? setLanguage(record.get("Languages")): null
-                  record.get("Skills") ? setSkill(record.get("Skills")): null
-                  record.get("Familiarity with Crypto") ? setFamiliarity(record.get('Familiarity with Crypto')): null
-                  
-                
-  
-               
-                  for(let index = 0; index < skill.length; index++){
-                    switch(skill[index]){
-                      case "Content Creation (Writing)": 
-                       skillSet['writing'] = true; 
-                        break; 
-                      case "Content Creation (Memes)": 
-                        skillSet['memeCreation'] = true; 
-                        break;
-                      case "Content Creation (Video)":
-                        skillSet['videoCreation'] = true; 
-                        break; 
-                      case "Marketing & Social Media": 
-                        skillSet['marketing'] = true; 
-                        break; 
-                      case "Design":  
-                        skillSet['design'] = true;    
-                        break; 
-                      case "Event Organization":
-                        skillSet['eventOrganization'] = true; 
-                        break; 
-                      case "Translation":   
-                        skillSet['translation'] = true; 
-                        break;
-                      case "Development (Rust/Assembly Script)":
-                        developerSkillSet['rust'] = true
-                        developerSkillSet['assemblyScript'] = true
-                        break; 
-                      case "Development (Solidity)":
-                        developerSkillSet['solidity'] = true
-                        break; 
-                      case "Development (Web)":
-                        developerSkillSet[webDevelopment] = true
-                        break;
-                      default: 
-                        break; 
-                    }
-                    
-                  }
-              
-                }
-              }
-              catch(err){ console.log(err) 
-                return;}
-            })
-           
-            // If there are more records, `page` will get called again.
-            // If there are no more records, `done` will get called.
-            // fetchNextPage() handles this behaviour entirely
-            try{  
-              fetchNextPage() 
-            } catch{ 
-              return; 
-            }
-            
-        }, function done(err) {
-            if (err) { console.error(err); return; }
-        });
-      }
-    }
-    
-   // const error = [skillSet.memeCreation].filter((v) => v).length !== 2;
-
+   
     const onSubmit = async (values) => {
         event.preventDefault();
         setFinished(false)
@@ -496,12 +386,10 @@ export default function EditPersonaForm(props) {
             notifications: notifications
         }
      
-        let result = await curPersonaIdx.set('profile', record)
-        console.log('result', result)
-   //   setIsUpdated(true)
+        let result = await curUserIdx.set('profile', record)
+  
       setFinished(true)
       update('', { isUpdated: !isUpdated })
-   //   handleUpdate(true)
       setOpen(false)
       handleClose()
     }
@@ -520,10 +408,20 @@ export default function EditPersonaForm(props) {
                   <div>
                     <Grid container spacing={1} style={{marginBottom: '5px'}}>
                       <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
-                          <Avatar src={avatar} className={classes.large} />
+                        <Avatar
+                          alt={accountId}
+                          src={avatar} 
+                          className={avatarLoaded ? classes.large : classes.hide}
+                          imgProps={{
+                            onLoad:(e) => { handleAvatarLoaded(true) }
+                          }}  
+                        />
+                        {progress ?
+                          <CircularProgress />
+                        : null }
                       </Grid>
                       <Grid item xs={10} sm={10} md={10} lg={10} xl={10}>
-                        <FileUpload handleFileHash={handleFileHash}/>
+                        <FileUpload handleFileHash={handleFileHash} handleAvatarLoaded={handleAvatarLoaded}/>
                       </Grid>
                     </Grid>
                     <Accordion>
@@ -884,19 +782,7 @@ export default function EditPersonaForm(props) {
                          
                         </AccordionDetails>
                       </Accordion>
-                  {airtableData ?
-                  <Grid container spacing={1} justifyContent="space-between">  
-                    <Grid item xs={7} sm={7} md={7} lg={7} xl={7}>
-                      <Typography style={{marginTop: 5}}> 
-                        From the Open Web Sandbox?
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={5} sm={5} md={5} lg={5} xl={5}>
-                     <Button onClick={handleAirtableClick} color="primary">
-                        Import Data from Airtable
-                      </Button>
-                    </Grid>
-                  </Grid> : null }
+                 
                   </div>
               
                   

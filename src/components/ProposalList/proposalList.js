@@ -8,12 +8,23 @@ import { cancelProposal,
   getProposalType, PROPOSAL_NOTIFICATION} from '../../state/near'
 import {get, set, del} from '../../utils/storage'
 import Fuse from 'fuse.js'
+
 import MemberCard from '../MemberCard/memberCard'
-import ProposalCard from '../ProposalCard/proposalCard'
+import MemberProposalCard from '../ProposalCards/memberProposalCard'
+import FundingProposalCard from '../ProposalCards/fundingProposalCard'
+import CancelCommitmentProposalCard from '../ProposalCards/cancelCommitmentProposalCard';
+import ConfigurationProposalCard from '../ProposalCards/configurationProposalCard';
+import GuildKickProposalCard from '../ProposalCards/guildKickProposalCard'
+import OpportunityProposalCard from '../ProposalCards/opportunityProposalCard'
+import PayoutProposalCard from '../ProposalCards/payoutProposalCard'
+import WhitelistProposalCard from '../ProposalCards/whitelistProposalCard'
+import TributeProposalCard from '../ProposalCards/tributeProposalCard'
+
 import SponsorConfirmation from '../Confirmation/sponsorConfirmation'
 import RageQuit from '../RageQuit/rageQuit'
 import SearchBar from '../../components/common/SearchBar/search'
-import { Steps, Hints } from "intro.js-react";
+import { Steps, Hints } from "intro.js-react"
+
 // Material UI Components
 import { makeStyles, useTheme, withStyles } from '@material-ui/core/styles'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
@@ -62,36 +73,65 @@ const StyledBadge = withStyles((theme) => ({
 }))(Badge);
 
 export default function ProposalList(props) {
-  const [avatar, setAvatar] = useState()
-  const [name, setName] = useState()
-  const [intro, setIntro] = useState('')
+
+  const { state, dispatch, update } = useContext(appStore);
+
+  const {
+    didRegistryContract,
+    appIdx,
+    curUserIdx,
+    accountId,
+    wallet,
+    isUpdated,
+    summoner,
+    periodDuration,
+    curDaoIdx,
+    contract,
+    proposalDeposit,
+    votingPeriodLength,
+    gracePeriodLength,
+    depositToken,
+    currentPeriod,
+    totalShares,
+    totalMembers,
+    escrowBalance,
+    guildBalance,
+    memberStatus
+  } = state
+
+  const {
+    returnFunction,
+    enable,
+    proposalEvents,
+    contractId,
+    allMemberInfo,
+    currentMemberInfo,
+    remainingDelegates,
+    tabValue,
+    handleTabValueState,
+    getCurrentPeriod,
+    notificationIndicator
+  } = props
 
   const [proposalList, setProposalList] = useState([])
   const [votingList, setVotingList] = useState([])
   const [queueList, setQueueList] = useState([])
   const [processedList, setProcessedList] = useState([])
-  const [userVote, setUserVote] = useState()
-  const [memberCount, setMemberCount] = useState(0)
+
   const [proposalCount, setProposalCount] = useState(0)
   const [voteCount, setVoteCount] = useState(0)
   const [processedCount, setProcessedCount] = useState(0)
   const [queueCount, setQueueCount] = useState(0)
-  const [memberProposalDetailsClicked, setMemberProposalDetailsClicked] = useState(false)
-  const [memberProposalDetailsEmptyClicked, setMemberProposalDetailsEmptyClicked] = useState(false)
-  const [memberProposalId, setMemberProposalId] = useState('')
-  const [fundingProposalDetailsClicked, setFundingProposalDetailsClicked] = useState(false)
-  const [fundingProposalDetailsEmptyClicked, setFundingProposalDetailsEmptyClicked] = useState(false)
-  const [fundingProposalId, setFundingProposalId] = useState('')
+ 
   const [sponsorConfirmationClicked, setSponsorConfirmationClicked] = useState(false)
   const [proposalIdentifier, setProposalIdentifier] = useState()
   const [expanded, setExpanded] = useState(false)
   const [rageQuitClicked, setRageQuitClicked] = useState(false)
+  
   const [cancelFinish, setCancelFinish] = useState(true)
   const [processFinish, setProcessFinish] = useState(true)
-  const [fundingProposalStatus, setFundingProposalStatus] = useState()
-  const [memberProposalStatus, setMemberProposalStatus] = useState()
-  const [done, setDone] = useState(true)
-  const [memberProposalType, setMemberProposalType] = useState()
+  const [voteFinish, setVoteFinish] = useState(true)
+
   const [sponsorProposalType, setSponsorProposalType] = useState()
   const [paymentRequested, setPaymentRequested] = useState()
   const [membersArray, setMembersArray] = useState([])
@@ -116,107 +156,26 @@ export default function ProposalList(props) {
   const [onlyReputationFactorProposals, setOnlyReputationFactorProposals] = useState(true)
   const [onlyAssignRoleProposals, setOnlyAssignRoleProposals] = useState(true)
   const [onlyCommunityRoleProposals, setOnlyCommunityRoleProposals] = useState(true)
-  const [onlyYourProposals, setOnlyYourProposals] = useState(false)
+  const [onlyYourProposals, setOnlyYourProposals] = useState(tabValue == '5' ? true : false)
   const [loaded, setLoaded] = useState(false)
   const classes = useStyles()
   const theme = useTheme()
   const matches = useMediaQuery('(max-width:500px)')
 
-  const { state, dispatch, update } = useContext(appStore);
-
-  const {
-    didRegistryContract,
-    appIdx,
-    accountId,
-    wallet
-  } = state
-
-  const {
-    returnFunction, 
-    enable, 
-    proposalEvents,
-    memberStatus,
-    curDaoIdx,
-    daoDid,
-    contract,
-    contractId,
-    proposalDeposit,
-    allMemberInfo,
-    handleUpdate,
-    isUpdated,
-    totalShares,
-    currentMemberInfo,
-    guildBalance,
-    remainingDelegates,
-    votingPeriodLength,
-    gracePeriodLength,
-    escrowBalance,
-    totalMembers,
-
-    tabValue,
-    handleTabValueState,
-    handleProposalEventChange,
-    handleGuildBalanceChanges,
-    handleEscrowBalanceChanges,
-  
-    
-    depositToken,
-    tributeToken,
-    tributeOffer,
-    
-    currentPeriod,
-    periodDuration,
-    proposalComments,
-    
- 
-    
-    getCurrentPeriod,
-    summoner,
-    contractIdx,
-    curUserIdx,
-    appClient,
-
-    notificationIndicator
-  } = props
-
   useEffect(() => {
     setStepsEnabled(enable)
+  }, [enable]
+  )
 
-    if(allMemberInfo){
-      setMemberCount(allMemberInfo.length)
-    }
+  useEffect(() => {
+
     if(allMemberInfo && allMemberInfo.length > 0){
       let members = _.sortBy(allMemberInfo, 'joined')
       setMembersArray(members)
     }
   
     async function fetchData() {
-      let i = 0
-      let result
-      let didVote = false
-      
-      while (i < proposalEvents.length) {
-      
-          try{
-            result = await getUserVote(proposalEvents[i].proposalId)
-           
-            proposalEvents[i].vote = result
-            if (result == 'yes' || result == 'no'){
-              didVote = true
-            } else {
-              didVote = false
-            }
-          } catch (err) {
-            console.log('problem getting user vote', err)
-            didVote = false
-          }
-    
-        
-       
-        proposalEvents[i].voted = didVote
-        i++
-      }
-      currentPeriod
+      if(isUpdated){}
       if(curDaoIdx){
       
         let newLists = await resolveStatus(proposalEvents)
@@ -231,18 +190,13 @@ export default function ProposalList(props) {
         setQueueCount(newLists.queueProposals.length)
 
         if(newLists.processedProposals.length > 0){
-        
           let i = 0
           while (i < newLists.processedProposals.length){
-          
             if(newLists.processedProposals[i][0].proposalType == 'Member'){
-              
               await synchMember(curDaoIdx, contract, contractId, newLists.processedProposals[i][0].applicant)
             }
             i++
           }
-
-        
         }
       }
       
@@ -264,10 +218,13 @@ export default function ProposalList(props) {
     
    // }
 
-  },[proposalEvents, allMemberInfo, notificationIndicator, currentPeriod, curDaoIdx, enable])
+  },[proposalEvents, allMemberInfo, notificationIndicator, isUpdated, curDaoIdx])
 
   const handleTabChange = (event, newValue) => {
-      handleTabValueState(newValue);
+      if(newValue == '5'){
+        setOnlyYourProposals(true)
+      }
+      handleTabValueState(newValue)
   }
 
   function handleExpanded() {
@@ -300,6 +257,7 @@ export default function ProposalList(props) {
       handleTabChange(null, '2')
      }
   }
+
   const handleOnlyTributeProposalChange = (event) => {
     setOnlyTributeProposals(event.target.checked)
   }
@@ -353,10 +311,6 @@ export default function ProposalList(props) {
       setRageQuitClicked(property)
   }
 
-  function Alert(props) {
-    return <MuiAlert elevation={6} variant="filled" {...props} />
-  }
-
   async function handleCancelAction(proposalId, loot, tribute) {
     setCancelFinish(false)
     try{
@@ -376,15 +330,15 @@ export default function ProposalList(props) {
   }
 
   async function handleVotingAction(proposalId, vote) {
-      setDone(false)
-      try{
-        await submitVote(contract, contractId, proposalId, vote)
-      } catch (err) {
-        console.log('problem with vote', err)
-      }
+    setVoteFinish(false)
+    try{
+      await submitVote(contract, contractId, proposalId, vote)
+    } catch (err) {
+      console.log('problem with vote', err)
+    }
   }
 
-  function getVotingPeriod(startPeriod, votePeriod, grPeriod, isFinalized) {
+  function getVotingPeriod(votePeriod, grPeriod) {
        if((currentPeriod >= votePeriod && currentPeriod < grPeriod)){
       return true
     }  else {
@@ -392,19 +346,14 @@ export default function ProposalList(props) {
     }
   }
 
-  function getGracePeriod(grPeriod, isFinalized) {
+  function getGracePeriod(grPeriod) {
     if(currentPeriod >= grPeriod && currentPeriod <= (grPeriod + gracePeriodLength)){
       return true
     } else {
       return false
     }
-     return gracePeriod
   }
 
-  async function getUserVote(proposalIdentifier) {
-    let result = await contract.getMemberProposalVote({memberAddress: accountId, proposalId: parseInt(proposalIdentifier)})
-    return result
-  }
 
   function makeTime(timestamp) {
     // Create a new JavaScript Date object based on the timestamp
@@ -428,6 +377,7 @@ export default function ProposalList(props) {
 
   
 function typeFilter(item){
+
   if(onlyYourProposals){
     if(item[0].proposalType == 'Member' && onlyMemberProposals && item[0].applicant == accountId) return true
     if(item[0].proposalType == 'Payout' && onlyPayoutProposals && item[0].applicant == accountId) return true
@@ -485,212 +435,79 @@ function typeFilter(item){
           }
         i++
         }
-       
+      
         proposalType = getProposalType(fr.flags)
+
         let isFinalized = fr.voteFinalized != 0 ? true : false
         let isVotingPeriod = getVotingPeriod(fr.startingPeriod, fr.votingPeriod, fr.gracePeriod, isFinalized)
-      
         let isGracePeriod = getGracePeriod(fr.gracePeriod, isFinalized)
+        let disabled = isVotingPeriod ? false : true
       
-
         if (status != 'Passed' || status != 'Not Passed'){
-      
           if ((status == 'Sponsored' && isFinalized && !isVotingPeriod && !isGracePeriod) || (status=='Sponsored' && currentPeriod > (fr.gracePeriod + gracePeriodLength))){
             status = 'Awaiting Finalization'
           }
         }
-      
         
-        let disabled
-        let isDisabled = isVotingPeriod ? disabled = false : disabled = true       
-
-  //  if(status != 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled'){
-          if(status == 'Submitted'){
-          allProposals.push([{
-            blockTimeStamp: fr.proposalSubmission,
-            date: makeTime(fr.proposalSubmission),
-            applicant: fr.applicant, 
-            proposer: fr.proposer,
-            sponsor: fr.sponsor,
-            requestId: parseInt(fr.proposalId), 
-            shares: fr.sharesRequested,
-            delegatedShares: fr.delegatedShares,
-            receivedDelegations: fr.receivedDelegations,
-            loot: fr.lootRequested, 
-            tribute: fr.tributeOffered, 
-            flags: fr.flags,
-            yesVotes: fr.yesVote,
-            noVotes: fr.noVote,
-            funding: fr.paymentRequested,
-            votingPeriod: parseInt(fr.votingPeriod),
-            gracePeriod: parseInt(fr.gracePeriod),
-            status: status,
-            startingPeriod: parseInt(fr.startingPeriod),
-            proposalType: proposalType,
-            isGracePeriod: isGracePeriod,
-            isVotingPeriod: isVotingPeriod,
-            disabled: isDisabled,
-            voted: fr.voted,
-            vote: fr.vote,
-            referenceIds: fr.referenceIds,
-            configuration: fr.configuration,
-            roleConfiguation: fr.roleConfiguation,
-            reputationConfiguration: fr.reputationConfiguration,
-            roles: fr.roleNames,
-            isFinalized: isFinalized,
-            memberRoleConfiguration: fr.memberRoleConfiguration,
-            submitTransactionHash: currentStreamProposal && currentStreamProposal.submitTransactionHash ? currentStreamProposal.submitTransactionHash : '',
-            cancelTransactionHash: currentStreamProposal && currentStreamProposal.cancelTransactionHash ? currentStreamProposal.cancelTransactionHash : '',
-            processTransactionHash: currentStreamProposal && currentStreamProposal.processTransactionHash ? currentStreamProposal.processTransactionHash : '',
-            sponsorTransactionHash: currentStreamProposal && currentStreamProposal.sponsorTransactionHash ? currentStreamProposal.sponsorTransactionHash : '',
-            changeTransactionHash: currentStreamProposal && currentStreamProposal.changeTransactionHash ? currentStreamProposal.changeTransactionHash : '',
-            functionName: fr.functionName,
-            parameters: fr.parameters,
-            tributeToken: fr.tributeToken
-          }])
+        let finalizedProposal = {
+          blockTimeStamp: fr.proposalSubmission,
+          date: makeTime(fr.proposalSubmission),
+          applicant: fr.applicant, 
+          proposer: fr.proposer,
+          sponsor: fr.sponsor,
+          requestId: parseInt(fr.proposalId), 
+          shares: fr.sharesRequested,
+          delegatedShares: fr.delegatedShares,
+          receivedDelegations: fr.receivedDelegations,
+          loot: fr.lootRequested, 
+          tribute: fr.tributeOffered, 
+          flags: fr.flags,
+          yesVotes: fr.yesVote,
+          noVotes: fr.noVote,
+          funding: fr.paymentRequested,
+          votingPeriod: parseInt(fr.votingPeriod),
+          gracePeriod: parseInt(fr.gracePeriod),
+          status: status,
+          startingPeriod: parseInt(fr.startingPeriod),
+          proposalType: proposalType,
+          isGracePeriod: isGracePeriod,
+          isVotingPeriod: isVotingPeriod,
+          disabled: disabled,
+          vote: fr.vote,
+          referenceIds: fr.referenceIds,
+          configuration: fr.configuration,
+          roleConfiguation: fr.roleConfiguation,
+          reputationConfiguration: fr.reputationConfiguration,
+          roles: fr.roleNames,
+          isFinalized: isFinalized,
+          memberRoleConfiguration: fr.memberRoleConfiguration,
+          submitTransactionHash: currentStreamProposal && currentStreamProposal.submitTransactionHash ? currentStreamProposal.submitTransactionHash : '',
+          cancelTransactionHash: currentStreamProposal && currentStreamProposal.cancelTransactionHash ? currentStreamProposal.cancelTransactionHash : '',
+          processTransactionHash: currentStreamProposal && currentStreamProposal.processTransactionHash ? currentStreamProposal.processTransactionHash : '',
+          sponsorTransactionHash: currentStreamProposal && currentStreamProposal.sponsorTransactionHash ? currentStreamProposal.sponsorTransactionHash : '',
+          changeTransactionHash: currentStreamProposal && currentStreamProposal.changeTransactionHash ? currentStreamProposal.changeTransactionHash : '',
+          functionName: fr.functionName,
+          parameters: fr.parameters,
+          tributeToken: fr.tributeToken
         }
 
-   //     if(status == 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && (isVotingPeriod==true || isGracePeriod==true)){
-        if(status == 'Sponsored'){
-        
-          votingProposals.push([{
-            blockTimeStamp: fr.proposalSubmission,
-            date: makeTime(fr.proposalSubmission), 
-            applicant: fr.applicant, 
-            proposer: fr.proposer,
-            sponsor: fr.sponsor,
-            requestId: parseInt(fr.proposalId), 
-            shares: fr.sharesRequested, 
-            delegatedShares: fr.delegatedShares,
-            receivedDelegations: fr.receivedDelegations,
-            loot: fr.lootRequested, 
-            tribute: fr.tributeOffered, 
-            flags: fr.flags,
-            yesVotes: fr.yesVote,
-            noVotes: fr.noVote,
-            funding: fr.paymentRequested,
-            votingPeriod: parseInt(fr.votingPeriod),
-            gracePeriod: parseInt(fr.gracePeriod),
-            status: status,
-            startingPeriod: parseInt(fr.startingPeriod),
-            proposalType: proposalType,
-            isGracePeriod: isGracePeriod,
-            isVotingPeriod: isVotingPeriod,
-            isFinalized: isFinalized,
-            disabled: isDisabled,
-            voted: fr.voted,
-            vote: fr.vote,
-            referenceIds: fr.referenceIds,
-            configuration: fr.configuration,
-            roleConfiguation: fr.roleConfiguation,
-            reputationConfiguration: fr.reputationConfiguration,
-            roles: fr.roleNames,
-            memberRoleConfiguration: fr.memberRoleConfiguration,
-            submitTransactionHash: currentStreamProposal && currentStreamProposal.submitTransactionHash ? currentStreamProposal.submitTransactionHash : '',
-            cancelTransactionHash: currentStreamProposal && currentStreamProposal.cancelTransactionHash ? currentStreamProposal.cancelTransactionHash : '',
-            processTransactionHash: currentStreamProposal && currentStreamProposal.processTransactionHash ? currentStreamProposal.processTransactionHash : '',
-            sponsorTransactionHash: currentStreamProposal && currentStreamProposal.sponsorTransactionHash ? currentStreamProposal.sponsorTransactionHash : '',
-            changeTransactionHash: currentStreamProposal && currentStreamProposal.changeTransactionHash ? currentStreamProposal.changeTransactionHash : '',
-            functionName: fr.functionName,
-            parameters: fr.parameters,
-            tributeToken: fr.tributeToken
-          }])
-        }
-
-    //    if(status == 'Sponsored' && status != 'Processed' && status !='Passed' && status != 'Not Passed' && status != 'Cancelled' && currentPeriod > parseInt(fr.gracePeriod) && !isVotingPeriod && !isGracePeriod){
-       
-        if(status == 'Awaiting Finalization'){
-            queueProposals.push({
-            blockTimeStamp: fr.proposalSubmission,
-            date: makeTime(fr.proposalSubmission),
-            applicant: fr.applicant, 
-            proposer: fr.proposer,
-            sponsor: fr.sponsor,
-            requestId: parseInt(fr.proposalId),
-            shares: fr.sharesRequested,
-            delegatedShares: fr.delegatedShares,
-            receivedDelegations: fr.receivedDelegations,
-            loot: fr.lootRequested, 
-            tribute: fr.tributeOffered, 
-            flags: fr.flags,
-            yesVotes: fr.yesVote,
-            funding: fr.paymentRequested,
-            noVotes: fr.noVote,
-            votingPeriod: parseInt(fr.votingPeriod),
-            gracePeriod: parseInt(fr.gracePeriod),
-            status: status,
-            startingPeriod: parseInt(fr.startingPeriod),
-            proposalType: proposalType,
-            isGracePeriod: isGracePeriod,
-            isVotingPeriod: isVotingPeriod,
-            isFinalized: isFinalized,
-            disabled: isDisabled,
-            voted: fr.voted,
-            vote: fr.vote,
-            referenceIds: fr.referenceIds,
-            configuration: fr.configuration,
-            roleConfiguation: fr.roleConfiguation,
-            reputationConfiguration: fr.reputationConfiguration,
-            roles: fr.roleNames,
-            memberRoleConfiguration: fr.memberRoleConfiguration,
-            submitTransactionHash: currentStreamProposal && currentStreamProposal.submitTransactionHash ? currentStreamProposal.submitTransactionHash : '',
-            cancelTransactionHash: currentStreamProposal && currentStreamProposal.cancelTransactionHash ? currentStreamProposal.cancelTransactionHash : '',
-            processTransactionHash: currentStreamProposal && currentStreamProposal.processTransactionHash ? currentStreamProposal.processTransactionHash : '',
-            sponsorTransactionHash: currentStreamProposal && currentStreamProposal.sponsorTransactionHash ? currentStreamProposal.sponsorTransactionHash : '',
-            changeTransactionHash: currentStreamProposal && currentStreamProposal.changeTransactionHash ? currentStreamProposal.changeTransactionHash : '',
-            functionName: fr.functionName,
-            parameters: fr.parameters,
-            tributeToken: fr.tributeToken
-          })
-        }
-
-       // if(status == 'Awaiting Finalization' || status != 'Cancelled' && (status =='Passed' || status == 'Not Passed')){
-          if(status == 'Passed' || status == 'Not Passed') {
-          processedProposals.push([{
-            blockTimeStamp: fr.proposalSubmission,
-            date: makeTime(fr.proposalSubmission),
-            applicant: fr.applicant, 
-            proposer: fr.proposer,
-            sponsor: fr.sponsor,
-            requestId: parseInt(fr.proposalId), 
-            shares: fr.sharesRequested,
-            delegatedShares: fr.delegatedShares,
-            receivedDelegations: fr.receivedDelegations,
-            loot: fr.lootRequested, 
-            tribute: fr.tributeOffered,
-            funding: fr.paymentRequested, 
-            flags: fr.flags,
-            yesVotes: fr.yesVote,
-            noVotes: fr.noVote,
-            votingPeriod: parseInt(fr.votingPeriod),
-            gracePeriod: parseInt(fr.gracePeriod),
-            status: status,
-            startingPeriod: parseInt(fr.startingPeriod),
-            proposalType: proposalType,
-            isGracePeriod: isGracePeriod,
-            isVotingPeriod: isVotingPeriod,
-            isFinalized: isFinalized,
-            disabled: isDisabled,
-            voted: fr.voted,
-            vote: fr.vote,
-            referenceIds: fr.referenceIds,
-            configuration: fr.configuration,
-            roleConfiguation: fr.roleConfiguation,
-            reputationConfiguration: fr.reputationConfiguration,
-            roles: fr.roleNames,
-            memberRoleConfiguration: fr.memberRoleConfiguration,
-            submitTransactionHash: currentStreamProposal && currentStreamProposal.submitTransactionHash ? currentStreamProposal.submitTransactionHash : '',
-            cancelTransactionHash: currentStreamProposal && currentStreamProposal.cancelTransactionHash ? currentStreamProposal.cancelTransactionHash : '',
-            processTransactionHash: currentStreamProposal && currentStreamProposal.processTransactionHash ? currentStreamProposal.processTransactionHash : '',
-            sponsorTransactionHash: currentStreamProposal && currentStreamProposal.sponsorTransactionHash ? currentStreamProposal.sponsorTransactionHash : '',
-            changeTransactionHash: currentStreamProposal && currentStreamProposal.changeTransactionHash ? currentStreamProposal.changeTransactionHash : '',
-            functionName: fr.functionName,
-            parameters: fr.parameters,
-            tributeToken: fr.tributeToken
-          }])
+        switch(true){
+          case status == 'Submitted':
+            allProposals.push([finalizedProposal])
+            break
+          case status == 'Sponsored':
+            votingProposals.push([finalizedProposal])
+            break
+          case status == 'Awaiting Finalization':
+            queueProposals.push([finalizedProposal])
+            break
+          case (status == 'Passed' || status == 'Not Passed'):
+            processedProposals.push([finalizedProposal])
+            break
         }
       }) 
     }
+
     let propObject = {
       allProposals: allProposals,
       votingProposals: votingProposals,
@@ -700,322 +517,583 @@ function typeFilter(item){
 
     return propObject
   }
-
-  let Members
-
+ 
   
-  if (allMemberInfo && allMemberInfo.length > 0 && tabValue == '1') {
-    Members = allMemberInfo.map((fr, i) => {
-     
-      return (
-        
-        <MemberCard 
-          key={fr.memberId}
-          accountId={accountId}
-          accountName={fr.delegateKey}
-          shares={fr.shares}
-          loot={fr.loot}
-          delegatedShares={fr.delegatedShares}
-          receivedDelegations={fr.receivedDelegations}
-          memberCount={memberCount}
-          summoner={summoner}
-          curUserIdx={curUserIdx}
-          didsContract={didRegistryContract}
-          appIdx={appIdx}
-          appClient={appClient}
-          contractId={contractId}
-          contractIdx={contractIdx}
-          joined={fr.joined}
-          updated={fr.updated}
-          handleUpdate={handleUpdate}
-          isUpdated={isUpdated}
-          active={fr.active}
-          totalShares={totalShares}
-          currentMemberInfo={currentMemberInfo}
-          remainingDelegates={remainingDelegates}
-          gracePeriodLength={gracePeriodLength}
-          votingPeriodLength={votingPeriodLength}
-          isFinalized={fr.isFinalized}
-          totalMembers={totalMembers}
-        />
-      )
-    })
-  }
-
+  let Members
   let Proposals
-  if (proposalList && proposalList.length > 0 && tabValue == '2') {
- 
-    Proposals = proposalList.filter(typeFilter).reverse().map((fr) => {
-     
-      return (
-        <ProposalCard
-          curDaoIdx={curDaoIdx}
-          daoDid={daoDid}
-          contract={contract}
-          proposalDeposit={proposalDeposit}
-          key={fr[0].requestId} 
-          applicant={fr[0].applicant}
-          memberStatus={memberStatus}
-          created={fr[0].date}
-          noVotes={fr[0].noVotes}
-          yesVotes={fr[0].yesVotes}
-          proposalType={fr[0].proposalType}
-          proposer={fr[0].proposer}
-          sponsor={fr[0].sponsor}
-          requestId={fr[0].requestId}
-          shares={fr[0].shares}
-          tribute={fr[0].tribute}
-          funding={fr[0].funding}
-          loot={fr[0].loot}
-          status={fr[0].status}
-          vote={fr[0].vote}
-          referenceIds={fr[0].referenceIds}
-          startingPeriod={fr[0].startingPeriod}
-          submitTransactionHash={fr[0].submitTransactionHash}
-          cancelTransactionHash={fr[0].cancelTransactionHash}
-          processTransactionHash={fr[0].processTransactionHash}
-          sponsorTransactionHash={fr[0].sponsorTransactionHash}
-          changeTransactionHash={fr[0].changeTransactionHash}
-          configuration={fr[0].configuration}
-          functionName={fr[0].functionName}
-          parameters={fr[0].parameters}
-          accountId={accountId}
-          cancelFinish={cancelFinish}
-          tributeToken={fr[0].tributeToken}
-          currentPeriod={currentPeriod}
-          handleSponsorConfirmationClick={handleSponsorConfirmationClick}
-          handleCancelAction={handleCancelAction}
-          summoner={summoner}
-          contract={contract}
-          guildBalance={guildBalance}
-          escrowBalance={escrowBalance}
-          votingPeriod={fr[0].votingPeriod}
-          gracePeriod={fr[0].gracePeriod}
-          gracePeriodLength={gracePeriodLength}
-          votingPeriodLength={votingPeriodLength}
-          isFinalized={fr[0].isFinalized}
-          totalMembers={totalMembers}
-        />
-      )
-    })
-  }
-
   let Votes
-  if (votingList && votingList.length > 0 && tabValue == '3') {
-   Votes = votingList.map((fr) => {
-      return (
-        <ProposalCard 
-          curDaoIdx={curDaoIdx}
-          key={fr[0].requestId} 
-          applicant={fr[0].applicant}
-          created={fr[0].date}
-          noVotes={fr[0].noVotes}
-          yesVotes={fr[0].yesVotes}
-          proposalType={fr[0].proposalType}
-          proposer={fr[0].proposer}
-          sponsor={fr[0].sponsor}         
-          requestId={fr[0].requestId}
-          shares={fr[0].shares}
-          tribute={fr[0].tribute}
-          funding={fr[0].funding}
-          loot={fr[0].loot}
-          status={fr[0].status}
-          accountId={accountId}
-          isVotingPeriod={fr[0].isVotingPeriod}
-          isGracePeriod={fr[0].isGracePeriod}
-          voted={fr[0].voted}
-          vote={fr[0].vote}
-          gracePeriod={fr[0].gracePeriod}
-          votingPeriod={fr[0].votingPeriod}
-          referenceIds={fr[0].referenceIds}
-          functionName={fr[0].functionName}
-          parameters={fr[0].parameters}
-          currentPeriod={currentPeriod}
-          periodDuration={periodDuration}
-          submitTransactionHash={fr[0].submitTransactionHash}
-          cancelTransactionHash={fr[0].cancelTransactionHash}
-          processTransactionHash={fr[0].processTransactionHash}
-          sponsorTransactionHash={fr[0].sponsorTransactionHash}
-          changeTransactionHash={fr[0].changeTransactionHash}
-          done={done}
-          configuration={fr[0].configuration}
-          handleSponsorConfirmationClick={handleSponsorConfirmationClick}
-          handleCancelAction={handleCancelAction}
-          handleVotingAction={handleVotingAction}
-          handleRageQuitClick={handleRageQuitClick}
-          summoner={summoner} 
-          contract={contract} 
-          guildBalance={guildBalance}
-          escrowBalance={escrowBalance}
-          memberStatus={memberStatus}
-          startingPeriod={fr[0].startingPeriod}
-          gracePeriodLength={gracePeriodLength}
-          votingPeriodLength={votingPeriodLength}
-          isFinalized={fr.isFinalized}
-          totalMembers={totalMembers}
-          tributeToken={fr[0].tributeToken}
-        />
-      )
-    })
-  }
-
   let Queued
- 
-  if (queueList && Object.keys(queueList).length > 0 && tabValue == '4') {
-    Queued = queueList.map((fr) => {
-      return (
-        <ProposalCard 
-          curDaoIdx={curDaoIdx}
-          key={fr.requestId} 
-          applicant={fr.applicant}
-          created={fr.date}
-          noVotes={fr.noVotes}
-          yesVotes={fr.yesVotes}
-          proposalType={fr.proposalType}
-          proposer={fr.proposer}
-          sponsor={fr.sponsor}
-          funding={fr.funding}
-          requestId={fr.requestId}
-          shares={fr.shares}
-          tribute={fr.tribute}
-          loot={fr.loot}
-          status={fr.status}
-          vote={fr.vote}
-          startingPeriod={fr.startingPeriod}
-          currentPeriod={currentPeriod}
-          gracePeriod={fr.gracePeriod}
-          referenceIds={fr.referenceIds}
-          submitTransactionHash={fr.submitTransactionHash}
-          cancelTransactionHash={fr.cancelTransactionHash}
-          processTransactionHash={fr.processTransactionHash}
-          sponsorTransactionHash={fr.sponsorTransactionHash}
-          changeTransactionHash={fr.changeTransactionHash}
-          handleProcessAction={handleProcessAction}
-          configuration={fr.configuration}
-          functionName={fr.functionName}
-          parameters={fr.parameters}
-          handleSponsorConfirmationClick={handleSponsorConfirmationClick}
-          handleCancelAction={handleCancelAction}
-          summoner={summoner}
-          queueList={queueList}
-          contract={contract}
-          guildBalance={guildBalance}
-          escrowBalance={escrowBalance}
-          memberStatus={memberStatus}
-          votingPeriod={fr.votingPeriod}
-          gracePeriodLength={gracePeriodLength}
-          votingPeriodLength={votingPeriodLength}
-          isFinalized={fr.isFinalized}
-          totalMembers={totalMembers}
-          tributeToken={fr.tributeToken}
-        />
-      )
-    })
-  } else {
-    
-  //why?????
-  if (queueList && queueList.length > 1 && tabValue == '4') {
-    Queued = queueList.map((fr) => {
-      return (
-        <ProposalCard 
-          curDaoIdx={curDaoIdx}
-          key={fr[0].requestId} 
-          applicant={fr[0].applicant}
-          created={fr[0].date}
-          noVotes={fr[0].noVotes}
-          yesVotes={fr[0].yesVotes}
-          proposalType={fr[0].proposalType}
-          proposer={fr[0].proposer}
-          sponsor={fr[0].sponsor}
-          funding={fr[0].funding}
-          requestId={fr[0].requestId}
-          shares={fr[0].shares}
-          tribute={fr[0].tribute}
-          loot={fr[0].loot}
-          status={fr[0].status}
-          vote={fr[0].vote}
-          startingPeriod={fr[0].startingPeriod}
-          configuration={fr[0].configuration}
-          referenceIds={fr[0].referenceIds}
-          functionName={fr[0].functionName}
-          parameters={fr[0].parameters}
-          submitTransactionHash={fr[0].submitTransactionHash}
-          cancelTransactionHash={fr[0].cancelTransactionHash}
-          processTransactionHash={fr[0].processTransactionHash}
-          sponsorTransactionHash={fr[0].sponsorTransactionHash}
-          changeTransactionHash={fr[0].changeTransactionHash}
-          handleProcessAction={handleProcessAction}
-          handleSponsorConfirmationClick={handleSponsorConfirmationClick}
-          handleCancelAction={handleCancelAction}
-          summoner={summoner}
-          contract={contract} 
-          guildBalance={guildBalance}
-          escrowBalance={escrowBalance}
-          memberStatus={memberStatus}
-          votingPeriod={fr[0].votingPeriod}
-          gracePeriod={fr[0].gracePeriod}
-          gracePeriodLength={gracePeriodLength}
-          votingPeriodLength={votingPeriodLength}
-          isFinalized={fr[0].isFinalized}
-          totalMembers={totalMembers}
-          tributeToken={fr[0].tributeToken}
-        />
-      )
-    })
-  }
-}
-
-
   let Processed
-  if (processedList && processedList.length > 0 && tabValue == '5') {
-    Processed = processedList.filter(typeFilter).map((fr) => {
-     
-      return (
-        <ProposalCard  
-          curDaoIdx={curDaoIdx}
-          key={fr[0].requestId} 
-          applicant={fr[0].applicant}
-          created={fr[0].date}
-          noVotes={fr[0].noVotes}
-          yesVotes={fr[0].yesVotes}
-          proposalType={fr[0].proposalType}
-          proposer={fr[0].proposer}
-          sponsor={fr[0].sponsor}
-          funding={fr[0].funding}
-          requestId={parseInt(fr[0].requestId)}
-          shares={fr[0].shares}
-          tribute={fr[0].tribute}
-          loot={fr[0].loot}
-          status={fr[0].status}
-          vote={fr[0].vote}
-          configuration={fr[0].configuration}
-          referenceIds={fr[0].referenceIds}
-          functionName={fr[0].functionName}
-          parameters={fr[0].parameters}
-          submitTransactionHash={fr[0].submitTransactionHash}
-          cancelTransactionHash={fr[0].cancelTransactionHash}
-          processTransactionHash={fr[0].processTransactionHash}
-          sponsorTransactionHash={fr[0].sponsorTransactionHash}
-          changeTransactionHash={fr[0].changeTransactionHash}
-          handleSponsorConfirmationClick={handleSponsorConfirmationClick}
-          handleCancelAction={handleCancelAction}
-          summoner={summoner}
-          contract={contract}
-          guildBalance={guildBalance}
-          escrowBalance={escrowBalance}
-          memberStatus={memberStatus}
-          startingPeriod={fr[0].startingPeriod}
-          votingPeriod={fr[0].votingPeriod}
-          gracePeriod={fr[0].gracePeriod}
-          gracePeriodLength={gracePeriodLength}
-          votingPeriodLength={votingPeriodLength}
-          isFinalized={fr[0].isFinalized}
-          totalMembers={totalMembers}
-          tributeToken={fr[0].tributeToken}
-        />
-      )
-    })
-  }
+    switch(tabValue){
+      case '1':
+        if (membersArray && membersArray.length > 0){
+          Members = membersArray.map((fr, i) => {
+            return (
+              <MemberCard 
+                key={fr.memberId}
+                accountName={fr.delegateKey}
+                shares={fr.shares}
+                loot={fr.loot}
+                delegatedShares={fr.delegatedShares}
+                receivedDelegations={fr.receivedDelegations}
+                currentMemberInfo={currentMemberInfo}
+                allMemberInfo={allMemberInfo}
+                totalShares={totalShares}
+                remainingDelegates={remainingDelegates} 
+                joined={fr.joined}
+              />
+            )
+          })
+        }
+        break
+      case '2':
+        if (proposalList && proposalList.length > 0){
+          Proposals = proposalList.filter(typeFilter).reverse().map((fr) => {
+            switch(fr[0].proposalType){
+              case 'Member':
+                return <MemberProposalCard 
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Commitment':
+                return <FundingProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'CancelCommit':
+                return <CancelCommitmentProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Configuration':
+                return <ConfigurationProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'GuildKick':
+                return <GuildKickProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Opportunity':
+                return <OpportunityProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Payout':
+                return <PayoutProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Whitelist':
+                return <WhitelistProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Tribute':
+                return <TributeProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              default:
+                break
+            }
+          })
+        }
+        break
+      case '3':
+        if (votingList && votingList.length > 0){
+          Votes = votingList.map((fr) => {
+            switch(fr[0].proposalType){
+              case 'Member':
+                return <MemberProposalCard 
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Commitment':
+                return <FundingProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'CancelCommit':
+                return <CancelCommitmentProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Configuration':
+                return <ConfigurationProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'GuildKick':
+                return <GuildKickProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Opportunity':
+                return <OpportunityProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Payout':
+                return <PayoutProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Whitelist':
+                return <WhitelistProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Tribute':
+                return <TributeProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              default:
+                break
+            }
+          })
+        }
+        break
+      case '4':
+        if (queueList && (Object.keys(queueList).length > 0 || queueList.length > 1)){
+          Queued = queueList.map((fr) => {
+            switch(fr[0].proposalType){
+              case 'Member':
+                return <MemberProposalCard 
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Commitment':
+                return <FundingProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'CancelCommit':
+                return <CancelCommitmentProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Configuration':
+                return <ConfigurationProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'GuildKick':
+                return <GuildKickProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Opportunity':
+                return <OpportunityProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Payout':
+                return <PayoutProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Whitelist':
+                return <WhitelistProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Tribute':
+                return <TributeProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              default:
+                break
+            }
+          })
+        }
+        break
+      case '5':
+        if (processedList && processedList.length > 0){
+          Processed = processedList.filter(typeFilter).map((fr) => {
+            switch(fr[0].proposalType){
+              case 'Member':
+                return <MemberProposalCard 
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Commitment':
+                return <FundingProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'CancelCommit':
+                return <CancelCommitmentProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Configuration':
+                return <ConfigurationProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'GuildKick':
+                return <GuildKickProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Opportunity':
+                return <OpportunityProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Payout':
+                return <PayoutProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Whitelist':
+                return <WhitelistProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              case 'Tribute':
+                return <TributeProposalCard
+                        allProps={fr[0]}
+                        cancelFinish={cancelFinish}
+                        voteFinish={voteFinish}
+                        processFinish={processFinish}
+                        queueList={queueList}
+                        handleSponsorConfirmationClick={handleSponsorConfirmationClick}
+                        handleCancelAction={handleCancelAction}
+                        handleVotingAction={handleVotingAction}
+                        handleProcessAction={handleProcessAction}
+                        handleRageQuitClick={handleRageQuitClick}
+                        />
+                break
+              default:
+                break
+            }
+          })
+        }
+        break
+      default:
+        break
+    }
+  
 
   let dataArray = []
   function makeArray(data){
@@ -1145,7 +1223,7 @@ function typeFilter(item){
       onChange = {(index)=>handleStepsChange(index)}  
     / > */}
     <Paper square className={classes.root}>
-    {!matches && loaded ? (
+    {!matches && loaded && guildBalance && escrowBalance ? (
       <Tabs
         value={tabValue}
         onChange={handleTabChange}
@@ -1156,7 +1234,7 @@ function typeFilter(item){
         <Tab 
           className='members'
           icon={     
-            <StyledBadge badgeContent={memberCount} color="primary" max={9999999}>
+            <StyledBadge badgeContent={totalMembers} color="primary" max={9999999}>
               <PeopleAltIcon fontSize='large'/>
             </StyledBadge>
           } 
@@ -1205,7 +1283,7 @@ function typeFilter(item){
         />
         </Tabs>
       ) : <LinearProgress /> }
-      {matches && loaded ? (
+      {matches && loaded && guildBalance && escrowBalance ? (
         <Tabs
           value={tabValue}
           onChange={handleTabChange}
@@ -1216,7 +1294,7 @@ function typeFilter(item){
         >
         <Tab 
           icon={     
-            <StyledBadge badgeContent={memberCount} color="primary" max={9999999}>
+            <StyledBadge badgeContent={totalMembers} color="primary" max={9999999}>
               <PeopleAltIcon fontSize='small'/>
             </StyledBadge>
           } 
@@ -1270,7 +1348,6 @@ function typeFilter(item){
       <Grid container alignItems="center" justifyContent="space-between" spacing={3} style={{padding: '20px'}} >
       { membersArray && membersArray.length > 0 ? 
           (<>
-    
             <Grid container alignItems="center" justifyContent="space-between" spacing={0} >
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                 <SearchBar
@@ -1280,35 +1357,7 @@ function typeFilter(item){
               </Grid>
             </Grid>
           <Grid container alignItems="center" justifyContent="space-evenly" spacing={3} style={{padding: '20px'}}>
-              {membersArray.map((fr, i) => (
-                  <MemberCard 
-                    key={fr.memberId}
-                    accountId={accountId}
-                    accountName={fr.delegateKey}
-                    shares={fr.shares}
-                    delegatedShares={fr.delegatedShares}
-                    receivedDelegations={fr.receivedDelegations}
-                    memberCount={memberCount}
-                    summoner={summoner}
-                    curUserIdx={curUserIdx}
-                    didsContract={didRegistryContract}
-                    appIdx={appIdx}
-                    appClient={appClient}
-                    contractId={contractId}
-                    contractIdx={contractIdx}
-                    joined={fr.joined}
-                    updated={fr.updated}
-                    handleUpdate={handleUpdate}
-                    isUpdated={isUpdated}
-                    active={fr.active}
-                    totalShares={totalShares}
-                    currentMemberInfo={currentMemberInfo}
-                    contract={contract}
-                    allMemberInfo={allMemberInfo}
-                    remainingDelegates={remainingDelegates}
-                  />
-                ) 
-              )}
+             {Members}
           </Grid>
       </>)
       : null
@@ -1347,7 +1396,7 @@ function typeFilter(item){
             />
             <FormControlLabel
               control={<Switch checked={onlyTributeProposals} onChange={handleOnlyTributeProposalChange} name="onlyTributeProposals" />}
-              label="Tribute"
+              label="Contributions"
             />
             <FormControlLabel
               control={<Switch checked={onlyCommunityRoleProposals} onChange={handleOnlyCommunityRoleProposalChange} name="onlyCommunityRoleProposals" />}
@@ -1416,7 +1465,7 @@ function typeFilter(item){
             />
             <FormControlLabel
               control={<Switch checked={onlyTributeProposals} onChange={handleOnlyTributeProposalChange} name="onlyTributeProposals" />}
-              label="Tribute"
+              label="Contributions"
             />
             <FormControlLabel
               control={<Switch checked={onlyCommunityRoleProposals} onChange={handleOnlyCommunityRoleProposalChange} name="onlyCommunityRoleProposals" />}
@@ -1453,31 +1502,21 @@ function typeFilter(item){
           <CircularProgress />
       </div>}
     </TabContext>
-
  
     {sponsorConfirmationClicked ? <SponsorConfirmation
       contract={contract}
       contractId={contractId}
       curDaoIdx={curDaoIdx}
-      handleProposalEventChange={handleProposalEventChange}
-      handleGuildBalanceChanges={handleGuildBalanceChanges}
-      handleEscrowBalanceChanges={handleEscrowBalanceChanges}
       handleSponsorConfirmationClickState={handleSponsorConfirmationClickState} 
-      handleTabValueState={handleTabValueState} 
-      accountId={accountId} 
       depositToken={depositToken}
-      getCurrentPeriod={getCurrentPeriod}
       proposalIdentifier={proposalIdentifier}
-      paymentRequested={paymentRequested}
-      sponsorProposalType={sponsorProposalType}
       proposalDeposit={proposalDeposit}/> : null }
-
+    
     {rageQuitClicked ? <RageQuit
       state={state}
       contractId={contractId}
       depositToken={depositToken}
       contract={contract}
-      handleProposalEventChange={handleProposalEventChange}
       handleRageQuitClickState={handleRageQuitClickState}
       accountId={accountId}
       /> : null }

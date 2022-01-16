@@ -9,6 +9,7 @@ import KeyDidResolver from 'key-did-resolver'
 import ThreeIdResolver from '@ceramicnetwork/3id-did-resolver'
 import ThreeIdProvider from '3id-did-provider'
 import { DID } from 'dids'
+import * as nearSeed from 'near-seed-phrase'
 import crypto from 'crypto'
 import nacl from 'tweetnacl'
 
@@ -59,11 +60,11 @@ import { config } from '../state/config'
 const axios = require('axios').default
 
 export const {
-    FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, REDIRECT, 
+    FUNDING_DATA, FUNDING_DATA_BACKUP, SEEDS, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, REDIRECT, 
     KEY_REDIRECT, APP_OWNER_ACCOUNT, IPFS_PROVIDER, FACTORY_DEPOSIT, CERAMIC_API_URL, APPSEED_CALL, 
     networkId, nodeUrl, walletUrl, nameSuffix,
-    contractName, didRegistryContractName,
-    TOKEN_CALL, AUTH_TOKEN
+    contractName, didRegistryContractName, factoryContractName,
+    TOKEN_CALL, AUTH_TOKEN, ALIASES
 } = config
 
 const {
@@ -180,7 +181,7 @@ class Ceramic {
     let legacyAppIdx = await this.getLegacyAppIdx(contract, account)
     let oldAccountKeys =  await this.downloadKeysSecret(legacyAppIdx, 'accountsKeys')
     let localAccounts = get(ACCOUNT_LINKS, [])
-    let accounts = newAccountKeys.concat(oldAccountKeys, localAccounts)
+    let accounts = localAccounts.concat(oldAccountKeys, newAccountKeys)
     
     if(accounts && accounts.length > 0){
       let i = 0
@@ -254,6 +255,31 @@ class Ceramic {
   }
 
 
+  async getLegacyCeramic(account, seed) {
+    if (seed == undefined || seed == false){
+      seed = await this.getLocalAccountSeed(account.accountId)
+      if(seed == false || seed == undefined){
+        await this.makeSeed(account)
+        seed = await this.getLocalAccountSeed(account.accountId)
+      }
+    }
+    const ceramic = new CeramicClient(CERAMIC_API_URL, {cacheDocCommits: true, docSyncEnabled: false, docSynchInterval: 30000})
+   
+    const provider = new Ed25519Provider(seed)
+
+    const resolver = {...KeyDidResolver.getResolver()}
+  
+    const did = new DID({ resolver })
+    
+    ceramic.setDID(did)
+    ceramic.did.setProvider(provider)
+  
+    await ceramic.did.authenticate()
+    
+    return ceramic
+  }
+
+
   makeUint8 = (str) => {
     const utf8Encode = new TextEncoder()
     return utf8Encode.encode(str)
@@ -261,42 +287,27 @@ class Ceramic {
 
 
   getSignature = async (signer, accountId, message) => {
-
-    console.log('signer', signer)
-    console.log('accountId', accountId)
-    console.log('message', message)
     
-    const hash = crypto.createHash('sha256').update(message).digest();
-    console.log('getSignature hash', hash)
+    const hash = crypto.createHash('sha256').update(message).digest()
 
     const hashString = uint8arrays.toString(hash, 'base64')
-    console.log('getSignature hashString', hashString)
 
-    const signed = await signer.signMessage(message, accountId, networkId);
-    console.log('signed', signed)
+    const signed = await signer.signMessage(message, accountId, networkId)
 
-    const messageSignature = uint8arrays.toString(signed.signature, 'base64');
-    console.log('messageSignature', messageSignature)
+    const messageSignature = uint8arrays.toString(signed.signature, 'base64')
 
     return { message, messageSignature }    
   }
 
 
   verifySignature = async (publicKey, message, signature) => {
-  
-      console.log('key', publicKey)
-      console.log('message', message)
-      console.log('signature', signature)
 
-      const hash = crypto.createHash('sha256').update(message).digest();
-      console.log('verification hash', hash)
+      const hash = crypto.createHash('sha256').update(message).digest()
 
       const hashString = uint8arrays.toString(hash, 'base64')
-      console.log('verification hashstring', hashString)
+      
       const verified = nacl.sign.detached.verify(uint8arrays.fromString(hashString, 'base64'), signature, publicKey.data);
       
-      //const verified = key.verify(uint8arrays.fromString(hashString, 'base64'), signature);
-      console.log('verified', verified)
       return verified
   };
 
@@ -348,7 +359,7 @@ class Ceramic {
       ...ThreeIdResolver.getResolver(ceramic)
     }
     const did = new DID({ resolver })
-    console.log('did', did)
+    
     ceramic.setDID(did)
     ceramic.did.setProvider(provider)
     await ceramic.did.authenticate()
@@ -456,25 +467,44 @@ class Ceramic {
   }
 
 
-  async initiateDidRegistryContract(account) {    
-    // initiate the contract so its associated with this current account and exposing all the methods
-    let didRegistryContract = new nearApiJs.Contract(account, didRegistryContractName, {
-      viewMethods: [
-          'getDID',
-          'hasDID',
-          'retrieveAlias',
-          'hasAlias'
-      ],
-      // Change methods can modify the state. But you don't receive the returned value when called.
-      changeMethods: [
-          'putDID',
-          'deleteDID',
-          'storeAlias',
-          'deleteAlias'
-      ],
-  })
-    return didRegistryContract
-  }
+  // async initiateDidRegistryContract(account) {    
+  //   // initiate the contract so its associated with this current account and exposing all the methods
+  //   let didRegistryContract = new nearApiJs.Contract(account, didRegistryContractName, {
+  //     viewMethods: [
+  //         'getDID',
+  //         'hasDID',
+  //         'retrieveAlias',
+  //         'hasAlias'
+  //     ],
+  //     // Change methods can modify the state. But you don't receive the returned value when called.
+  //     changeMethods: [
+  //         'putDID',
+  //         'deleteDID',
+  //         'storeAlias',
+  //         'deleteAlias'
+  //     ],
+  // })
+  //   return didRegistryContract
+  // }
+
+
+  // async initiateFactoryContract(account) {    
+  //   // initiate the contract so its associated with this current account and exposing all the methods
+  //   let factoryContract = new nearApiJs.Contract(account, factoryContractName, {
+  //     viewMethods: [
+  //       'getDaoList',
+  //       'getDaoListLength',
+  //       'getDaoIndex',
+  //       'getDaoByAccount'
+  //   ],
+  //   // Change methods can modify the state. But you don't receive the returned value when called.
+  //   changeMethods: [
+  //      'createDAO',
+  //      'inactivateDAO'
+  //   ]
+  // })
+  //   return factoryContract
+  // }
 
 
   async changeDefinition(accountId, aliasName, client, schema, description, contract) {
@@ -541,8 +571,9 @@ class Ceramic {
   async getAppIdx(contract, account, near){
   
     const appClient = await this.getAppCeramic(account.accountId)
-    console.log('appclient', appClient)
-    // const nearAuthProvider = new NearAuthProvider(near, accountId, near.connection.networkId)
+
+    const legacyAppClient = await this.getLegacyAppCeramic(account.accountId)
+    //const nearAuthProvider = new NearAuthProvider(near, accountId, near.connection.networkId)
     // const thisAccountId = await nearAuthProvider.accountId()
     // console.log('thisaccountid', thisAccountId)
     // const thisAccountLink = await Caip10Link.fromAccount(appClient, thisAccountId)
@@ -552,133 +583,145 @@ class Ceramic {
     // const thisAccountLink2 = await Caip10Link.fromAccount(appClient, thisAccountId)
     // console.log('thisaccountlink2', thisAccountLink2)
 
-    const appDid = this.associateAppDID(APP_OWNER_ACCOUNT, contract, appClient)
-
-  // uncomment below to change a definition
-  // let changed = await this.changeDefinition(APP_OWNER_ACCOUNT, 'fundingProposalDetails', appClient, fundingProposalDetailsSchema, 'funding proposal details', contract)
-  //let changed1 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'payoutProposalDetails', appClient, payoutProposalDetailsSchema, 'payout proposal details', contract)
-  // let changed2 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'tributeProposalDetails', appClient, tributeProposalDetailsSchema, 'tribute proposal details', contract)
-  // let changed3 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'configurationProposalDetails', appClient, configurationProposalDetailsSchema, 'configuration proposal details', contract)
-  // let changed4 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'communityRoles', appClient, communityRoleProposalDetailsSchema, 'community roles', contract)
-  // let changed5 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'reputationFactors', appClient, repFactorProposalDetailsSchema, 'reputation factors', contract)
- // let changed6 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'Notifications', appClient, notificationSchema, 'notifications', contract)
-  // console.log('changed schema', changed)
-  // console.log('changed schema', changed1)
-  // console.log('changed schema', changed2)
-  // console.log('changed schema', changed3)
-  // console.log('changed schema', changed4)
-  // console.log('changed schema', changed5)
-  //console.log('changed schema', changed6)
-
-    const definitions = this.getAlias(APP_OWNER_ACCOUNT, 'Definitions', appClient, definitionsSchema, 'alias definitions', contract)
-    const schemas = this.getAlias(APP_OWNER_ACCOUNT, 'Schemas', appClient, schemaSchema, 'user schemas', contract)
-    const daoList = this.getAlias(APP_OWNER_ACCOUNT, 'daoList', appClient, daoListSchema, 'list of all daos', contract)
-    const daoProfile = this.getAlias(APP_OWNER_ACCOUNT, 'daoProfile', appClient, daoProfileSchema, 'dao profiles', contract)
-    const profile = this.getAlias(APP_OWNER_ACCOUNT, 'profile', appClient, profileSchema, 'persona profiles', contract)
-    const accountsKeys = this.getAlias(APP_OWNER_ACCOUNT, 'accountsKeys', appClient, accountKeysSchema, 'user account info', contract)
-    const daoKeys = this.getAlias(APP_OWNER_ACCOUNT, 'daoKeys', appClient, daoKeysSchema, 'dao account info', contract)
-    const members = this.getAlias(APP_OWNER_ACCOUNT, 'members', appClient, memberSchema, 'dao member info', contract)
-    const summonEvent = this.getAlias(APP_OWNER_ACCOUNT, 'summonEvent', appClient, summonSchema, 'dao summon events', contract)
-    const proposal = this.getAlias(APP_OWNER_ACCOUNT, 'proposals', appClient, proposalSchema, 'proposal events', contract)
-    const memberProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'memberProposalDetails', appClient, memberProposalDetailsSchema, 'member proposal details', contract)
-    const fundingProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'fundingProposalDetails', appClient, fundingProposalDetailsSchema, 'funding proposal details', contract)
-    const comments = this.getAlias(APP_OWNER_ACCOUNT, 'comments', appClient, commentsSchema, 'comments', contract)
-    const donations = this.getAlias(APP_OWNER_ACCOUNT, 'donations', appClient, donationsSchema, 'donations', contract)
-    const payoutProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'payoutProposalDetails', appClient, payoutProposalDetailsSchema, 'payout proposal details', contract)
-    const apiKeys = this.getAlias(APP_OWNER_ACCOUNT, 'apiKeys', appClient, apiKeysSchema, 'secure api keys', contract)
-    const opportunities = this.getAlias(APP_OWNER_ACCOUNT, 'opportunities', appClient, opportunitiesSchema, 'opportunities to complete', contract)
-    const tributeProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'tributeProposalDetails', appClient, tributeProposalDetailsSchema, 'tribute proposal details', contract)
-    const memberData = this.getAlias(APP_OWNER_ACCOUNT, 'memberData', appClient, memberDataSchema, 'member data', contract)
-    const proposalData = this.getAlias(APP_OWNER_ACCOUNT, 'proposalData', appClient, proposalDataSchema, 'proposal data', contract)
-    const votingData = this.getAlias(APP_OWNER_ACCOUNT, 'votingData', appClient, votingDataSchema, 'voting data', contract)
-    const configurationProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'configurationProposalDetails', appClient, configurationProposalDetailsSchema, 'configuration proposal details', contract)
-    const daoInactivationData = this.getAlias(APP_OWNER_ACCOUNT, 'daoInactivationData', appClient, daoInactivationSchema, 'dao inactivation data', contract)
-    const communityRoles = this.getAlias(APP_OWNER_ACCOUNT, 'communityRoles', appClient, communityRoleProposalDetailsSchema, 'community roles', contract)
-    const reputationFactors = this.getAlias(APP_OWNER_ACCOUNT, 'reputationFactors', appClient, repFactorProposalDetailsSchema, 'reputation factors', contract)
-    const waivers = this.getAlias(APP_OWNER_ACCOUNT, 'Waivers', appClient, waiversSchema, 'waiver records', contract)
-    const notifications = this.getAlias(APP_OWNER_ACCOUNT, 'notifications', appClient, notificationSchema, 'notifications', contract)
-    const guildKickProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'guildKickProposalDetails', appClient, guildKickProposalDetailsSchema, 'guild kick proposal details', contract)
-    const whitelistProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'whitelistProposalDetails', appClient, whitelistProposalDetailsSchema, 'whitelist proposal details', contract)
-    const cancelCommitmentProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'cancelCommitmentProposalDetails', appClient, cancelCommitmentProposalDetailsSchema, 'cance commitment proposal details', contract)
-    const ftKeys = this.getAlias(APP_OWNER_ACCOUNT, 'ftKeys', appClient, ftKeysSchema, 'ft account info', contract)
-    const ftProfile = this.getAlias(APP_OWNER_ACCOUNT, 'ftProfile', appClient, ftProfileSchema, 'ft details', contract)
-    const ftSummonEvent = this.getAlias(APP_OWNER_ACCOUNT, 'ftSummonEvent', appClient, ftSummonSchema, 'ft summon events', contract)
-    const done = await Promise.all([
-      appDid, 
-      definitions, 
-      schemas, 
-      daoList, 
-      daoProfile, 
-      profile, 
-      accountsKeys, 
-      daoKeys, 
-      members, 
-      summonEvent, 
-      proposal, 
-      memberProposalDetails,
-      fundingProposalDetails, 
-      comments,
-      donations,
-      payoutProposalDetails,
-      apiKeys,
-      opportunities,
-      tributeProposalDetails,
-      memberData,
-      proposalData,
-      votingData,
-      configurationProposalDetails,
-      daoInactivationData,
-      communityRoles,
-      reputationFactors,
-      waivers,
-      notifications,
-      guildKickProposalDetails,
-      whitelistProposalDetails,
-      cancelCommitmentProposalDetails,
-      ftKeys,
-      ftProfile,
-      ftSummonEvent
-    ])
-    
-    let rootAliases = {
-      definitions: done[1],
-      schemas: done[2],
-      daoList: done[3],
-      daoProfile: done[4],
-      profile: done[5],
-      accountsKeys: done[6],
-      daoKeys: done[7],
-      members: done[8],
-      summonEvent: done[9],
-      proposals: done[10],
-      memberProposalDetails: done[11],
-      fundingProposalDetails: done[12],
-      comments: done[13],
-      donations: done[14],
-      payoutProposalDetails: done[15],
-      apiKeys: done[16],
-      opportunities: done[17],
-      tributeProposalDetails: done[18],
-      memberData: done[19],
-      proposalData: done[20],
-      votingData: done[21],
-      configurationProposalDetails: done[22],
-      daoInactivationData: done[23],
-      communityRoles: done[24],
-      reputationFactors: done[25],
-      waivers: done[26],
-      notifications: done[27],
-      guildKickProposalDetails: done[28],
-      whitelistProposalDetails: done[29],
-      cancelCommitmentProposalDetails: done[30],
-      ftKeys: done[31],
-      ftProfile: done[32],
-      ftSummonEvent: done[33]
-    }
-
-    const appIdx = new IDX({ ceramic: appClient, aliases: rootAliases})
-
+   const appDid = this.associateAppDID(APP_OWNER_ACCOUNT, contract, appClient)
+  
+  // Retrieve cached aliases
+ let rootAliases = get(ALIASES, [])
+  if(rootAliases.length > 0){
+    const appIdx = new IDX({ ceramic: appClient, aliases: rootAliases[0]})
     return appIdx
+  } else {
+    // uncomment below to change a definition
+     //let changed = await this.changeDefinition(APP_OWNER_ACCOUNT, 'opportunities', legacyAppClient, opportunitiesSchema, 'opportunities to complete', contract)
+   // let changed1 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'proposals', legacyAppClient, proposalSchema, 'proposal events', contract)
+    // let changed2 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'tributeProposalDetails', appClient, tributeProposalDetailsSchema, 'tribute proposal details', contract)
+    // let changed3 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'configurationProposalDetails', appClient, configurationProposalDetailsSchema, 'configuration proposal details', contract)
+    // let changed4 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'communityRoles', appClient, communityRoleProposalDetailsSchema, 'community roles', contract)
+    // let changed5 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'reputationFactors', appClient, repFactorProposalDetailsSchema, 'reputation factors', contract)
+  // let changed6 = await this.changeDefinition(APP_OWNER_ACCOUNT, 'Notifications', appClient, notificationSchema, 'notifications', contract)
+    // console.log('changed schema', changed)
+    // console.log('changed schema', changed1)
+    // console.log('changed schema', changed2)
+    // console.log('changed schema', changed3)
+    // console.log('changed schema', changed4)
+    // console.log('changed schema', changed5)
+    //console.log('changed schema', changed6)
+
+      const definitions = this.getAlias(APP_OWNER_ACCOUNT, 'Definitions', appClient, definitionsSchema, 'alias definitions', contract)
+      const schemas = this.getAlias(APP_OWNER_ACCOUNT, 'Schemas', appClient, schemaSchema, 'user schemas', contract)
+      const daoList = this.getAlias(APP_OWNER_ACCOUNT, 'daoList', appClient, daoListSchema, 'list of all daos', contract)
+      const daoProfile = this.getAlias(APP_OWNER_ACCOUNT, 'daoProfile', appClient, daoProfileSchema, 'dao profiles', contract)
+      const profile = this.getAlias(APP_OWNER_ACCOUNT, 'profile', appClient, profileSchema, 'persona profiles', contract)
+      const accountsKeys = this.getAlias(APP_OWNER_ACCOUNT, 'accountsKeys', appClient, accountKeysSchema, 'user account info', contract)
+      const daoKeys = this.getAlias(APP_OWNER_ACCOUNT, 'daoKeys', appClient, daoKeysSchema, 'dao account info', contract)
+      const members = this.getAlias(APP_OWNER_ACCOUNT, 'members', appClient, memberSchema, 'dao member info', contract)
+      const summonEvent = this.getAlias(APP_OWNER_ACCOUNT, 'summonEvent', appClient, summonSchema, 'dao summon events', contract)
+      const proposal = this.getAlias(APP_OWNER_ACCOUNT, 'proposals', appClient, proposalSchema, 'proposal events', contract)
+      const memberProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'memberProposalDetails', appClient, memberProposalDetailsSchema, 'member proposal details', contract)
+      const fundingProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'fundingProposalDetails', appClient, fundingProposalDetailsSchema, 'funding proposal details', contract)
+      const comments = this.getAlias(APP_OWNER_ACCOUNT, 'comments', appClient, commentsSchema, 'comments', contract)
+      const donations = this.getAlias(APP_OWNER_ACCOUNT, 'donations', appClient, donationsSchema, 'donations', contract)
+      const payoutProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'payoutProposalDetails', appClient, payoutProposalDetailsSchema, 'payout proposal details', contract)
+      const apiKeys = this.getAlias(APP_OWNER_ACCOUNT, 'apiKeys', appClient, apiKeysSchema, 'secure api keys', contract)
+      const opportunities = this.getAlias(APP_OWNER_ACCOUNT, 'opportunities', appClient, opportunitiesSchema, 'opportunities to complete', contract)
+      const tributeProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'tributeProposalDetails', appClient, tributeProposalDetailsSchema, 'tribute proposal details', contract)
+      const memberData = this.getAlias(APP_OWNER_ACCOUNT, 'memberData', appClient, memberDataSchema, 'member data', contract)
+      const proposalData = this.getAlias(APP_OWNER_ACCOUNT, 'proposalData', appClient, proposalDataSchema, 'proposal data', contract)
+      const votingData = this.getAlias(APP_OWNER_ACCOUNT, 'votingData', appClient, votingDataSchema, 'voting data', contract)
+      const configurationProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'configurationProposalDetails', appClient, configurationProposalDetailsSchema, 'configuration proposal details', contract)
+      const daoInactivationData = this.getAlias(APP_OWNER_ACCOUNT, 'daoInactivationData', appClient, daoInactivationSchema, 'dao inactivation data', contract)
+      const communityRoles = this.getAlias(APP_OWNER_ACCOUNT, 'communityRoles', appClient, communityRoleProposalDetailsSchema, 'community roles', contract)
+      const reputationFactors = this.getAlias(APP_OWNER_ACCOUNT, 'reputationFactors', appClient, repFactorProposalDetailsSchema, 'reputation factors', contract)
+      const waivers = this.getAlias(APP_OWNER_ACCOUNT, 'Waivers', appClient, waiversSchema, 'waiver records', contract)
+      const notifications = this.getAlias(APP_OWNER_ACCOUNT, 'notifications', appClient, notificationSchema, 'notifications', contract)
+      const guildKickProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'guildKickProposalDetails', appClient, guildKickProposalDetailsSchema, 'guild kick proposal details', contract)
+      const whitelistProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'whitelistProposalDetails', appClient, whitelistProposalDetailsSchema, 'whitelist proposal details', contract)
+      const cancelCommitmentProposalDetails = this.getAlias(APP_OWNER_ACCOUNT, 'cancelCommitmentProposalDetails', appClient, cancelCommitmentProposalDetailsSchema, 'cance commitment proposal details', contract)
+      const ftKeys = this.getAlias(APP_OWNER_ACCOUNT, 'ftKeys', appClient, ftKeysSchema, 'ft account info', contract)
+      const ftProfile = this.getAlias(APP_OWNER_ACCOUNT, 'ftProfile', appClient, ftProfileSchema, 'ft details', contract)
+      const ftSummonEvent = this.getAlias(APP_OWNER_ACCOUNT, 'ftSummonEvent', appClient, ftSummonSchema, 'ft summon events', contract)
+      const done = await Promise.all([
+        appDid, 
+        definitions, 
+        schemas, 
+        daoList, 
+        daoProfile, 
+        profile, 
+        accountsKeys, 
+        daoKeys, 
+        members, 
+        summonEvent, 
+        proposal, 
+        memberProposalDetails,
+        fundingProposalDetails, 
+        comments,
+        donations,
+        payoutProposalDetails,
+        apiKeys,
+        opportunities,
+        tributeProposalDetails,
+        memberData,
+        proposalData,
+        votingData,
+        configurationProposalDetails,
+        daoInactivationData,
+        communityRoles,
+        reputationFactors,
+        waivers,
+        notifications,
+        guildKickProposalDetails,
+        whitelistProposalDetails,
+        cancelCommitmentProposalDetails,
+        ftKeys,
+        ftProfile,
+        ftSummonEvent
+      ])
+      
+      let rootAliases = {
+        definitions: done[1],
+        schemas: done[2],
+        daoList: done[3],
+        daoProfile: done[4],
+        profile: done[5],
+        accountsKeys: done[6],
+        daoKeys: done[7],
+        members: done[8],
+        summonEvent: done[9],
+        proposals: done[10],
+        memberProposalDetails: done[11],
+        fundingProposalDetails: done[12],
+        comments: done[13],
+        donations: done[14],
+        payoutProposalDetails: done[15],
+        apiKeys: done[16],
+        opportunities: done[17],
+        tributeProposalDetails: done[18],
+        memberData: done[19],
+        proposalData: done[20],
+        votingData: done[21],
+        configurationProposalDetails: done[22],
+        daoInactivationData: done[23],
+        communityRoles: done[24],
+        reputationFactors: done[25],
+        waivers: done[26],
+        notifications: done[27],
+        guildKickProposalDetails: done[28],
+        whitelistProposalDetails: done[29],
+        cancelCommitmentProposalDetails: done[30],
+        ftKeys: done[31],
+        ftProfile: done[32],
+        ftSummonEvent: done[33]
+      }
+
+      // cache aliases
+      let aliases = []
+      aliases.push(rootAliases)
+      set(ALIASES, aliases)
+
+      const appIdx = new IDX({ ceramic: appClient, aliases: rootAliases})
+
+      return appIdx
+    }
   }
 
 
@@ -704,53 +747,177 @@ class Ceramic {
 
 
   // current user IDX (account currently logged in)
-  async getCurrentUserIdx(account, appIdx, near, contract){
-      
+  async getCurrentUserIdx(account, appIdx, near, registryContract, factoryContract){
+      let seed = false
       set(KEY_REDIRECT, {action: false, link: ''})
-      let seed = await this.getLocalAccountSeed(account, appIdx, contract)
-  
+
+      let newAccountKeys =  await this.downloadKeysSecret(appIdx, 'accountsKeys')
+     
+      // add legacy dao keys
+      let legacyAppIdx = await this.getLegacyAppIdx(registryContract, account)
+      let oldAccountKeys =  await this.downloadKeysSecret(legacyAppIdx, 'accountsKeys')
+    
+      let localAccounts = get(ACCOUNT_LINKS, [])
+      
+      if(oldAccountKeys && oldAccountKeys.length > 0){
+        let i = 0
+        while (i < oldAccountKeys.length){
+          if(oldAccountKeys[i].accountId == account.accountId){
+            seed = Buffer.from((oldAccountKeys[i].key).slice(0,32))
+          }
+          i++
+        }
+        try{
+          let oldAccountUserCeramicClient
+          let did = await this.getDid(account.accountId, factoryContract, registryContract)
+          if(did){
+            let part = did.split(':')[1]
+            if(part == '3'){
+              oldAccountUserCeramicClient = await this.getCeramic(account, seed)
+            } else {
+              oldAccountUserCeramicClient = await this.getLegacyCeramic(account, seed)
+            }
+          } else {
+            oldAccountUserCeramicClient = await this.getCeramic(account, seed)
+          }
+          let curUserIdx = new IDX({ ceramic: oldAccountUserCeramicClient, aliases: appIdx._aliases})
+          return curUserIdx
+        } catch (err) {
+          console.log('no did from oldaccounts', err)
+        }
+      }
+
+      if(newAccountKeys && newAccountKeys.length > 0){
+        let i = 0
+        while (i < newAccountKeys.length){
+          if(newAccountKeys[i].accountId == account.accountId){
+            seed = Buffer.from((newAccountKeys[i].key).slice(0,32))
+          }
+          i++
+        }
+        try{
+          let did = await this.getDid(account.accountId, factoryContract, registryContract)
+          let currentUserCeramicClient
+          if(did){
+            let part = did.split(':')[1]
+            if(part == '3'){
+              currentUserCeramicClient = await this.getCeramic(account, seed)
+            } else {
+              currentUserCeramicClient = await this.getLegacyCeramic(account, seed)
+            }
+          } else {
+            currentUserCeramicClient = await this.getCeramic(account, seed)
+          }
+          let curUserIdx = new IDX({ ceramic: currentUserCeramicClient, aliases: appIdx._aliases})
+          return curUserIdx
+        } catch (err) {
+          console.log('no did from newaccounts', err)
+        }
+      }
+
+      if(localAccounts && localAccounts.length > 0){
+        let i = 0
+        while (i < localAccounts.length){
+          if(localAccounts[i].accountId == account.accountId){
+            seed = Buffer.from((localAccounts[i].key).slice(0,32))
+          }
+          i++
+        }
+        try{
+          let did = await this.getDid(account.accountId, factoryContract, registryContract)
+          let localAccountUserCeramicClient
+          if(did){
+            let part = did.split(':')[1]
+            if(part == '3'){
+              localAccountUserCeramicClient = await this.getCeramic(account, seed)
+            } else {
+              localAccountUserCeramicClient = await this.getLegacyCeramic(account, seed)
+            }
+          } else {
+            localAccountUserCeramicClient = await this.getCeramic(account, seed)
+          }
+          let curUserIdx = new IDX({ ceramic: localAccountUserCeramicClient, aliases: appIdx._aliases})
+          return curUserIdx
+        } catch (err) {
+          console.log('no did from localaccount', err)
+        }
+      }
+     
       if(seed == false){
         set(KEY_REDIRECT, {action: true, link: '/newKey'})
         return false
       }
-
-      let currentUserCeramicClient = await this.getCeramic(account, seed)
-      console.log('here10')
-   
-      let curUserIdx = new IDX({ ceramic: currentUserCeramicClient, aliases: appIdx._aliases})
-      return curUserIdx
   }
 
 
-  async getCurrentDaoIdx(contractAccount, appIdx, near, contract){
+  async getCurrentDaoIdx(contractAccount, appIdx, near, contract, seedPhrase){
     
     let seed
-    let newDaoKeys =  await this.downloadKeysSecret(appIdx, 'daoKeys')
-
-    // add legacy dao keys
+    let curDaoIdx
+   
     let legacyAppIdx = await this.getLegacyAppIdx(contract, contractAccount)
     let oldDaoKeys =  await this.downloadKeysSecret(legacyAppIdx, 'daoKeys')
-    let daoKeys = newDaoKeys.concat(oldDaoKeys)
-
-    if(daoKeys && daoKeys.length > 0){
+  
+    if(oldDaoKeys && oldDaoKeys.length > 0){
       let i = 0
-     
-      while(i < daoKeys.length){
-        if(daoKeys[i].contractId == contractAccount.accountId){
-          seed = Buffer.from((daoKeys[i].key).slice(0,32))
+      while(i < oldDaoKeys.length){
+        if(oldDaoKeys[i].contractId == contractAccount.accountId){
+          seed = Buffer.from((oldDaoKeys[i].key).slice(0,32))
         }
         i++
       }
     }
+    if(seed){
+      let oldDaoCurrentDaoCeramicClient = await this.getLegacyCeramic(contractAccount, seed)
+      return curDaoIdx = new IDX({ceramic: oldDaoCurrentDaoCeramicClient, aliases: appIdx._aliases})
+    }
+
+    if(!seed){
+      let newDaoKeys =  await this.downloadKeysSecret(appIdx, 'daoKeys')
+      if(newDaoKeys && newDaoKeys.length > 0){
+        let i = 0
+       
+        while(i < newDaoKeys.length){
+          if(newDaoKeys[i].contractId == contractAccount.accountId){
+            seed = Buffer.from((newDaoKeys[i].key).slice(0,32))
+          }
+          i++
+        }
+      }
+    }
+    if(seed){
+    let newDaoCurrentDaoCeramicClient = await this.getCeramic(contractAccount, seed)
+    return curDaoIdx = new IDX({ceramic: newDaoCurrentDaoCeramicClient, aliases: appIdx._aliases})
+    }
+
+    let localSeeds = get(SEEDS, [])
+    if(localSeeds.length > 0){
+      let c = 0
+      while(c < localSeeds.length) {
+        if(localSeeds[c].accountId == contractAccount.accountId){
+            seed = localSeeds[c].seed.data
+            let localSeedDaoCeramicClient = await this.getCeramic(contractAccount, seed)
+            return curDaoIdx = new IDX({ceramic: localSeedDaoCeramicClient, aliases: appIdx._aliases})
+        }
+        c++
+      }
+    }
+
+    if(seedPhrase){
+      let key = nearSeed.parseSeedPhrase(seedPhrase)
+      let seed = Buffer.from((key.secretKey).slice(0,32))
+      let link = {seed: seed, accountId: contractAccount.accountId, keyStored: Date.now() }
+      let seeds = []
+      seeds.push(link)
+      set(SEEDS, seeds)
+      let seedPhraseDaoCeramicClient = await this.getCeramic(contractAccount, seed)
+      return curDaoIdx = new IDX({ceramic: seedPhraseDaoCeramicClient, aliases: appIdx._aliases})
+    }
+
     if(seed == undefined){
       return false
     }
-   
-    let currentDaoCeramicClient = await this.getCeramic(contractAccount, seed)
-   
-    let curDaoIdx = new IDX({ceramic: currentDaoCeramicClient, aliases: appIdx._aliases})
-   
-    return curDaoIdx
+   return false
   }
 
 
@@ -780,18 +947,22 @@ class Ceramic {
   async getDid(accountId, contract, legacyContract) {
     let dao
     let did = false
-    try {
-      dao = await contract.getDaoByAccount({accountId: accountId})
-      console.log('dao', dao)
-      did = dao.did
+    
+    try{
+      did = await legacyContract.getDID({accountId: accountId})
+      if(did){
+        return did
+      }
     } catch (err) {
-      console.log('error retrieving did', err)
+      console.log('error retrieving did from legacy', err)
     }
+    
     if (!did){
-      try{
-        did = await legacyContract.getDID({accountId: accountId})
+     try {
+      dao = await contract.getDaoByAccount({accountId: accountId})
+      did = dao.did
       } catch (err) {
-        console.log('error retrieving did from legacy', err)
+        console.log('error retrieving did', err)
       }
     }
     return did
@@ -804,7 +975,6 @@ class Ceramic {
       keyPair = KeyPair.fromRandom('ed25519')
       let publicKey = keyPair.getPublicKey().toString().split(':')[1]
       const links = get(ACCOUNT_LINKS, [])
-      console.log('links', links)
       let c = 0
       let accountExists
       while(c < links.length) {

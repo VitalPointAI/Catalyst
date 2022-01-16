@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { appStore, onAppMount } from '../../state/app'
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import FileUpload from '../IPFSupload/ipfsUpload'
@@ -10,6 +11,7 @@ import { Editor } from "react-draft-wysiwyg"
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
 import draftToHtml from 'draftjs-to-html'
 import htmlToDraft from 'html-to-draftjs'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -49,6 +51,24 @@ const useStyles = makeStyles((theme) => ({
 const imageName = require('../../img/default-profile.png') // default no-image avatar
 
 export default function EditTributeProposalForm(props) {
+
+  const { state, dispatch, update } = useContext(appStore)
+  
+  const {
+    daoFactory,
+    didRegistryContract,
+    appIdx,
+    curDaoIdx,
+    isUpdated
+  } = state
+  
+  const {
+    handleEditTributeProposalDetailsClickState,
+    applicant,
+    proposer,
+    proposalId,
+  } = props
+
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
     const [loaded, setLoaded] = useState(false)
@@ -66,17 +86,8 @@ export default function EditTributeProposalForm(props) {
     // Tribute Proposal Fields
     const [title, setTitle] = useState('')
     const [details, setDetails] = useState(EditorState.createEmpty())
-
+   
     const { register, handleSubmit, watch, errors } = useForm()
-
-    const {
-        handleUpdate,
-        handleEditTributeProposalDetailsClickState,
-        applicant,
-        proposer,
-        curDaoIdx,
-        proposalId,
-    } = props
     
     const classes = useStyles()
 
@@ -86,8 +97,8 @@ export default function EditTributeProposalForm(props) {
            
             // Set Existing Persona Data      
             if(applicant){
-              const thisPersona = new Persona()
-              let result = await thisPersona.getData('profile', applicant, curDaoIdx)
+              let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', applicantDid)
                   if(result){
                     result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                     result.name ? setName(result.name) : setName('')
@@ -204,7 +215,7 @@ export default function EditTributeProposalForm(props) {
       }
      
       setFinished(true)
-      handleUpdate(true)
+      update('', {isUpdated: !isUpdated})
       setOpen(false)
       handleClose()
     }

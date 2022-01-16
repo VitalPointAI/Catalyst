@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { appStore, onAppMount } from '../../state/app'
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
 const { create } = require('ipfs-http-client')
 import { makeStyles } from '@material-ui/core/styles'
@@ -12,6 +13,7 @@ import htmlToDraft from 'html-to-draftjs'
 import Persona from '@aluhning/get-personas-js'
 import MilestoneCard from '../MilestoneCard/MilestoneCard'
 import FileUpload from '../IPFSupload/ipfsUpload'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -86,7 +88,7 @@ export default function EditCancelCommitmentProposalForm(props) {
     const [milestones, setMilestones] = useState([{}])
     const [details, setDetails] = useState(EditorState.createEmpty())
     const [attachedFiles, setAttachedFiles] = useState([])
-
+    const { state, dispatch, update } = useContext(appStore)
     const { register, handleSubmit, watch, errors, control, reset, setValue, getValues } = useForm()
     const {
       fields: fileFields,
@@ -107,13 +109,18 @@ export default function EditCancelCommitmentProposalForm(props) {
     console.log('controlledfields', controlledFields)
 
     const {
-        handleUpdate,
+      daoFactory,
+      didRegistryContract,
+      appIdx,
+      curDaoIdx,
+      contract
+    } = state
+
+    const {
         handleEditCancelCommitmentProposalDetailsClickState,
         applicant,
         proposer,
-        curDaoIdx,
         proposalId,
-        contract,
         funding, 
         referenceIds,
         proposalStatus,
@@ -130,8 +137,8 @@ export default function EditCancelCommitmentProposalForm(props) {
            
             // Set Existing Persona Data      
             if(applicant){
-              const thisPersona = new Persona()
-              let result = await thisPersona.getData('profile', applicant)
+              let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', applicantDid)
                   if(result){
                     result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                     result.name ? setName(result.name) : setName('')

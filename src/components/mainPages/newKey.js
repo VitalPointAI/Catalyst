@@ -8,13 +8,10 @@ import { makeStyles } from '@material-ui/core/styles'
 
 const useStyles = makeStyles((theme) => ({
     root: {
-        flexGrow: 1,
-      //  maxWidth: 640,
-        margin: 'auto',
-      //  marginTop: 50,
-        marginBottom: 50,
-        minHeight: 550,
-        padding: '20px',
+      flexGrow: 1,
+      position: 'relative',
+      display: 'flex',
+      flexDirection: 'column'
     },
     featureDAO: {
         minHeight: '200px',
@@ -51,11 +48,14 @@ export default function NewKey(props) {
     )
     
     return (
-        
+        <>
         <div className={classes.root}>
         <Header state={state}/>
         <Import />
+        
         </div>
+        <Footer />
+        </>
         
     )
 }

@@ -1,8 +1,10 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, useContext} from 'react'
+import { Link } from 'react-router-dom'
 import logo from '../../img/catalyst-by-vpai.png'
-import * as nearAPI from 'near-api-js'
+import { appStore, onAppMount } from '../../state/app'
 import { login } from '../../state/near'
 import { config } from '../../state/config'
+import { ceramic } from '../../utils/ceramic'
 
 //material ui imports
 import { CircularProgress } from '@material-ui/core'
@@ -10,34 +12,42 @@ import Grid from '@material-ui/core/Grid'
 import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
 
-const Receiver = ({state}) => {
+export default function Receiver(props) {
 
-    const {
-        app, wallet, links, claimed, accountId, curInfo, finished, appIdx, near, didRegistryContract
-    } = state
     const [sname, setsName] = useState('')
+    const [slogo, setsLogo] = useState('')
     const linkArray = (window.location.pathname.split("/")).slice(2);
     const link = window.location.origin + "/dao/" + `${linkArray[0]}` + "." + `${config.factoryContractName}`
-    const classes = useStyles()
+   
+    const { state, dispatch, update } = useContext(appStore)
+    const {
+        wallet, 
+        finished, 
+        appIdx, 
+        near,
+        daoFactory,
+        didRegistryContract
+    } = state
 
     useEffect(() => {
         async function fetchData(){
-            let thisCurDaoIdx
-            try{
-                let daoAccount = new nearAPI.Account(near.connection, `${linkArray[0]}` + "." + `${config.factoryContractName}`)
-                thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
-            } catch (err) {
-              console.log('problem getting curdaoidx', err)
-              return false
-            }
-            let result = await thisCurDaoIdx.get('profile', thisCurDaoIdx.id)
+            if(appIdx){
+            
+            let did = await ceramic.getDid(`${linkArray[0]}` + "." + `${config.factoryContractName}`, daoFactory, didRegistryContract)
+            let result = await appIdx.get('daoProfile', did)
+           console.log('result', result)
            
             if(result){
-                   result.name != '' ? setsName(result.name) : setsName('')
+                   result.name ? setsName(result.name) : setsName(linkArray[0])
+                   result.logo ? setsLogo(result.logo) : setsLogo('')
+            } else {
+                setsName(linkArray[0])
             }
         }
+        }
         fetchData()
-    },[]);
+    },[appIdx]
+    )
 
     return (
         <>
@@ -48,7 +58,19 @@ const Receiver = ({state}) => {
                 </Grid>
                 <Grid item xs={6}>
                     <Typography style={{fontSize: 24}}>You've been invited to {`${sname}`}!</Typography>
-                </Grid>
+                    <br></br>
+                    <Link to={link}>
+                        <div style={{width: '100%', 
+                        height: '50px',
+                        backgroundImage: `url(${slogo})`, 
+                        backgroundSize: 'contain',
+                        backgroundPosition: 'center', 
+                        backgroundRepeat: 'no-repeat',
+                        backgroundOrigin: 'content-box'
+                    }}>
+                    </div>
+                    </Link>
+                    </Grid>
                 <Grid item xs={6}>
                 {wallet && wallet.signedIn? 
                   <Button  style={{backgroundColor: '#ffa366'}} variant="outlined" href={link}>
@@ -60,9 +82,9 @@ const Receiver = ({state}) => {
                  </Button>}
                 </Grid>
         </Grid>:
-        <CircularProgress />}
+            <div style={{margin: 'auto', width: '200px'}}>
+                <CircularProgress />
+            </div>}
         </>
     )
 }
-
-export default Receiver 

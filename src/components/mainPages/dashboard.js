@@ -7,16 +7,11 @@ import "d3-time-format"
 import WarningConfirmation from '../Confirmation/warningConfirmation'
 import { formatNearAmount } from 'near-api-js/lib/utils/format'
 import { dao } from '../../utils/dao'
-import { getStatus, synchProposalEvent, generateId, formatDateString } from '../../state/near'
-import * as nearAPI from 'near-api-js'
+import { getStatus, generateId, formatDateString } from '../../state/near'
 import { ceramic } from '../../utils/ceramic'
 import MemberProfile from '../MemberProfileDisplay/memberProfile'
 import OpportunityProposalDetails from '../ProposalDetails/opportunityProposalDetails'
-import Communities from '../Communities/communities'
-import CommunityCount from '../CommunityCount/communityCount'
 import PersonaCount from '../PersonaCount/personaCount'
-import MemberCommunityCount from '../MemberCommunityCount/memberCommunityCount'
-import MemberCommunities from '../MemberCommunities/memberCommunities'
 import { get, set, del } from '../../utils/storage'
 import { DASHBOARD_ARRIVAL, DASHBOARD_DEPARTURE, WARNING_FLAG } from '../../state/near'
 import { Steps, Hints } from "intro.js-react"
@@ -55,8 +50,6 @@ import Button from '@material-ui/core/Button'
 
 import './dashboard.css'
 import 'intro.js/introjs.css'
-
-
 
 const axios = require('axios').default
 
@@ -165,8 +158,10 @@ export default function Dashboard(props) {
     const [opportunityId, setOpportunityId] = useState()
     const [proposer, setProposer] = useState()
     const [rowContractId, setRowContractId] = useState()
+    const [rowStatus, setRowStatus] = useState()
+    const [rowBudget, setRowBudget] = useState()
     const [curDaoIdx, setCurDaoIdx] = useState()
-    const [memberDaos, setMemberDaos] = useState([])
+
     const [options, setOptions] = useState( {
         doneLabel: 'Next',
         showButtons: true,
@@ -181,6 +176,7 @@ export default function Dashboard(props) {
     const [selected, setSelected] = useState([])
     const [page, setPage] = useState(0)
     const [rowsPerPage, setRowsPerPage] = useState(5)
+    const [oppsLoaded, setOppsLoaded] = useState(false)
 
     //use this to toggle steps if flag is set
     const [stepsEnabled, setStepsEnabled] = useState(false)
@@ -209,44 +205,6 @@ export default function Dashboard(props) {
       didRegistryContract,
       daoFactory
     } = state
-
-    useEffect(
-        () => {
-            async function fetchMemberData() {
-                let contract
-                let memberDaos = []
-                let j = 0
-                while (j < currentDaosList.length){
-                    try{
-                        contract = await dao.initDaoContract(state.wallet.account(), currentDaosList[j].contractId)
-                      } catch (err) {
-                        console.log('problem initializing dao contract', err)
-                      }
-
-                    let thisMemberStatus
-                    let thisMemberInfo
-                    try {
-                      thisMemberInfo = await contract.getMemberInfo({member: accountId})
-                      thisMemberStatus = await contract.getMemberStatus({member: accountId})
-                     
-                      if(thisMemberStatus && thisMemberInfo[0].active){
-                        memberDaos.push(currentDaosList[j])
-                      } 
-                    } catch (err) {
-                      console.log('no member info yet')
-                    }
-                j++
-                }
-                setMemberDaos(memberDaos)
-            }
-            
-            fetchMemberData()
-            .then((res) => {
-
-            })
-
-        }, [currentDaosList]
-    )
     
     useEffect(
         () => {
@@ -479,6 +437,7 @@ export default function Dashboard(props) {
             }
 
             async function fetchTab1Data(){
+                    setOppsLoaded(false)
                     // Persona Opportunity Recommendations
 
                     // 1. Build complete list of all opportuntities for all active DAOs
@@ -487,25 +446,8 @@ export default function Dashboard(props) {
                         let i = 0
                         while (i < currentDaosList.length){
                             if(currentDaosList[i].status == 'active'){
-                              //  let thisCurDaoIdx
-                              //  let daoAccount
                                 let singleDaoOpportunity
-                            //     try{
-                            //   //  daoAccount = new nearAPI.Account(near.connection, currentDaosList[i].contractId)
-                            //     } catch (err) {
-                            //     console.log('no account', err)
-                            //     }
-                            //     try{
-                            //         thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
-                            //         setCurDaoIdx(thisCurDaoIdx)
-                            //     } catch (err) {
-                            //         console.log('error getting dao idx', err)
-                            //     }
-                            //     if(thisCurDaoIdx){
-                                 //   let daoContract = await dao.initDaoContract(state.wallet.account(), currentDaosList[i].contractId)
-                                 //   let synch = await synchProposalEvent(thisCurDaoIdx, daoContract)
-                                    
-                                    try{
+                                try{
                                         let contractDid = await ceramic.getDid(currentDaosList[i].contractId, daoFactory, didRegistryContract)
                                         singleDaoOpportunity = await appIdx.get('opportunities', contractDid)
                                         
@@ -644,8 +586,7 @@ export default function Dashboard(props) {
                             let contractDid = await ceramic.getDid(allOpportunities[j].contractId, daoFactory, didRegistryContract)
                             let result
                             if(contractDid){
-                                let result = await appIdx.get('daoProfile', contractDid)
-                               
+                                result = await appIdx.get('daoProfile', contractDid)
                             }
                             if(result && status == 'Passed' && allOpportunities[j].budget > 0 && Date.now() <= new Date(allOpportunities[j].deadline)){
                                 currentRecommendations.push({
@@ -686,7 +627,7 @@ export default function Dashboard(props) {
         if(mounted && value == '1'){
             fetchTab1Data()
             .then(res => {
-                
+                setOppsLoaded(true)
             })
             return () => {
             mounted = false
@@ -711,11 +652,13 @@ export default function Dashboard(props) {
         setIsUpdated(!isUpdated)
     }
 
-    const handleOpportunityProposalDetailsClick = (proposer, opportunityId, rowContractId) => {
+    const handleOpportunityProposalDetailsClick = (proposer, opportunityId, rowContractId, rowStatus, rowBudget) => {
         handleExpanded()
         setOpportunityId(opportunityId)
         setProposer(proposer)
         setRowContractId(rowContractId)
+        setRowStatus(rowStatus)
+        setRowBudget(rowBudget)
         handleOpportunityProposalDetailsClickState(true)
       }
     
@@ -770,9 +713,9 @@ export default function Dashboard(props) {
         { id: 'community', numeric: false, disablePadding: true, label: 'Community'},
         { id: 'name', numeric: false, disablePadding: true, label: 'Opportunity' },
         { id: 'suitabilityScore', numeric: true, disablePadding: false, label: 'Suitability' },
-        { id: 'baseReward', numeric: true, disablePadding: false, label: 'Base Reward' },
+        { id: 'baseReward', numeric: true, disablePadding: false, label: 'Reward Ⓝ' },
         { id: 'deadline', numeric: true, disablePadding: false, label: 'Deadline' },
-        { id: 'budget', numeric: true, disablePadding: false, label: 'Remaining Budget' }
+        { id: 'budget', numeric: true, disablePadding: false, label: 'Remaining Budget (USD)' }
 
     ]
 
@@ -1098,120 +1041,118 @@ export default function Dashboard(props) {
                 <PersonaCount />
                 <MemberProfile member={accountId} />
             </Grid>
-            <Grid className="communities" item xs={12} sm={12} md={8} lg={8} xl={8} align="center">
-                <CommunityCount />
-                <Communities />
-                <MemberCommunityCount memberDaos={memberDaos}/>
-                <MemberCommunities memberDaos={memberDaos} />
-            </Grid>
-            <Grid className="opportunities" item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '40px'}}>
-                
+            <Grid className="opportunities" item xs={12} sm={12} md={8} lg={8} xl={8} align="center">
                 <Typography variant="h4">Opportunities for You</Typography>
                 <Typography variant="body1" style={{marginBottom: '10px'}}>The higher the suitability score, the more closely the opportunity matches your skillset</Typography>
-               
+            
 
                 <div className={classes.root}>
-      <Paper className={classes.paper}>
-        
-        <TableContainer>
-          <Table
-            className={classes.table}
-            aria-labelledby="tableTitle"
-            
-            aria-label="enhanced table"
-            key={'opptable'}
-          >
-            <EnhancedTableHead
-              classes={classes}
-              order={order}
-              orderBy={orderBy}
-              onRequestSort={handleRequestSort}
-              rowCount={recommendations.length}
-            />
-            <TableBody key={'tbodyopptable'}>
-               
-                {recommendations && recommendations.length > 0 ?
-                stableSort(recommendations, getComparator(order, orderBy))
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row, index) => {
-                  console.log('row', row)
-                  console.log('index', index)
-                  let id = generateId()
-                    return (<React.Fragment key={id}>
-                        <TableRow key={row.opportunity.title}>
-                        <TableCell component="th" scope="row" padding="none" >
-                        <a href={`/dao/${row.opportunity.contractId}`}> 
-                            <HtmlTooltip
-                                title={
-                                <>
-                                    <Typography color="inherit">{row.communityName}</Typography>
-                                    <div dangerouslySetInnerHTML={{ __html: row.communityPurpose}}></div>
-                                </>
-                                }
-                                placement="right-start"
-                            >      
-                                
-                                <img src={row.communityLogo} className={classes.imageLogo} />
-                            </HtmlTooltip> 
-                            
-                        </a>
-                        </TableCell>
-                        <TableCell style={{padding:'inherit'}}>
-                            <Button 
-                                color="primary"
-                                style={{fontWeight: '800', fontSize: '100%', lineHeight: '1.1em', textAlign: 'left'}}
-                                onClick={(e) => handleOpportunityProposalDetailsClick(row.opportunity.proposer, row.opportunity.opportunityId, row.opportunity.contractId)}
-                                >{row.opportunity.title}
-                            </Button>
-                        </TableCell>
-                        <TableCell align="right">{row.suitabilityScore}</TableCell>
-                        <TableCell align="right">{row.baseReward}</TableCell>
-                        <TableCell align="right">{row.opportunity.deadline}</TableCell>
-                        <TableCell align="right">{row.opportunity.budget}</TableCell>
-                        </TableRow>
-                       
-                        </React.Fragment>
-                        )                               
-                }) :
-                !recommendations || recommendations.length == 0 ? (
-                    <TableRow key={'na'} style={{ height: 33 * emptyRows }}>
-                    <TableCell colSpan={7}><Typography variant="body1">Currently no opportunities available. Please check back.</Typography></TableCell>
-                  </TableRow>
-                ) :
-              emptyRows > 0 && (
-                <TableRow key={'na'} style={{ height: 33 * emptyRows }}>
-                  <TableCell colSpan={7}><LinearProgress /></TableCell>
-                </TableRow>
-              )
-              }
-            </TableBody>
-            {opportunityProposalDetailsClicked ? <OpportunityProposalDetails
-                proposer={proposer}
-                handleOpportunityProposalDetailsClickState={handleOpportunityProposalDetailsClickState}
-                applicant={accountId}
-                handleUpdate={handleUpdate}
-                opportunityId={opportunityId}
-                contractId={rowContractId}
-                /> : null }
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={recommendations.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </Paper>
-      
-    </div>
-
+                <Paper className={classes.paper}>
                 
+                    <TableContainer>
+                    <Table
+                        className={classes.table}
+                        aria-labelledby="tableTitle"
+                        
+                        aria-label="enhanced table"
+                        key={'opptable'}
+                    >
+                        <EnhancedTableHead
+                        classes={classes}
+                        order={order}
+                        orderBy={orderBy}
+                        onRequestSort={handleRequestSort}
+                        rowCount={recommendations.length}
+                        />
+                        <TableBody key={'tbodyopptable'}>
+                        
+                            {recommendations && recommendations.length > 0 ?
+                            stableSort(recommendations, getComparator(order, orderBy))
+                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                            .map((row, index) => {
+                            let id = generateId()
+                                return (<React.Fragment key={id}>
+                                    <TableRow key={row.opportunity.title}>
+                                    <TableCell component="th" scope="row" padding="none" >
+                                    <a href={`/dao/${row.opportunity.contractId}`}> 
+                                        <HtmlTooltip
+                                            title={
+                                            <>
+                                                <Typography color="inherit">{row.communityName}</Typography>
+                                                <div dangerouslySetInnerHTML={{ __html: row.communityPurpose}}></div>
+                                            </>
+                                            }
+                                            placement="right-start"
+                                        >      
+                                            
+                                            <img src={row.communityLogo} className={classes.imageLogo} />
+                                        </HtmlTooltip> 
+                                        
+                                    </a>
+                                    </TableCell>
+                                    <TableCell style={{padding:'inherit'}}>
+                                        <Button 
+                                            color="primary"
+                                            style={{fontWeight: '800', fontSize: '100%', lineHeight: '1.1em', textAlign: 'left'}}
+                                            onClick={(e) => handleOpportunityProposalDetailsClick(row.opportunity.proposer, row.opportunity.opportunityId, row.opportunity.contractId, row.status, row.opportunity.budget)}
+                                            >{row.opportunity.title}
+                                        </Button>
+                                    </TableCell>
+                                    <TableCell align="right">{row.suitabilityScore}</TableCell>
+                                    <TableCell align="right">{row.baseReward}</TableCell>
+                                    <TableCell align="right">{row.opportunity.deadline}</TableCell>
+                                    <TableCell align="right">{row.opportunity.budget}</TableCell>
+                                    </TableRow>
+                                
+                                    </React.Fragment>
+                                    )
+                                                                 
+                            }) :
+                            oppsLoaded ?
+                                !recommendations || recommendations.length == 0 ? (
+                                <TableRow key={'na'} style={{ height: 33 * emptyRows }}>
+                                    <TableCell colSpan={7}><Typography variant="body1">Currently no opportunities available. Please check back.</Typography></TableCell>
+                                </TableRow>
+                                ) :
+                                emptyRows > 0 && (
+                                <TableRow key={'na'} style={{ height: 33 * emptyRows }}>
+                                    <TableCell colSpan={7}><LinearProgress /></TableCell>
+                                </TableRow>
+                                )
+                            : (
+                                <TableRow key={'na'}>
+                                    <TableCell colSpan={7}><LinearProgress /></TableCell>
+                                </TableRow>
+                            )
+                        }
+                        </TableBody>
+                        {opportunityProposalDetailsClicked ? <OpportunityProposalDetails
+                        proposer={proposer}
+                        handleOpportunityProposalDetailsClickState={handleOpportunityProposalDetailsClickState}
+                        applicant={accountId}
+                        opportunityId={opportunityId}
+                        contractId={rowContractId}
+                        status={rowStatus}
+                        budget={rowBudget}
+                        /> : null}
                        
-                   
-                </Grid>
+                        </Table>
+                        </TableContainer>
+                        <TablePagination
+                        rowsPerPageOptions={[5, 10, 25]}
+                        component="div"
+                        count={recommendations.length}
+                        rowsPerPage={rowsPerPage}
+                        page={page}
+                        onPageChange={handleChangePage}
+                        onRowsPerPageChange={handleChangeRowsPerPage}
+                        />
+            </Paper>
+            
+            </div>
+
+            </Grid>
+            
             </Grid>
             </TabPanel>
             <TabPanel value="2">

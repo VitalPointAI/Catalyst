@@ -1,7 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { useForm } from 'react-hook-form'
+import { useParams } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
+import { appStore, onAppMount } from '../../state/app'
 import { submitProposal, STORAGE } from '../../state/near'
+import { parseNearAmount, formatNearAmount } from 'near-api-js/lib/utils/format'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -63,36 +66,73 @@ const useStyles = makeStyles((theme) => ({
 
 
 export default function FundingProposal(props) {
+
+  const { state, dispatch, update } = useContext(appStore)
+
+  const {
+    nearPrice,
+    proposalDeposit,
+    contract
+  } = state
+
+  const { 
+    handleFundingProposalClickState,
+    tokenName,
+    reference,
+    budget,
+    applicant,
+    usd
+  } = props
+
   const [open, setOpen] = useState(true)
+  const [thisApplicant, setThisApplicant] = useState(props.applicant)
   const [finished, setFinished] = useState(true)
-  const [applicant, setApplicant] = useState(props.accountId)
-  const [funding, setFunding] = useState('')
+  const [funding, setFunding] = useState('0')
+  const [usdConvert, setUsdConvert] = useState('0')
   const [confirm, setConfirm] = useState(false)
 
   const classes = useStyles()
 
   const { register, handleSubmit, watch, errors } = useForm()
 
-  const { 
-    state,
-    handleFundingProposalClickState,
-    proposalDeposit,
-    tokenName,
-    depositToken,
-    contractId,
-    reference,
-    budget
-  } = props
+  const {
+    contractId
+  } = useParams()
+
+  useEffect(() => {
+    if(nearPrice){
+      if(usd > 0 && nearPrice > 0){
+        let near = (usd / nearPrice).toFixed(3)
+        let parse = parseNearAmount(near)
+        let formatNear = formatNearAmount(parse, 3)
+        setFunding(formatNear)
+      }
+    }
+  }, [usd, nearPrice]
+  )
+
+  useEffect(()=> {
+    async function fetchDeposit(){
+      if(!proposalDeposit){
+        let updatedProposalDeposit = await contract.getProposalDeposit()
+        update('', {proposalDeposit: formatNearAmount(updatedProposalDeposit,3)})
+      }
+    }
+
+    fetchDeposit()
+
+  }, [])
 
   const handleClose = () => {
     handleFundingProposalClickState(false)
   };
   
   const handleApplicantChange = (event) => {
-    setApplicant(event.target.value);
+    setThisApplicant(event.target.value);
   };
 
   const handleFundingChange = (event) => {
+    handleConversion(event.target.value)
     setFunding(event.target.value);
   };
 
@@ -100,12 +140,21 @@ export default function FundingProposal(props) {
     setConfirm(event.target.checked);
   }
 
+  function handleConversion(amount){
+      let us = (parseFloat(amount) * nearPrice).toFixed(2)
+      setUsdConvert(us)
+  }
+
   const onSubmit = async (values) => {
 
-    if(parseFloat(funding) > budget){
-      alert("Not enough funds in opportunity budget")
-      handleClose()
-      return
+    if(nearPrice){
+      if(budget > 0 && nearPrice > 0){
+        if(parseFloat(funding) * nearPrice > parseFloat(budget)){
+          alert("Not enough funds in opportunity budget")
+          handleClose()
+        return
+        }
+      }
     }
       
     event.preventDefault()
@@ -114,7 +163,6 @@ export default function FundingProposal(props) {
    
     let references = []
     references.push({'keyName': 'reference', 'valueSetting': reference})
-  
     try{
       await submitProposal(
         state.wallet,
@@ -147,7 +195,7 @@ export default function FundingProposal(props) {
               variant="outlined"
               name="fundingProposalApplicant"
               label="Applicant Account"
-              value={applicant}
+              value={thisApplicant}
               onChange={handleApplicantChange}
               inputRef={register({
                   required: true,
@@ -158,6 +206,7 @@ export default function FundingProposal(props) {
             {errors.fundingProposalApplicant && <p style={{color: 'red'}}>You must provide a valid NEAR account.</p>}
           </div>
           <div>
+          {!reference ? (<>
             <TextField
               margin="dense"
               id="funding-proposal-funds-requested"
@@ -173,17 +222,20 @@ export default function FundingProposal(props) {
               })}
               InputProps={{
                 endAdornment: <><InputAdornment position="end">{tokenName}</InputAdornment>
-                <Tooltip TransitionComponent={Zoom} title="The amount of NEAR the applicant is requesting to fund their proposal.  The proposal should be benefitting the community in some way.">
+                <Tooltip TransitionComponent={Zoom} title="The amount in NEAR the applicant is requesting to fund their proposal.  The proposal should be benefitting the community in some way.">
                     <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
                 </Tooltip>
                 </>
               }}
             />
+            <Typography variant="h6">{usdConvert ? `~$${usdConvert} USD`: null}</Typography>
+            </>) : <Typography variant="h6">Requested: ${usd} USD (~ {funding} {tokenName})</Typography> }
+         
           </div>
         <Card>
         <CardContent>
           <WarningIcon fontSize='large' className={classes.warning} />
-          <Typography variant="body1" gutterBottom>You are requesting that {funding} Ⓝ be reserved for use by <b>{applicant}</b>. After submitting
+          <Typography variant="body1" gutterBottom>You are requesting that {usdConvert ? `~$${usdConvert} USD (${funding} Ⓝ)` : `~$${usd} (${funding} Ⓝ)`} be reserved for use by <b>{applicant}</b>. After submitting
           this proposal, you must provide enough supporting detail to help other members vote on and decide whether to approve your proposal or not.</Typography> 
           <Typography variant="body1">Note: while you can submit a request for any funding amount, you should consider whether your request really warrants 
           using as much of the community fund as it proposes.</Typography>

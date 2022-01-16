@@ -109,11 +109,11 @@ export default function PersonaCard(props) {
             // generate account for this accountId
             let personaAccount = new nearAPI.Account(near.connection, accountId)
 
-                let thisCurPersonaIdx
+                let thisCurUserIdx
                 try{
-                  thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, near, didRegistryContract)
-                  console.log('account: ' + personaAccount.accountId + ' did: ' + thisCurPersonaIdx.id)
-                  setCurUserIdx(thisCurPersonaIdx)
+                  thisCurUserIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, near, didRegistryContract, daoFactory)
+                  console.log('account: ' + personaAccount.accountId + ' did: ' + thisCurUserIdx.id)
+                  setCurUserIdx(thisCurUserIdx)
                 } catch (err) {
                   console.log('error retrieving idx', err)
                 }
@@ -121,9 +121,11 @@ export default function PersonaCard(props) {
                 let i = 0
                 while (i < state.claimed.length) {
                   if(state.claimed[i].accountId == accountId){
-                    if(thisCurPersonaIdx){
+                    if(thisCurUserIdx){
                       let did = await ceramic.getDid(personaAccount.accountId, daoFactory, didRegistryContract )
-                     
+                      if(!did) {
+                        did = thisCurUserIdx.id
+                      }
                       if(did){
                         setDid(did)
                         let result = await appIdx.get('profile', did)
@@ -152,10 +154,6 @@ export default function PersonaCard(props) {
       
   }, [isUpdated, near]
   )
-
-  function handleUpdate(property){
-    setIsUpdated(property)
-  }
 
   const handleEditPersonaClick = () => {
     handleExpanded()
@@ -217,8 +215,7 @@ export default function PersonaCard(props) {
           {editPersonaClicked ? <EditPersonaForm
             state={state}
             handleEditPersonaClickState={handleEditPersonaClickState}
-            curPersonaIdx={curUserIdx}
-            handleUpdate={handleUpdate}
+            curUserIdx={curUserIdx}
             did={did}
             accountId={accountId}
             /> : null }

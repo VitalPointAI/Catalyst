@@ -34,7 +34,6 @@ export default function RightSideDrawer(props) {
     currentPeriod,
     summoner,
     totalMembers,
-    
     proposalDeposit,
     tokenName,
     depositToken
@@ -64,13 +63,6 @@ export default function RightSideDrawer(props) {
         <EditInitSettings 
           contract={contract} 
           handleEditSettingsClick={handleEditSettingsClick}
-         
-          accountId={accountId}
-          currentPeriod={currentPeriod}
-          summoner={summoner}
-          proposalDeposit={proposalDeposit}
-          tokenName={tokenName}
-          depositToken={depositToken}
           totalMembers={totalMembers}
            />
       </List>

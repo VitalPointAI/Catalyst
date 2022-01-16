@@ -12,6 +12,10 @@ import Button from '@material-ui/core/Button'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import { red } from '@material-ui/core/colors'
+import MonetizationOnIcon from '@material-ui/icons/MonetizationOn'
+import RestoreFromTrashIcon from '@material-ui/icons/RestoreFromTrash'
+import Tooltip from '@material-ui/core/Tooltip'
+import IconButton from '@material-ui/core/IconButton'
 
 const useStyles = makeStyles((theme) => ({
     pos: {
@@ -61,7 +65,8 @@ export default function MilestoneCard(props) {
       proposalStatus,
       applicant,
       paid,
-      cancelled
+      cancelled,
+      editForm
     } = props
 
     const {
@@ -139,16 +144,43 @@ export default function MilestoneCard(props) {
               <Typography variant="body2" align="center">{payout} Ⓝ</Typography>
             </Grid>
             <Grid item xs={2} sm={2} md={2} lg={2} xl={2} align="center">
-            {paid ? <Typography variant="overline">Paid</Typography> :
-              proposalStatus == 'Passed' && accountId == applicant && !cancelled ? (
-                <Button onClick={handlePayoutProposalClick} variant="contained" color="primary">Request Payout</Button>
-              ) : null
-            }<br></br>
-            {cancelled ? <Typography variant="overline">Cancelled</Typography> :
-              proposalStatus == 'Passed' && Date.now() > new Date(deadline) ? (
-                <Button onClick={handleCancelCommitmentProposalClick} variant="contained" color="primary">Propose Cancellation</Button>
-              ) : null
+            {!editForm ? 
+              paid ? <Typography variant="overline">Paid</Typography> 
+                  :
+                  !cancelled ? 
+                    proposalStatus == 'Passed' && accountId == applicant ? 
+                    (
+                      <IconButton onClick={handlePayoutProposalClick}>
+                        <Tooltip title="Request Payout" placement="top" >
+                          <MonetizationOnIcon />
+                        </Tooltip>
+                      </IconButton>
+                    ) : 
+                      Date.now() < new Date(deadline) ? 
+                      (<>
+                      <IconButton onClick={handlePayoutProposalClick}>
+                        <Tooltip title="Request Payout" placement="top" >
+                          <MonetizationOnIcon />
+                        </Tooltip>
+                      </IconButton>
+                      </>)
+                      : 
+                      (<>
+                        <IconButton onClick={handlePayoutProposalClick}>
+                          <Tooltip title="Request Payout" placement="top" >
+                            <MonetizationOnIcon />
+                          </Tooltip>
+                        </IconButton>
+                        <IconButton onClick={handleCancelCommitmentProposalClick}>
+                          <Tooltip title="Propose Cancellation" placement="top" >
+                            <RestoreFromTrashIcon />
+                          </Tooltip>
+                        </IconButton>
+                        </>)
+                  : <Typography variant="overline">Cancelled</Typography>
+              : null
             }
+           
             </Grid>
           </Grid>
         </Card>

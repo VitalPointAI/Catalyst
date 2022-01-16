@@ -3,7 +3,7 @@ import { appStore, onAppMount } from '../../state/app'
 import { makeStyles } from '@material-ui/core/styles'
 import CommentForm from '../common/Comment/commentForm'
 import CommentDetails from '../common/Comment/commentDetails'
-import Persona from '@aluhning/get-personas-js'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -65,6 +65,26 @@ const useStyles = makeStyles((theme) => ({
     const imageName = require('../../img/default-profile.png') // default no-image avatar
 
 export default function MemberProposalDetails(props) {
+
+  const { state, dispatch, update } = useContext(appStore)
+
+    const {
+      accountId,
+      appIdx,
+      daoFactory,
+      didRegistryContract,
+      curDaoIdx,
+      memberStatus
+    } = state
+
+    const {
+        handleMemberProposalDetailsClickState,
+        proposalId,
+        status,
+        applicant,
+        proposer
+    } = props
+
     const [open, setOpen] = useState(true)
     const [intro, setIntro] = useState()
     const [applicantAvatar, setApplicantAvatar] = useState()
@@ -82,28 +102,6 @@ export default function MemberProposalDetails(props) {
 
     const classes = useStyles()
 
-    const { state, dispatch, update } = useContext(appStore)
-
-    const {
-      accountId,
-      curUserIdx,
-      appIdx
-    } = state
-
-    const {
-        handleMemberProposalDetailsClickState,
-        proposalId,
-        memberStatus,
-        status,
-        curDaoIdx,
-        curPersonaIdx,
-        applicant,
-        proposer,
-        contract
-    } = props
-
-    const thisPersona = new Persona()
-
     useEffect(
         () => {
  
@@ -111,8 +109,8 @@ export default function MemberProposalDetails(props) {
          
            // Get Applicant Persona Information
            if(proposer){                    
-              
-            let result = await thisPersona.getData('profile', proposer, appIdx)
+              let proposerDid = await ceramic.getDid(proposer, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', proposerDid)
                 if(result){
                   result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
                   result.name ? setProposerName(result.name) : setProposerName(proposer)
@@ -124,8 +122,8 @@ export default function MemberProposalDetails(props) {
 
           // Get Current User Persona Information
           if(accountId){                    
-            
-            let result = await thisPersona.getData('profile', accountId, appIdx)
+              let accountDid = await ceramic.getDid(accountId, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', accountDid)
                 if(result){
                   result.avatar ? setCurUserAvatar(result.avatar) : setCurUserAvatar(imageName)
                   result.name ? setCurUserName(result.name) : setCurUserName(accountId)
@@ -136,8 +134,8 @@ export default function MemberProposalDetails(props) {
           }
          
           if(applicant){                           
-             
-                let result = await thisPersona.getData('profile', applicant, appIdx)
+            let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
+            let result = await appIdx.get('profile', applicantDid)
                     if(result){
                       result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
                       result.name ? setApplicantName(result.name) : setApplicantName(applicant)
@@ -202,10 +200,6 @@ export default function MemberProposalDetails(props) {
         setOpen(false)
     }
 
-    function handleUpdate(property){
-      setIsUpdated(property)
-    }
-
     let Comments
     let author = ''
     let color
@@ -235,25 +229,19 @@ export default function MemberProposalDetails(props) {
                       <Typography>
                       In reply to {author}{preview} 
                       </Typography>: null}
-                    <CommentDetails
-                        proposalId={proposalId}
-                        proposalApplicant={applicant}
-                        accountId={accountId}
-                        handleUpdate={handleUpdate}
-                        curDaoIdx={curDaoIdx}
-                        key={comment.commentId}
-                        commentId={comment.commentId}
-                        comments={proposalComments}
-                        commentAuthor={comment.author}
-                        commentParent={comment.parent}
-                        commentPublished={comment.published}
-                        commentBody={comment.body}
-                        commentPostDate={comment.postDate}
-                        commentSubject={comment.subject}
-                        accountId={accountId}
-                        curUserIdx={curUserIdx}
-                        memberStatus={memberStatus}
-                    />
+                      <CommentDetails
+                          key={comment.commentId}
+                          proposalId={proposalId}
+                          proposalApplicant={applicant}
+                          commentId={comment.commentId}
+                          comments={proposalComments}
+                          commentAuthor={comment.author}
+                          commentParent={comment.parent}
+                          commentPublished={comment.published}
+                          commentBody={comment.body}
+                          commentPostDate={comment.postDate}
+                          commentSubject={comment.subject}
+                      />
                   </div>
                   )
           })
@@ -316,10 +304,6 @@ export default function MemberProposalDetails(props) {
                     avatar={curUserAvatar}
                     name={curUserName}
                     proposalId={proposalId}
-                    accountId={accountId}
-                    contract={contract}
-                    handleUpdate={handleUpdate}
-                    curDaoIdx={curDaoIdx}
                   />
               </Grid>
               ) : null }

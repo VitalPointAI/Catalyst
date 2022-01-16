@@ -64,13 +64,7 @@ export default function SponsorConfirmation(props) {
   const classes = useStyles()
   const { register, handleSubmit, watch, errors } = useForm()
 
-  const { handleSponsorConfirmationClickState,
-    sponsorProposalType,
-    paymentRequested,
-    handleProposalEventChange,
-    handleGuildBalanceChanges,
-    handleEscrowBalanceChanges,
-   
+  const { handleSponsorConfirmationClickState,   
     depositToken,
     proposalDeposit,
     proposalIdentifier,

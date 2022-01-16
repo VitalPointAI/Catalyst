@@ -104,24 +104,20 @@ export default function ActionSelector(props) {
   const { state, dispatch, update } = useContext(appStore)
 
   const {
-    enable,
-    returnFunction, 
-    handleProposalEventChange,
-    handleGuildBalanceChanges,
-    handleEscrowBalanceChanges,
-    handleTabValueState,
-    accountId,
+    proposalDeposit,
     depositToken,
     tokenName,
-    proposalDeposit,
-    daoContract,
-    didsContract,
-    contractIdx,
-    idx,
     contract,
-    fairShare,
-    memberStatus,
     currentDaosList,
+    accountId,
+    memberStatus
+  } = state
+
+  const {
+    enable,
+    returnFunction, 
+    handleTabValueState,
+    fairShare,
     loaded } = props
 
   const {
@@ -442,19 +438,9 @@ export default function ActionSelector(props) {
         accountId={accountId} /> : null}
 
       {guildKickClicked ? <GuildKickProposal
-        contract={contract}
-        handleProposalEventChange={handleProposalEventChange}
         handleGuildKickClickState={handleGuildKickClickState}
-        handleGuildBalanceChanges={handleGuildBalanceChanges}
-        handleEscrowBalanceChanges={handleEscrowBalanceChanges}
-        depositToken={depositToken}
-        proposalDeposit={proposalDeposit}
-        daoContract={daoContract}
-        didsContract={didsContract}
         contractId={contractId}
-        state={state}
-        idx={idx}
-        handleTabValueState={handleTabValueState} /> : null}
+        state={state} /> : null}
 
       {inviteClicked ? <Invite
         handleInviteClickState={handleInviteClickState}
@@ -464,18 +450,17 @@ export default function ActionSelector(props) {
         state={state}
         fairShare={fairShare}
         contractId={contractId}
-        daoContract={daoContract}
+        contract={contract}
         handleLeaveClickState={handleLeaveClickState}
       /> : null}
 
       {fundingProposalClicked ? <FundingProposal
         contractId={contractId}
         handleFundingProposalClickState={handleFundingProposalClickState}
-        state={state}
         depositToken={depositToken}
-        proposalDeposit={proposalDeposit}
         tokenName={tokenName}
-        accountId={accountId}
+        applicant={accountId}
+        contract={contract}
       /> : null}
 
       {communityRoleProposalClicked ? <CommunityRoleProposal

@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { explorerUrl } from '../../state/near'
 import { appStore, onAppMount } from '../../state/app'
-import Persona from '@aluhning/get-personas-js'
-import * as nearAPI from 'near-api-js'
 import { ceramic } from '../../utils/ceramic'
 
 // Material UI Components
@@ -53,7 +51,8 @@ export default function SupporterCard(props) {
     const {
       didRegistryContract,
       near, 
-      appIdx
+      appIdx, 
+      daoFactory
     } = state
 
     const classes = useStyles();
@@ -65,7 +64,6 @@ export default function SupporterCard(props) {
       transactionHash
     } = props
 
-    const thisPersona = new Persona()
 
     useEffect(
         () => {
@@ -73,16 +71,9 @@ export default function SupporterCard(props) {
         async function fetchData() {
 
           if(accountId && near){
-            let personaAccount = new nearAPI.Account(near.connection, accountId)
-             let thisCurPersonaIdx
-                try{
-                  thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, near)
-                  setCurUserIdx(thisCurPersonaIdx)
-                } catch (err) {
-                  console.log('error retrieving idx', err)
-                }
-            if(thisCurPersonaIdx){
-              let result = await thisCurPersonaIdx.get('profile', thisCurPersonaIdx.id)
+            
+              let did = await ceramic.getDid(accountId, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', did)
             
               if(result){
                 result.date ? setDate(result.date) : setDate('')
@@ -90,7 +81,7 @@ export default function SupporterCard(props) {
                 result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
                 result.name ? setName(result.name) : setName('')
               }
-            }
+            
           }
         }
         

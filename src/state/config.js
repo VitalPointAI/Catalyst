@@ -1,6 +1,9 @@
 // testnet / default
 let config = {
     SEED_PHRASE_LOCAL_COPY: '__SEED_PHRASE_LOCAL_COPY',
+    SEEDS: '__SEEDS',
+    ALIASES: '__ALIASES',
+    FIRST_TIME: '__FIRST_TIME',
     FUNDING_DATA: '__FUNDING_DATA',
     ACCOUNT_LINKS: '__ACCOUNT_LINKS',
     DAO_LINKS: '__DAO_LINKS',
@@ -44,8 +47,10 @@ let config = {
     IPFS_PROVIDER: 'https://ipfs.io/ipfs/',
   //  IPFS_PROVIDER: 'https://ceramic-node.vitalpointai.com:5011/ipfs/',
   //  APPSEED_CALL: 'https://vpbackend-apim.azure-api.net/appseed',
-    TOKEN_CALL: 'https://catalystdao.com/token',
-    APPSEED_CALL: 'https://catalystdao.com/appseed',
+    // TOKEN_CALL: 'https://catalystdao.com/token',
+    // APPSEED_CALL: 'https://catalystdao.com/appseed',
+    TOKEN_CALL: 'https://cdao.app/token',
+    APPSEED_CALL: 'https://cdao.app/appseed',
     networkId: 'testnet',
     nodeUrl: 'https://rpc.testnet.near.org',
     walletUrl: 'https://wallet.testnet.near.org',
@@ -61,7 +66,8 @@ let config = {
     tokenFactoryContractName: 'ft.vitalpointai.testnet',
     nftFactoryContractName: 'nft.vitalpointai.testnet',
     ACCOUNT_HELPER_URL: 'https://near-contract-helper.onrender.com',
-    REGISTRY_API_URL: 'https://api.thegraph.com/subgraphs/name/aluhning/did-registry'
+    GRAPH_FACTORY_API_URL: 'https://api.thegraph.com/subgraphs/name/aluhning/catalyst-factory-tnet',
+    GRAPH_REGISTRY_API_URL: 'https://api.thegraph.com/subgraphs/name/aluhning/did-registry'
 }
 
 if(process.env.ENV === 'localhost') {
@@ -78,7 +84,8 @@ if (process.env.ENV === 'prod') {
         TOKEN_CALL: 'https://cdao.app/token',
         APPSEED_CALL: 'https://cdao.app/appseed',
         networkId: 'mainnet',
-        nodeUrl: 'https://rpc.mainnet.near.org',
+        //nodeUrl: 'https://rpc.mainnet.near.org',
+        nodeUrl: 'https://mainnet-rpc.openshards.io',
         walletUrl: 'https://wallet.near.org',
         explorerUrl: 'https://explorer.mainnet.near.org',
         nameSuffix: '.near',
@@ -93,7 +100,8 @@ if (process.env.ENV === 'prod') {
         APP_OWNER_ACCOUNT: 'aaron.near',
         PLATFORM_SUPPORT_ACCOUNT: 'catalystsp.near',
         CERAMIC_API_URL: 'https://ceramic-node.vitalpointai.com',
-    }
+        GRAPH_FACTORY_API_URL: 'https://api.thegraph.com/subgraphs/name/aluhning/catalyst-factory'
+      }
 }
 
 export { config }

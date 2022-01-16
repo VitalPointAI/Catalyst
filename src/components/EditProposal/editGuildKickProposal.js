@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { appStore, onAppMount } from '../../state/app'
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { flexClass } from '../../App'
@@ -8,7 +9,7 @@ import { Editor } from "react-draft-wysiwyg"
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
 import draftToHtml from 'draftjs-to-html'
 import htmlToDraft from 'html-to-draftjs'
-import Persona from '@aluhning/get-personas-js'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -50,6 +51,23 @@ const useStyles = makeStyles((theme) => ({
 const imageName = require('../../img/default-profile.png') // default no-image avatar
 
 export default function EditGuildKickProposalForm(props) {
+
+  const { state, dispatch, update } = useContext(appStore)
+
+  const {
+    daoFactory,
+    didRegistryContract,
+    appIdx,
+    curDaoIdx,
+    isUpdated
+  } = state
+
+  const {
+      handleEditGuildKickProposalDetailsClickState,
+      applicant,
+      proposalId,
+  } = props
+
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
     const [loaded, setLoaded] = useState(false)
@@ -66,26 +84,18 @@ export default function EditGuildKickProposalForm(props) {
 
     // Proposal Fields
     const [details, setDetails] = useState(EditorState.createEmpty())
-
+    
     const { register, handleSubmit, watch, errors } = useForm()
 
-    const {
-        handleUpdate,
-        handleEditGuildKickProposalDetailsClickState,
-        applicant,
-        curDaoIdx,
-        proposalId,
-    } = props
-    
     const classes = useStyles()
-    const data = new Persona()
 
     useEffect(() => {
         async function fetchData() {
           setLoaded(false)
 
             // Set Existing Persona Data
-            let result = await data.getData('profile', applicant, curDaoIdx)     
+            let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', applicantDid)
            
               if(result) {
                 result.date ? setDate(result.date) : setDate('')
@@ -200,7 +210,7 @@ export default function EditGuildKickProposalForm(props) {
       }
      
       setFinished(true)
-      handleUpdate(true)
+      update('', {isUpdated: !isUpdated})
       setOpen(false)
       handleClose()
     }

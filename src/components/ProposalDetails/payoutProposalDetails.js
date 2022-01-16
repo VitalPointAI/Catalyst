@@ -6,6 +6,7 @@ import CommentDetails from '../common/Comment/commentDetails'
 import Persona from '@aluhning/get-personas-js'
 import MilestoneCard from '../MilestoneCard/MilestoneCard'
 import { formatDate } from '../../state/near'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -79,6 +80,29 @@ const useStyles = makeStyles((theme) => ({
     const imageName = require('../../img/default-profile.png') // default no-image avatar
     
 export default function PayoutProposalDetails(props) {
+
+  const { state, dispatch, update } = useContext(appStore)
+
+    const {
+      accountId,
+      curUserIdx,
+      appIdx,
+      daoFactory,
+      didRegistryContract,
+      curDaoIdx,
+      contract,
+      memberStatus
+    } = state
+
+    const {
+        handlePayoutProposalDetailsClickState,
+        proposalId,
+        proposalStatus,
+        applicant,
+        sponsor,
+        proposer
+    } = props
+
     const [open, setOpen] = useState(true)
 
     const [applicantAvatar, setApplicantAvatar] = useState()
@@ -102,25 +126,7 @@ export default function PayoutProposalDetails(props) {
 
     const classes = useStyles()
 
-    const { state, dispatch, update } = useContext(appStore)
-
-    const {
-      accountId,
-      curUserIdx,
-      appIdx
-    } = state
-
-    const {
-        handlePayoutProposalDetailsClickState,
-        proposalId,
-        proposalStatus,
-        applicant,
-        curDaoIdx,
-        sponsor,
-        proposer,
-        contract,
-        memberStatus
-    } = props
+    
 
     const thisPersona = new Persona()
 
@@ -130,8 +136,8 @@ export default function PayoutProposalDetails(props) {
          
             // Get Applicant Persona Information
             if(proposer){                    
-              
-              let result = await thisPersona.getData('profile', proposer, appIdx)
+              let proposerDid = await ceramic.getDid(proposer, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', proposerDid)
                 if(result){
                   result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
                   result.name ? setProposerName(result.name) : setProposerName(proposer)
@@ -143,8 +149,8 @@ export default function PayoutProposalDetails(props) {
 
             // Get Current User Persona Information
             if(accountId){                    
-              
-              let result = await thisPersona.getData('profile', accountId, appIdx)
+              let accountDid = await ceramic.getDid(accountId, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', accountDid)
                   if(result){
                     result.avatar ? setCurUserAvatar(result.avatar) : setCurUserAvatar(imageName)
                     result.name ? setCurUserName(result.name) : setCurUserName(accountId)
@@ -155,8 +161,8 @@ export default function PayoutProposalDetails(props) {
             }
           
             if(applicant){                           
-              
-                  let result = await thisPersona.getData('profile', applicant, appIdx)
+              let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', applicantDid)
                       if(result){
                         result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
                         result.name ? setApplicantName(result.name) : setApplicantName(applicant)
@@ -304,12 +310,9 @@ export default function PayoutProposalDetails(props) {
                     In reply to {author}{preview}
                     </Typography>: null}
                     <CommentDetails
+                        key={comment.commentId}
                         proposalId={proposalId}
                         proposalApplicant={applicant}
-                        accountId={accountId}
-                        handleUpdate={handleUpdate}
-                        curDaoIdx={curDaoIdx}
-                        key={comment.commentId}
                         commentId={comment.commentId}
                         comments={proposalComments}
                         commentAuthor={comment.author}
@@ -318,9 +321,6 @@ export default function PayoutProposalDetails(props) {
                         commentBody={comment.body}
                         commentPostDate={comment.postDate}
                         commentSubject={comment.subject}
-                        accountId={accountId}
-                        curUserIdx={curUserIdx}
-                        memberStatus={memberStatus}
                     />
                 </div>
                   )
@@ -441,10 +441,6 @@ export default function PayoutProposalDetails(props) {
                     avatar={curUserAvatar}
                     name={curUserName}
                     proposalId={proposalId}
-                    accountId={accountId}
-                    contract={contract}
-                    handleUpdate={handleUpdate}
-                    curDaoIdx={curDaoIdx}
                   />
               </Grid>
               ) : null }

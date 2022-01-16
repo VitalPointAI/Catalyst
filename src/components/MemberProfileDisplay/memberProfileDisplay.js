@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app'
 import { makeStyles } from '@material-ui/core/styles'
-import CommentForm from '../common/Comment/commentForm'
-import CommentDetails from '../common/Comment/commentDetails'
-import Persona from '@aluhning/get-personas-js'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -68,7 +66,7 @@ const imageName = require('../../img/default-profile.png') // default no-image a
 
 export default function MemberProfileDisplay(props) {
     const [open, setOpen] = useState(true)
-    const [avatar, setAvatar] = useState()
+    const [avatar, setAvatar] = useState(imageName)
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
    // const [isUpdated, setIsUpdated] = useState(false)
@@ -94,15 +92,15 @@ export default function MemberProfileDisplay(props) {
       accountId,
       curUserIdx,
       appIdx,
-      isUpdated
+      isUpdated,
+      daoFactory,
+      didRegistryContract
     } = state
 
     const {
         handleMemberProfileDisplayClickState,
         member,
     } = props
-
-    const thisPersona = new Persona()
    
     useEffect(
         () => {
@@ -113,8 +111,9 @@ export default function MemberProfileDisplay(props) {
           
             if(member){     
              
-                              
-                  let result = await thisPersona.getData('profile', member, curUserIdx)
+                  let did = await ceramic.getDid(member, daoFactory, didRegistryContract)
+                  if(did){
+                  let result = await appIdx.get('profile', did)
                       if(result){
                         result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                         result.name ? setName(result.name) : setName('')
@@ -140,7 +139,8 @@ export default function MemberProfileDisplay(props) {
                           setPersonaSpecificSkillSet(result.personaSpecificSkills)
                         }
                       }
-            }         
+                    }
+                  }
                     
             return true  
           }

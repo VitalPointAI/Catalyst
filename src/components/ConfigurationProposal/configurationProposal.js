@@ -66,17 +66,37 @@ export default function ConfigurationProposal(props) {
 
   const { state, dispatch, update } = useContext(appStore)
 
+  const { 
+    appIdx,
+    didRegistryContract,
+    near,
+    accountId,
+    wallet,
+    contract,
+    proposalDeposit,
+    periodDuration,
+    votingPeriodLength,
+    gracePeriodLength,
+    dilutionBound,
+    voteThreshold,
+    platformPercent,
+    platformAccount
+  } = state
+
+
   const [open, setOpen] = useState(true)
   const [finished, setFinished] = useState(true)
   const [funding, setFunding] = useState('')
   const [confirm, setConfirm] = useState(false)
 
-  const [periodDuration, setPeriodDuration] = useState('')
-  const [votingPeriodLength, setVotingPeriodLength] = useState('')
-  const [gracePeriodLength, setGracePeriodLength] = useState('')
-  const [proposalDeposit, setProposalDeposit] = useState('')
-  const [dilutionBound, setDilutionBound] = useState('')
-  const [voteThreshold, setVoteThreshold] = useState('')
+  const [thisPeriodDuration, setPeriodDuration] = useState(periodDuration)
+  const [thisVotingPeriodLength, setVotingPeriodLength] = useState(votingPeriodLength)
+  const [thisGracePeriodLength, setGracePeriodLength] = useState(gracePeriodLength)
+  const [thisProposalDeposit, setProposalDeposit] = useState(proposalDeposit)
+  const [thisDilutionBound, setDilutionBound] = useState(dilutionBound)
+  const [thisVoteThreshold, setVoteThreshold] = useState(voteThreshold)
+  const [thisPlatformPercent, setPlatformPercent] = useState(formatNearAmount(platformPercent, 5))
+  const [thisPlatformAccount, setPlatformAccount] = useState(platformAccount)
 
   const [loaded, setLoaded] = useState()
 
@@ -85,50 +105,53 @@ export default function ConfigurationProposal(props) {
   const { register, handleSubmit, watch, errors } = useForm()
 
   const {
-    contract,
-    handleConfigureClickState,
-    tokenName,
-    depositToken,
+    handleConfigureClickState
     } = props
 
-  const { 
-    appIdx,
-    didRegistryContract,
-    near,
-    accountId,
-    wallet
-  } = state
 
   const {
     contractId
   } = useParams()
 
-    useEffect(
-      () => {
-          async function fetchSettings () {
+    // useEffect(
+    //   () => {
+    //       async function fetchSettings () {
            
-            try {
+    //         try {
               
-                let result = await contract.getInitSettings({})
-                result[0][1] ? setPeriodDuration(result[0][1]) : setPeriodDuration('')
-                result[0][2] ? setVotingPeriodLength(result[0][2]) : setVotingPeriodLength('')
-                result[0][3] ? setGracePeriodLength(result[0][3]) : setGracePeriodLength('')
-                result[0][4] ? setProposalDeposit(formatNearAmount(result[0][4])) : setProposalDeposit('')
-                result[0][5] ? setDilutionBound(result[0][5]) : setDilutionBound('')
-                result[0][6] ? setVoteThreshold(result[0][6]) : setVoteThreshold('')
-                return true
-            } catch (err) {
-                console.log('failure fetching init settings')
-                return false
-            }
-          }
+    //             let result = await contract.getInitSettings({})
+    //             result[0][1] ? setPeriodDuration(result[0][1]) : setPeriodDuration('')
+    //             result[0][2] ? setVotingPeriodLength(result[0][2]) : setVotingPeriodLength('')
+    //             result[0][3] ? setGracePeriodLength(result[0][3]) : setGracePeriodLength('')
+    //             result[0][4] ? setProposalDeposit(formatNearAmount(result[0][4])) : setProposalDeposit('')
+    //             result[0][5] ? setDilutionBound(result[0][5]) : setDilutionBound('')
+    //             result[0][6] ? setVoteThreshold(result[0][6]) : setVoteThreshold('')
+    //             result[0][7] ? setPlatformPercent(result[0][8]) : setPlatformPercent('')
+    //             result[0][9] ? setPlatformAccount(result[0][9]) : setPlatformAccount('')
+    //             if(!result[0][9]) {
+    //               try {
+    //                 let pfAccount = await contract.getPlatformAccount({})
+    //                 setPlatformAccount(pfAccount)
+    //                 console.log('platform account', pfAccount)
+    //               } catch (err) {
+    //                 console.log('problem getting platform account', err)
+    //               }
+    //             }
+    //             return true
+    //         } catch (err) {
+    //             console.log('failure fetching init settings')
+    //             return false
+    //         }
 
-          fetchSettings().then((res) => {
-              res ? setLoaded(true) : setLoaded(false)
-          })
+            
+    //       }
+
+    //       fetchSettings().then((res) => {
+    //           res ? setLoaded(true) : setLoaded(false)
+    //       })
           
-      }, [loaded]
-    )
+    //   }, [loaded]
+    // )
 
   const handleClose = () => {
     handleConfigureClickState(false)
@@ -164,6 +187,16 @@ export default function ConfigurationProposal(props) {
     setVoteThreshold(value)
   }
 
+  const handlePlatformPercentChange = (event) => {
+    let value = event.target.value
+    setPlatformPercent(value)
+  }
+
+  const handlePlatformAccountChange = (event) => {
+    let value = event.target.value
+    setPlatformAccount(value)
+  }
+
   const handleConfirmChange = (event) => {
     setConfirm(event.target.checked)
   }
@@ -172,7 +205,15 @@ export default function ConfigurationProposal(props) {
     event.preventDefault()
     setFinished(false)
 
-    let configuration = [periodDuration, votingPeriodLength, gracePeriodLength, proposalDeposit, dilutionBound, voteThreshold]
+    let configuration = [
+      thisPeriodDuration.toString(), 
+      thisVotingPeriodLength.toString(), 
+      thisGracePeriodLength.toString(), 
+      thisProposalDeposit, 
+      thisDilutionBound.toString(), 
+      thisVoteThreshold.toString(), 
+      thisPlatformPercent,
+      thisPlatformAccount]
     
     try{
       await submitProposal(
@@ -203,7 +244,7 @@ export default function ConfigurationProposal(props) {
           variant="outlined"
           name="periodDuration"
           label="Period Duration"
-          value={periodDuration}
+          value={thisPeriodDuration}
           onChange={handlePeriodDurationChange}
           inputRef={register({
               required: true
@@ -218,7 +259,7 @@ export default function ConfigurationProposal(props) {
           variant="outlined"
           name="votingPeriodLength"
           label="Voting Period Length"
-          value={votingPeriodLength}
+          value={thisVotingPeriodLength}
           onChange={handleVotingPeriodLengthChange}
           inputRef={register({
               required: true,
@@ -233,7 +274,7 @@ export default function ConfigurationProposal(props) {
         variant="outlined"
         name="gracePeriodLength"
         label="Grace Period Length"
-        value={gracePeriodLength}
+        value={thisGracePeriodLength}
         onChange={handleGracePeriodLengthChange}
         inputRef={register({
             required: true, 
@@ -248,7 +289,7 @@ export default function ConfigurationProposal(props) {
         variant="outlined"
         name="proposalDeposit"
         label="Proposal Deposit"
-        value={proposalDeposit}
+        value={thisProposalDeposit}
         onChange={handleProposalDepositChange}
         inputRef={register({
             required: true, 
@@ -263,7 +304,7 @@ export default function ConfigurationProposal(props) {
         variant="outlined"
         name="dilutionBound"
         label="Dilution Bound"
-        value={dilutionBound}
+        value={thisDilutionBound}
         onChange={handleDilutionBoundChange}  
         inputRef={register({
             required: true, 
@@ -278,7 +319,7 @@ export default function ConfigurationProposal(props) {
         variant="outlined"
         name="voteThreshold"
         label="Vote Threshold"
-        value={voteThreshold}
+        value={thisVoteThreshold}
         onChange={handleVoteThresholdChange}  
         inputRef={register({
             required: true, 
@@ -286,6 +327,33 @@ export default function ConfigurationProposal(props) {
         InputProps={{
           endAdornment: <InputAdornment position="end">%</InputAdornment>,
           }}
+        />
+
+        <TextField
+        id="platform-percent"
+        variant="outlined"
+        name="platformPercent"
+        label="Platform Support Percentage"
+        value={thisPlatformPercent}
+        onChange={handlePlatformPercentChange}  
+        inputRef={register({
+            required: true, 
+        })}
+        InputProps={{
+          endAdornment: <InputAdornment position="end">%</InputAdornment>,
+          }}
+        />
+
+        <TextField
+        id="platform-account"
+        variant="outlined"
+        name="platformAccount"
+        label="Platform Support Account"
+        value={thisPlatformAccount}
+        onChange={handlePlatformAccountChange}  
+        inputRef={register({
+            required: true, 
+        })}
         />
      
         <Card>

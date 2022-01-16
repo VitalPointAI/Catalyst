@@ -110,11 +110,6 @@ const steps = [
     position: "right"
   },
   {
-    element: '.myCommunities',
-    intro: <Typography>Here you will find all of the communities that you have created for easy access.</Typography>,
-    position: 'right'
-  },
-  {
     element: '.exploreCommunities',
     intro: <Typography>This page lets you explore, search, and visit all of the communities on Catalyst.</Typography>,
     position: 'right'
@@ -304,14 +299,7 @@ const list = (anchor) => (
     </List>
     <Divider />
     <Typography variant='h6'>Communities</Typography>
-    <List>
-      <Link to='/daos'>
-        <ListItem className='myCommunities' button key={5}>
-          <ListItemIcon><GroupIcon /></ListItemIcon>
-          <ListItemText primary='My Communities'/>
-        </ListItem>
-      </Link>
-      
+    <List>      
     <Link to='/explore'>
       <ListItem className='exploreCommunities' button key={6}>
         <ListItemIcon><ExploreIcon /></ListItemIcon>
@@ -367,14 +355,7 @@ const list = (anchor) => (
     </List>
     <Divider />
     <Typography variant='h6'>Communities</Typography>
-    <List>
-      <Link to='/daos'>
-        <ListItem button key={4}>
-          <ListItemIcon><GroupIcon /></ListItemIcon>
-          <ListItemText primary='My Communities'/>
-        </ListItem>
-      </Link>
-      
+    <List>      
     <Link to='/explore'>
       <ListItem button key={5}>
         <ListItemIcon><ExploreIcon /></ListItemIcon>

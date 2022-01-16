@@ -16,6 +16,8 @@ import { PersonaPage } from './components/mainPages/personas'
 import ExploreDaos from './components/mainPages/exploreDaos'
 import AppFramework from './components/AppFramework/appFramework'
 import NewKey from './components/mainPages/newKey'
+import Profile from './components/mainPages/profile'
+import Register from './components/mainPages/register'
 import { Home } from './components/Home'
 import Daos from './components/mainPages/daos'
 import Developers from './components/mainPages/developers'
@@ -27,6 +29,7 @@ import ReceiveInvite from './components/Invite/Receiver'
 import Opportunities from './components/mainPages/opportunities'
 import MintFT from './components/mainPages/mintFT'
 import FTs from './components/mainPages/fts'
+import CommunityStreamIntro from './components/mainPages/communityStreamIntro'
 
 // Material-UI Components
 import { CircularProgress } from '@material-ui/core'
@@ -148,6 +151,15 @@ const App = () => {
                 </Route>
                 <Route path="/newKey">
                     <NewKey />
+                </Route>
+                <Route path="/profile">
+                    <Profile />
+                </Route>
+                <Route path="/register">
+                    <Register />
+                </Route>
+                <Route path="/community-stream">
+                    <CommunityStreamIntro />
                 </Route>
                 <Route path ="/FAQ">
                     <FAQ /> 

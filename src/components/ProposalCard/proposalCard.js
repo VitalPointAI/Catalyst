@@ -78,7 +78,7 @@ const useStyles = makeStyles((theme) => ({
       marginTop: '10px',
       maxWidth: '250px',
       minWidth: '250px',
-      height: '510px',
+      height: '550px',
       position: 'relative',
       margin: 'auto'
     },
@@ -177,6 +177,74 @@ const useStyles = makeStyles((theme) => ({
 
 export default function ProposalCard(props) {
 
+  const { state, dispatch, update } = useContext(appStore)
+
+  const {
+    didRegistryContract,
+    daoFactory,
+    appIdx,
+    accountId,
+    wallet,
+    neededVotes,
+    curDaoIdx,
+    summoner,
+    gracePeriodLength,
+    periodDuration,
+    contract,
+    isUpdated,
+    totalMembers,
+    escrowBalance,
+    guildBalance,
+    currentPeriod,
+    memberStatus
+  } = state
+
+  const { 
+    applicant, 
+    created, 
+    noVotes, 
+    yesVotes, 
+    proposalType, 
+    proposer, 
+    requestId, 
+    tribute, 
+    vote, 
+    loot, 
+    shares, 
+    status, 
+    funding,
+    isVotingPeriod, 
+    isGracePeriod, 
+    gracePeriod, 
+    votingPeriod, 
+    
+    cancelFinish, 
+    sponsor, 
+    done, 
+    configuration,
+    referenceIds,
+
+    cancelTransactionHash,
+    submitTransactionHash,
+    processTransactionHash,
+    sponsorTransactionHash,
+   
+    handleSponsorConfirmationClick,
+    handleCancelAction,
+    handleVotingAction,
+    handleProcessAction,
+    handleRageQuitClick,
+
+    
+    queueList,
+    isFinalized,
+    tributeToken
+} = props
+
+  const {
+    contractId
+  } = useParams()
+
     const [applicantName, setApplicantName] = useState('')
     const [applicantAvatar, setApplicantAvatar] = useState(imageName)
     const [intro, setIntro] = useState()
@@ -200,14 +268,13 @@ export default function ProposalCard(props) {
     const [currentDisLikes, setCurrentDisLikes] = useState([])
     const [currentNeutrals, setCurrentNeutrals] = useState([])
 
-    const [isUpdated, setIsUpdated] = useState(false)
     const [detailsExist, setDetailsExist] = useState(false)
 
-    const[hasVoted, setHasVoted] = useState(props.voted)
+    const[hasVoted, setHasVoted] = useState(false)
     const[isDone, setIsDone] = useState(props.done)
-    
-    
-    const[curPersonaIdx, setCurPersonaIdx] = useState()
+
+    const [editDetailsClicked, setEditDetailsClicked] = useState(false)
+    const [detailsClicked, setDetailsClicked] = useState(false)
    
     const [editMemberProposalDetailsClicked, setEditMemberProposalDetailsClicked] = useState(false)
     const [memberProposalDetailsClicked, setMemberProposalDetailsClicked] = useState(false)
@@ -242,61 +309,14 @@ export default function ProposalCard(props) {
     const [voteEnding, setVoteEnding] = useState('calculating')
     const [rageQuitEnding, setRageQuitEnding] = useState('calculating')
 
-    const [daoContract, setDaoContract] = useState()
-
     const [showSponsorButton, setShowSponsorButton] = useState(false)
 
     const [anchorEl, setAnchorEl] = useState(null)
-    
-    const { state, dispatch, update } = useContext(appStore)
 
     const { getMetadata } = FungibleTokens
 
-    const {
-      didRegistryContract,
-      daoFactory,
-      near,
-      appIdx,
-      accountId,
-      wallet,
-      proposalDeposit,
-      nearPrice,
-      neededVotes
-    } = state
-
-    const {
-      contractId
-    } = useParams()
-
-    const classes = useStyles();
-
-    const { applicant, created, noVotes, yesVotes, proposalType, proposer, requestId, tribute, vote, loot, shares, status, funding,
-        isVotingPeriod, isGracePeriod, voted, gracePeriod, votingPeriod, currentPeriod, periodDuration, cancelFinish, sponsor, done, configuration,
-        referenceIds,
-        cancelTransactionHash,
-        submitTransactionHash,
-        processTransactionHash,
-        sponsorTransactionHash,
-        startingPeriod,
-        handleSponsorConfirmationClick,
-        handleCancelAction,
-        handleVotingAction,
-        handleProcessAction,
-        handleRageQuitClick,
-        curDaoIdx,
-        memberStatus,
-        contract,
-        summoner,
-        queueList,
-        guildBalance,
-        escrowBalance,
-        gracePeriodLength,
-        votingPeriodLength,
-        isFinalized,
-        totalMembers,
-        tributeToken
-    } = props
-
+    const classes = useStyles()
+  
     useEffect(
       () => {
         if(tributeToken && tributeToken != 'Ⓝ'){
@@ -314,13 +334,45 @@ export default function ProposalCard(props) {
     )
 
     useEffect(
+      () => {
+        let notificationFlag = get(PROPOSAL_NOTIFICATION, [])
+          if(notificationFlag[0]){
+            del(PROPOSAL_NOTIFICATION)
+            if(requestId == notificationFlag[0].proposalId)
+                switch(proposalType){
+                  case 'Commitment':
+                    handleFundingProposalDetailsClick()
+                    break; 
+                  case 'Tribute':
+                    handleTributeProposalDetailsClick()
+                    break;
+                  case 'Payout':
+                    handlePayoutProposalDetailsClick()
+                    break;
+                  case 'CancelCommit':
+                    handleCancelCommitmentProposalDetailsClick()
+                    break;
+                  case 'Whitelist':
+                    handleWhitelistProposalDetailsClick()
+                    break;
+                  case 'Configuration':
+                    handleConfigurationProposalDetailsClick()
+                    break;
+                  case 'GuildKick':
+                    handleGuildKickProposalDetailsClick()
+                  break;
+              }
+          }
+      }, []
+    )
+
+    useEffect(
         () => {
          
-
           async function fetchData() {
             if(isUpdated){}
             // Get Persona Information           
-            if(applicant){
+            if(applicant && proposer){
               let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
               // Applicant
               
@@ -338,254 +390,282 @@ export default function ProposalCard(props) {
                   resultb.name ? setProposerName(resultb.name) : setProposerName('')
                 }
             }
-             
-
-             // Check for reference titles first
-              // set title to opportunity title if it exists
-              if(referenceIds){
-              for(const [key, value] of Object.entries(referenceIds)){
-               
-                if(value['valueSetting'] && value['valueSetting'] != ''){
-                  try{
-                    let oppResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
-                    let k = 0
-                    while(k < oppResult.opportunities.length){
-                      if(oppResult.opportunities[k].opportunityId == value['valueSetting']){
-                        setTitle(oppResult.opportunities[k].title)
-                        break
-                      }
-                      k++
-                    }
-                  } catch (err) {
-                    console.log('problem retrieving opportunities', err)
-                  }
-                }
+            
+            try{
+              let result = await contract.getMemberProposalVote({memberAddress: accountId, proposalId: requestId})
+              if(result == 'yes'){
+                setHasVoted(true)
               }
-            }
-
-            // Set Existing Member Proposal Data       
-            if(curDaoIdx && proposalType=='Member'){
-              let propResult = await curDaoIdx.get('memberProposalDetails', curDaoIdx.id)
-              
-              if(propResult) {
-                let i = 0
-                while (i < propResult.proposals.length){
-                  if(propResult.proposals[i].proposalId == requestId){
-                    propResult.proposals[i].intro ? setIntro(propResult.proposals[i].intro) : setIntro('')
-                    propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
-                    propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
-                    propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
-                    setDetailsExist(true)
-                    break
-                  }
-                  i++
-                }
-              }
+            } catch (err) {
+              console.log('problem retrieving member proposal vote', err)
             }
             
-            // Set Existing Funding Proposal Data       
-            if(curDaoIdx && proposalType=='Commitment'){
-             
-              let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
-        
-              if(propResult) {
-                let i = 0
-                while (i < propResult.proposals.length){
-                  if(propResult.proposals[i].proposalId == requestId){
-                    propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
-                    propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
-                    propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
-                    propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
-                    setDetailsExist(true)
-                    break
-                  }
-                  i++
-                }
-              } 
-            }
-
-            // Set Existing Tribute Proposal Data       
-            if(curDaoIdx && proposalType=='Tribute'){
-              let propResult = await curDaoIdx.get('tributeProposalDetails', curDaoIdx.id)
-          
-              if(propResult) {
-                let i = 0
-                while (i < propResult.proposals.length){
-                  if(propResult.proposals[i].proposalId == requestId){
-                    propResult.proposals[i].title ? setTributeTitle(propResult.proposals[i].title) : setTributeTitle('')
-                    propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
-                    propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
-                    propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
-                    setDetailsExist(true)
-                    break
-                  }
-                  i++
-                }
-              }
-            }
-
-             // Set Existing Payout Proposal Data       
-             if(curDaoIdx && proposalType=='Payout'){
-              let propResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
-              
-              if(propResult) {
-                let i = 0
-                while (i < propResult.proposals.length){
-                 
-                  if(parseInt(propResult.proposals[i].proposalId) == requestId){
-                    propResult.proposals[i].title ? setPayoutTitle(propResult.proposals[i].title) : setPayoutTitle('')
-                    propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
-                    propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
-                    propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
-                    setDetailsExist(true)
-                    break
-                  }
-                  i++
-                }
-              }
-            }
-
-            // Set Existing Cancel Commitment Proposal Data       
-            if(curDaoIdx && proposalType=='CancelCommit'){
-              let propResult = await curDaoIdx.get('cancelCommitmentProposalDetails', curDaoIdx.id)
-              
-              if(propResult) {
-                let i = 0
-                while (i < propResult.proposals.length){
-                  
-                  if(parseInt(propResult.proposals[i].proposalId) == requestId){
-                    propResult.proposals[i].title ? setPayoutTitle(propResult.proposals[i].title) : setPayoutTitle('')
-                    propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
-                    propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
-                    propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
-                    setDetailsExist(true)
-                    break
-                  }
-                  i++
-                }
-              }
-            }
-  
-
-            // Set Existing Opportunity Proposal Data       
-            if(curDaoIdx && proposalType=='Opportunity'){
-              let propResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
-          
-              if(propResult) {
-                let i = 0
-                while (i < propResult.opportunities.length){
-                  if(propResult.opportunities[i].opportunityId == requestId){
-                    propResult.opportunities[i].title ? setOpportunityTitle(propResult.opportunities[i].title) : setOpportunityTitle('')
-                    propResult.opportunities[i].likes ? setCurrentLikes(propResult.opportunities[i].likes) : setCurrentLikes([])
-                    propResult.opportunities[i].dislikes ? setCurrentDisLikes(propResult.opportunities[i].dislikes) : setCurrentDisLikes([])
-                    propResult.opportunities[i].neutrals ? setCurrentNeutrals(propResult.opportunities[i].neutrals) : setCurrentNeutrals([])
-                    setDetailsExist(true)
-                    break
-                  }
-                  i++
-                }
-              }
-            }
-
-            // Set Existing GuildKick Proposal Data       
-            if(curDaoIdx && proposalType=='GuildKick'){
-              let propResult = await curDaoIdx.get('guildKickProposalDetails', curDaoIdx.id)
-          
-              if(propResult) {
-                let i = 0
-                while (i < propResult.proposals.length){
-                  if(parseInt(propResult.proposals[i].proposalId) == requestId){
-                    propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
-                    propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
-                    propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
-                    setDetailsExist(true)
-                    break
-                  }
-                  i++
-                }
-              }
-            }
-
-            // Set Existing Whitelist Proposal Data       
-            if(curDaoIdx && proposalType=='Whitelist'){
-              let propResult = await curDaoIdx.get('whitelistProposalDetails', curDaoIdx.id)
-          
-              if(propResult) {
-                let i = 0
-                while (i < propResult.proposals.length){
-                  if(parseInt(propResult.proposals[i].proposalId) == requestId){
-                    propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
-                    propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
-                    propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
-                    setDetailsExist(true)
-                    break
-                  }
-                  i++
-                }
-              }
-            }
-
-            if(wallet){
-              let daoContract = await dao.initDaoContract(wallet.account(), contractId)
-              setDaoContract(daoContract)
-            }
-
             if(queueList && queueList.length > 0){
               setNextToFinalize(queueList[0].requestId)
             }
 
+            
+
+            // // Set Existing Member Proposal Data       
+            // if(curDaoIdx && proposalType=='Member'){
+            //   let propResult = await curDaoIdx.get('memberProposalDetails', curDaoIdx.id)
+              
+            //   if(propResult) {
+            //     let i = 0
+            //     while (i < propResult.proposals.length){
+            //       if(propResult.proposals[i].proposalId == requestId){
+            //         propResult.proposals[i].intro ? setIntro(propResult.proposals[i].intro) : setIntro('')
+            //         propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
+            //         propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
+            //         propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
+            //         setDetailsExist(true)
+            //         break
+            //       }
+            //       i++
+            //     }
+            //   }
+            // }
+            
+            // // Set Existing Funding Proposal Data       
+            // if(curDaoIdx && proposalType=='Commitment'){
+             
+            //   let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
+        
+            //   if(propResult) {
+            //     let i = 0
+            //     while (i < propResult.proposals.length){
+            //       if(propResult.proposals[i].proposalId == requestId){
+            //         propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('')
+            //         propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
+            //         propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
+            //         propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
+            //         setDetailsExist(true)
+            //         break
+            //       }
+            //       i++
+            //     }
+            //   } 
+            // }
+
+            // // Set Existing Tribute Proposal Data       
+            // if(curDaoIdx && proposalType=='Tribute'){
+            //   let propResult = await curDaoIdx.get('tributeProposalDetails', curDaoIdx.id)
+          
+            //   if(propResult) {
+            //     let i = 0
+            //     while (i < propResult.proposals.length){
+            //       if(propResult.proposals[i].proposalId == requestId){
+            //         propResult.proposals[i].title ? setTributeTitle(propResult.proposals[i].title) : setTributeTitle('')
+            //         propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
+            //         propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
+            //         propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
+            //         setDetailsExist(true)
+            //         break
+            //       }
+            //       i++
+            //     }
+            //   }
+            // }
+
+            //  // Set Existing Payout Proposal Data       
+            //  if(curDaoIdx && proposalType=='Payout'){
+            //   let propResult = await curDaoIdx.get('payoutProposalDetails', curDaoIdx.id)
+              
+            //   if(propResult) {
+            //     let i = 0
+            //     while (i < propResult.proposals.length){
+                 
+            //       if(parseInt(propResult.proposals[i].proposalId) == requestId){
+            //         propResult.proposals[i].title ? setPayoutTitle(propResult.proposals[i].title) : setPayoutTitle('')
+            //         propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
+            //         propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
+            //         propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
+            //         setDetailsExist(true)
+            //         break
+            //       }
+            //       i++
+            //     }
+            //   }
+            // }
+
+            async function getData(alias){
+              if(curDaoIdx){
+                let propResult = await curDaoIdx.get(alias, curDaoIdx.id)
+              
+                if(propResult) {
+                  let i = 0
+                  while (i < propResult.proposals.length){
+                    
+                    if(parseInt(propResult.proposals[i].proposalId) == requestId){
+                      propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('Needs Detail')
+                      propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
+                      propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
+                      propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
+                      setDetailsExist(true)
+                      break
+                    }
+                    i++
+                  }
+                }
+              }
+            }
+
+            switch(proposalType){
+              case 'CancelCommit':
+                await getData('cancelCommitmentProposalDetails')
+                break
+              case 'Opportunity':
+                await getData('opportunities')
+                break
+              case 'GuildKick':
+                await getData('guildKickProposalDetails')
+                break
+              case 'Whitelist':
+                await getData('whitelistProposalDetails')
+                break
+              case 'Payout':
+                await getData('payoutProposalDetails')
+                break
+              case 'Tribute':
+                await getData('tributeProposalDetails')
+                break
+              case 'Commitment':
+                await getData('fundingProposalDetails')
+                break
+              case 'Member':
+                await getData('memberProposalDetails')
+                break
+            }
+
+             // Check for reference titles first
+              // set title to opportunity title if it exists
+              if(referenceIds){
+                for(const [key, value] of Object.entries(referenceIds)){
+                 
+                  if(value['valueSetting'] && value['valueSetting'] != ''){
+                    try{
+                      let oppResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
+                      let k = 0
+                      while(k < oppResult.opportunities.length){
+                        if(oppResult.opportunities[k].opportunityId == value['valueSetting']){
+                          setTitle(oppResult.opportunities[k].title)
+                          break
+                        }
+                        k++
+                      }
+                    } catch (err) {
+                      console.log('problem retrieving opportunities', err)
+                    }
+                  }
+                }
+              }
+
+            // // Set Existing Cancel Commitment Proposal Data       
+            // if(curDaoIdx && proposalType=='CancelCommit'){
+            //   let propResult = await curDaoIdx.get('cancelCommitmentProposalDetails', curDaoIdx.id)
+              
+            //   if(propResult) {
+            //     let i = 0
+            //     while (i < propResult.proposals.length){
+                  
+            //       if(parseInt(propResult.proposals[i].proposalId) == requestId){
+            //         propResult.proposals[i].title ? setPayoutTitle(propResult.proposals[i].title) : setPayoutTitle('')
+            //         propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
+            //         propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
+            //         propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
+            //         setDetailsExist(true)
+            //         break
+            //       }
+            //       i++
+            //     }
+            //   }
+            // }
+  
+
+            // // Set Existing Opportunity Proposal Data       
+            // if(curDaoIdx && proposalType=='Opportunity'){
+            //   let propResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
+          
+            //   if(propResult) {
+            //     let i = 0
+            //     while (i < propResult.opportunities.length){
+            //       if(propResult.opportunities[i].opportunityId == requestId){
+            //         propResult.opportunities[i].title ? setOpportunityTitle(propResult.opportunities[i].title) : setOpportunityTitle('')
+            //         propResult.opportunities[i].likes ? setCurrentLikes(propResult.opportunities[i].likes) : setCurrentLikes([])
+            //         propResult.opportunities[i].dislikes ? setCurrentDisLikes(propResult.opportunities[i].dislikes) : setCurrentDisLikes([])
+            //         propResult.opportunities[i].neutrals ? setCurrentNeutrals(propResult.opportunities[i].neutrals) : setCurrentNeutrals([])
+            //         setDetailsExist(true)
+            //         break
+            //       }
+            //       i++
+            //     }
+            //   }
+            // }
+
+            // // Set Existing GuildKick Proposal Data       
+            // if(curDaoIdx && proposalType=='GuildKick'){
+            //   let propResult = await curDaoIdx.get('guildKickProposalDetails', curDaoIdx.id)
+          
+            //   if(propResult) {
+            //     let i = 0
+            //     while (i < propResult.proposals.length){
+            //       if(parseInt(propResult.proposals[i].proposalId) == requestId){
+            //         propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
+            //         propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
+            //         propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
+            //         setDetailsExist(true)
+            //         break
+            //       }
+            //       i++
+            //     }
+            //   }
+            // }
+
+            // // Set Existing Whitelist Proposal Data       
+            // if(curDaoIdx && proposalType=='Whitelist'){
+            //   let propResult = await curDaoIdx.get('whitelistProposalDetails', curDaoIdx.id)
+          
+            //   if(propResult) {
+            //     let i = 0
+            //     while (i < propResult.proposals.length){
+            //       if(parseInt(propResult.proposals[i].proposalId) == requestId){
+            //         propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
+            //         propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
+            //         propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
+            //         setDetailsExist(true)
+            //         break
+            //       }
+            //       i++
+            //     }
+            //   }
+            // }
+
             return true  
           }
 
-       
-            let notificationFlag = get(PROPOSAL_NOTIFICATION, [])
-            if(notificationFlag[0]){
-              del(PROPOSAL_NOTIFICATION)
-              if(requestId == notificationFlag[0].proposalId)
-                  switch(proposalType){
-                    case 'Commitment':
-                      handleFundingProposalDetailsClick()
-                      break; 
-                    case 'Tribute':
-                      handleTributeProposalDetailsClick()
-                      break;
-                    case 'Payout':
-                      handlePayoutProposalDetailsClick()
-                      break;
-                    case 'CancelCommit':
-                      handleCancelCommitmentProposalDetailsClick()
-                      break;
-                    case 'Whitelist':
-                      handleWhitelistProposalDetailsClick()
-                      break;
-                    case 'Configuration':
-                      handleConfigurationProposalDetailsClick()
-                      break;
-                    case 'GuildKick':
-                      handleGuildKickProposalDetailsClick()
-                    break;
-               }
-            }
 
           let mounted = true
           if(mounted){
             fetchData()
                 .then((res) => {
-                  if(votingPeriod){
-                    let count = parseInt((gracePeriod - currentPeriod) * periodDuration * 0.7)
-                    let counter=setInterval(timer, 1000); //1000 will  run it every 1 second  
-                    function timer()
+                
+                // Timers (need to be more accurate)
+                if(votingPeriod){
+                  let count = parseInt((gracePeriod - currentPeriod) * periodDuration * 0.7)
+                  let counter=setInterval(timer, 1000); //1000 will  run it every 1 second  
+                  function timer()
+                  {
+                    count=count-1;
+                    if (count <= 0)
                     {
-                      count=count-1;
-                      if (count <= 0)
-                      {
-                        clearInterval(counter);
-                        setVoteEnding('0')
-                        return;
-                      }
-                      setVoteEnding(count)
+                      clearInterval(counter);
+                      setVoteEnding('0')
+                      return;
                     }
+                    setVoteEnding(count)
                   }
+                }
+
                 if(gracePeriod){
                   let rageCount = parseInt((gracePeriod + gracePeriodLength - currentPeriod) * periodDuration * 0.7)
                   let rageCounter=setInterval(rageTimer, 1000)
@@ -602,7 +682,7 @@ export default function ProposalCard(props) {
                   }
                 }
               
-                  checkSponsor()
+                checkSponsor()
                 
                 })
           return () => mounted = false
@@ -699,6 +779,48 @@ export default function ProposalCard(props) {
                 }
               break
             }
+    }
+
+    const handleEditDetailsClick = () => {
+      handleExpanded()
+      handleEditDetailsClickState(true)
+    }
+
+    const handleDetailsClick = () => {
+      handleExpanded()
+      handleDetailsClickState(true)
+    }
+
+    function handleEditDetailsClickState(property){
+      setEditDetailsClicked(property)
+    }
+
+    function handleDetailsClickState(property){
+      setDetailsClicked(property)
+    }
+
+    // function handleEditDetailsClick(type) {
+    //   switch(type){
+    //     case 'Member':
+    //       handleExpanded()
+    //       handleEditMemberProposalDetailsClickState(true)
+    //       break
+    //     case 'GuildKick':
+    //       handleExpanded()
+    //       handleEditGuildKickProposalDetailsClickState(true)
+    //   }
+    // }
+
+    function handleDetailsClick(type) {
+      switch(type){
+        case 'Member':
+          handleExpanded()
+          handleMemberProposalDetailsClickState(true)
+          break
+        case 'GuildKick':
+          handleExpanded()
+          handleGuildKickProposalDetailsClickState(true)
+      }
     }
   
     // Member Proposal Functions
@@ -1609,7 +1731,7 @@ export default function ProposalCard(props) {
                 <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-40px', marginBottom: '40px'}}>
                   <Typography variant="overline">Voting Shares: {shares}</Typography><br></br>
                   <Typography variant="overline">Non-Voting Shares: {loot ? loot : '0'}</Typography><br></br>
-                  <Typography variant="overline" style={{fontSize:'100%'}}>{`Tribute: ${formatNearAmount(tribute, 3)} Ⓝ`}</Typography>
+                  <Typography variant="overline" style={{fontSize:'100%'}}>Contribution<br></br>{formatNearAmount(tribute, 3)} Ⓝ</Typography>
                 </Grid>
               </Grid>
             ) : null }
@@ -1718,7 +1840,7 @@ export default function ProposalCard(props) {
                 <Grid container alignItems="center" justifyContent="space-between" spacing={0} style={{margin: '0px', position: 'absolute', bottom:'5px', right:'1px'}}>
                   <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="center">
                      {done ? ( <StyledBadge badgeContent={yesVotes} color="primary" max={9999999}>
-                        <IconButton onClick={(e) => handleVotingAction(requestId, 'yes')} disabled={voted}>
+                        <IconButton onClick={(e) => handleVotingAction(requestId, 'yes')} disabled={hasVoted}>
                           <ThumbUpIcon fontSize='small' color="primary" />
                         </IconButton>
                       </StyledBadge>
@@ -1731,7 +1853,7 @@ export default function ProposalCard(props) {
                   </Grid>
                   <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="center" >
                   {done ? ( <StyledBadge badgeContent={noVotes} color="secondary" max={9999999}>
-                        <IconButton onClick={(e) => handleVotingAction(requestId, 'no')} disabled={voted}>
+                        <IconButton onClick={(e) => handleVotingAction(requestId, 'no')} disabled={hasVoted}>
                           <ThumbDownIcon fontSize='small' color="secondary" />
                         </IconButton>
                       </StyledBadge>
@@ -1941,7 +2063,6 @@ export default function ProposalCard(props) {
           state={state}
           handleEditMemberProposalDetailsClickState={handleEditMemberProposalDetailsClickState}
           curDaoIdx={curDaoIdx}
-          curPersonaIdx={curPersonaIdx}
           applicant={applicant}
           handleUpdate={handleUpdate}
           accountId={accountId}
@@ -1952,13 +2073,12 @@ export default function ProposalCard(props) {
           state={state}
           handleEditFundingProposalDetailsClickState={handleEditFundingProposalDetailsClickState}
           curDaoIdx={curDaoIdx}
-          curPersonaIdx={curPersonaIdx}
           applicant={applicant}
           proposer={proposer}
           handleUpdate={handleUpdate}
           accountId={accountId}
           proposalId={requestId}
-          contract={daoContract}
+          contract={contract}
           funding={funding}
           referenceIds={referenceIds}
           /> : null }
@@ -1967,13 +2087,12 @@ export default function ProposalCard(props) {
           state={state}
           handleCommitmentAmountChangeClickState={handleCommitmentAmountChangeClickState}
           curDaoIdx={curDaoIdx}
-          curPersonaIdx={curPersonaIdx}
           applicant={applicant}
           proposer={proposer}
           handleUpdate={handleUpdate}
           accountId={accountId}
           proposalId={requestId}
-          contract={daoContract}
+          contract={contract}
           funding={funding}
           referenceIds={referenceIds}
           /> : null }
@@ -1982,7 +2101,6 @@ export default function ProposalCard(props) {
           state={state}
           handleEditTributeProposalDetailsClickState={handleEditTributeProposalDetailsClickState}
           curDaoIdx={curDaoIdx}
-          curPersonaIdx={curPersonaIdx}
           applicant={applicant}
           proposer={proposer}
           handleUpdate={handleUpdate}
@@ -1994,7 +2112,6 @@ export default function ProposalCard(props) {
           state={state}
           handleEditConfigurationProposalDetailsClickState={handleEditConfigurationProposalDetailsClickState}
           curDaoIdx={curDaoIdx}
-          curPersonaIdx={curPersonaIdx}
           applicant={applicant}
           proposer={proposer}
           handleUpdate={handleUpdate}
@@ -2007,13 +2124,12 @@ export default function ProposalCard(props) {
           state={state}
           handleEditPayoutProposalDetailsClickState={handleEditPayoutProposalDetailsClickState}
           curDaoIdx={curDaoIdx}
-          curPersonaIdx={curPersonaIdx}
           applicant={applicant}
           proposer={proposer}
           handleUpdate={handleUpdate}
           accountId={accountId}
           proposalId={requestId}
-          contract={daoContract}
+          contract={contract}
           funding={funding}
           referenceIds={referenceIds}
           proposalStatus={status}
@@ -2023,13 +2139,12 @@ export default function ProposalCard(props) {
           state={state}
           handleEditCancelCommitmentProposalDetailsClickState={handleEditCancelCommitmentProposalDetailsClickState}
           curDaoIdx={curDaoIdx}
-          curPersonaIdx={curPersonaIdx}
           applicant={applicant}
           proposer={proposer}
           handleUpdate={handleUpdate}
           accountId={accountId}
           proposalId={requestId}
-          contract={daoContract}
+          contract={contract}
           funding={funding}
           referenceIds={referenceIds}
           proposalStatus={status}
@@ -2039,7 +2154,6 @@ export default function ProposalCard(props) {
           state={state}
           handleEditOpportunityProposalDetailsClickState={handleEditOpportunityProposalDetailsClickState}
           curDaoIdx={curDaoIdx}
-          curPersonaIdx={curPersonaIdx}
           applicant={applicant}
           proposer={proposer}
           handleUpdate={handleUpdate}
@@ -2078,7 +2192,6 @@ export default function ProposalCard(props) {
           proposer={proposer}
           handleMemberProposalDetailsClickState={handleMemberProposalDetailsClickState}
           curDaoIdx={curDaoIdx}
-          curPersonaIdx={curPersonaIdx}
           applicant={applicant}
           sponsor={sponsor}
           handleUpdate={handleUpdate}
@@ -2113,7 +2226,6 @@ export default function ProposalCard(props) {
           proposer={proposer}
           handleFundingProposalDetailsClickState={handleFundingProposalDetailsClickState}
           curDaoIdx={curDaoIdx}
-          curPersonaIdx={curPersonaIdx}
           applicant={applicant}
           handleUpdate={handleUpdate}
           proposalId={requestId}
@@ -2127,7 +2239,6 @@ export default function ProposalCard(props) {
           proposer={proposer}
           handleTributeProposalDetailsClickState={handleTributeProposalDetailsClickState}
           curDaoIdx={curDaoIdx}
-          curPersonaIdx={curPersonaIdx}
           applicant={applicant}
           handleUpdate={handleUpdate}
           sponsor={sponsor}
@@ -2139,7 +2250,6 @@ export default function ProposalCard(props) {
           proposer={proposer}
           handleConfigurationProposalDetailsClickState={handleConfigurationProposalDetailsClickState}
           curDaoIdx={curDaoIdx}
-          curPersonaIdx={curPersonaIdx}
           applicant={applicant}
           handleUpdate={handleUpdate}
           sponsor={sponsor}
@@ -2153,7 +2263,6 @@ export default function ProposalCard(props) {
           proposer={proposer}
           handlePayoutProposalDetailsClickState={handlePayoutProposalDetailsClickState}
           curDaoIdx={curDaoIdx}
-          curPersonaIdx={curPersonaIdx}
           applicant={applicant}
           handleUpdate={handleUpdate}
           proposalId={requestId}
@@ -2166,7 +2275,6 @@ export default function ProposalCard(props) {
           proposer={proposer}
           handleCancelCommitmentProposalDetailsClickState={handleCancelCommitmentProposalDetailsClickState}
           curDaoIdx={curDaoIdx}
-          curPersonaIdx={curPersonaIdx}
           applicant={applicant}
           handleUpdate={handleUpdate}
           proposalId={requestId}
@@ -2179,7 +2287,6 @@ export default function ProposalCard(props) {
           proposer={proposer}
           handleOpportunityProposalDetailsClickState={handleOpportunityProposalDetailsClickState}
           curDaoIdx={curDaoIdx}
-          curPersonaIdx={curPersonaIdx}
           applicant={applicant}
           handleUpdate={handleUpdate}
           opportunityId={requestId}

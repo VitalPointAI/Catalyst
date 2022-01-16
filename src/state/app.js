@@ -4,6 +4,8 @@ import { get, set, del } from '../utils/storage'
 import { State } from '../utils/state'
 import { initNear, hasKey } from './near'
 import * as nearAPI from 'near-api-js'
+import { factory } from '../utils/factory'
+import { registry } from '../utils/registry'
 import { ceramic } from '../utils/ceramic'
 
 import { config } from './config'
@@ -70,6 +72,8 @@ export const onAppMount = () => async ({ update, getState, dispatch }) => {
             networkId, nodeUrl, walletUrl, deps: { keyStore: new nearAPI.keyStores.BrowserLocalStorageKeyStore() },
         })
 
+        update('app', {near: near})
+
         // set temporary key - remains until it's changed on the user's next login
         set('near-api-js:keystore:'+accountId+':'+near.connection.networkId, key)
 
@@ -83,12 +87,12 @@ export const onAppMount = () => async ({ update, getState, dispatch }) => {
 
             const account = wallet.account()
             const loggedInAccountId = account.accountId
-            const didRegistryContract = await ceramic.initiateDidRegistryContract(account)
-           
+            const didRegistryContract = await registry.initiateDidRegistryContract(account)
+            const daoFactoryContract = await factory.initFactoryContract(account)
             //Initiate App Ceramic Components
     
             const appIdx = await ceramic.getAppIdx(didRegistryContract, account, near)
-            let curUserIdx = await ceramic.getCurrentUserIdx(account, appIdx, near, didRegistryContract)
+            let curUserIdx = await ceramic.getCurrentUserIdx(account, appIdx, near, didRegistryContract, daoFactoryContract)
             update('accountData', { curUserIdx })
            
         }

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { appStore, onAppMount } from '../../state/app'
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { flexClass } from '../../App'
@@ -11,6 +12,7 @@ import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
 import draftToHtml from 'draftjs-to-html'
 import htmlToDraft from 'html-to-draftjs'
 import { formatNearAmount, parseNearAmount } from 'near-api-js/lib/utils/format';
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -87,7 +89,7 @@ export default function EditFundingProposalForm(props) {
     const [max, setMax] = useState(props.funding)
     const [attachedFiles, setAttachedFiles] = useState([])
     const [addedFileHash, setAddedFileHash] = useState('QmZsKcVEwj9mvGfA7w7wUS1f2fLqcfzqdCnEGtdq6MBR7P')
-
+    const { state, dispatch, update } = useContext(appStore)
     const { register, handleSubmit, watch, errors, control, reset, setValue, getValues } = useForm()
     const {
       fields: milestoneFields,
@@ -117,16 +119,22 @@ export default function EditFundingProposalForm(props) {
     })
   
     const {
-        handleUpdate,
         handleEditFundingProposalDetailsClickState,
         applicant,
         proposer,
-        curDaoIdx,
         proposalId,
-        contract,
         funding, 
-        referenceIds
+        referenceIds,
+        usd
     } = props
+
+    const {
+      daoFactory,
+      didRegistryContract,
+      appIdx,
+      curDaoIdx,
+      contract
+    } = state
     
     const classes = useStyles()
 
@@ -140,8 +148,8 @@ export default function EditFundingProposalForm(props) {
            
             // Set Existing Persona Data      
             if(applicant){
-              const thisPersona = new Persona()
-              let result = await thisPersona.getData('profile', applicant, curDaoIdx)
+              let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', applicantDid)
                   if(result){
                     result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                     result.name ? setName(result.name) : setName('')

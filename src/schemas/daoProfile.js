@@ -50,5 +50,11 @@ export const daoProfileSchema = {
       "specificSkills": {
         type: "array"
       },
+      "platform": {
+        type: 'string'
+      },
+      "did": {
+        type: 'string'
+      }
    },
   }

@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { appStore, onAppMount } from '../../state/app'
 import { useForm, Controller } from 'react-hook-form'
 import { useParams } from 'react-router-dom'
-import { appStore, onAppMount } from '../../state/app'
 import { makeStyles } from '@material-ui/core/styles'
 import { flexClass } from '../../App'
-import Persona from '@aluhning/get-personas-js'
 import FungibleTokens from '../../utils/fungibleTokens'
 import { submitProposalChange } from '../../state/near'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -75,17 +75,17 @@ export default function EditCommitmentAmountForm(props) {
     const { register, handleSubmit, watch, errors } = useForm()
 
     const {
-        handleUpdate,
         handleCommitmentAmountChangeClickState,
         applicant,
-        proposer,
-        curDaoIdx,
         proposalId,
     } = props
 
     const {
       wallet,
-      appIdx
+      appIdx,
+      daoFactory,
+      didRegistryContract,
+      curDaoIdx
     } = state
 
     const {
@@ -128,8 +128,8 @@ export default function EditCommitmentAmountForm(props) {
            
             // Set Existing Persona Data      
             if(applicant){
-              const thisPersona = new Persona()
-              let result = await thisPersona.getData('profile', applicant, appIdx)
+              let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', applicantDid)
                   if(result){
                     result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                     result.name ? setName(result.name) : setName('')

@@ -7,9 +7,6 @@ import { makeStyles } from '@material-ui/core/styles'
 // Material UI Components
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
-import Tooltip from '@material-ui/core/Tooltip'
-import Zoom from '@material-ui/core/Zoom'
-import InfoIcon from '@material-ui/icons/Info'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
 import Button from '@material-ui/core/Button'
 
@@ -101,7 +98,7 @@ const classes = useStyles()
     return (
         <>    
         <Grid container justifyContent="center" alignItems="center" spacing={1} >        
-            <Grid item xs={12} sm={12} md={7} lg={7} xl={7} align="center">
+            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="left">
                 {contractId == undefined ? (
                     <>
                     <Grid container justifyContent="center" alignItems="center" spacing={1} >
@@ -109,23 +106,15 @@ const classes = useStyles()
                         {!matches ? (
                             <>
                             <div style={{display: 'inline', width: '100%'}}>
-                            <Link to="/daos">
-                                <Button color="primary" style={{textAlign: 'center'}}>Founded {daoCount ? daoCount == 1 ? daoCount + ' Community' : daoCount + '  Communities' : '0 Communities'}</Button>
-                            </Link>
-                            <Tooltip TransitionComponent={Zoom} title="The number of communities the signed in persona has founded.">
-                                <InfoIcon fontSize="small" style={{marginLeft: '3px', marginTop:'-3px'}} />
-                            </Tooltip>
+                            <Typography variant="body1" color="primary">Founded {daoCount ? daoCount == 1 ? daoCount + ' Community' : daoCount + '  Communities' : '0 Communities'}</Typography>
+                            
                             </div>
                             </>
                             ) : (
                             <>
                             <div style={{display: 'inline', width: '100%'}}>
-                            <Link to="/daos">
-                                <Button color="primary" style={{textAlign: 'center'}}>Founded {daoCount ? daoCount == 1 ? daoCount + ' Community' : daoCount + '  Communities' : '0 Communities'}</Button>
-                            </Link>
-                            <Tooltip TransitionComponent={Zoom} title="The number of communities the signed in persona has founded.">
-                                <InfoIcon fontSize="small" style={{marginLeft: '3px', marginTop:'-3px'}} />
-                            </Tooltip>
+                            <Typography variant="body1" color="primary">Founded {daoCount ? daoCount == 1 ? daoCount + ' Community' : daoCount + '  Communities' : '0 Communities'}</Typography>
+                           
                             </div>
                             </>
                             )}
@@ -138,10 +127,8 @@ const classes = useStyles()
                         <Grid container justifyContent="center" alignItems="center" spacing={1} >
                             <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                                 <Typography variant="overline" display="inline">
-                                    <Tooltip TransitionComponent={Zoom} title="The number of communities the signed in persona has founded.">
-                                        <InfoIcon fontSize="small" style={{marginLeft: '3px', marginRight:'5px', marginTop:'-3px'}} />
-                                    </Tooltip>
-                                    <Button style={{textAlign: 'center'}}>Founded 0 Communities</Button>
+                                    
+                                <Typography variant="body1" color="primary">Founded 0 Communities</Typography>
                                 </Typography>
                             </Grid>
                         </Grid>

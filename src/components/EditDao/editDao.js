@@ -89,6 +89,7 @@ export default function EditDaoForm(props) {
     const [purpose, setPurpose] = useState(EditorState.createEmpty())
     const [category, setCategory] = useState('')
     const [webhook, setWebhook] = useState('')
+    const [platform, setPlatform] = useState('')
   
 
     const [discordActivated, setDiscordActivated] = useState(false)
@@ -156,6 +157,7 @@ export default function EditDaoForm(props) {
               let daoAccount = new nearAPI.Account(near.connection, contractId)
               thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
               setCurDaoIdx(thisCurDaoIdx)
+              console.log('edit curdaoIdx', thisCurDaoIdx)
             } catch (err) {
               console.log('problem getting curdaoidx', err)
               return false
@@ -163,6 +165,7 @@ export default function EditDaoForm(props) {
                                
               
               let did = await ceramic.getDid(contractId, daoFactory, didRegistryContract)
+              console.log('did', did)
               let result = await appIdx.get('daoProfile', did)
             
               let webhook = await ceramic.downloadKeysSecret(thisCurDaoIdx, 'apiKeys')
@@ -201,6 +204,8 @@ export default function EditDaoForm(props) {
                 result.email? setEmail(result.email): setEmail('')
                 result.telegram? setTelegram(result.telegram): setTelegram('')
                 result.website? setWebsite(result.website): setWebsite('')
+                result.platform ? setPlatform(result.platform) :
+                  contractId ? setPlatform('Catalyst') : setPlatform('')
               }
            }
         }
@@ -271,6 +276,12 @@ export default function EditDaoForm(props) {
       let value = event.target.value;
       setWebsite(value); 
     }
+
+    const handlePlatformChange = (event) => {
+      let value = event.target.value
+      setPlatform(value)
+    }
+
     const handleDiscordChange = (event) =>{
       let value = event.target.value;
       setDiscord(value); 
@@ -306,7 +317,8 @@ export default function EditDaoForm(props) {
             telegram: telegram, 
             email: email,
             website: website, 
-            reddit: reddit
+            reddit: reddit,
+            platform: platform
         }
      
         let result = await curDaoIdx.set('daoProfile', record)

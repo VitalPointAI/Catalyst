@@ -7,6 +7,9 @@ import Footer from '../../components/common/Footer/footer'
 import DaoCard from '../DAOCard/daoCard'
 import { Header } from '../Header/header'
 import SearchBar from '../../components/common/SearchBar/search'
+import RegisterForm from '../../components/Register/register'
+import { GAS, STORAGE, parseNearAmount, REGISTRY_API_URL } from '../../state/near'
+import { queries } from '../../utils/graphQueries'
 
 // Material UI components
 import { makeStyles } from '@material-ui/core/styles'
@@ -20,6 +23,7 @@ import FormGroup from '@material-ui/core/FormGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormHelperText from '@material-ui/core/FormHelperText'
 import Switch from '@material-ui/core/Switch'
+import Button from '@material-ui/core/Button'
 
 const axios = require('axios').default
 
@@ -51,6 +55,7 @@ const useStyles = makeStyles((theme) => ({
         marginTop: '5px'
     }
   }));
+
   
 export default function ExploreDaos(props) {
    
@@ -60,9 +65,11 @@ export default function ExploreDaos(props) {
     const [membersOnly, setMembersOnly] = useState(false)
     const [activeOnly, setActiveOnly] = useState(true)
     const [resources, setResources] = useState(0)
-    const [nearPrice, setNearPrice] = useState()
     const [searchDaos, setSearchDaos] = useState([])
     const [contract, setContract] = useState()
+    const [registerClicked, setRegisterClicked] = useState(false)
+    const [anchorEl, setAnchorEl] = useState(null)
+    const [notCatalystCommunities, setNotCatalystCommunities] = useState([])
    
 
     const classes = useStyles()
@@ -73,12 +80,100 @@ export default function ExploreDaos(props) {
       currentDaosList,
       accountId,
       near,
-      isUpdated
+      isUpdated,
+      did,
+      didRegistryContract,
+      nearPrice
     } = state
 
     const matches = useMediaQuery('(max-width:500px)')
 
     let sortedDaos
+
+    // useEffect(
+    //     () => {
+    //         async function fetchRegistryData(){
+                
+    //         .then((data) => {
+    //             console.log('data', data)
+    //             let exists = false
+    //             let nonCatalystCommunities = []
+    //             let registrations = []
+    //             let deletions = []
+    //             let filtered = []
+    //             let z = 0
+    //             while (z < data.data.accounts.length){
+    //                 let registryData = JSON.parse(data.data.accounts[z].log[0])
+    //                 console.log('reg registryData', registryData)
+    //                 if(registryData.EVENT_JSON.event == 'putDID'){
+    //                     console.log('reg here')
+    //                     registrations.push(registryData)
+    //                 }
+    //                 z++
+    //             }
+    //             console.log('registrations', registrations)
+    //             let y = 0
+    //             while (y < data.data.accounts.length){
+    //                 let registryData = JSON.parse(data.data.accounts[y].log[0])
+    //                 console.log('del registryData', registryData)
+    //                 if(registryData.EVENT_JSON.event == 'deleteDID'){
+    //                     console.log('del here')
+    //                     deletions.push(registryData)
+    //                 }
+    //                 y++
+    //             }
+    //             console.log('deletions', deletions)
+    //             let w = 0
+    //             let isHere = false
+    //             while (w < registrations.length){
+    //                 let x = 0
+    //                 while(x < deletions.length){
+    //                     if(registrations[w].EVENT_JSON.data.accountId == deletions[x].EVENT_JSON.data.accountId){
+    //                         isHere = true
+    //                         break
+    //                     }
+    //                     x++
+    //                 }
+    //                 if(!isHere){
+    //                     filtered.push(registrations[w])
+    //                 }
+    //                 w++
+    //             }
+    //             console.log('filtered', filtered)
+
+    //             let i = 0
+    //             while(i < filtered.length){
+    //                 let k = 0
+    //                 while(k < currentDaosList.length){
+    //                     if(filtered[i].EVENT_JSON.data.accountId == currentDaosList[k].contractId){
+    //                         exists = true
+    //                     }
+    //                 k++
+    //                 }
+    //                 if(!exists){
+    //                     let dao = {
+    //                         contractId: filtered[i].EVENT_JSON.data.accountId,
+    //                         created: filtered[i].EVENT_JSON.data.registered,
+    //                         did: filtered[i].EVENT_JSON.data.did,
+    //                         status: 'active',
+    //                         summoner: filtered[i].EVENT_JSON.data.owner
+    //                     }
+    //                     nonCatalystCommunities.push(dao)
+    //                 }
+    //             i++
+    //             }
+    //             setNotCatalystCommunities(nonCatalystCommunities)
+    //             console.log('noncat communities', nonCatalystCommunities)
+              
+    //         })
+    //         .catch((err) => {
+    //           console.log('Error fetching data:', err)
+    //         })
+    //     }
+    //     fetchRegistryData()
+
+    //     }, [currentDaosList]
+    // )
 
     useEffect(
         () => {
@@ -96,7 +191,10 @@ export default function ExploreDaos(props) {
                         } 
                     j++
                     }
-                    setDaos(statusCommunity)
+                  //  let combined = statusCommunity.concat(notCatalystCommunities)
+                  //  console.log('combined', combined)
+                   // setDaos(combined)
+                   setDaos(statusCommunity)
 
                     let i = 0
                     let balance = 0
@@ -120,8 +218,6 @@ export default function ExploreDaos(props) {
                         i++
                     }
                     setResources(balance)
-                    let getNearPrice = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd')
-                    setNearPrice(getNearPrice.data.near.usd)
                  
                 }
             }
@@ -146,6 +242,33 @@ export default function ExploreDaos(props) {
         let newDaos = daos.push(result)
         setDaos(newDaos)
     }
+
+    function handleExpanded() {
+        setAnchorEl(null)
+    }
+
+    const handleRegisterClick= () => {
+        
+        handleExpanded()
+        handleRegisterClickState(true)
+      }
+    
+    function handleRegisterClickState(property){
+    setRegisterClicked(property)
+    }
+
+    const register = async (values) => {
+        if(did){
+          try{
+            await didRegistryContract.putDID({
+              accountId: accountId,
+              did: did
+            }, GAS, parseNearAmount((parseFloat(STORAGE)).toString()))
+          } catch (err) {
+            console.log('error registering dao', err)
+          }
+        }
+      }
 
     const handleMembersOnlyChange = async (event) => {
         setMembersOnly(event.target.checked)
@@ -198,7 +321,6 @@ export default function ExploreDaos(props) {
             let statusCommunity = []
             let i = 0
             while (i < daos.length){
-                let thisCommunityStatus
                 if(daos[i].status == 'active'){
                     statusCommunity.push(daos[i])
                 } 
@@ -234,10 +356,6 @@ export default function ExploreDaos(props) {
                 setSearchDaos(someDaos)
             }
         }
-    }
-
-    function handleUpdate(){
-        setIsUpdated(!isUpdated)
     }
 
     const searchData = (pattern) => {
@@ -334,11 +452,18 @@ export default function ExploreDaos(props) {
         )}
         
         <Grid container alignItems="center" justifyContent="space-between" spacing={0} >
-            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+            <Grid item xs={3} sm={3} md={3} lg={3} xl={3}>
+                <Button color="primary" style={{float: 'left'}} onClick={register}>
+                    Register
+                </Button>
+            </Grid>
+            <Grid item xs={6} sm={6} md={6} lg={6} xl={6}>
             <SearchBar
                 placeholder="Search"
                 onChange={(e) => searchData(e.target.value)}
             />
+            </Grid>
+            <Grid item xs={3} sm={3} md={3} lg={3} xl={3}>
             </Grid>
         </Grid>
         <Grid container spacing={1} justifyContent="center" alignItems="center" style={{paddingLeft:'40px', paddingRight:'40px'}}>
@@ -361,7 +486,7 @@ export default function ExploreDaos(props) {
             (<>
               
             {daos.map(({contractId, created, summoner, status}, i) => {
-               console.log('status', status)
+                
                 return ( 
                     <DaoCard
                         key={i}
@@ -377,8 +502,8 @@ export default function ExploreDaos(props) {
                     />
                )
             }
-               
-                )}
+            )}
+       
             </>)
         : null
         }
@@ -386,6 +511,9 @@ export default function ExploreDaos(props) {
        
         </div>
         <Footer />
+        {registerClicked ? <RegisterForm
+            handleRegisterClickState={handleRegisterClickState}        
+            /> : null }
         </>
     )
 }

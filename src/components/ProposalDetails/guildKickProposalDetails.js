@@ -3,7 +3,7 @@ import { appStore, onAppMount } from '../../state/app'
 import { makeStyles } from '@material-ui/core/styles'
 import CommentForm from '../common/Comment/commentForm'
 import CommentDetails from '../common/Comment/commentDetails'
-import Persona from '@aluhning/get-personas-js'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -65,6 +65,28 @@ const useStyles = makeStyles((theme) => ({
     const imageName = require('../../img/default-profile.png') // default no-image avatar
 
 export default function GuildKickProposalDetails(props) {
+
+  const { state, dispatch, update } = useContext(appStore)
+
+    const {
+      accountId,
+      curUserIdx,
+      appIdx,
+      daoFactory,
+      didRegistryContract,
+      curDaoIdx,
+      contract,
+      memberStatus
+    } = state
+
+    const {
+        handleGuildKickProposalDetailsClickState,
+        proposalId,
+        status,
+        applicant,
+        proposer
+    } = props
+
     const [open, setOpen] = useState(true)
     const [details, setDetails] = useState()
     const [applicantAvatar, setApplicantAvatar] = useState()
@@ -76,33 +98,11 @@ export default function GuildKickProposalDetails(props) {
     const [curUserAvatar, setCurUserAvatar] = useState()
     const [curUserName, setCurUserName] = useState()
   
-    const [isUpdated, setIsUpdated] = useState(false)
     const [proposalComments, setProposalComments] = useState([])
     const [finished, setFinished] = useState(false)
 
     const classes = useStyles()
 
-    const { state, dispatch, update } = useContext(appStore)
-
-    const {
-      accountId,
-      curUserIdx,
-      appIdx
-    } = state
-
-    const {
-        handleGuildKickProposalDetailsClickState,
-        proposalId,
-        memberStatus,
-        status,
-        curDaoIdx,
-        curPersonaIdx,
-        applicant,
-        proposer,
-        contract
-    } = props
-
-    const thisPersona = new Persona()
 
     useEffect(
         () => {
@@ -111,8 +111,8 @@ export default function GuildKickProposalDetails(props) {
          
            // Get Applicant Persona Information
            if(proposer){                    
-              
-            let result = await thisPersona.getData('profile', proposer, appIdx)
+              let proposerDid = await ceramic.getDid(proposer, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', proposerDid)
                 if(result){
                   result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
                   result.name ? setProposerName(result.name) : setProposerName(proposer)
@@ -124,8 +124,8 @@ export default function GuildKickProposalDetails(props) {
 
           // Get Current User Persona Information
           if(accountId){                    
-            
-            let result = await thisPersona.getData('profile', accountId, appIdx)
+            let accountDid = await ceramic.getDid(accountId, daoFactory, didRegistryContract)
+            let result = await appIdx.get('profile', accountDid)
                 if(result){
                   result.avatar ? setCurUserAvatar(result.avatar) : setCurUserAvatar(imageName)
                   result.name ? setCurUserName(result.name) : setCurUserName(accountId)
@@ -136,8 +136,8 @@ export default function GuildKickProposalDetails(props) {
           }
          
           if(applicant){                           
-             
-                let result = await thisPersona.getData('profile', applicant, appIdx)
+            let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
+            let result = await appIdx.get('profile', applicantDid)
                     if(result){
                       result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
                       result.name ? setApplicantName(result.name) : setApplicantName(applicant)
@@ -198,12 +198,8 @@ export default function GuildKickProposalDetails(props) {
     )
 
     const handleClose = () => {
-        handleMemberProposalDetailsClickState(false)
+        handleGuildKickProposalDetailsClickState(false)
         setOpen(false)
-    }
-
-    function handleUpdate(property){
-      setIsUpdated(property)
     }
 
     let Comments
@@ -236,12 +232,9 @@ export default function GuildKickProposalDetails(props) {
                       In reply to {author}{preview} 
                       </Typography>: null}
                     <CommentDetails
+                        key={comment.commentId}
                         proposalId={proposalId}
                         proposalApplicant={applicant}
-                        accountId={accountId}
-                        handleUpdate={handleUpdate}
-                        curDaoIdx={curDaoIdx}
-                        key={comment.commentId}
                         commentId={comment.commentId}
                         comments={proposalComments}
                         commentAuthor={comment.author}
@@ -250,9 +243,6 @@ export default function GuildKickProposalDetails(props) {
                         commentBody={comment.body}
                         commentPostDate={comment.postDate}
                         commentSubject={comment.subject}
-                        accountId={accountId}
-                        curUserIdx={curUserIdx}
-                        memberStatus={memberStatus}
                     />
                   </div>
                   )
@@ -312,14 +302,10 @@ export default function GuildKickProposalDetails(props) {
               <Typography variant="h5" style={{marginLeft: '10px'}}>Leave a Comment/Ask a Question</Typography>
                   <CommentForm
                     reply={false}
-                    proposalApplicant = {applicant}
+                    proposalApplicant={applicant}
                     avatar={curUserAvatar}
                     name={curUserName}
                     proposalId={proposalId}
-                    accountId={accountId}
-                    contract={contract}
-                    handleUpdate={handleUpdate}
-                    curDaoIdx={curDaoIdx}
                   />
               </Grid>
               ) : null }

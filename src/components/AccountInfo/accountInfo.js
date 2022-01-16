@@ -161,10 +161,6 @@ const classes = useStyles()
     setAnchorEl(null)
   }
 
-  function handleUpdate(property){
-      setIsUpdated(property)
-  }
-
     return (
             <>
                 {contractId != undefined ? (
@@ -201,7 +197,7 @@ const classes = useStyles()
                     <>
                     
                             <Typography variant="overline" display="block" style={{display: 'inline-flex', float: 'right'}} onClick={handleEditPersonaClick}>
-                                <Avatar src={avatar} className={classes.small} style={{marginRight: '5px'}} onClick={handleEditPersonaClick}/>
+                                <Avatar src={avatar} style={{marginRight: '5px'}} onClick={handleEditPersonaClick}/>
                                 {accountId}: {balance} Ⓝ
                             </Typography>
                                           
@@ -212,7 +208,7 @@ const classes = useStyles()
                     <>
                    
                             <Typography variant="overline" display="block" style={{display: 'inline-flex'}} onClick={handleEditPersonaClick}>
-                                <Avatar src={avatar} className={classes.small} style={{marginRight: '5px'}} onClick={handleEditPersonaClick}/>
+                                <Avatar src={avatar} style={{marginRight: '5px'}} onClick={handleEditPersonaClick}/>
                                 {accountId}: {balance} Ⓝ
                             </Typography>
                        
@@ -223,15 +219,14 @@ const classes = useStyles()
             {editPersonaClicked ? <EditPersonaForm
                 state={state}
                 handleEditPersonaClickState={handleEditPersonaClickState}
-                curPersonaIdx={curUserIdx}
-                handleUpdate={handleUpdate}
+                curUserIdx={curUserIdx}
+                did={did}
                 accountId={accountId}
                 /> : null }
 
             {purposeClicked ? <Purpose
                 handlePurposeClickState={handlePurposeClickState}
                 contractId={contractId}
-            
                 /> : null }
        </>
     )

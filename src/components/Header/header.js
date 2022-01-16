@@ -15,10 +15,11 @@ import Grid from '@material-ui/core/Grid'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
 import Button from '@material-ui/core/Button'
 import Badge from '@material-ui/core/Badge'
-import NotificationsIcon from '@material-ui/icons/Notifications';
+import NotificationsIcon from '@material-ui/icons/Notifications'
 import IconButton from '@material-ui/core/IconButton'
 import Popover from '@material-ui/core/Popover'
 import '../../App.css'
+import TributeProposal from '../TributeProposal/tributeProposal'
 
 export const Header = ({ state, handleUpdate }) => {
     const [newNotifications, setNewNotifications] = useState(0)
@@ -75,12 +76,11 @@ export const Header = ({ state, handleUpdate }) => {
         }
         fetchData()
         .then((res) => {
-      
+        
         })
     }, [accountId, isUpdated])
 
     const matches = useMediaQuery('(max-width:500px)')
-    
 
     const handleClick = (event) => {
         setAnchorEl(event.currentTarget);
@@ -94,8 +94,8 @@ export const Header = ({ state, handleUpdate }) => {
         update('', {isUpdated: !isUpdated})
         setPopoverOpen(false)
     }
+
     function handleNotificationClick(property){
-     
         return; 
     }
 
@@ -122,8 +122,8 @@ export const Header = ({ state, handleUpdate }) => {
                     <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
                         
                         <IconButton onClick={handleClick} color="primary" component="span">
-                        <Badge  badgeContent={newNotifications} color='primary'>
-                            <NotificationsIcon fontSize='large' /> 
+                            <Badge  badgeContent={newNotifications} color='primary'>
+                                <NotificationsIcon fontSize='small' style={{marginTop: '-8px'}} /> 
                             </Badge>
                         </IconButton>
                    

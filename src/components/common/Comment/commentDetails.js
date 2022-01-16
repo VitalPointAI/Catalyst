@@ -1,13 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../../state/app'
-import Persona from '@aluhning/get-personas-js'
-import { GAS } from '../../../utils/ceramic'
+import { ceramic } from '../../../utils/ceramic'
 import { useForm, Controller } from 'react-hook-form'
-import { Editor } from "react-draft-wysiwyg"
 import CommentForm from './commentForm'
 
 //material ui imports
-import LinearProgress from '@material-ui/core/LinearProgress'
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
@@ -42,45 +39,47 @@ const useStyles = makeStyles((theme) => ({
 
 export default function CommentDetails(props) {
 
+    const { state, dispatch, update } = useContext(appStore)
+
+    const {
+        near,
+        appIdx,
+        accountId,
+        isUpdated,
+        daoFactory,
+        didRegistryContract,
+        curDaoIdx,
+        memberStatus
+      } = state
+  
+      const {
+          proposalApplicant,
+          proposalId,
+          commentId,
+          commentPublished,
+          commentBody,
+          commentAuthor,
+          commentPostDate,
+          commentSubject,
+      } = props
+
     const [running, setRunning] = useState(false)
     const [finished, setFinished] = useState(false)
     const [avatar, setAvatar] = useState()
     const [name, setName] = useState('')
     const [replyEnabled, setReplyEnabled] = useState(false)
 
-    const { state, dispatch, update } = useContext(appStore)
     const { register, handleSubmit, watch, errors } = useForm()
 
-    const {
-      near,
-      appIdx,
-      accountId,
-      isUpdated
-    } = state
-
-    const {
-        curDaoIdx,
-        proposalApplicant,
-        proposalId,
-        handleUpdate,
-        commentId,
-        commentPublished,
-        commentBody,
-        commentAuthor,
-        commentPostDate,
-        commentSubject,
-        memberStatus
-    } = props
-    
     const classes = useStyles();
     
     
     useEffect(() => {
         async function fetchData() {
-         
+         if(isUpdated){}
             if(commentAuthor){
-                const thisPersona = new Persona()
-                let result = await thisPersona.getData('profile', commentAuthor)
+                let did = await ceramic.getDid(commentAuthor, daoFactory, didRegistryContract)
+                let result = await appIdx.get('profile', did)
                     if(result){
                       result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                       result.name ? setName(result.name) : setName('')
@@ -152,9 +151,6 @@ export default function CommentDetails(props) {
                     avatar={avatar}
                     originalAuthor={commentAuthor}
                     originalContent={commentBody}
-                    handleUpdate={handleUpdate}
-                    accountId={accountId}
-                    curDaoIdx={curDaoIdx}
                     proposalId={proposalId}
                     >
                 </CommentForm>

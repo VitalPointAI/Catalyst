@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { get, set, del } from '../../utils/storage'
 import { appStore, onAppMount } from '../../state/app'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { useParams } from 'react-router-dom'
@@ -16,21 +15,9 @@ import Grid from '@material-ui/core/Grid'
 import Tooltip from '@material-ui/core/Tooltip'
 import Zoom from '@material-ui/core/Zoom'
 import InfoIcon from '@material-ui/icons/Info'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-
-import clsx from 'clsx';
 import Card from '@material-ui/core/Card';
-import CardHeader from '@material-ui/core/CardHeader';
-import CardMedia from '@material-ui/core/CardMedia';
 import CardContent from '@material-ui/core/CardContent';
-import CardActions from '@material-ui/core/CardActions';
-import Collapse from '@material-ui/core/Collapse';
 import Avatar from '@material-ui/core/Avatar';
-import IconButton from '@material-ui/core/IconButton';
-import { red } from '@material-ui/core/colors';
-import FavoriteIcon from '@material-ui/icons/Favorite';
-import ShareIcon from '@material-ui/icons/Share';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
 import Accordion from '@material-ui/core/Accordion';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
@@ -88,72 +75,109 @@ const useStyles = makeStyles((theme) => ({
   },
   }));
 
-const imageName = require('../../img/default-profile.png') // default no-image avatar
 
 export default function Initialize(props) {
-    const[done, setDone] = useState(props.done)
-    const [periodDuration, setPeriodDuration] = useState('')
-    const [votingPeriodLength, setVotingPeriodLength] = useState('')
-    const [gracePeriodLength, setGracePeriodLength] = useState('')
-    const [proposalDeposit, setProposalDeposit] = useState('')
-    const [dilutionBound, setDilutionBound] = useState('')
-    const [voteThreshold, setVoteThreshold] = useState('')
-    const [summonerContribution, setSummonerContribution] = useState('')
-    const [shares, setShares] = useState('')
-    const [platformPercent, setPlatformPercent] = useState('')
 
-    const [confirm, setConfirm] = useState(false)
-    const [clicked, setClicked] = useState(false)
-    const [summoner, setSummoner] = useState()
+  const { state, dispatch, update } = useContext(appStore);
 
-    const [logo, setLogo] = useState(imageName)
-    const [finished, setFinished] = useState(false)
+  const {
+    accountId,
+    near,
+    summoner,
+    wallet
+  } = state
 
-    const classes = useStyles()
+  const {
+    contractId
+  } = useParams()
 
-    const { state, dispatch, update } = useContext(appStore);
+  const [periodDuration, setPeriodDuration] = useState('')
+  const [votingPeriodLength, setVotingPeriodLength] = useState('')
+  const [gracePeriodLength, setGracePeriodLength] = useState('')
+  const [proposalDeposit, setProposalDeposit] = useState('')
+  const [dilutionBound, setDilutionBound] = useState('')
+  const [voteThreshold, setVoteThreshold] = useState('')
+  const [summonerContribution, setSummonerContribution] = useState('')
+  const [shares, setShares] = useState('')
+  const [platformPercent, setPlatformPercent] = useState('')
 
-    const {
-      accountId,
-      currentDaosList,
-      near
-    } = state
+  const [clicked, setClicked] = useState(false)
 
-    const {
-      contractId
-    } = useParams()
+  const [avgBlockTime, setAvgBlockTime] = useState()
+  const [periodDurationTime, setPeriodDurationTime] = useState('')
+  const [gracePeriodLengthTime, setGracePeriodLengthTime] = useState('')
+  const [votingPeriodLengthTime, setVotingPeriodLengthTime] = useState('')
 
-    const { register, handleSubmit, watch, errors, control, reset, setValue, getValues } = useForm({
-      defaultValues: {
-            periodDuration: periodDuration,
-            votingPeriodLength: votingPeriodLength,
-            gracePeriodLength: gracePeriodLength,
-            proposalDeposit: proposalDeposit,
-            dilutionBound: dilutionBound,
-            voteThreshold: voteThreshold,
-            shareAllocation: shares,
-            summonerContribution: summonerContribution,
-            platformPercent: platformPercent
-        }
-    })
+  const classes = useStyles()
+
+  const { register, handleSubmit, watch, errors, control, reset, setValue, getValues } = useForm({
+    defaultValues: {
+          periodDuration: periodDuration,
+          votingPeriodLength: votingPeriodLength,
+          gracePeriodLength: gracePeriodLength,
+          proposalDeposit: proposalDeposit,
+          dilutionBound: dilutionBound,
+          voteThreshold: voteThreshold,
+          shareAllocation: shares,
+          summonerContribution: summonerContribution,
+          platformPercent: platformPercent
+      }
+  })
 
    
     useEffect(
       () => {
-        // remove temporary key
-    //    del('near-api-js:keystore:'+contractId+':'+near.connection.networkId)
-        
-        let i = 0
-        while(i < currentDaosList.length){
-          if(currentDaosList[i].contractId == contractId){
-            let owner = currentDaosList[i].summoner
-            setSummoner(owner)
-            break
+       
+        async function getAvgBlockTime() {
+          let avgBlockTime = 60
+          if(near){
+              try{
+                  let currentBlock = await near.connection.provider.block({
+                      finality: 'final'
+                  })
+                  let lastBlock = currentBlock.header.height
+                  let firstBlock = lastBlock - 20
+                  let totalTime = 0
+                  let count = 0
+                  while (firstBlock <= lastBlock ){
+                      let prevBlock = await near.connection.provider.block(firstBlock-1)
+                      let prevBlockTime = prevBlock.header.timestamp
+                      let thisBlock = await near.connection.provider.block(firstBlock)
+                      let thisBlockTime = thisBlock.header.timestamp
+                      let createTime = thisBlockTime - prevBlockTime
+                      count ++
+                      totalTime += createTime
+                      firstBlock++
+                  }
+
+                  avgBlockTime = parseFloat(Math.fround(totalTime/count / 1000000000).toFixed(3)) // Time in seconds
+                  setAvgBlockTime(avgBlockTime)
+
+                } catch (err) {
+                  console.log("problem retrieving blockTime", err)
+              }
           }
-          i++
         }
+
+        getAvgBlockTime()
+        .then((res) => {
+
+        })
          
       }, [])
+
+      useEffect(
+        () => {
+          if(avgBlockTime){
+            let thisPeriodDurationTime = formatTime(periodDuration)
+            setPeriodDurationTime(thisPeriodDurationTime)
+            let thisVotingPeriodLengthTime = formatTime(periodDuration * votingPeriodLength)
+            setVotingPeriodLengthTime(thisVotingPeriodLengthTime)
+            let thisGracePeriodLengthTime = formatTime(periodDuration * gracePeriodLength)
+            setGracePeriodLengthTime(thisGracePeriodLengthTime)
+          }
+        }, [avgBlockTime]
+      )
 
       const handlePeriodDurationChange = (event) => {
         setPeriodDuration(event.target.value)
@@ -191,16 +215,14 @@ export default function Initialize(props) {
         setShares(event.target.value)
       }
   
-      const handleConfirmChange = (event) => {
-        setConfirm(event.target.checked);
-      }
 
       function formatTime(seconds) {
+
         let minutes = (seconds / 60).toFixed(0)
         let hours = (seconds / 3600).toFixed(0)
         let days = (seconds / 86400).toFixed(0)
         let weeks = (seconds / 604800).toFixed(0)
-        let blocks = (seconds * state.avgBlockTime).toFixed(0)
+        let blocks = (seconds * avgBlockTime).toFixed(0)
 
         let secondString = seconds > 0 ? seconds + ' sec | ' : ''
         let minuteString = minutes > 0 ? minutes + ' min | ' : ''
@@ -223,7 +245,7 @@ export default function Initialize(props) {
         try{
         
           await initDao(
-            state.wallet, 
+            wallet, 
             contractId,
             periodDuration, 
             votingPeriodLength, 
@@ -235,19 +257,12 @@ export default function Initialize(props) {
             summonerContribution,
             platformPercent
             )
-          setFinished(true)
         } catch (err) {
           console.log('error initializing dao', err)
-
-          setFinished(true)
         }
-        setFinished(false)
       }
     
-      let periodDurationTime = formatTime(periodDuration)
-      let votingPeriodLengthTime = formatTime(periodDuration * votingPeriodLength)
-      let gracePeriodLengthTime = formatTime(periodDuration * gracePeriodLength)
-
+      
       return (
         <>
         {summoner == accountId ? (

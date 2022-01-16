@@ -58,6 +58,10 @@ export const opportunitiesSchema = {
           type:'number',
           minimum: 0
         },
+        "usd": {
+          type: 'number',
+          minimum: 0
+        },
         "permission": {
           type: 'string',
         },

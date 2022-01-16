@@ -24,8 +24,10 @@ import Chip from '@material-ui/core/Chip'
 import EditIcon from '@material-ui/icons/Edit'
 import PauseCircleFilledIcon from '@material-ui/icons/PauseCircleFilled'
 import PlayCircleFilledIcon from '@material-ui/icons/PlayCircleFilled'
+import VerifiedUserIcon from '@material-ui/icons/VerifiedUser';
 
 import { config } from '../../state/config'
+import { SentimentVerySatisfied } from '@material-ui/icons'
 
 export const {
     DAO_LINKS
@@ -78,6 +80,7 @@ export default function DaoCard(props) {
     const [detailsClicked, setDetailsClicked] = useState(false) 
     const [amemberStatus, setaMemberStatus] = useState() 
     const [memberIcon, setMemberIcon] = useState(<NotInterestedIcon />)
+    const [verified, setVerified] = useState(false)
 
     const classes = useStyles();
 
@@ -93,7 +96,8 @@ export default function DaoCard(props) {
      appIdx,
      isUpdated,
      near,
-     didRegistryContract
+     didRegistryContract, 
+     admin
    } = state
 
     useEffect(
@@ -101,7 +105,6 @@ export default function DaoCard(props) {
 
       async function fetchData() {
         if(isUpdated){}
-         let result = {}
          
          if(contractId ){
            let memberStatus
@@ -109,12 +112,20 @@ export default function DaoCard(props) {
            try{
             let contract = await dao.initDaoContract(state.wallet.account(), contractId)
             memberStatus = await contract.getMemberStatus({member: accountId})
-           
             setaMemberStatus(memberStatus)
             memberStatus ? setMemberIcon(<CheckCircleIcon />) : setMemberIcon(<NotInterestedIcon />)
-           } catch (err) {
+          } catch (err) {
              console.log('error retrieving member status', err)
            }
+
+           try{
+             let verificationStatus = await didRegistryContract.getVerificationStatus({accountId: contractId})
+              if(verificationStatus != 'null'){
+                setVerified(verificationStatus)
+              }
+            } catch (err) {
+              console.log('error retrieving verification status', err)
+            }
 
            let thisCurDaoIdx
            try{
@@ -125,9 +136,9 @@ export default function DaoCard(props) {
               console.log('problem getting curdaoidx', err)
               return false
             }
-
-           result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
-           
+            console.log('thiscurdaoidx', thisCurDaoIdx)
+           let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
+           console.log('result', result)
            if(result){
                   result.name != '' ? setsName(result.name) : setsName('')
                   result.date ? setsDate(result.date) : setsDate('')
@@ -146,7 +157,7 @@ export default function DaoCard(props) {
            }
   
          }
-        return result
+        return true
       }
 
       let mounted = true
@@ -209,11 +220,13 @@ export default function DaoCard(props) {
     return(
         <>
         {!display ? <LinearProgress /> : 
-                     
+                    
           finished ? 
           (
+            
             <Card className={classes.card}>
               <CardContent align="center">
+              {verified ? <VerifiedUserIcon style={{float:'right', marginTop:'5px', marginRight:'10px'}} /> : null }
               <Link to={`/dao/${contractId}`}>
                 <div style={{width: '100%', 
                 height: '50px',

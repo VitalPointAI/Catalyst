@@ -6,12 +6,11 @@ import CommentForm from '../common/Comment/commentForm'
 import CommentDetails from '../common/Comment/commentDetails'
 import FundingProposal from '../FundingProposal/fundingProposal'
 import MemberProposal from '../MemberProposal/memberProposal'
-import Persona from '@aluhning/get-personas-js'
-import { dao } from '../../utils/dao'
-import { getStatus, formatDate } from '../../state/near'
-import { ceramic } from '../../utils/ceramic'
 import * as nearAPI from 'near-api-js'
-import { formatNearAmount } from 'near-api-js/lib/utils/format'
+import { getStatus, formatDate } from '../../state/near'
+import { dao } from '../../utils/dao'
+import { ceramic } from '../../utils/ceramic'
+import { parseNearAmount, formatNearAmount } from 'near-api-js/lib/utils/format'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -83,6 +82,38 @@ const useStyles = makeStyles((theme) => ({
 const imageName = require('../../img/default-profile.png') // default no-image avatar
 
 export default function OpportunityProposalDetails(props) {
+
+  const { state, dispatch, update } = useContext(appStore)
+
+    const {
+      accountId,
+      near,
+      wallet,
+      appIdx,
+      didRegistryContract,
+      currentDaosList,
+      daoFactory,
+      nearPrice,
+      isUpdated,
+      proposalDeposit,
+      curDaoIdx,
+      contract
+    } = state
+
+    const {
+        handleOpportunityProposalDetailsClickState,
+        opportunityId,
+        status,
+        created,
+        applicant,
+        proposer,
+        sponsor,
+        contractId,
+        budget
+    } = props
+
+   
+
     const [open, setOpen] = useState(true)
 
     const [applicantAvatar, setApplicantAvatar] = useState()
@@ -93,6 +124,7 @@ export default function OpportunityProposalDetails(props) {
 
     const [curUserAvatar, setCurUserAvatar] = useState()
     const [curUserName, setCurUserName] = useState()
+    const [memberStatus, setMemberStatus] = useState(props.memberStatus)
    
     const [title, setTitle] = useState('')
     const [details, setDetails] = useState()
@@ -101,58 +133,110 @@ export default function OpportunityProposalDetails(props) {
     const [projectName, setProjectName] = useState('')
     const [opportunityStatus, setOpportunityStatus] = useState('')
     const [permission, setPermission] = useState('')
-    const [created, setCreated] = useState('')
     const [familiarity, setFamiliarity] = useState('0')
-    const [proposalStatus, setProposalStatus] = useState()
+    const [deadline, setDeadline] = useState('')
+    const [submitDate, setSubmitDate] = useState(0)
+    const [dateValid, setDateValid] = useState(false)
+    const [dateLoaded, setDateLoaded] = useState(false)
+    const [days, setDays] = useState(0)
+    const [hours, setHours] = useState(0)
+    const [minutes, setMinutes] = useState(0)
+    const [seconds, setSeconds] = useState(0)
+
     const [desiredSkillSet, setDesiredSkillSet] = useState([])
     const [desiredDeveloperSkillSet, setDesiredDeveloperSkillSet] = useState([])
     const [opportunitySkillSet, setOpportunitySkillSet] = useState([])
-    const [thisCurDaoIdx, setThisCurDaoIdx] = useState(props.curDaoIdx)
-    const [memberStatus, setMemberStatus] = useState()
+    
     const [active, setActive] = useState(false)
+    const [usd, setUsd] = useState()
     
     const [memberProposalClicked, setMemberProposalClicked] = useState(false)
     const [fundingProposalClicked, setFundingProposalClicked] = useState(false)
 
-    const [isUpdated, setIsUpdated] = useState(false)
     const [proposalComments, setProposalComments] = useState([])
     const [finished, setFinished] = useState(false)
 
     const [anchorEl, setAnchorEl] = useState(null)
 
-    const [thisProposalDeposit, setThisProposalDeposit] = useState()
-
     const classes = useStyles()
 
-    const { state, dispatch, update } = useContext(appStore)
 
-    const {
-      accountId,
-      curUserIdx,
-      wallet,
-      near,
-      appIdx,
-      didRegistryContract,
-      currentDaosList
-    } = state
+    useEffect(() => {
+      if(nearPrice && usd){
+        if(usd > 0 && nearPrice > 0){
+          let near = (usd / nearPrice).toFixed(3)
+          let parse = parseNearAmount(near)
+          let formatNear = formatNearAmount(parse, 3)
+          setReward(formatNear)
+        }
+      }
+    }, [usd, nearPrice]
+    )
 
-    const {
-        handleOpportunityProposalDetailsClickState,
-        opportunityId,
-        status,
-        applicant,
-        proposer,
-        contract,
-        sponsor,
-        contractId,
-        dateValid,
-        budget
-    } = props
-  
-    const thisPersona = new Persona()
+    useEffect(() => {
+      async function getCurrentStatus(){
+        if(contractId && near){
+          let thisMemberStatus
+          let thisMemberInfo
+          let daoAccount = new nearAPI.Account(near.connection, contractId)
+          let daoContract = await dao.initDaoContract(daoAccount, contractId)
+          try {
+            thisMemberInfo = await daoContract.getMemberInfo({member: accountId}) 
+            thisMemberStatus = await daoContract.getMemberStatus({member: accountId})
+            if(thisMemberStatus && thisMemberInfo[0].active){
+              setMemberStatus(true)
+            }
+          } catch (err) {
+            console.log('error getting member status', err)
+          }
+          
+        }
+      }
+
+     
+        getCurrentStatus()
+        .then((res) => {
+
+        })
+      
+    }, [contractId, near])
+
+    useEffect(() => {
+      if(deadline){
+        let timer = setInterval(function() {
+          setDateLoaded(false)
+          let splitDate = deadline.split("-")
+          let countDownDate = new Date(splitDate[0], splitDate[1]-1, splitDate[2]).getTime()
+          let now = new Date().getTime()
+          let distance = countDownDate - now
+          if(distance > 0){
+            let thisDays = Math.floor(distance / (1000 * 60 * 60 * 24))
+            let thisHours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 *60 * 60))
+            let thisMinutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
+            let thisSeconds = Math.floor((distance % (1000 * 60)) / 1000)
+            if(thisDays && thisHours && thisMinutes && thisSeconds){
+              setDays(thisDays)
+              setHours(thisHours)
+              setMinutes(thisMinutes)
+              setSeconds(thisSeconds)
+              setDateValid(true)
+            }
+          } else {
+            setDays(0)
+            setHours(0)
+            setMinutes(0)
+            setSeconds(0)
+            setDateValid(false)
+            clearInterval(timer)
+          }
+          setDateLoaded(true)
+        }, 1000)
+      } 
+    }, [deadline])
   
     useEffect(
         () => {
+          if(isUpdated){}
           if(currentDaosList && currentDaosList.length > 0){
             let i = 0
             while (i < currentDaosList.length){
@@ -168,8 +252,8 @@ export default function OpportunityProposalDetails(props) {
            
              // Get Applicant Persona Information
            if(proposer){                    
-              
-            let result = await thisPersona.getData('profile', proposer, appIdx)
+            let proposerDid = await ceramic.getDid(proposer, daoFactory, didRegistryContract)
+            let result = await appIdx.get('profile', proposerDid)
                 if(result){
                   result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
                   result.name ? setProposerName(result.name) : setProposerName(proposer)
@@ -181,8 +265,8 @@ export default function OpportunityProposalDetails(props) {
 
           // Get Current User Persona Information
           if(accountId){                    
-            
-            let result = await thisPersona.getData('profile', accountId, appIdx)
+              let accountDid = await ceramic.getDid(accountId, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', accountDid)
                 if(result){
                   result.avatar ? setCurUserAvatar(result.avatar) : setCurUserAvatar(imageName)
                   result.name ? setCurUserName(result.name) : setCurUserName(accountId)
@@ -193,8 +277,8 @@ export default function OpportunityProposalDetails(props) {
           }
          
           if(applicant){                           
-             
-                let result = await thisPersona.getData('profile', applicant, appIdx)
+            let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
+            let result = await appIdx.get('profile', applicantDid)
                     if(result){
                       result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
                       result.name ? setApplicantName(result.name) : setApplicantName(applicant)
@@ -202,130 +286,78 @@ export default function OpportunityProposalDetails(props) {
                       setApplicantAvatar(imageName)
                       setApplicantName(applicant)
                     } 
-          }
+          }     
 
-            if(contract){
-              let propDeposit = await contract.getProposalDeposit()
-              setThisProposalDeposit(formatNearAmount(propDeposit))
-            }
-            
-            if(wallet && contractId){
-              
-              const daoContract = await dao.initDaoContract(wallet.account(), contractId)
-              let proposal = await daoContract.getProposal({proposalId: parseInt(opportunityId)})
-              let thisStatus = getStatus(proposal.flags)
-              setProposalStatus(thisStatus)
-
-              try {
-                let thisMemberInfo = await daoContract.getMemberInfo({member: accountId})
-            
-                let thisMemberStatus = await daoContract.getMemberStatus({member: accountId})
-               
-                if(thisMemberStatus && thisMemberInfo[0].active){
-                  setMemberStatus(true)
-                } else {
-                  setMemberStatus(false)
-                }
-              } catch (err) {
-                console.log('no member info yet')
-              }
-            }
-
-            // Set Existing Proposal Data
-            let loadCurDaoIdx
-            if(!thisCurDaoIdx){
-              if(contractId){
-                let daoAccount = new nearAPI.Account(near.connection, contractId)
-                 
-                loadCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
-              
-                setThisCurDaoIdx(loadCurDaoIdx)
-
-              }
-            }           
-
-            
-            if(thisCurDaoIdx){
-              let propResult = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
-          
-              console.log('opp details propResult', propResult)
-              if(propResult) {
-                let i = 0
-                while (i < propResult.opportunities.length){
-                  if(propResult.opportunities[i].opportunityId == opportunityId.toString() && propResult.opportunities[i].contractId == contractId){
-                    propResult.opportunities[i].title ? setTitle(propResult.opportunities[i].title) : setTitle('')
-                    propResult.opportunities[i].details ? setDetails(propResult.opportunities[i].details) : setDetails()
-                    propResult.opportunities[i].reward ? setReward(propResult.opportunities[i].reward) : setReward('')
-                    propResult.opportunities[i].category ? setCategory(propResult.opportunities[i].category) : setCategory('')
-                    propResult.opportunities[i].projectName ? setProjectName(propResult.opportunities[i].projectName) : setProjectName('')
-                    propResult.opportunities[i].status ? setOpportunityStatus(propResult.opportunities[i].status) : setOpportunityStatus('')
-                    propResult.opportunities[i].permission ? setPermission(propResult.opportunities[i].permission) : setPermission('')
-                    propResult.opportunities[i].submitDate ? setCreated(propResult.opportunities[i].submitDate) : setCreated('')
-                    propResult.opportunities[i].familiarity ? setFamiliarity(propResult.opportunities[i].familiarity) : setFamiliarity('0')
-                    if(propResult.opportunities[i].desiredSkillSet ){
-                      // let skillArray = []
-                      // skillArray.push(propResult.opportunities[i].desiredSkillSet )
-                   
-                      setDesiredSkillSet(propResult.opportunities[i].desiredSkillSet)
-                    }
-                    if(propResult.opportunities[i].desiredDeveloperSkillSet){
-                      // let developerSkillSetArray = []
-                      // developerSkillSetArray.push(propResult.opportunities[i].desiredDeveloperSkillSet)
-                       setDesiredDeveloperSkillSet(propResult.opportunities[i].desiredDeveloperSkillSet)
-                    }
-                    if(propResult.opportunities[i].opportunitySkills){
-                      // let opportunitySkillSetArray = []
-                      // opportunitySkillSetArray.push(propResult.opportunities[i].opportunitySkills)
-                    
-                      setOpportunitySkillSet(propResult.opportunities[i].opportunitySkills)
-                    }
-                    break
+          if(appIdx){
+            let daoDid = await ceramic.getDid(contractId, daoFactory, didRegistryContract)
+            let propResult = await appIdx.get('opportunities', daoDid)
+           
+            if(propResult) {
+              let i = 0
+              while (i < propResult.opportunities.length){
+                if(propResult.opportunities[i].opportunityId == opportunityId.toString() && propResult.opportunities[i].contractId == contractId){
+                  propResult.opportunities[i].title ? setTitle(propResult.opportunities[i].title) : setTitle('')
+                  propResult.opportunities[i].details ? setDetails(propResult.opportunities[i].details) : setDetails()
+                  propResult.opportunities[i].deadline ? setDeadline(propResult.opportunities[i].deadline) : setDeadline('n/a')
+                  propResult.opportunities[i].reward ? setReward(propResult.opportunities[i].reward) : setReward('')
+                  propResult.opportunities[i].usd ? setUsd(propResult.opportunities[i].usd) : setUsd('')
+                  propResult.opportunities[i].category ? setCategory(propResult.opportunities[i].category) : setCategory('')
+                  propResult.opportunities[i].projectName ? setProjectName(propResult.opportunities[i].projectName) : setProjectName('')
+                  propResult.opportunities[i].status ? setOpportunityStatus(propResult.opportunities[i].status) : setOpportunityStatus('')
+                  propResult.opportunities[i].submitDate ? setSubmitDate(propResult.opportunities[i].submitDate) : setSubmitDate('')
+                  propResult.opportunities[i].permission ? setPermission(propResult.opportunities[i].permission) : setPermission('')
+                  propResult.opportunities[i].familiarity ? setFamiliarity(propResult.opportunities[i].familiarity) : setFamiliarity('0')
+                  if(propResult.opportunities[i].desiredSkillSet ){
+                    setDesiredSkillSet(propResult.opportunities[i].desiredSkillSet)
                   }
-                  i++
+                  if(propResult.opportunities[i].desiredDeveloperSkillSet){
+                      setDesiredDeveloperSkillSet(propResult.opportunities[i].desiredDeveloperSkillSet)
+                  }
+                  if(propResult.opportunities[i].opportunitySkills){
+                    setOpportunitySkillSet(propResult.opportunities[i].opportunitySkills)
+                  }
+                  break
                 }
+                i++
               }
-             
             }
 
             // Set Existing Proposal Comments      
-            if(thisCurDaoIdx){
-              let commentResult = await thisCurDaoIdx.get('comments', thisCurDaoIdx.id)
-              if(!commentResult){
-                commentResult = { comments: [] }
-              }
-           
-              if(commentResult && Object.keys(commentResult).length != 0) {
-                let j = 0
-                let comments = []
-                while (j < commentResult.comments.length){
-                  if(commentResult.comments[j].parent == opportunityId){
-                    comments.push(commentResult.comments[j])
-                  }
-                  j++
-                }
-           
-                setProposalComments(comments)
-              }
+          
+            let commentResult = await appIdx.get('comments', daoDid)
+            if(!commentResult){
+              commentResult = { comments: [] }
             }
-                    
-            return true  
+          
+            if(commentResult && Object.keys(commentResult).length != 0) {
+              let j = 0
+              let comments = []
+              while (j < commentResult.comments.length){
+                if(commentResult.comments[j].parent == opportunityId){
+                  comments.push(commentResult.comments[j])
+                }
+                j++
+              }
+          
+              setProposalComments(comments)
+            }
           }
+          
+                  
+          return true  
+        }
 
           fetchData()
             .then((res) => {
               setFinished(true)
             })
           
-    }, [applicant, applicantAvatar, curUserAvatar, proposerAvatar, proposer, title, details, proposerName, contractId, thisCurDaoIdx, isUpdated]
+    }, [wallet, appIdx, isUpdated]
     )
 
     const handleClose = () => {
         handleOpportunityProposalDetailsClickState(false)
         setOpen(false)
-    }
-
-    function handleUpdate(property){
-      setIsUpdated(property)
     }
 
     const handleMemberProposalClick = () => {
@@ -379,14 +411,11 @@ export default function OpportunityProposalDetails(props) {
                    {author != '' ? 
                       <Typography style={{marginTop: 10}}>
                       In reply to {author}{preview}
-                      </Typography>: null}
+                      </Typography>: null} 
                     <CommentDetails
+                        key={comment.commentId}
                         proposalId={opportunityId}
                         proposalApplicant={applicant}
-                        accountId={accountId}
-                        handleUpdate={handleUpdate}
-                        curDaoIdx={thisCurDaoIdx}
-                        key={comment.commentId}
                         commentId={comment.commentId}
                         comments={proposalComments}
                         commentAuthor={comment.author}
@@ -395,22 +424,32 @@ export default function OpportunityProposalDetails(props) {
                         commentBody={comment.body}
                         commentPostDate={comment.postDate}
                         commentSubject={comment.subject}
-                        accountId={accountId}
-                        curUserIdx={curUserIdx}
-                        memberStatus={memberStatus}
                     />
                 </div>
                   )
           })
     }
-  
+
         return (
            
          
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             {finished ? (<>
               <DialogTitle id="form-dialog-title">Opportunity Proposal Details</DialogTitle>
-              
+              {status == 'Passed' && dateValid && budget > 0 && opportunityStatus ?
+              <Chip label="Active" style={{float:'right', backgroundColor: 'palegreen', marginBottom: '10px', marginRight: '10px', marginTop:'5px'}}/>
+              : <Chip label="InActive" style={{float:'right', backgroundColor: 'palevioletred', marginBottom: '10px', marginRight: '10px', marginTop:'5px'}}/>
+              }
+              <Grid container justifyContent="center" alignItems="center" spacing={1}>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '10px'}}>
+                <Typography variant="subtitle2">
+                  {dateValid ? 
+                    dateLoaded ? 'Expires: ' + days+'d:'+hours+'h:'+minutes+'m:'+seconds
+                  : 'Calculating...'
+                  : 'Expired'
+                  }</Typography>
+                </Grid>
+              </Grid>
                 <DialogContent>
                 {!details ? (
                   <DialogContentText style={{marginBottom: 10}}>
@@ -422,24 +461,25 @@ export default function OpportunityProposalDetails(props) {
                            <Typography variant="h4">{title}</Typography>
                         </Grid>
                         <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
-                           <Typography variant="h6">{projectName}</Typography>
+                           <Typography variant="h6" style={{marginBottom: '10px'}}>{projectName}</Typography><br></br>
+                           <Chip color="primary" label={category} style={{marginBottom: '10px'}}/>
                         </Grid>
-                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
-                           <Typography variant="overline">Proposed: {formatDate(created)}</Typography>
+                        <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" >
+                           <Typography variant="overline" style={{marginBottom:'5px'}}>Proposed: {created ? formatDate(created) : formatDate(submitDate)}</Typography>
                         </Grid>
-                        <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
-                        <Typography variant="overline">Proposer:</Typography>
-                          <Chip avatar={<Avatar src={proposerAvatar} className={classes.small}  />} label={proposerName != '' ? proposerName : proposer}/>
+                        <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                        <Typography variant="overline" >Proposer:</Typography>
+                          <Chip avatar={<Avatar src={proposerAvatar} className={classes.small} />} label={proposerName != '' ? proposerName : proposer} style={{marginBottom:'5px'}} />
                         </Grid>
-                        <Grid item xs={12} sm={12} md={4} lg={4} xl={4} align="center">
-                          <Chip label={proposalStatus == 'Passed' && opportunityStatus ? 'Active' : 'Inactive'} style={{marginRight: '10px'}}/>
-                          <Chip color="primary" label={category}/>
+                        <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
+                          <Typography variant="overline">Deadline:</Typography>
+                          <Chip label={deadline}/>
                         </Grid>
-                        <Grid item xs={12} sm={12} md={4} lg={4} xl={4} style={{marginBottom: '30px'}}>
-                        <Typography variant="overline">Base Reward:</Typography>
-                          <Chip label={reward + ' Ⓝ'}/>
+                        <Grid item xs={12} sm={12} md={6} lg={6} xl={6} style={{marginBottom: '30px'}}>
+                        <Typography variant="overline">Reward:</Typography>
+                          <Chip label={usd ? usd + ' USD' + '= ~' + reward + ' Ⓝ' : reward * nearPrice + ' USD' + '= ~' + reward + ' Ⓝ'}/>
                         </Grid>
-                        {status == 'Sponsored' ? (
+                        {opportunityStatus == 'Sponsored' ? (
                         <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{marginBottom: '30px'}}>
                           <Typography variant="overline" color="textSecondary">Sponsor: {sponsor}</Typography>
                         </Grid>
@@ -593,10 +633,6 @@ export default function OpportunityProposalDetails(props) {
                     avatar={curUserAvatar}
                     name={curUserName}
                     proposalId={opportunityId}
-                    accountId={accountId}
-                    contract={contract}
-                    handleUpdate={handleUpdate}
-                    curDaoIdx={thisCurDaoIdx}
                   />
               </Grid>
               </Grid>
@@ -610,26 +646,25 @@ export default function OpportunityProposalDetails(props) {
               <CircularProgress style={{position: 'fixed', top: '50%', left: '50%', marginLeft:'-20px', marginTop: '-20px'}}/>
               </div>
             )}
-              
+           
               {fundingProposalClicked ? <FundingProposal
-                contractId={contractId}
                 handleFundingProposalClickState={handleFundingProposalClickState}
-                state={state}
                 depositToken={'Ⓝ'}
-                proposalDeposit={thisProposalDeposit}
+                reference={reference}
+                budget={budget}
+                applicant={applicant}
+                usd={usd}
                 tokenName={'Ⓝ'}
-                accountId={accountId} 
-               
                 /> : null }
       
               {memberProposalClicked ? <MemberProposal
                 contractId={contractId}
-                state={state}
                 depositToken={'Ⓝ'}
-                proposalDeposit={thisProposalDeposit}
+                proposalDeposit={proposalDeposit}
+                appIdx={appIdx}
+                didRegistryContract={didRegistryContract}
+                daoFactory={daoFactory}
                 handleMemberProposalClickState={handleMemberProposalClickState} 
-                accountId={accountId} 
-          
                 /> : null }
               
             </Dialog>

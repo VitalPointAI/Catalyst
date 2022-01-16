@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
 import { ceramic } from '../../utils/ceramic'
-import * as nearAPI from 'near-api-js'
 import { appStore, onAppMount } from '../../state/app'
 import MemberProfileDisplay from '../MemberProfileDisplay/memberProfileDisplay'
 import Delegation from '../Delegation/delegation'
@@ -47,14 +46,11 @@ const useStyles = makeStyles((theme) => ({
 
 export default function MemberCard(props) {
 
-    const [date, setDate] = useState('')
     const [name, setName] = useState('')
     const [avatar, setAvatar] = useState(imageName)
-    const [shortBio, setShortBio] = useState('')
-    const [did, setDid] = useState()
-    const [curUserIdx, setCurUserIdx] = useState()
-    const [joined, setJoined] = useState(props.joined)
+
     const [allShares, setAllShares] = useState()
+    const [votingPower, setVotingPower] = useState()
     const [memberProfileDisplayClicked, setMemberProfileDisplayClicked] = useState(false)
     const [manageDelegationsClicked, setManageDelegationsClicked] = useState(false)
     const [delegationClicked, setDelegationClicked] = useState(false)
@@ -70,7 +66,11 @@ export default function MemberCard(props) {
       accountId,
       isUpdated,
       didRegistryContract,
-      daoFactory
+      daoFactory,
+      contract,
+      summoner,
+      active,
+      totalShares
     } = state
 
     const classes = useStyles();
@@ -83,12 +83,8 @@ export default function MemberCard(props) {
       receivedDelegations,
       currentMemberInfo,
       allMemberInfo,
-      memberCount,
-      totalShares,
-      active,
-      summoner,
-      contract,
-      remainingDelegates
+      remainingDelegates,
+      joined
     } = props
 
     const {
@@ -109,42 +105,32 @@ export default function MemberCard(props) {
               console.log('error retrieving delegation info', err)
             }
           }
+
           if(accountName && near){
-            // let thisCurMemberIdx
-            // let did
-            // try{
-            //   let memberAccount = new nearAPI.Account(near.connection, accountName)
-            //   did = await ceramic.retrieveDid(near, memberAccount, appIdx.ceramic)
-            // } catch (err) {
-            //   console.log('problem getting member idx', err)
-            //   return false
-            // }
-            
-            // if(did){
-             // let result = await thisCurMemberIdx.get('profile', thisCurMemberIdx.id)
-              let did = await ceramic.getDid(accountName, daoFactory, didRegistryContract)
+             let did = await ceramic.getDid(accountName, daoFactory, didRegistryContract)
               if(did){
                 let result = await appIdx.get('profile', did)
                 if(result){
-                  result.date ? setDate(result.date) : setDate('')
                   result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-                  result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
                   result.name ? setName(result.name) : setName('')
                 }
               }
-           // }
           }
+
+          let combinedShares
           if(shares){
-            let combinedShares = parseInt(shares) + parseInt(receivedDelegations)
-           
+            combinedShares = parseInt(shares) + parseInt(receivedDelegations)
             setAllShares(combinedShares)
           }
+
           if(currentMemberInfo && currentMemberInfo.length > 0){
-           
             let currentMaxDelegation = parseInt(currentMemberInfo[0].shares) - parseInt(currentMemberInfo[0].delegatedShares)
-         
             setMaxDelegation(currentMaxDelegation)
           }
+
+          let votePower = Math.round(((combinedShares - parseInt(delegatedShares)) / totalShares)*100, 2)
+          setVotingPower(votePower)
+
         }
         
         let mounted = true
@@ -192,12 +178,9 @@ export default function MemberCard(props) {
       setManageDelegationsClicked(property)
     }
 
-
     function handleExpanded() {
       setAnchorEl(null)
     }
-
-    const votingPower = Math.round(((allShares - parseInt(delegatedShares)) / totalShares)*100, 2)
 
     return(
         <>

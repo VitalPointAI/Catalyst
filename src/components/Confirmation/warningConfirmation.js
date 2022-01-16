@@ -160,9 +160,9 @@ export default function WarningConfirmation(props) {
               <Card>
               <CardContent align="center">
                 <WarningIcon fontSize='large' className={classes.warning} />
-                <Typography variant="body1">Catalyst is undergoing lots of testing.</Typography>
-                <Typography variant="body1">It's contracts have not been audited.</Typography>
-                <Typography variant="h6">Use at your own risk.</Typography>
+                <Typography variant="body1">Catalyst is open source.</Typography>
+                <Typography variant="body1">Provided "as is" without warranty of any kind.</Typography>
+                <Typography variant="h6">Use at own risk.</Typography>
                 
                 <Grid container className={classes.confirmation} spacing={1}>
                   <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>

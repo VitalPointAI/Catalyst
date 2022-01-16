@@ -3,9 +3,9 @@ import { appStore, onAppMount } from '../../state/app'
 import { makeStyles } from '@material-ui/core/styles'
 import CommentForm from '../common/Comment/commentForm'
 import CommentDetails from '../common/Comment/commentDetails'
-import Persona from '@aluhning/get-personas-js'
 import MilestoneCard from '../MilestoneCard/MilestoneCard'
 import { formatDate } from '../../state/near'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -107,22 +107,24 @@ export default function CancelCommitmentProposalDetails(props) {
     const {
       accountId,
       curUserIdx,
-      appIdx
+      appIdx,
+      daoFactory,
+      didRegistryContract,
+      curDaoIdx,
+      memberStatus,
+      contract
     } = state
+
 
     const {
         handleCancelCommitmentProposalDetailsClickState,
+        handleMemberProfileDisplayClick,
         proposalId,
         proposalStatus,
         applicant,
-        curDaoIdx,
         sponsor,
         proposer,
-        contract,
-        memberStatus
     } = props
-
-    const thisPersona = new Persona()
 
     useEffect(
         () => {
@@ -130,8 +132,8 @@ export default function CancelCommitmentProposalDetails(props) {
          
             // Get Applicant Persona Information
             if(proposer){                    
-              
-              let result = await thisPersona.getData('profile', proposer, appIdx)
+              let proposerDid = await ceramic.getDid(proposer, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', proposerDid)
                 if(result){
                   result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
                   result.name ? setProposerName(result.name) : setProposerName(proposer)
@@ -143,8 +145,8 @@ export default function CancelCommitmentProposalDetails(props) {
 
             // Get Current User Persona Information
             if(accountId){                    
-              
-              let result = await thisPersona.getData('profile', accountId, appIdx)
+              let accountDid = await ceramic.getDid(accountDid, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', accountDid)
                   if(result){
                     result.avatar ? setCurUserAvatar(result.avatar) : setCurUserAvatar(imageName)
                     result.name ? setCurUserName(result.name) : setCurUserName(accountId)
@@ -155,8 +157,8 @@ export default function CancelCommitmentProposalDetails(props) {
             }
           
             if(applicant){                           
-              
-                  let result = await thisPersona.getData('profile', applicant, appIdx)
+              let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', applicantDid)
                       if(result){
                         result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
                         result.name ? setApplicantName(result.name) : setApplicantName(applicant)
@@ -304,12 +306,9 @@ export default function CancelCommitmentProposalDetails(props) {
                     In reply to {author}{preview}
                     </Typography>: null}
                     <CommentDetails
+                        key={comment.commentId}
                         proposalId={proposalId}
                         proposalApplicant={applicant}
-                        accountId={accountId}
-                        handleUpdate={handleUpdate}
-                        curDaoIdx={curDaoIdx}
-                        key={comment.commentId}
                         commentId={comment.commentId}
                         comments={proposalComments}
                         commentAuthor={comment.author}
@@ -318,9 +317,6 @@ export default function CancelCommitmentProposalDetails(props) {
                         commentBody={comment.body}
                         commentPostDate={comment.postDate}
                         commentSubject={comment.subject}
-                        accountId={accountId}
-                        curUserIdx={curUserIdx}
-                        memberStatus={memberStatus}
                     />
                 </div>
                   )
@@ -345,7 +341,15 @@ export default function CancelCommitmentProposalDetails(props) {
                     </Grid>
                     <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
                       <Typography variant="overline">Proposer:</Typography>
-                      <Chip avatar={<Avatar src={proposerAvatar} className={classes.small}  />} label={proposerName != '' ? proposerName : proposer}/>
+                      <Chip 
+                        avatar={
+                          <Avatar 
+                          src={proposerAvatar} 
+                          className={classes.small}  />
+                        } 
+                        label={proposerName != '' ? proposerName : proposer}
+                        onClick={handleMemberProfileDisplayClick}
+                      />
                       <Typography variant="overline" style={{marginLeft:'10px'}}>Proposed: {created ? formatDate(created) : null}</Typography>
                     </Grid>
                    
@@ -441,10 +445,6 @@ export default function CancelCommitmentProposalDetails(props) {
                     avatar={curUserAvatar}
                     name={curUserName}
                     proposalId={proposalId}
-                    accountId={accountId}
-                    contract={contract}
-                    handleUpdate={handleUpdate}
-                    curDaoIdx={curDaoIdx}
                   />
               </Grid>
               ) : null }

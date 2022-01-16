@@ -4,8 +4,8 @@ import { makeStyles } from '@material-ui/core/styles'
 import CommentForm from '../common/Comment/commentForm'
 import CommentDetails from '../common/Comment/commentDetails'
 import MilestoneCard from '../MilestoneCard/MilestoneCard'
-import Persona from '@aluhning/get-personas-js'
 import { getStatus, formatDate } from '../../state/near'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -125,74 +125,77 @@ export default function FundingProposalDetails(props) {
       accountId,
       curUserIdx, 
       wallet,
-      appIdx
+      appIdx,
+      daoFactory,
+      didRegistryContract,
+      curDaoIdx,
+      contract,
+      memberStatus      
     } = state
-
+    
     const {
         handleFundingProposalDetailsClickState,
         proposalId,
         status,
-        curDaoIdx,
-        curPersonaIdx,
         applicant,
         proposer,
-        contract,
-        contractId,
         sponsor,
-        proposalStatus,
-        memberStatus
+        proposalStatus
     } = props
 
-    const thisPersona = new Persona()
+    useEffect(
+      () => {
+        async function fetchProfileData() {
+
+          // Get Persona Information
+          if(proposer && accountId && applicant) {                    
+              let proposerDid = await ceramic.getDid(proposer, daoFactory, didRegistryContract)
+              let propResult = await appIdx.get('profile', proposerDid)
+              if(propResult){
+                propResult.avatar ? setProposerAvatar(propResult.avatar) : setProposerAvatar(imageName)
+                propResult.name ? setProposerName(propResult.name) : setProposerName(proposer)
+              } else {
+                setProposerAvatar(imageName)
+                setProposerName(proposer)
+              } 
+                           
+              let accountDid = await ceramic.getDid(accountId, daoFactory, didRegistryContract)
+              let accResult = await appIdx.get('profile', accountDid)
+              if(accResult){
+                accResult.avatar ? setCurUserAvatar(accResult.avatar) : setCurUserAvatar(imageName)
+                accResult.name ? setCurUserName(accResult.name) : setCurUserName(accountId)
+              } else {
+                setCurUserAvatar(imageName)
+                setCurUserName(accountId)
+              } 
+                         
+              let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
+              let appResult = await appIdx.get('profile', applicantDid)
+    
+              if(appResult){
+                appResult.avatar ? setApplicantAvatar(appResult.avatar) : setApplicantAvatar(imageName)
+                appResult.name ? setApplicantName(appResult.name) : setApplicantName(applicant)
+              } else {
+                setApplicantAvatar(imageName)
+                setApplicantName(applicant)
+              }
+          }
+        }
+
+        fetchProfileData()
+
+      }, [proposer, accountId, applicant]
+    )
 
     useEffect(
         () => {
          
 
           async function fetchData() {
-         
-            // Get Applicant Persona Information
-            if(proposer){                    
-              
-              let result = await thisPersona.getData('profile', proposer, appIdx)
-                  if(result){
-                    result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
-                    result.name ? setProposerName(result.name) : setProposerName(proposer)
-                  } else {
-                    setProposerAvatar(imageName)
-                    setProposerName(proposer)
-                  } 
-            }
-
-            // Get Current User Persona Information
-            if(accountId){                    
-              
-              let result = await thisPersona.getData('profile', accountId, appIdx)
-                  if(result){
-                    result.avatar ? setCurUserAvatar(result.avatar) : setCurUserAvatar(imageName)
-                    result.name ? setCurUserName(result.name) : setCurUserName(accountId)
-                  } else {
-                    setCurUserAvatar(imageName)
-                    setCurUserName(accountId)
-                  } 
-            }
-           
-            if(applicant){                           
-               
-                  let result = await thisPersona.getData('profile', applicant, appIdx)
-                      if(result){
-                        result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
-                        result.name ? setApplicantName(result.name) : setApplicantName(applicant)
-                      } else {
-                        setApplicantAvatar(imageName)
-                        setApplicantName(applicant)
-                      } 
-            }
 
             // Set Existing Proposal Data       
             if(curDaoIdx && contract){
               let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
-            console.log('fundingproposaldetails', propResult)
               if(propResult) {
                 let i = 0
                 while (i < propResult.proposals.length){
@@ -217,19 +220,22 @@ export default function FundingProposalDetails(props) {
                 console.log('oppResult', oppResult)
                 let confirmedMilestonePayouts = []
                 let t = 0
-                while (t < oppResult.proposals.length){
-                  let z = 0
-                  while(z < oppResult.proposals[t].referenceIds.length-1){                 
-                    if(oppResult.proposals[t].referenceIds[0].keyName == 'proposal' && oppResult.proposals[t].referenceIds[0].valueSetting == proposalId ){
-                      let currentProposal = await contract.getProposal({proposalId: parseInt(proposalId)})
-                      let status = getStatus(currentProposal.flags)                    
-                      if (status == 'Passed'){
-                        confirmedMilestonePayouts.push(oppResult.proposals[t].referenceIds[1].valueSetting)
-                        setMilestonePayouts(confirmedMilestonePayouts)                     
+              while (t < oppResult.proposals.length){
+                    let z = 0
+                    while(z < oppResult.proposals[t].referenceIds.length){                 
+                      if(oppResult.proposals[t].referenceIds[0].keyName == 'proposal' && oppResult.proposals[t].referenceIds[0].valueSetting == proposalId ){
+                        let payoutProposalId = oppResult.proposals[t].proposalId
+                        let currentProposal = await contract.getProposal({proposalId: parseInt(payoutProposalId)})
+                        console.log('proposalId', currentProposal)
+                        let status = getStatus(currentProposal.flags)
+                        console.log('status', status)             
+                        if (status == 'Passed'){
+                          confirmedMilestonePayouts.push(oppResult.proposals[t].referenceIds[1].valueSetting)
+                          setMilestonePayouts(confirmedMilestonePayouts)                 
+                        }
                       }
+                    z++
                     }
-                  z++
-                  }
                 t++
                 }
               } catch (err) {
@@ -241,18 +247,19 @@ export default function FundingProposalDetails(props) {
                 let confirmedMilestoneCancellations = []
                 let t = 0
                 while (t < oppResult.proposals.length){
-                  let z = 0
-                  while(z < oppResult.proposals[t].referenceIds.length-1){                 
-                    if(oppResult.proposals[t].referenceIds[0].keyName == 'proposal' && oppResult.proposals[t].referenceIds[0].valueSetting == proposalId ){
-                      let currentProposal = await contract.getProposal({proposalId: parseInt(proposalId)})
-                      let status = getStatus(currentProposal.flags)                    
-                      if (status == 'Passed'){
-                        confirmedMilestoneCancellations.push(oppResult.proposals[t].referenceIds[1].valueSetting)
-                        setMilestoneCancellations(confirmedMilestoneCancellations)                     
+                    let z = 0
+                    while(z < oppResult.proposals[t].referenceIds.length-1){                 
+                      if(oppResult.proposals[t].referenceIds[0].keyName == 'proposal' && oppResult.proposals[t].referenceIds[0].valueSetting == proposalId ){
+                        let cancelledProposalId = oppResult.proposals[t].proposalId
+                        let currentProposal = await contract.getProposal({proposalId: parseInt(cancelledProposalId)})
+                        let status = getStatus(currentProposal.flags)                    
+                        if (status == 'Passed'){
+                          confirmedMilestoneCancellations.push(oppResult.proposals[t].referenceIds[1].valueSetting)
+                          setMilestoneCancellations(confirmedMilestoneCancellations)                     
+                        }
                       }
+                    z++
                     }
-                  z++
-                  }
                 t++
                 }
               } catch (err) {
@@ -290,7 +297,7 @@ export default function FundingProposalDetails(props) {
               setFinished(true)
             })
           
-    }, [applicant, applicantAvatar, curUserAvatar, proposerAvatar, title, created, details, applicantName, proposerName, isUpdated]
+    }, [curDaoIdx, contract, isUpdated]
     )
 
     const handleClose = () => {
@@ -305,17 +312,18 @@ export default function FundingProposalDetails(props) {
     let Milestones
     if(milestones && milestones.length > 0){
       Milestones = milestones.map((element, index) => {
-     
+        console.log('element', element)
+        console.log('milestone payouts', milestonePayouts)
         let i = 0
-        let paid
+        let paid = false
         while (i < milestonePayouts.length){
-          if (element.id == parseInt(milestonePayouts[i])){
+          if (element.id == milestonePayouts[i]){
             paid = true
             break
           }
           i++
         }
-
+        console.log('paid', paid)
         let j = 0
         let cancelled
         while (j < milestoneCancellations.length){
@@ -402,25 +410,19 @@ export default function FundingProposalDetails(props) {
                         </Typography>
                       : null}
                     
-                    <CommentDetails
-                        proposalId={proposalId}
-                        proposalApplicant={applicant}
-                        accountId={accountId}
-                        handleUpdate={handleUpdate}
-                        curDaoIdx={curDaoIdx}
-                        key={comment.commentId}
-                        commentId={comment.commentId}
-                        comments={proposalComments}
-                        commentAuthor={comment.author}
-                        commentParent={comment.parent}
-                        commentPublished={comment.published}
-                        commentBody={comment.body}
-                        commentPostDate={comment.postDate}
-                        commentSubject={comment.subject}
-                        accountId={accountId}
-                        curUserIdx={curUserIdx}
-                        memberStatus={memberStatus}
-                    />
+                      <CommentDetails
+                          key={comment.commentId}
+                          proposalId={proposalId}
+                          proposalApplicant={applicant}
+                          commentId={comment.commentId}
+                          comments={proposalComments}
+                          commentAuthor={comment.author}
+                          commentParent={comment.parent}
+                          commentPublished={comment.published}
+                          commentBody={comment.body}
+                          commentPostDate={comment.postDate}
+                          commentSubject={comment.subject}
+                      />
               </div>
                   )
           })
@@ -537,10 +539,6 @@ export default function FundingProposalDetails(props) {
                     avatar={curUserAvatar}
                     name={curUserName}
                     proposalId={proposalId}
-                    accountId={accountId}
-                    contract={contract}
-                    handleUpdate={handleUpdate}
-                    curDaoIdx={curDaoIdx}
                   />
               </Grid>
               ) : null }

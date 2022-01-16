@@ -18,8 +18,7 @@ const useStyles = makeStyles((theme) => ({
     card: {
       verticalAlign: 'middle',
       margin: '10px 10px 10px 10px',
-      padding: '2px',
-      minWidth: '220px'
+      padding: '2px'
     },
     square: {
       float: 'left',

@@ -75,7 +75,7 @@ export default function Leave(props) {
     const memberShares = watch('memberShare', shareFields)
 
   const { 
-    daoContract,
+    contract,
     contractId,
     state,
     handleLeaveClickState,
@@ -92,8 +92,8 @@ export default function Leave(props) {
     () => {
 
       async function fetchData(){
-        if(contractId && daoContract && state){
-          let totalMembers = await daoContract.getTotalMembers()
+        if(contractId && contract && state){
+          let totalMembers = await contract.getTotalMembers()
           setCurrentMembers(totalMembers)
           
           let account
@@ -135,7 +135,7 @@ export default function Leave(props) {
    // let newShare = share.toLocaleString('fullwide', {useGrouping: false})
     try{
       await leaveCommunity(
-                      daoContract,
+                      contract,
                       contractId,
                       share,
                       state.accountId,

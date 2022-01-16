@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 import { Header } from '../Header/header'
 import * as nearAPI from 'near-api-js'
-import Personas from '@aluhning/get-personas-js'
 import OpportunityCard from '../OpportunityCard/OpportunityCard'
 import Footer from '../../components/common/Footer/footer'
 import Fuse from 'fuse.js'
@@ -18,6 +17,14 @@ import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import Card from '@material-ui/core/Card'
 import { CircularProgress } from '@material-ui/core'
+import FormLabel from '@material-ui/core/FormLabel'
+import FormControl from '@material-ui/core/FormControl'
+import FormGroup from '@material-ui/core/FormGroup'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import FormHelperText from '@material-ui/core/FormHelperText'
+import Switch from '@material-ui/core/Switch'
+
+const axios = require('axios').default
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -28,7 +35,6 @@ const useStyles = makeStyles((theme) => ({
     },
     card: {
       margin: 'auto',
-      maxWidth: '250px',
       padding: '20px'
     },
     menuButton: {
@@ -48,12 +54,16 @@ export default function Opportunities(props) {
     const [result, setResult] = useState()
     const [aopportunities, setaOpportunities] = useState()
     const [searchOpportunities, setSearchOpportunities] = useState([])
-    const [recommendations, setRecommendations] = useState([])
+    const [opportunities, setOpportunities] = useState([])
     const [suitabilityScore, setSuitabilityScore] = useState()
     const [finished, setFinished] = useState(false)
     const [active, setActive] = useState(false)
-   
-    
+    const [activeOnly, setActiveOnly] = useState(true)
+    const [contract, setContract] = useState()
+    const [curDaoIdx, setCurDaoIdx] = useState()
+    const [memberStatus, setMemberStatus] = useState()
+    const [timerStarted, setTimerStarted] = useState(false)
+    const [allOpportunities, setAllOpportunities] = useState([])
 
     const classes = useStyles()
 
@@ -61,17 +71,73 @@ export default function Opportunities(props) {
 
     const {
       accountId,
-      didRegistryContract, 
+      didRegistryContract,
+      daoFactory,
       near,
       appIdx,
       currentDaosList,
-      isUpdated
+      isUpdated,
+      wallet,
+      nearPrice
     } = state
 
     const {
       contractId
     } = useParams()
 
+    
+    useEffect(
+      () => {
+        let timer
+
+        async function updateNearPrice() {
+            try {
+              let getNearPrice = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd')
+              update('', {nearPrice: getNearPrice.data.near.usd})
+            } catch (err) {
+              console.log('get near price issue', err)
+            }
+        }
+  
+        function stop() {
+          if (timer) {
+              clearInterval(timer)
+              timer = 0
+          }
+        }
+
+        timer = setInterval(updateNearPrice, 60000)
+        setTimerStarted(true)
+      
+        return () => {
+          setTimerStarted(false)
+          stop()
+        }
+
+      }, []
+    )
+
+    useEffect(
+      () => {
+        async function initialize() {
+          if(wallet && near && appIdx && didRegistryContract){
+            let thisContract = await dao.initDaoContract(wallet.account(), contractId)
+            setContract(thisContract)
+            try{
+              let daoAccount = new nearAPI.Account(near.connection, contractId)
+              let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
+              setCurDaoIdx(thisCurDaoIdx)
+            } catch (err) {
+              console.log('problem getting curdaoidx', err)
+              return false
+            }
+          }
+        }
+
+        initialize()
+
+      }, [wallet, near]
+    )
 
     useEffect(
         () => {
@@ -90,20 +156,28 @@ export default function Opportunities(props) {
           async function fetchData() {
            
             setFinished(false)
-            if(didRegistryContract && near && contractId){
-              let Persona = new Personas()
-              let thisCurDaoIdx
-              let daoAccount
-              let opportunities
-              try{
-                daoAccount = new nearAPI.Account(near.connection, contractId)
+
+            if(contract){
+             
+              try {
+                let thisMemberInfo = await contract.getMemberInfo({member: accountId})
+                let thisMemberStatus = await contract.getMemberStatus({member: accountId})
+                if(thisMemberStatus && thisMemberInfo[0].active){
+                  setMemberStatus(true)
+                } else {
+                  setMemberStatus(false)
+                }
               } catch (err) {
-                console.log('no account', err)
+                console.log('no member info yet')
               }
-              thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
-           
-              opportunities = await thisCurDaoIdx.get('opportunities', thisCurDaoIdx.id)
-              console.log('opportunities', opportunities)
+  
+            }
+
+            if(didRegistryContract && near && contractId && daoFactory && appIdx){
+             
+              let curDid = await ceramic.getDid(contractId, daoFactory, didRegistryContract )
+              let opportunities = await appIdx.get('opportunities', curDid)
+             
               if(opportunities && opportunities.opportunities.length > 0){
                 setaOpportunities(opportunities.opportunities)
               }
@@ -120,20 +194,15 @@ export default function Opportunities(props) {
                   i++
                 }
               }
-              console.log('allopps', allOpportunities)
+              
 
               // 2. Retrieve current persona data
-              let personaAccount = new nearAPI.Account(near.connection, accountId)
-              let thisCurPersonaIdx
-              try{
-                thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, near, didRegistryContract)
-              } catch (err) {
-                console.log('error retrieving idx', err)
-              }
-              let currentPersona = await thisCurPersonaIdx.get('profile', thisCurPersonaIdx.id)
+              
+              let personaDid = await ceramic.getDid(accountId, daoFactory, didRegistryContract)
+              let currentPersona = await appIdx.get('profile', personaDid)
 
-              // 3. Initialize recommendations array
-              let currentRecommendations = []
+              // 3. Initialize opportunitiess array
+              let currentOpportunities = []
             
               // 4. For each opportunity, compare opportunity skillset requirements to persona skillsets and add to recommendations array if the same
               // calculate a suitability percentage from skills required (true) (total skills possessed / total skills)
@@ -170,8 +239,6 @@ export default function Opportunities(props) {
                   }
                 })
               }
-
-              console.log('combinedpersonaskills', combinedPersonaSkills)
 
               let j = 0
 
@@ -215,7 +282,7 @@ export default function Opportunities(props) {
                   setSuitabilityScore(asuitabilityScore)
 
                   let thisContract = await dao.initDaoContract(state.wallet.account(), allOpportunities[j].contractId)
-                  console.log('thiscontract', thisContract)
+                 
                   // confirm proposal exists
                   let exists
                   try{
@@ -234,12 +301,25 @@ export default function Opportunities(props) {
                   if(exists){
                     let propFlags = await thisContract.getProposalFlags({proposalId: parseInt(allOpportunities[j].opportunityId)})
                     let status = getStatus(propFlags)
-                    currentRecommendations.push({opportunity: allOpportunities[j], status: status, skillMatch: skillMatch, allSkills: combinedOpportunitySkills.length, suitabilityScore: asuitabilityScore})
+                    currentOpportunities.push({opportunity: allOpportunities[j], status: status, skillMatch: skillMatch, allSkills: combinedOpportunitySkills.length, suitabilityScore: asuitabilityScore})
                     }
                   j++
               }
-              console.log('currentrecs', currentRecommendations)
-              setRecommendations(currentRecommendations)      
+           
+              setAllOpportunities(currentOpportunities)
+
+              let activeOpportunities = []
+              let z = 0
+              while (z < currentOpportunities.length){
+                  if(currentOpportunities[z].opportunity.status == true
+                    && currentOpportunities[z].opportunity.budget > 0 
+                    && new Date(currentOpportunities[z].opportunity.deadline).getTime() > Date.now()){
+                      activeOpportunities.push(currentOpportunities[z])
+                  } 
+              z++
+              }
+         
+              setOpportunities(activeOpportunities)      
             }
           }
 
@@ -251,13 +331,13 @@ export default function Opportunities(props) {
             })
           return() => mounted = false
           }
-    }, [near, isUpdated]
+    }, [near, contract, isUpdated]
     )
 
     const searchData = async (pattern) => {
       if (!pattern) {
-        let Persona = new Personas()
-        let opportunities = await Persona.getOpportunities(contractId)
+        let contractDid = await ceramic.getDid(contractId, daoFactory, didRegistryContract)
+        let opportunities = await appIdx.get('opportunities', contractDid)
         let sortedOpportunities = _.sortBy(opportunities.opportunities, 'submitDate').reverse()
        
         setaOpportunities(sortedOpportunities)
@@ -281,26 +361,75 @@ export default function Opportunities(props) {
           setaOpportunities(matches)
       }
   }
+
+  const handleStatusChange = async (event) => {
+    setActiveOnly(event.target.checked)
+    
+    if(event.target.checked){
+        let statusRecs = []
+        setOpportunities(statusRecs)
+        let i = 0
+        while (i < opportunities.length){
+            if(opportunities[i].opportunity.status == true
+              && opportunities[i].opportunity.budget > 0 
+              && new Date(opportunities[i].opportunity.deadline).getTime() > Date.now()){
+                statusRecs.push(opportunities[i])
+            } 
+        i++
+        }
+        setOpportunities(statusRecs)
+    } else {
+      let statusRecs = []
+      setOpportunities(statusRecs)
+      let i = 0
+      while (i < allOpportunities.length){
+        if(allOpportunities[i].opportunity.status == true ||
+          allOpportunities[i].opportunity.status == false)
+        {
+            statusRecs.push(allOpportunities[i])
+        } 
+      i++
+      }
+      setOpportunities(statusRecs)
+    }
+  }
     
     return (
         <>
         <div className={classes.root}>
         <Header state={state}/>
-        <Grid container alignItems="center" justifyContent="center" spacing={0}>
+        <Grid container alignItems="center" justifyContent="space-between" spacing={0} >
           <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom:'30px'}}>
             <Typography variant='h3' style={{marginTop: '20px'}}>Community Opportunities</Typography>
             <Typography variant='body1' style={{padding: '5px'}}>These are the opportunitites currently available to the community.</Typography>
           </Grid>
-            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{marginBottom:'30px'}}>
+          <Grid item xs={3} sm={3} md={3} lg={3} xl={3}>
+          </Grid>
+          <Grid item xs={6} sm={6} md={6} lg={6} xl={6}>
           <SearchBar
               placeholder="Search"
               onChange={(e) => searchData(e.target.value)}
           />
           </Grid>
+          <Grid item xs={3} sm={3} md={3} lg={3} xl={3}>
+          </Grid>
+        </Grid>
+       
+        <Grid container spacing={1} justifyContent="center" alignItems="flex-start" style={{paddingLeft:'40px', paddingRight:'40px'}}>
+        <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
+          <FormControl component="fieldset" style={{flexDirection: 'row'}} >
+            <FormLabel component="legend" style={{marginTop:'10px', marginRight:'10px'}}>Filters:</FormLabel>
+            <FormGroup>
+              <FormControlLabel
+                control={<Switch checked={activeOnly} onChange={handleStatusChange} name="onlyActiveOpportunities" />}
+                label="Active"
+              />
+            </FormGroup>
+          </FormControl>
+        </Grid>
           {finished && active ?
-            recommendations && recommendations.length > 0 ?
-              recommendations.map((fr, i) => {
-               console.log('fr', fr)
+            opportunities && opportunities.length > 0 ?
+              opportunities.map((fr, i) => {
                 if(fr.status == "Passed"){
                 return(
                   <OpportunityCard 
@@ -308,6 +437,7 @@ export default function Opportunities(props) {
                     creator={fr.opportunity.proposer}
                     created={fr.opportunity.submitDate}
                     updated={fr.opportunity.updatedDate}
+                    usd={fr.opportunity.usd ? fr.opportunity.usd : 0}
                     reward={fr.opportunity.reward}
                     category={fr.opportunity.category}
                     projectName={fr.opportunity.projectName}
@@ -321,7 +451,11 @@ export default function Opportunities(props) {
                     suitabilityScore={fr.suitabilityScore}
                     deadline={fr.opportunity.deadline}
                     budget={fr.opportunity.budget}
-                 
+                    contract={contract}
+                    curDaoIdx={curDaoIdx}
+                    memberStatus={memberStatus}
+                    status={fr.status}
+                
                   />
                 )} else {
                   return null
@@ -338,14 +472,14 @@ export default function Opportunities(props) {
                 <Typography variant="h5">This Community is Inactive. No active opportunities available.</Typography>
               </Card>
               : null
-              : <div style={{margin: 'auto', width:'200px', marginTop:'20px'}}>
+              : <div style={{margin: 'auto', width:'200px', marginTop:'20px', textAlign: 'center'}}>
                   <CircularProgress />
                 </div>
             }
-          
-        </Grid>
-        </div>
-        <Footer />
-        </>
+       
+      </Grid>
+      </div>
+      <Footer />
+      </>
     )
 }

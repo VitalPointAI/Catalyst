@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useContext } from 'react'
+import { appStore, onAppMount } from '../../state/app'
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
-import Persona from '@aluhning/get-personas-js'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -59,21 +60,27 @@ export default function Purpose(props) {
   
   const classes = useStyles()
   const { register, handleSubmit, watch, errors } = useForm()
-
+  const { state, dispatch, update } = useContext(appStore)
   const { 
     handlePurposeClickState, 
     contract,
     contractId,
     curDaoIdx } = props
+  
+  const {
+    daoFactory,
+    didRegistryContract,
+    appIdx
+  } = state
 
-    const Community = new Persona()
     useEffect(
       () => {
 
         async function fetchData(){
           if(contractId){
-            let community = await Community.getData('daoProfile', contractId, curDaoIdx)
-            setPurpose(community.purpose)
+            let contractDid = await ceramic.getDid(contractId, daoFactory, didRegistryContract)
+            let community = await appIdx.get('daoProfile', contractDid)
+            community ? setPurpose(community.purpose) : setPurpose('Not set yet!')
           }
         }
         fetchData()

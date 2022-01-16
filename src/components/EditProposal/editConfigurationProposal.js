@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
+import { appStore, onAppMount } from '../../state/app'
 import { useForm, Controller } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { flexClass } from '../../App'
 import { IPFS_PROVIDER } from '../../utils/ceramic'
-import Persona from '@aluhning/get-personas-js'
 import { EditorState, convertFromRaw, convertToRaw, ContentState } from 'draft-js'
 import { Editor } from "react-draft-wysiwyg"
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"
 import draftToHtml from 'draftjs-to-html'
 import htmlToDraft from 'html-to-draftjs'
+import { formatNearAmount } from '../../state/near'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -50,57 +51,49 @@ const useStyles = makeStyles((theme) => ({
     }
     }));
 
-const imageName = require('../../img/default-profile.png') // default no-image avatar
-
 export default function EditConfigurationProposalForm(props) {
+
+  const { state, dispatch, update } = useContext(appStore)
+
+  const {
+    periodDuration,
+    votingPeriodLength,
+    gracePeriodLength,
+    proposalDeposit,
+    dilutionBound,
+    voteThreshold,
+    platformPercent,
+    platformAccount,
+    curDaoIdx,
+    isUpdated
+  } = state
+
+  const {
+    handleEditConfigurationProposalDetailsClickState,
+    proposer,
+    proposalId,
+    configuration
+  } = props
+
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
     const [loaded, setLoaded] = useState(false)
 
-    // Persona Fields
-    const [date, setDate] = useState('')
-    const [name, setName] = useState('')
-    const [avatar, setAvatar] = useState(imageName)
-    const [shortBio, setShortBio] = useState('')
-
-    
     const [currentLikes, setCurrentLikes] = useState([])
     const [currentDisLikes, setCurrentDisLikes] = useState([])
     const [currentNeutrals, setCurrentNeutrals] = useState([])
 
     // Configuration Proposal Fields
     const [details, setDetails] = useState(EditorState.createEmpty())
-
+   
     const { register, handleSubmit, watch, errors } = useForm()
 
-    const {
-        handleUpdate,
-        handleEditConfigurationProposalDetailsClickState,
-        applicant,
-        proposer,
-        curDaoIdx,
-        proposalId,
-        configuration
-    } = props
-    
     const classes = useStyles()
 
     useEffect(() => {
         async function fetchData() {
           setLoaded(false)
            
-            // Set Existing Persona Data      
-            if(applicant){
-              const thisPersona = new Persona()
-              let result = await thisPersona.getData('profile', applicant, curDaoIdx)
-                  if(result){
-                    result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-                    result.name ? setName(result.name) : setName('')
-                    result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
-                    result.date ? setDate(result.date) : setDate('')
-                  }
-           }
-
            // Set Existing Proposal Data       
            if(curDaoIdx){
               let propResult = await curDaoIdx.get('configurationProposalDetails', curDaoIdx.id)
@@ -201,7 +194,7 @@ export default function EditConfigurationProposalForm(props) {
       }
      
       setFinished(true)
-      handleUpdate(true)
+      update('', {isUpdated: !isUpdated})
       setOpen(false)
       handleClose()
     }
@@ -215,81 +208,130 @@ export default function EditConfigurationProposalForm(props) {
               <DialogTitle id="form-dialog-title">Configuration Proposal Details</DialogTitle>
               <DialogContent>
                   <DialogContentText style={{marginBottom: 10}}>
-                  Please justify the configuration changes:
+                  Please justify the highlighted configuration changes:
                   
                   </DialogContentText>
                   
                   <TableContainer component={Paper} style={{marginBottom: '20px'}}>
-                  <Table className={classes.table} size="small" aria-label="a dense table">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Setting</TableCell>
-                        <TableCell>Value</TableCell>
-                      </TableRow>
-                    </TableHead>
-                   
-                    <TableBody>
-                  
-                      <TableRow>
-                        <TableCell component="th" scope="row">
-                          Period Duration
-                        </TableCell>
-                        <TableCell>
-                          {configuration.length > 0 ? configuration[0] : <CircularProgress />} seconds
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell component="th" scope="row">
-                          Voting Period Length
-                        </TableCell>
-                        <TableCell>
-                          {configuration.length > 0 ? configuration[1] : <CircularProgress />} {configuration.length > 0 ? parseInt(configuration[1]) > 1 ? 'periods' : 'period' : null}
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell component="th" scope="row">
-                          Grace Period Length
-                        </TableCell>
-                        <TableCell>
-                          {configuration.length > 0 ? configuration[2] : <CircularProgress />} {configuration.length > 0 ? parseInt(configuration[2]) > 1 ? 'periods' : 'period' : null}
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell component="th" scope="row">
-                          Proposal Deposit
-                        </TableCell>
-                        <TableCell>
-                          {configuration.length > 0 ? configuration[3] : <CircularProgress />} Ⓝ
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell component="th" scope="row">
-                          Dilution Bound
-                        </TableCell>
-                        <TableCell>
-                          {configuration.length > 0 ? configuration[4] : <CircularProgress />}
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                      <TableCell component="th" scope="row">
-                        Vote Threshold
-                      </TableCell>
-                      <TableCell>
-                        {configuration.length > 0 ? configuration[5] : <CircularProgress />}%
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell component="th" scope="row">
-                        Platform Support
-                      </TableCell>
-                      <TableCell>
-                        {configuration.length > 0 ? configuration[6] : <CircularProgress />}%
-                      </TableCell>
-                    </TableRow>
-                              
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                        <Table className={classes.table} size="small" aria-label="a dense table">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>Setting</TableCell>
+                              <TableCell>Current</TableCell>
+                              <TableCell>Proposed</TableCell>
+                            </TableRow>
+                          </TableHead>
+                         
+                          <TableBody>
+                        
+                            <TableRow>
+                              <TableCell component="th" scope="row">
+                                Period Duration
+                              </TableCell>
+                              <TableCell>
+                                {periodDuration ? periodDuration : <CircularProgress />}
+                              </TableCell>
+                              <TableCell style={{ 
+                                backgroundColor: periodDuration.toString() != configuration[0] ? 'yellow' : ''
+                              }}>
+                                {configuration.length > 0 ? configuration[0] : <CircularProgress />} seconds
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell component="th" scope="row">
+                                Voting Period Length
+                              </TableCell>
+                              <TableCell>
+                                {votingPeriodLength ? votingPeriodLength : <CircularProgress />}
+                              </TableCell>
+                              <TableCell style={{ 
+                                backgroundColor: votingPeriodLength.toString() != configuration[1] ? 'yellow' : ''
+                              }}>
+                                {configuration.length > 0 ? configuration[1] : <CircularProgress />} {configuration.length > 0 ? parseInt(configuration[1]) > 1 ? 'periods' : 'period' : null}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell component="th" scope="row">
+                                Grace Period Length
+                              </TableCell>
+                              <TableCell>
+                                {gracePeriodLength ? gracePeriodLength : <CircularProgress />}
+                              </TableCell>
+                              <TableCell style={{ 
+                                backgroundColor: gracePeriodLength.toString() != configuration[2] ? 'yellow' : ''
+                              }}>
+                                {configuration.length > 0 ? configuration[2] : <CircularProgress />} {configuration.length > 0 ? parseInt(configuration[2]) > 1 ? 'periods' : 'period' : null}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell component="th" scope="row">
+                                Proposal Deposit
+                              </TableCell>
+                              <TableCell>
+                                {proposalDeposit ? proposalDeposit : <CircularProgress />}
+                              </TableCell>
+                              <TableCell style={{ 
+                                backgroundColor: proposalDeposit != configuration[3] ? 'yellow' : ''
+                              }}>
+                                {configuration.length > 0 ? configuration[3] : <CircularProgress />} Ⓝ
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell component="th" scope="row">
+                                Dilution Bound
+                              </TableCell>
+                              <TableCell>
+                                {dilutionBound ? dilutionBound : <CircularProgress />}
+                              </TableCell>
+                              <TableCell style={{ 
+                                backgroundColor: dilutionBound.toString() != configuration[4] ? 'yellow' : ''
+                              }}>
+                                {configuration.length > 0 ? configuration[4] : <CircularProgress />}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell component="th" scope="row">
+                                Vote Threshold
+                              </TableCell>
+                              <TableCell>
+                                {voteThreshold ? voteThreshold : <CircularProgress />}
+                              </TableCell>
+                              <TableCell style={{ 
+                                backgroundColor: voteThreshold.toString() != configuration[5] ? 'yellow' : ''
+                              }}>
+                                {configuration.length > 0 ? configuration[5] : <CircularProgress />}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell component="th" scope="row">
+                                Platform Support
+                              </TableCell>
+                              <TableCell>
+                                {platformPercent ? formatNearAmount(platformPercent, 5) : <CircularProgress />}
+                              </TableCell>
+                              <TableCell style={{ 
+                                backgroundColor: formatNearAmount(platformPercent, 5) != configuration[6] ? 'yellow' : ''
+                              }}>
+                                {configuration.length > 0 ? configuration[6] : <CircularProgress />}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                            <TableCell component="th" scope="row">
+                              Platform Support Account
+                            </TableCell>
+                            <TableCell>
+                              {platformAccount ? platformAccount : <CircularProgress />}
+                            </TableCell>
+                            <TableCell style={{ 
+                              backgroundColor: platformAccount != configuration[7] ? 'yellow' : ''
+                            }}>
+                              {configuration.length > 0 ? configuration[7] : <CircularProgress />}
+                            </TableCell>
+                          </TableRow>
+                                    
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
               
                 <Paper style={{padding: '5px'}}>
                 <Editor

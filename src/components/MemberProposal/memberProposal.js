@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { submitProposal, STORAGE } from '../../state/near'
-import Persona from '@aluhning/get-personas-js'
-import { formatNearAmount } from 'near-api-js/lib/utils/format'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -23,7 +22,6 @@ import Checkbox from '@material-ui/core/Checkbox'
 import Tooltip from '@material-ui/core/Tooltip'
 import Zoom from '@material-ui/core/Zoom'
 import InfoIcon from '@material-ui/icons/Info'
-import Avatar from '@material-ui/core/Avatar'
 
 const useStyles = makeStyles((theme) => ({
   warning: {
@@ -70,13 +68,13 @@ export default function MemberProposal(props) {
 
   const { 
     contractId,
-    state,
     depositToken,
     proposalDeposit,
-    handleMemberProposalClickState,
+    appIdx,
+    didRegistryContract,
+    daoFactory,
+    handleMemberProposalClickState
    } = props
-
-   const data = new Persona()
 
    useEffect(
     () => {
@@ -84,7 +82,8 @@ export default function MemberProposal(props) {
         // get community information
   
         if(contractId){
-          let daoResult = await data.getData('daoProfile', contractId)
+          let did = await ceramic.getDid(contractId, daoFactory, didRegistryContract)
+          let daoResult = await appIdx.get('daoProfile', did)
          
           if(daoResult){
             daoResult.name ? setCommunityName(daoResult.name) : setCommunityName('')

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { appStore, onAppMount } from '../../state/app'
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
 const { create } = require('ipfs-http-client')
 import { makeStyles } from '@material-ui/core/styles'
@@ -12,6 +13,7 @@ import htmlToDraft from 'html-to-draftjs'
 import Persona from '@aluhning/get-personas-js'
 import MilestoneCard from '../MilestoneCard/MilestoneCard'
 import FileUpload from '../IPFSupload/ipfsUpload'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -64,6 +66,28 @@ const useStyles = makeStyles((theme) => ({
 const imageName = require('../../img/default-profile.png') // default no-image avatar
 
 export default function EditPayoutProposalForm(props) {
+
+  const { state, dispatch, update } = useContext(appStore)
+
+  const {
+    handleEditPayoutProposalDetailsClickState,
+    applicant,
+    proposer,
+    proposalId,
+    referenceIds,
+    proposalStatus,
+    paid
+  } = props
+
+  const {
+    daoFactory,
+    didRegistryContract,
+    appIdx,
+    curDaoIdx,
+    contract,
+    isUpdated
+  } = state
+
     const [open, setOpen] = useState(true)
     const [finished, setFinished] = useState(true)
     const [loaded, setLoaded] = useState(false)
@@ -75,7 +99,6 @@ export default function EditPayoutProposalForm(props) {
      const [avatar, setAvatar] = useState(imageName)
      const [shortBio, setShortBio] = useState('') 
 
-   
     const [currentLikes, setCurrentLikes] = useState([])
     const [currentDisLikes, setCurrentDisLikes] = useState([])
     const [currentNeutrals, setCurrentNeutrals] = useState([])
@@ -86,7 +109,7 @@ export default function EditPayoutProposalForm(props) {
     const [milestones, setMilestones] = useState([{}])
     const [details, setDetails] = useState(EditorState.createEmpty())
     const [attachedFiles, setAttachedFiles] = useState([])
-
+   
     const { register, handleSubmit, watch, errors, control, reset, setValue, getValues } = useForm()
     const {
       fields: fileFields,
@@ -106,23 +129,7 @@ export default function EditPayoutProposalForm(props) {
 
     console.log('controlledfields', controlledFields)
 
-    const {
-        handleUpdate,
-        handleEditPayoutProposalDetailsClickState,
-        applicant,
-        proposer,
-        curDaoIdx,
-        proposalId,
-        contract,
-        funding, 
-        referenceIds,
-        proposalStatus,
-        paid
-    } = props
-    
     const classes = useStyles()
-
-  
 
     useEffect(() => {
         async function fetchData() {
@@ -130,8 +137,8 @@ export default function EditPayoutProposalForm(props) {
            
             // Set Existing Persona Data      
             if(applicant){
-              const thisPersona = new Persona()
-              let result = await thisPersona.getData('profile', applicant, curDaoIdx)
+              let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
+              let result = await appIdx.get('profile', applicantDid)
                   if(result){
                     result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                     result.name ? setName(result.name) : setName('')
@@ -325,6 +332,7 @@ export default function EditPayoutProposalForm(props) {
               proposalStatus={proposalStatus}
               applicant={applicant}
               paid={paid}
+              editForm={true}
             />
           )
         }
@@ -385,7 +393,7 @@ export default function EditPayoutProposalForm(props) {
       }
      
       setFinished(true)
-      handleUpdate(true)
+      update('', {isUpdated: !isUpdated})
       setOpen(false)
       handleClose()
     }
