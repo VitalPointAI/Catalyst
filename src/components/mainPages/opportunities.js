@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
-import { Header } from '../Header/header'
 import * as nearAPI from 'near-api-js'
-import OpportunityCard from '../OpportunityCard/OpportunityCard'
-import Footer from '../../components/common/Footer/footer'
+import OpportunityCard from '../Cards/OpportunityCard/OpportunityCard'
 import Fuse from 'fuse.js'
 import SearchBar from '../../components/common/SearchBar/search'
 import { ceramic } from '../../utils/ceramic'
@@ -23,6 +21,9 @@ import FormGroup from '@material-ui/core/FormGroup'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import FormHelperText from '@material-ui/core/FormHelperText'
 import Switch from '@material-ui/core/Switch'
+import ArrowBackIcon from '@material-ui/icons/ArrowBack'
+import { Divider } from '@material-ui/core'
+import IconButton from '@material-ui/core/IconButton'
 
 const axios = require('axios').default
 
@@ -35,7 +36,8 @@ const useStyles = makeStyles((theme) => ({
     },
     card: {
       margin: 'auto',
-      padding: '20px'
+      padding: '10px',
+      width: '100%'
     },
     menuButton: {
       marginRight: theme.spacing(0),
@@ -48,6 +50,8 @@ const useStyles = makeStyles((theme) => ({
         marginTop: '5px'
     }
   }));
+
+  const logoName = require('../../img/default_logo.png') // default no logo
   
 export default function Opportunities(props) {
 
@@ -64,6 +68,14 @@ export default function Opportunities(props) {
     const [memberStatus, setMemberStatus] = useState()
     const [timerStarted, setTimerStarted] = useState(false)
     const [allOpportunities, setAllOpportunities] = useState([])
+    const [summonerDid, setSummonerDid] = useState('')
+
+    const [logo, setLogo] = useState(logoName)
+    const [name, setName] = useState('')
+    const [date, setDate] = useState('')
+    const [purpose, setPurpose] = useState('')
+    const [category, setCategory] = useState('')
+
 
     const classes = useStyles()
 
@@ -77,14 +89,13 @@ export default function Opportunities(props) {
       appIdx,
       currentDaosList,
       isUpdated,
-      wallet,
+      account,
       nearPrice
     } = state
 
     const {
       contractId
     } = useParams()
-
     
     useEffect(
       () => {
@@ -106,7 +117,7 @@ export default function Opportunities(props) {
           }
         }
 
-        timer = setInterval(updateNearPrice, 60000)
+        timer = setInterval(updateNearPrice, 5000)
         setTimerStarted(true)
       
         return () => {
@@ -117,16 +128,20 @@ export default function Opportunities(props) {
       }, []
     )
 
+  
+
     useEffect(
       () => {
         async function initialize() {
-          if(wallet && near && appIdx && didRegistryContract){
-            let thisContract = await dao.initDaoContract(wallet.account(), contractId)
+          if(near && appIdx){
+            let thisContract = await dao.initDaoContract(account, contractId)
             setContract(thisContract)
             try{
               let daoAccount = new nearAPI.Account(near.connection, contractId)
-              let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
+              let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+              console.log('thisCurdaoidx opp', thisCurDaoIdx)
               setCurDaoIdx(thisCurDaoIdx)
+              console.log('opp page curdaoidx id', thisCurDaoIdx.id)
             } catch (err) {
               console.log('problem getting curdaoidx', err)
               return false
@@ -136,7 +151,51 @@ export default function Opportunities(props) {
 
         initialize()
 
-      }, [wallet, near]
+      }, [appIdx, near]
+    )
+
+    useEffect(
+      () => {
+        async function fetchData(){
+          if(currentDaosList && appIdx){
+            try{
+              let summoner
+              for(let x = 0; x < currentDaosList.length; x++){
+                if(currentDaosList[x].contractId == contractId){
+                  summoner = currentDaosList[x].summoner
+                  break
+                }
+              }
+              console.log('summoner', summoner)
+              let thisSummonerDid = await ceramic.getDid(summoner, daoFactory, didRegistryContract)
+              console.log('this summoner did', thisSummonerDid)
+              let result = await appIdx.get('guildProfile', thisSummonerDid)
+              setSummonerDid(thisSummonerDid)
+              console.log('guild result', result)
+              if(result){
+                result.name ? setName(result.name) : setName('')
+                result.date ? setDate(result.date) : setDate('')
+                result.logo ? setLogo(result.logo) : setLogo(logoName)
+                result.purpose ? setPurpose(result.purpose) : setPurpose('')
+                result.category ? setCategory(result.category) : setCategory('')
+              } else {
+                setName('')
+                setDate('')
+                setLogo(logoName)
+                setPurpose('')
+                setCategory('')
+              }
+            } catch (err) {
+              console.log('problem retrieving DAO profile')
+            }
+          }
+        }
+
+        fetchData()
+        .then((res) => {
+
+        })
+      }, [currentDaosList, appIdx]
     )
 
     useEffect(
@@ -151,6 +210,8 @@ export default function Opportunities(props) {
               }
               i++
             }
+
+            
           }
 
           async function fetchData() {
@@ -173,11 +234,11 @@ export default function Opportunities(props) {
   
             }
 
-            if(didRegistryContract && near && contractId && daoFactory && appIdx){
+            if(didRegistryContract && near && contractId && daoFactory && curDaoIdx && appIdx){
              
-              let curDid = await ceramic.getDid(contractId, daoFactory, didRegistryContract )
-              let opportunities = await appIdx.get('opportunities', curDid)
-             
+            //  let curDid = await ceramic.getDid(contractId, daoFactory, didRegistryContract )
+              let opportunities = await appIdx.get('opportunities', curDaoIdx.id)
+             console.log('opportunities', opportunities)
               if(opportunities && opportunities.opportunities.length > 0){
                 setaOpportunities(opportunities.opportunities)
               }
@@ -331,7 +392,7 @@ export default function Opportunities(props) {
             })
           return() => mounted = false
           }
-    }, [near, contract, isUpdated]
+    }, [near, contract, appIdx, curDaoIdx, isUpdated]
     )
 
     const searchData = async (pattern) => {
@@ -396,13 +457,35 @@ export default function Opportunities(props) {
     
     return (
         <>
-        <div className={classes.root}>
-        <Header state={state}/>
         <Grid container alignItems="center" justifyContent="space-between" spacing={0} >
-          <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom:'30px'}}>
-            <Typography variant='h3' style={{marginTop: '20px'}}>Community Opportunities</Typography>
-            <Typography variant='body1' style={{padding: '5px'}}>These are the opportunitites currently available to the community.</Typography>
+          <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+            <IconButton
+              className='invite'
+              style={{ float: 'left'}}
+              aria-controls="fade-menu"
+              aria-haspopup="true"
+            >
+            <a href={`/dao/${contractId}`}>
+              <ArrowBackIcon fontSize="large" />
+            </a>
+            </IconButton>
+            <div style={{width: '100%', 
+            height: '50px',
+            backgroundImage: `url(${logo})`, 
+            backgroundSize: 'contain',
+            backgroundPosition: 'center', 
+            backgroundRepeat: 'no-repeat',
+            backgroundOrigin: 'content-box',
+            marginBottom: '15px',
+            marginTop: '15px'
+            }}/>
+          </Grid>     
+          <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom:'10px'}}>
+            <Typography variant='h6' style={{padding: '5px'}}>Choose an opportunity.<br></br>
+            Complete it.<br></br>Get paid.<br></br>Simple.</Typography>
+            <Divider variant="middle"/>
           </Grid>
+          
           <Grid item xs={3} sm={3} md={3} lg={3} xl={3}>
           </Grid>
           <Grid item xs={6} sm={6} md={6} lg={6} xl={6}>
@@ -416,21 +499,22 @@ export default function Opportunities(props) {
         </Grid>
        
         <Grid container spacing={1} justifyContent="center" alignItems="flex-start" style={{paddingLeft:'40px', paddingRight:'40px'}}>
-        <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
-          <FormControl component="fieldset" style={{flexDirection: 'row'}} >
-            <FormLabel component="legend" style={{marginTop:'10px', marginRight:'10px'}}>Filters:</FormLabel>
-            <FormGroup>
-              <FormControlLabel
-                control={<Switch checked={activeOnly} onChange={handleStatusChange} name="onlyActiveOpportunities" />}
-                label="Active"
-              />
-            </FormGroup>
-          </FormControl>
-        </Grid>
+          <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
+            <FormControl component="fieldset" style={{flexDirection: 'row'}} >
+              <FormLabel component="legend" style={{marginTop:'10px', marginRight:'10px'}}>Filters:</FormLabel>
+              <FormGroup>
+                <FormControlLabel
+                  control={<Switch checked={activeOnly} onChange={handleStatusChange} name="onlyActiveOpportunities" />}
+                  label="Active"
+                />
+              </FormGroup>
+            </FormControl>
+          </Grid>
           {finished && active ?
             opportunities && opportunities.length > 0 ?
               opportunities.map((fr, i) => {
                 if(fr.status == "Passed"){
+                  
                 return(
                   <OpportunityCard 
                     key={i}
@@ -463,8 +547,8 @@ export default function Opportunities(props) {
               }) 
               : 
               active ?
-                <Card className={classes.card}>
-                  <Typography variant="h5">No Opportunities Yet - Please Check Back Soon.</Typography>
+                <Card className={classes.card} align="center">
+                  <Typography variant="h6">No Opportunities Yet.<br></br>Check Back Soon.</Typography>
                 </Card>
               :
               finished && !active ?
@@ -478,8 +562,6 @@ export default function Opportunities(props) {
             }
        
       </Grid>
-      </div>
-      <Footer />
       </>
     )
 }

@@ -198,7 +198,7 @@ export default function TributeProposal(props) {
           <Typography variant="body1" gutterBottom>You are proposing a contribution of {tribute} Ⓝ which will give <b>{applicant}</b> {shares ? shares : '0'} additional voting shares. After submitting
           this proposal, you must provide enough supporting detail to help other members vote on and decide whether to approve your proposal or not.</Typography> 
           <Grid container className={classes.confirmation} spacing={1}>
-            <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
+            <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
               <Checkbox
                 checked={confirm}
                 onChange={handleConfirmChange}

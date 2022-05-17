@@ -148,10 +148,12 @@ export default function Donation(props) {
             <Card>
               <CardContent>
                 <WarningIcon fontSize='large' className={classes.warning} />
-                <Typography variant="body1">You are about to donate {donation} Ⓝ.  Thank you for supporting this community.</Typography>
+                <Typography variant="body1">You are about to donate:</Typography><br></br>
+                <Typography variant="h6" align="center">{donation} Ⓝ</Typography><br></br>
+                <Typography variant="body1">Thank you for supporting this community.</Typography>
                 
                 <Grid container className={classes.confirmation} spacing={1}>
-                  <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
+                  <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
                     <Checkbox
                       checked={confirm}
                       onChange={handleConfirmChange}

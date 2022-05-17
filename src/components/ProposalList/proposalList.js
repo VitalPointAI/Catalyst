@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react'
+import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app';
 import { cancelProposal, 
   processProposal, 
@@ -9,7 +10,7 @@ import { cancelProposal,
 import {get, set, del} from '../../utils/storage'
 import Fuse from 'fuse.js'
 
-import MemberCard from '../MemberCard/memberCard'
+import MemberCard from '../Cards/MemberCard/memberCard'
 import MemberProposalCard from '../ProposalCards/memberProposalCard'
 import FundingProposalCard from '../ProposalCards/fundingProposalCard'
 import CancelCommitmentProposalCard from '../ProposalCards/cancelCommitmentProposalCard';
@@ -41,14 +42,16 @@ import HowToVoteIcon from '@material-ui/icons/HowToVote'
 import QueueIcon from '@material-ui/icons/Queue'
 import AssignmentTurnedInIcon from '@material-ui/icons/AssignmentTurnedIn'
 import Grid from '@material-ui/core/Grid'
-import FormLabel from '@material-ui/core/FormLabel';
-import FormControl from '@material-ui/core/FormControl';
-import FormGroup from '@material-ui/core/FormGroup';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormHelperText from '@material-ui/core/FormHelperText';
-import Switch from '@material-ui/core/Switch';
-import { LinearProgress } from '@material-ui/core';
+import FormLabel from '@material-ui/core/FormLabel'
+import FormControl from '@material-ui/core/FormControl'
+import FormGroup from '@material-ui/core/FormGroup'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import FormHelperText from '@material-ui/core/FormHelperText'
+import Switch from '@material-ui/core/Switch'
+import { LinearProgress } from '@material-ui/core'
 import CircularProgress from '@material-ui/core/CircularProgress'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import { Accordion, AccordionSummary, AccordionDetails } from '@material-ui/core'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -103,7 +106,6 @@ export default function ProposalList(props) {
     returnFunction,
     enable,
     proposalEvents,
-    contractId,
     allMemberInfo,
     currentMemberInfo,
     remainingDelegates,
@@ -112,6 +114,10 @@ export default function ProposalList(props) {
     getCurrentPeriod,
     notificationIndicator
   } = props
+
+  const {
+    contractId
+  } = useParams()
 
   const [proposalList, setProposalList] = useState([])
   const [votingList, setVotingList] = useState([])
@@ -136,14 +142,7 @@ export default function ProposalList(props) {
   const [paymentRequested, setPaymentRequested] = useState()
   const [membersArray, setMembersArray] = useState([])
   const [stepsEnabled, setStepsEnabled] = useState(false)
-  const [options, setOptions] = useState( {
-    doneLabel: 'Finish',                                
-    showButtons: true,
-    overlayOpacity: 0.5,
-    scrollTo: 'element',
-    skipLabel: "Skip",
-    showProgress: true
-  })
+  
   const [onlyFundingCommitmentProposals, setOnlyFundingCommitmentProposals] = useState(true)
   const [onlyPayoutProposals, setOnlyPayoutProposals] = useState(true)
   const [onlyCancelCommitmentProposals, setOnlyCancelCommitmentProposals] = useState(true)
@@ -156,16 +155,12 @@ export default function ProposalList(props) {
   const [onlyReputationFactorProposals, setOnlyReputationFactorProposals] = useState(true)
   const [onlyAssignRoleProposals, setOnlyAssignRoleProposals] = useState(true)
   const [onlyCommunityRoleProposals, setOnlyCommunityRoleProposals] = useState(true)
-  const [onlyYourProposals, setOnlyYourProposals] = useState(tabValue == '5' ? true : false)
+  const [onlyYourProposals, setOnlyYourProposals] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const classes = useStyles()
   const theme = useTheme()
   const matches = useMediaQuery('(max-width:500px)')
 
-  useEffect(() => {
-    setStepsEnabled(enable)
-  }, [enable]
-  )
 
   useEffect(() => {
 
@@ -176,10 +171,10 @@ export default function ProposalList(props) {
   
     async function fetchData() {
       if(isUpdated){}
-      if(curDaoIdx){
+      if(curDaoIdx && currentPeriod){
       
         let newLists = await resolveStatus(proposalEvents)
-     
+      
         setProposalList(newLists.allProposals)
         setVotingList(newLists.votingProposals)
         setQueueList(newLists.queueProposals)
@@ -218,7 +213,7 @@ export default function ProposalList(props) {
     
    // }
 
-  },[proposalEvents, allMemberInfo, notificationIndicator, isUpdated, curDaoIdx])
+  },[proposalEvents, allMemberInfo, notificationIndicator, isUpdated, curDaoIdx, currentPeriod])
 
   const handleTabChange = (event, newValue) => {
       if(newValue == '5'){
@@ -338,21 +333,7 @@ export default function ProposalList(props) {
     }
   }
 
-  function getVotingPeriod(votePeriod, grPeriod) {
-       if((currentPeriod >= votePeriod && currentPeriod < grPeriod)){
-      return true
-    }  else {
-      return false
-    }
-  }
-
-  function getGracePeriod(grPeriod) {
-    if(currentPeriod >= grPeriod && currentPeriod <= (grPeriod + gracePeriodLength)){
-      return true
-    } else {
-      return false
-    }
-  }
+ 
 
 
   function makeTime(timestamp) {
@@ -410,6 +391,33 @@ function typeFilter(item){
   
 }
 
+function getVotingPeriod(votePeriod, grPeriod, finalized) {
+  if(!finalized){
+    if((currentPeriod >= votePeriod && currentPeriod < grPeriod)){
+      return true
+    }  else {
+      return false
+    }
+  } else {
+    return false
+  }
+}
+
+function getGracePeriod(grPeriod) {
+  if(currentPeriod >= grPeriod && currentPeriod <= (grPeriod + gracePeriodLength)){
+    return true
+  } else {
+    return false
+  }
+}
+
+function getAfterVoting(grPeriod){
+  if(currentPeriod > grPeriod){
+    return true
+  }
+  return false
+}
+
   async function resolveStatus(requests) {
     
     let status
@@ -424,7 +432,7 @@ function typeFilter(item){
     if (requests.length > 0) {
       requests.map((fr) => {
        
-        status = getStatus(fr.flags)
+       console.log('fr', fr)
       
         let i = 0
         let currentStreamProposal
@@ -439,15 +447,12 @@ function typeFilter(item){
         proposalType = getProposalType(fr.flags)
 
         let isFinalized = fr.voteFinalized != 0 ? true : false
-        let isVotingPeriod = getVotingPeriod(fr.startingPeriod, fr.votingPeriod, fr.gracePeriod, isFinalized)
+        let isVotingPeriod = getVotingPeriod(fr.votingPeriod, fr.gracePeriod, isFinalized)
         let isGracePeriod = getGracePeriod(fr.gracePeriod, isFinalized)
         let disabled = isVotingPeriod ? false : true
-      
-        if (status != 'Passed' || status != 'Not Passed'){
-          if ((status == 'Sponsored' && isFinalized && !isVotingPeriod && !isGracePeriod) || (status=='Sponsored' && currentPeriod > (fr.gracePeriod + gracePeriodLength))){
-            status = 'Awaiting Finalization'
-          }
-        }
+        let afterVoting = getAfterVoting(fr.gracePeriod)
+        status = getStatus(fr.flags, isFinalized, isVotingPeriod, isGracePeriod, afterVoting)
+        console.log('proposal status', status)
         
         let finalizedProposal = {
           blockTimeStamp: fr.proposalSubmission,
@@ -491,11 +496,13 @@ function typeFilter(item){
           tributeToken: fr.tributeToken
         }
 
+        console.log('finalizedProposal', finalizedProposal)
+
         switch(true){
           case status == 'Submitted':
             allProposals.push([finalizedProposal])
             break
-          case status == 'Sponsored':
+          case (status == 'Voting' || status == 'Grace'):
             votingProposals.push([finalizedProposal])
             break
           case status == 'Awaiting Finalization':
@@ -514,8 +521,9 @@ function typeFilter(item){
       queueProposals: queueProposals,
       processedProposals: processedProposals
     }
-
+    console.log('propObject', propObject)
     return propObject
+
   }
  
   
@@ -1145,83 +1153,11 @@ function typeFilter(item){
        
     }
   }
-  function onStepsComplete(){
-    setStepsEnabled(false)
-    returnFunction('propList')
-    handleTabChange(null, '1')
-  }
-  function onStepsExit(){
-    setStepsEnabled(false)
-  }
-  // let steps=[
-  //   {
-  //     element: '.members',
-  //     intro: <>
-  //            <Typography>The community page is split into several tabs. The first of which is this one: the members tab.</Typography>
-  //           <br/>
-  //            <Typography>Here you can find all the members in a community, sorted by their respective voting shares. Clicking on any member’s card will reveal their Persona details.</Typography>
-  //           </>,
-  //     position:'top'
-  //   },
-  //   {
-  //     element: '.proposals',
-  //     intro:<> 
-  //           <Typography>The proposals tab is where all new proposals end up. Here you can add details to your proposals, and engage in discussion.</Typography>
-  //           <br/>
-  //           <Typography>Members can also sponsor proposals here to move them into voting. </Typography>
-  //           </>,
-  //     position:'top'
-  //   },
-  //   {
-  //     element: '.voting',
-  //     intro: <>
-  //            <Typography>Once sponsored, proposals move to this tab.</Typography>
-  //            <br/>
-  //            <Typography>Here, community members can vote on the proposals to pass or fail.</Typography>
-  //            </>,
-  //     position:'top'
-  //   },
-  //   {
-  //     element: '.finalization',
-  //     intro: <Typography>Here proposals will sit as they wait for a user to click ‘Finalize,’ which records it on the NEAR blockchain.</Typography>,
-  //     position:'bottom'
-  //   },
-  //   {
-  //     element: '.processed',    
-  //     intro: <Typography>This is the final destination of all proposals. Whether they pass or fail, proposals which have completed voting and finalization will appear under this tab. </Typography>,
-  //     position:'bottom'
-  //   },
-  //   {
-  //     intro: <Typography>You can find more information about the proposal life cycle <a href=''>here</a></Typography>
-  //   }
-  // ]
 
-  function handleStepsChange(index){
-    if(index==1){
-      handleTabChange(null, '2')
-    }
-    else if(index==2){
-      handleTabChange(null, '3')
-    }
-    else if(index==3){ 
-      handleTabChange(null, '4')
-    }
-    else if(index==4){
-      handleTabChange(null, '5')
-    }
-  }
 
   return (
     <>
-    {/* <Steps 
-      enabled={stepsEnabled}
-      steps={steps}
-      options={options}
-      initialStep={0}
-      onComplete = {()=>onStepsComplete()}
-      onExit = {()=>onStepsExit()}
-      onChange = {(index)=>handleStepsChange(index)}  
-    / > */}
+   
     <Paper square className={classes.root}>
     {!matches && loaded && guildBalance && escrowBalance ? (
       <Tabs
@@ -1367,66 +1303,93 @@ function typeFilter(item){
       </TabPanel>
       <TabPanel value="2" className={classes.root}>
       <Grid container spacing={1} justifyContent="flex-start" alignItems="center">
-      <FormControl component="fieldset" >
-          <FormLabel component="legend">Filter Proposals</FormLabel>
-          <FormGroup>
-            <FormControlLabel
-              control={<Switch checked={onlyYourProposals} onChange={handleOnlyYourProposalChange} name="onlyYourProposals" />}
-              label="Only Your Proposals"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyMemberProposals} onChange={handleOnlyMemberProposalChange} name="onlyMemberProposals" />}
-              label="Members"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyFundingCommitmentProposals} onChange={handleOnlyFundingCommitmentProposalChange} name="onlyFundingCommitmentProposals" />}
-              label="Funding Commitments"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyPayoutProposals} onChange={handleOnlyPayoutProposalChange} name="onlyPayoutProposals" />}
-              label="Payouts"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyOpportunityProposals} onChange={handleOnlyOpportunityProposalChange} name="onlyOpportunityProposals" />}
-              label="Opportunities"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyConfigurationProposals} onChange={handleOnlyConfigurationProposalChange} name="onlyConfigurationProposals" />}
-              label="Configuration"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyTributeProposals} onChange={handleOnlyTributeProposalChange} name="onlyTributeProposals" />}
-              label="Contributions"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyCommunityRoleProposals} onChange={handleOnlyCommunityRoleProposalChange} name="onlyCommunityRoleProposals" />}
-              label="Community Role"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyAssignRoleProposals} onChange={handleOnlyAssignRoleProposalChange} name="onlyAssignRoleProposals" />}
-              label="Assign Role"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyReputationFactorProposals} onChange={handleOnlyReputationFactorProposalChange} name="onlyReputationFactorProposals" />}
-              label="Reputation Factor"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyWhiteListProposals} onChange={handleOnlyWhitelistProposalChange} name="onlyWhiteListProposals" />}
-              label="Whitelist"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyGuildKickProposals} onChange={handleOnlyGuildKickProposalChange} name="onlyGuildKickProposals" />}
-              label="GuildKick"
-            /> 
-            <FormControlLabel
-              control={<Switch checked={onlyCancelCommitmentProposals} onChange={handleOnlyCancelCommitmentProposalChange} name="onlyCancelCommitmentProposals" />}
-              label="Cancel Commitments"
-            />
-          </FormGroup>
-          <FormHelperText>Choose the proposal types you want.</FormHelperText>
+        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+        <FormControl component="fieldset" >
+          <Accordion>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1bh-content"
+              id="panel1bh-header"
+            >
+              <Typography variant="overline">Filter Proposals</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Grid container spacing={2} style={{marginBottom: '5px'}}>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                <FormGroup>
+                  <FormHelperText>Choose the proposal types you want.</FormHelperText>
+                  <FormControlLabel
+                    control={<Switch checked={onlyYourProposals} onChange={handleOnlyYourProposalChange} name="onlyYourProposals" />}
+                    label="Only Your Proposals"
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={onlyMemberProposals} onChange={handleOnlyMemberProposalChange} name="onlyMemberProposals" />}
+                    label="Members"
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={onlyFundingCommitmentProposals} onChange={handleOnlyFundingCommitmentProposalChange} name="onlyFundingCommitmentProposals" />}
+                    label="Funding Commitments"
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={onlyPayoutProposals} onChange={handleOnlyPayoutProposalChange} name="onlyPayoutProposals" />}
+                    label="Payouts"
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={onlyOpportunityProposals} onChange={handleOnlyOpportunityProposalChange} name="onlyOpportunityProposals" />}
+                    label="Opportunities"
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={onlyConfigurationProposals} onChange={handleOnlyConfigurationProposalChange} name="onlyConfigurationProposals" />}
+                    label="Configuration"
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={onlyTributeProposals} onChange={handleOnlyTributeProposalChange} name="onlyTributeProposals" />}
+                    label="Contributions"
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={onlyCommunityRoleProposals} onChange={handleOnlyCommunityRoleProposalChange} name="onlyCommunityRoleProposals" />}
+                    label="Community Role"
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={onlyAssignRoleProposals} onChange={handleOnlyAssignRoleProposalChange} name="onlyAssignRoleProposals" />}
+                    label="Assign Role"
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={onlyReputationFactorProposals} onChange={handleOnlyReputationFactorProposalChange} name="onlyReputationFactorProposals" />}
+                    label="Reputation Factor"
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={onlyWhiteListProposals} onChange={handleOnlyWhitelistProposalChange} name="onlyWhiteListProposals" />}
+                    label="Whitelist"
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={onlyGuildKickProposals} onChange={handleOnlyGuildKickProposalChange} name="onlyGuildKickProposals" />}
+                    label="GuildKick"
+                  /> 
+                  <FormControlLabel
+                    control={<Switch checked={onlyCancelCommitmentProposals} onChange={handleOnlyCancelCommitmentProposalChange} name="onlyCancelCommitmentProposals" />}
+                    label="Cancel Commitments"
+                  />
+                </FormGroup>
+                </Grid>
+              </Grid>
+            </AccordionDetails>
+        </Accordion>
+          
         </FormControl>
-        {Proposals}
         </Grid>
+        {onlyYourProposals ?
+          <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+            <Typography variant="overline">Your Proposals</Typography>
+          </Grid>
+          : 
+          <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+            <Typography variant="overline">All Proposals</Typography>
+          </Grid>
+          }
+          {Proposals}
+        
+      </Grid>
       </TabPanel>
       <TabPanel value="3" className={classes.root}>
         {Votes}
@@ -1436,66 +1399,93 @@ function typeFilter(item){
       </TabPanel>
       <TabPanel value="5" className={classes.root}>
       <Grid container spacing={1} justifyContent="flex-start" alignItems="center">
-        <FormControl component="fieldset">
-          <FormLabel component="legend">Filter Proposals</FormLabel>
-          <FormGroup>
-            <FormControlLabel
-              control={<Switch checked={onlyYourProposals} onChange={handleOnlyYourProposalChange} name="onlyYourProposals" />}
-              label="Only Your Proposals"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyMemberProposals} onChange={handleOnlyMemberProposalChange} name="onlyMemberProposals" />}
-              label="Members"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyFundingCommitmentProposals} onChange={handleOnlyFundingCommitmentProposalChange} name="onlyFundingCommitmentProposals" />}
-              label="Funding Commitments"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyPayoutProposals} onChange={handleOnlyPayoutProposalChange} name="onlyPayoutProposals" />}
-              label="Payouts"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyOpportunityProposals} onChange={handleOnlyOpportunityProposalChange} name="onlyOpportunityProposals" />}
-              label="Opportunities"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyConfigurationProposals} onChange={handleOnlyConfigurationProposalChange} name="onlyConfigurationProposals" />}
-              label="Configuration"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyTributeProposals} onChange={handleOnlyTributeProposalChange} name="onlyTributeProposals" />}
-              label="Contributions"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyCommunityRoleProposals} onChange={handleOnlyCommunityRoleProposalChange} name="onlyCommunityRoleProposals" />}
-              label="Community Role"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyAssignRoleProposals} onChange={handleOnlyAssignRoleProposalChange} name="onlyAssignRoleProposals" />}
-              label="Assign Role"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyReputationFactorProposals} onChange={handleOnlyReputationFactorProposalChange} name="onlyReputationFactorProposals" />}
-              label="Reputation Factor"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyWhiteListProposals} onChange={handleOnlyWhitelistProposalChange} name="onlyWhiteListProposals" />}
-              label="Whitelist"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyGuildKickProposals} onChange={handleOnlyGuildKickProposalChange} name="onlyGuildKickProposals" />}
-              label="GuildKick"
-            />
-            <FormControlLabel
-              control={<Switch checked={onlyCancelCommitmentProposals} onChange={handleOnlyCancelCommitmentProposalChange} name="onlyCancelCommitmentProposals" />}
-              label="Cancel Commitments"
-            />
-          </FormGroup>
-          <FormHelperText>Choose the proposal types you want.</FormHelperText>
-        </FormControl>
-        {Processed}
+        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+          <FormControl component="fieldset" >
+            <Accordion>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls="panel1bh-content"
+                id="panel1bh-header"
+              >
+                <Typography variant="overline">Filter Proposals</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2} style={{marginBottom: '5px'}}>
+                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                  <FormGroup>
+                    <FormHelperText>Choose the proposal types you want.</FormHelperText>
+                    <FormControlLabel
+                      control={<Switch checked={onlyYourProposals} onChange={handleOnlyYourProposalChange} name="onlyYourProposals" />}
+                      label="Only Your Proposals"
+                    />
+                    <FormControlLabel
+                      control={<Switch checked={onlyMemberProposals} onChange={handleOnlyMemberProposalChange} name="onlyMemberProposals" />}
+                      label="Members"
+                    />
+                    <FormControlLabel
+                      control={<Switch checked={onlyFundingCommitmentProposals} onChange={handleOnlyFundingCommitmentProposalChange} name="onlyFundingCommitmentProposals" />}
+                      label="Funding Commitments"
+                    />
+                    <FormControlLabel
+                      control={<Switch checked={onlyPayoutProposals} onChange={handleOnlyPayoutProposalChange} name="onlyPayoutProposals" />}
+                      label="Payouts"
+                    />
+                    <FormControlLabel
+                      control={<Switch checked={onlyOpportunityProposals} onChange={handleOnlyOpportunityProposalChange} name="onlyOpportunityProposals" />}
+                      label="Opportunities"
+                    />
+                    <FormControlLabel
+                      control={<Switch checked={onlyConfigurationProposals} onChange={handleOnlyConfigurationProposalChange} name="onlyConfigurationProposals" />}
+                      label="Configuration"
+                    />
+                    <FormControlLabel
+                      control={<Switch checked={onlyTributeProposals} onChange={handleOnlyTributeProposalChange} name="onlyTributeProposals" />}
+                      label="Contributions"
+                    />
+                    <FormControlLabel
+                      control={<Switch checked={onlyCommunityRoleProposals} onChange={handleOnlyCommunityRoleProposalChange} name="onlyCommunityRoleProposals" />}
+                      label="Community Role"
+                    />
+                    <FormControlLabel
+                      control={<Switch checked={onlyAssignRoleProposals} onChange={handleOnlyAssignRoleProposalChange} name="onlyAssignRoleProposals" />}
+                      label="Assign Role"
+                    />
+                    <FormControlLabel
+                      control={<Switch checked={onlyReputationFactorProposals} onChange={handleOnlyReputationFactorProposalChange} name="onlyReputationFactorProposals" />}
+                      label="Reputation Factor"
+                    />
+                    <FormControlLabel
+                      control={<Switch checked={onlyWhiteListProposals} onChange={handleOnlyWhitelistProposalChange} name="onlyWhiteListProposals" />}
+                      label="Whitelist"
+                    />
+                    <FormControlLabel
+                      control={<Switch checked={onlyGuildKickProposals} onChange={handleOnlyGuildKickProposalChange} name="onlyGuildKickProposals" />}
+                      label="GuildKick"
+                    /> 
+                    <FormControlLabel
+                      control={<Switch checked={onlyCancelCommitmentProposals} onChange={handleOnlyCancelCommitmentProposalChange} name="onlyCancelCommitmentProposals" />}
+                      label="Cancel Commitments"
+                    />
+                  </FormGroup>
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+          </Accordion>
+        
+          </FormControl>
         </Grid>
+        {onlyYourProposals ?
+        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+          <Typography variant="overline">Your Completed Proposals</Typography>
+        </Grid>
+        : 
+        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+          <Typography variant="overline">All Completed Proposals</Typography>
+        </Grid>
+        }
+          {Processed}
+     
+      </Grid>
       </TabPanel>
       </>
       : <div style={{margin: 'auto', width:'200px', marginTop:'20px'}}>

@@ -110,6 +110,7 @@ export default function MemberProposalDetails(props) {
            // Get Applicant Persona Information
            if(proposer){                    
               let proposerDid = await ceramic.getDid(proposer, daoFactory, didRegistryContract)
+              console.log('proposerDid', proposerDid)
               let result = await appIdx.get('profile', proposerDid)
                 if(result){
                   result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
@@ -123,6 +124,7 @@ export default function MemberProposalDetails(props) {
           // Get Current User Persona Information
           if(accountId){                    
               let accountDid = await ceramic.getDid(accountId, daoFactory, didRegistryContract)
+              console.log('accountdid', accountDid)
               let result = await appIdx.get('profile', accountDid)
                 if(result){
                   result.avatar ? setCurUserAvatar(result.avatar) : setCurUserAvatar(imageName)
@@ -135,6 +137,7 @@ export default function MemberProposalDetails(props) {
          
           if(applicant){                           
             let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
+            console.log('applicantDid', applicantDid)
             let result = await appIdx.get('profile', applicantDid)
                     if(result){
                       result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)

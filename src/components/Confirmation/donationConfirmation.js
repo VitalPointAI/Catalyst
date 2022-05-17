@@ -110,7 +110,8 @@ export default function DonationConfirmation(props) {
               <Card>
               <CardContent>
                 <WarningIcon fontSize='large' className={classes.warning} />
-                <Typography variant="body1">You are about to donate {donation} N.  The community fund thanks you for your benevolence.</Typography>
+                <Typography variant="body1">You are about to donate:<br></br>
+                 {donation} N.  The community fund thanks you for your benevolence.</Typography>
                 
                 <Grid container className={classes.confirmation} spacing={1}>
                   <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>

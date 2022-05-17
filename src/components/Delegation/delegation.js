@@ -171,7 +171,7 @@ export default function Delegation(props) {
                 <Typography variant="body1">You are about to delegate {quantity ? quantity : '0'} votes to {receiver}.</Typography>
                 
                 <Grid container className={classes.confirmation} spacing={1}>
-                  <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
+                  <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
                     <Checkbox
                       checked={confirm}
                       onChange={handleConfirmChange}

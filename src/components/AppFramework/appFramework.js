@@ -24,17 +24,15 @@ import { logInitEvent,
   REGISTRY_API_URL} from '../../state/near'
 
 import FungibleTokens from '../../utils/fungibleTokens'
-const { getMetadata, getBalanceOf } = FungibleTokens;
+const { getMetadata, getBalanceOf } = FungibleTokens
 
 import ActionSelector from '../ActionSelector/actionSelector'
 import ProposalList from '../ProposalList/proposalList'
 import RightSideDrawer from './RightSideDrawer'
-import Footer from '../../components/common/Footer/footer'
-import { Header } from '../Header/header'
 import Initialize from '../Initialize/initialize'
 import FTInitialize from '../Initialize/ftInitialize'
 import RandomPhrase from '../common/RandomPhrase/randomPhrase'
-import WarningConfirmation from '../Confirmation/warningConfirmation';
+import WarningConfirmation from '../Confirmation/warningConfirmation'
 import { formatNearAmount } from 'near-api-js/lib/utils/format'
 import { dao } from '../../utils/dao'
 import { ft } from '../../utils/ft'
@@ -43,7 +41,7 @@ import { COMMUNITY_ARRIVAL } from '../../state/near'
 import { Steps, Hints } from "intro.js-react"
 
 
-import { ACCOUNT_HELPER_URL, NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, FT_FIRST_INIT, NEW_PROPOSAL, NEW_PROCESS, NEW_VOTE, NEW_DONATION, NEW_EXIT, 
+import { ACCOUNT_HELPER_URL, NEW_SPONSOR, NEW_CANCEL, DAO_FIRST_INIT, FT_FIRST_INIT, NEW_MEMBER_PROPOSAL, NEW_PROPOSAL, NEW_PROPOSAL_TRIGGER, NEW_PROCESS, NEW_VOTE, NEW_DONATION, NEW_EXIT, 
   NEW_DELEGATION, WARNING_FLAG, NEW_REVOCATION, NEW_CHANGE_PROPOSAL, INACTIVATE_COMMUNITY, NEW_INACTIVATION, hasKey } from '../../state/near'
 
 // Material UI imports
@@ -98,6 +96,7 @@ const useStyles = makeStyles((theme) => ({
   }));
 
 const imageName = require('../../img/default-profile.png') // default no-image avatar
+const logoName = require('../../img/default_logo.png') // default no logo
 
 export default function AppFramework(props) {
 
@@ -110,7 +109,12 @@ export default function AppFramework(props) {
     const [guildBalanceChip, setGuildBalanceChip] = useState()
     const [escrowBalanceChip, setEscrowBalanceChip] = useState()
     const [currentShare, setCurrentShare] = useState()
-  
+
+    const [logo, setLogo] = useState(logoName)
+    const [name, setName] = useState('')
+    const [date, setDate] = useState('')
+    const [purpose, setPurpose] = useState('')
+    const [category, setCategory] = useState('')
 
     const [tabValue, setTabValue] = useState('1')
     
@@ -146,8 +150,7 @@ export default function AppFramework(props) {
     const [contractType, setContractType] = useState()
     const [currentTreasuryTotal, setCurrentTreasuryTotal] = useState()
     const [escrowCurrentTreasuryTotal, setEscrowCurrentTreasuryTotal] = useState()
-    const [date, setDate] = useState()
-
+    
     const classes = useStyles()
 
     const {
@@ -177,6 +180,7 @@ export default function AppFramework(props) {
       currentPeriod,
       periodDuration,
       initialized,
+      did,
       guildBalance,
       escrowBalance,
       currentMemberStatus,
@@ -192,29 +196,19 @@ export default function AppFramework(props) {
 
     const matches = useMediaQuery('(max-width:500px)')
 
-  //   let steps=[{
-  //     intro:
-  //     <> 
-  //     <Typography>Welcome to the Community Page! Here you can join the community, create, and vote on proposals.</Typography>
-  //     <br/>
-  //     <Typography>You can also find community specific opportunities by visitng the communities opportunity page.</Typography>
-  //     </>
-  //   },
-  // {
-  //   intro: "This is a phantom step to denote the end of steps in this component. If it is displayed, there is an error"
-  // }]
-
+ 
   useEffect(
     () => {
       
         async function fetchEssentials() {
 
-          if(didRegistryContract && near){
+          if(didRegistryContract && near && wallet){
 
             if(contractId){
               let thisCurDaoIdx
               let daoAccount
               let contract
+              console.log('contractId', contractId)
               try{
                 daoAccount = new nearAPI.Account(near.connection, contractId)
               } catch (err) {
@@ -223,26 +217,26 @@ export default function AppFramework(props) {
               }
               
               try{
-                thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
+                thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+                console.log('this appcurdaoidx', thisCurDaoIdx)
               } catch (err) {
                 console.log('problem getting curdaoidx', err)
                 return false
               }
               
               try{
-                contract = await dao.initDaoContract(state.wallet.account(), contractId)
+                contract = await dao.initDaoContract(wallet.account(), contractId)
               } catch (err) {
                 console.log('problem initializing dao contract', err)
                 return false
               }
+              console.log('contract', contract)
               update('', {
                 curDaoIdx: thisCurDaoIdx,
                 daoAccount: daoAccount,
                 contract: contract
-              }, () => {
-               
               })
-             
+              
             }
             
             return true
@@ -255,7 +249,7 @@ export default function AppFramework(props) {
           res ? setEssentialsInitialized(true) : setEssentialsInitialized(false)
         })
 
-      }, [didRegistryContract, near]
+      }, [didRegistryContract, near, wallet]
   )
 
   useEffect(
@@ -283,18 +277,6 @@ export default function AppFramework(props) {
         stop()
       }
     },[]
-  )
-
-  useEffect(
-    () => {
-      let newVisit = get(COMMUNITY_ARRIVAL, [])
-      let warningFlag = get(WARNING_FLAG, [])
-      if(!newVisit[0] && warningFlag[0]){
-        setStepsEnabled(true)
-        newVisit.push({status: 'true'})
-        set(COMMUNITY_ARRIVAL, newVisit)
-      }
-    }, []
   )
 
   useEffect(
@@ -439,7 +421,18 @@ export default function AppFramework(props) {
                         
                       if (loggedProposal) {
                         del(NEW_PROPOSAL)
+                        // set trigger for to open member details form
+                        if(newProposal[d].type == 'Member'){
+                          let newMemberProposal = get(NEW_MEMBER_PROPOSAL, [])
+                          newMemberProposal.push({contractId: contractId, proposalId: newProposal[d].proposalId, new: true})
+                          set(NEW_MEMBER_PROPOSAL, newMemberProposal)
+                        } else {
+                          let newProposalTrigger = get(NEW_PROPOSAL_TRIGGER, [])
+                          newProposalTrigger.push({contractId: contractId, proposalId: newProposal[d].proposalId, new: true})
+                          set(NEW_PROPOSAL_TRIGGER, newProposalTrigger)
+                        }
                         await renewProposals(curDaoIdx, contract)
+                        setTabValue('2')
                       }
                     }
                   }
@@ -702,6 +695,16 @@ export default function AppFramework(props) {
   useEffect(
     () => {
       async function updateCommunityData(){
+        
+        if(daoFactory){
+          try{
+          let dao = await daoFactory.getDaoByAccount({accountId: contractId})
+          console.log('dao', dao)
+          update('', {summoner: dao.summoner})
+          } catch (err) {
+            console.log('problem retrieving summoner', err)
+          }
+        }
 
         if(contract){
           let token
@@ -709,18 +712,21 @@ export default function AppFramework(props) {
           let init
           try{
             token = await contract.getDepositToken()
+            console.log('token', token)
           } catch (err) {
             console.log('error getting deposit token', err)
           }
 
           try{
             platformAccount = await contract.getPlatformAccount()
+            console.log('platformaccount', platformAccount)
           } catch (err) {
             console.log('error getting platform account')
           }
 
           try{
             init = await contract.getInit()
+            console.log('init', init)
             update('', {initialized: init})
             setInitLoad(true)
           } catch (err) {
@@ -729,30 +735,34 @@ export default function AppFramework(props) {
 
           try {
             let settings = await contract.getInitSettings()
-            let summoner = settings[0][0]
-            let periodDuration = parseFloat(settings[0][1])
-            let votingPeriodLength = parseFloat(settings[0][2])
-            let gracePeriodLength = parseFloat(settings[0][3])
-            let proposalDeposit = formatNearAmount(settings[0][4])
-            let dilutionBound = parseFloat(settings[0][5])
-            let voteThreshold = parseFloat(settings[0][6])
-            let summoningTime = parseFloat(settings[0][7])
-            let platformPercent = settings[0][8]
+            console.log('settings', settings)
+            if(settings){
+              let summoner = settings[0][0]
+              let periodDuration = parseFloat(settings[0][1])
+              let votingPeriodLength = parseFloat(settings[0][2])
+              let gracePeriodLength = parseFloat(settings[0][3])
+              let proposalDeposit = formatNearAmount(settings[0][4])
+              let dilutionBound = parseFloat(settings[0][5])
+              let voteThreshold = parseFloat(settings[0][6])
+              let summoningTime = parseFloat(settings[0][7])
+              let platformPercent = settings[0][8]
+              let platformAccount = settings[0][9]
 
-            update('', {
-              summoner: summoner,
-              periodDuration: periodDuration,
-              votingPeriodLength: votingPeriodLength,
-              gracePeriodLength: gracePeriodLength,
-              tokenName: token,
-              depositToken: token,
-              proposalDeposit: proposalDeposit,
-              dilutionBound: dilutionBound,
-              voteThreshold: voteThreshold,
-              summoningTime: summoningTime,
-              platformPercent: platformPercent,
-              platformAccount: platformAccount
-            })
+              update('', {
+                summoner: summoner,
+                periodDuration: periodDuration,
+                votingPeriodLength: votingPeriodLength,
+                gracePeriodLength: gracePeriodLength,
+                tokenName: token,
+                depositToken: token,
+                proposalDeposit: proposalDeposit,
+                dilutionBound: dilutionBound,
+                voteThreshold: voteThreshold,
+                summoningTime: summoningTime,
+                platformPercent: platformPercent,
+                platformAccount: platformAccount
+              })
+            }
           
           } catch(err) {
             console.log('no settings yet')
@@ -762,10 +772,10 @@ export default function AppFramework(props) {
 
       updateCommunityData()
         .then((res) => {
-
+         
         })
 
-    }, [contract]
+    }, [daoFactory, contract]
   )
 
   useEffect(
@@ -774,19 +784,28 @@ export default function AppFramework(props) {
         async function fetchData() {
           if(isUpdated){}
           //************ LOAD COMMUNITY SETTINGS AND INFORMATION */
-              
+              if(curDaoIdx){
                   try{
-                    let daoDid = await ceramic.getDid(contractId, daoFactory, didRegistryContract)
-                    let result = await appIdx.get('daoProfile', daoDid)
+                    // let daoDid = await ceramic.getDid(summoner, daoFactory, didRegistryContract)
+                    // console.log('daodid', daoDid)
+                    console.log('a curdaoidx', curDaoIdx)
+                    let result = await appIdx.get('daoProfile', curDaoIdx.id)
+                    console.log('dao result', result)
                     if(result){
                       result.name ? setName(result.name) : setName('')
                       result.date ? setDate(result.date) : setDate('')
-                      result.logo ? setLogo(result.logo) : setLogo(imageName)
+                      result.logo ? setLogo(result.logo) : setLogo(logoName)
                       result.purpose ? setPurpose(result.purpose) : setPurpose('')
                       result.category ? setCategory(result.category) : setCategory('')
+                    } else {
+                      setName('')
+                      setDate('')
+                      setLogo(logoName)
+                      setPurpose('')
+                      setCategory('')
                     }
                   } catch (err) {
-                    console.log('problem retrieving DAO profile')
+                    console.log('problem retrieving project community profile')
                   }
                 
                 if(initialized){
@@ -816,6 +835,7 @@ export default function AppFramework(props) {
                     try {
                       let shares = await contract.getTotalShares()
                       setTotalShares(shares)
+                      update('', {totalShares: shares})
                     } catch (err) {
                       console.log('no total shares yet')
                     }
@@ -866,6 +886,7 @@ export default function AppFramework(props) {
                       }
                     }
                 }
+              }
               
             }
     
@@ -881,7 +902,7 @@ export default function AppFramework(props) {
         mounted = false
       } 
     }
-}, [essentialsInitialized, contract, initialized, isUpdated]
+}, [essentialsInitialized, contract, initialized, curDaoIdx, isUpdated]
   )
 
   useEffect(
@@ -892,6 +913,7 @@ export default function AppFramework(props) {
         let escrowRow
         try {
           ebalance = await contract.getEscrowTokenBalances()
+          console.log('ebalance', ebalance)
           update('', {escrowBalance: ebalance})
   
           let EscrowAccounts
@@ -955,9 +977,52 @@ export default function AppFramework(props) {
               </AccordionDetails>
             </Accordion>
             )
+          } else {
+            escrowRow = (
+              <Accordion>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls="panel1a-content"
+                id="panel1a-header"
+              >
+                <Typography className={classes.heading}>Escrow</Typography>
+                <Typography className={classes.heading} style={{marginLeft: '15px'}}>$0 USD</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <List dense="true">
+                {EscrowAccounts}
+                </List>
+              </AccordionDetails>
+            </Accordion>
+            )
           }
           setEscrowBalanceChip(<>{escrowRow}</>)
         } catch (err) {
+         
+          escrowRow = (
+            <Accordion>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+              <Typography className={classes.heading}>Escrow</Typography>
+              <Typography className={classes.heading} style={{marginLeft: '15px'}}>$0 USD</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <List dense="true">
+              <ListItem alignItems="space-between" key="empty">
+                <ListItemAvatar>
+                  <Avatar>Ⓝ</Avatar>
+                </ListItemAvatar>
+                <ListItemText primary="0 ($0.00 USD)" 
+                secondary="Ⓝ" />
+              </ListItem>
+              </List>
+            </AccordionDetails>
+          </Accordion>
+          )
+          setEscrowBalanceChip(<>{escrowRow}</>)
           console.log('no escrow balance')
         }
   
@@ -965,6 +1030,7 @@ export default function AppFramework(props) {
         let guildRow
         try {
           gbalance = await contract.getGuildTokenBalances()
+          console.log('gbalance', gbalance)
           update('', {guildBalance: gbalance})
   
           let Accounts
@@ -1011,28 +1077,70 @@ export default function AppFramework(props) {
           }
   
           if(active) {
-          guildRow = (
-            <Accordion>
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              aria-controls="panel1a-content"
-              id="panel1a-header"
-            >
-              <Typography className={classes.heading}>Treasury</Typography>
-              <Typography className={classes.heading} style={{marginLeft: '15px'}}>${tokenUSDValue} USD</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <List dense="true">
-              {Accounts}
-              </List>
-            </AccordionDetails>
-          </Accordion>
-            )
+            guildRow = (
+              <Accordion>
+                <AccordionSummary
+                  expandIcon={<ExpandMoreIcon />}
+                  aria-controls="panel1a-content"
+                  id="panel1a-header"
+                >
+                  <Typography className={classes.heading}>Treasury</Typography>
+                  <Typography className={classes.heading} style={{marginLeft: '15px'}}>${tokenUSDValue} USD</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <List dense="true">
+                  {Accounts}
+                  </List>
+                </AccordionDetails>
+              </Accordion>
+              )
+          } else {
+            guildRow = (
+              <Accordion>
+                <AccordionSummary
+                  expandIcon={<ExpandMoreIcon />}
+                  aria-controls="panel1a-content"
+                  id="panel1a-header"
+                >
+                  <Typography className={classes.heading}>Treasury</Typography>
+                  <Typography className={classes.heading} style={{marginLeft: '15px'}}>$0 USD</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <List dense="true">
+                  {Accounts}
+                  </List>
+                </AccordionDetails>
+              </Accordion>
+              )
           }
           
           setGuildBalanceChip(<>{guildRow}</>)
           
         } catch (err) {
+          guildRow = (
+            <Accordion>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls="panel1a-content"
+                id="panel1a-header"
+              >
+                <Typography className={classes.heading}>Treasury</Typography>
+                <Typography className={classes.heading} style={{marginLeft: '15px'}}>$0 USD</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <List dense="true">
+                  <ListItem alignItems="space-between" key="empty">
+                  <ListItemAvatar>
+                    <Avatar>Ⓝ</Avatar>
+                  </ListItemAvatar>
+                  <ListItemText primary="0 ($0.00 USD)" 
+                  secondary="Ⓝ" />
+                </ListItem>
+                </List>
+              </AccordionDetails>
+            </Accordion>
+            )
+          setGuildBalanceChip(<>{guildRow}</>)
           console.log('no guild balance')
         }  
       }
@@ -1097,56 +1205,14 @@ export default function AppFramework(props) {
       try {
         let synched = await synchProposalEvent(curDaoIdx, contract)
         setAllProposals(synched.events)
+        update('',{isUpdated: !isUpdated})
       } catch (err) {
         console.log('no proposals yet', err)
       }
     }
 
-    function handleWarningReturn(){
-      let warningFlag = get(WARNING_FLAG, [])
-      if(!warningFlag[0]){
-        warningFlag.push({accepted: 'true'})
-        set(WARNING_FLAG, warningFlag)
-        
-      }
-      setStepsTriggered(triggerSteps + 1)
-    }
-  
-    const options = {
-      doneLabel: 'Next',
-      showButtons: true,
-      overlayOpacity: 0.5,
-      scrollTo: 'element',
-      skipLabel: "Skip",
-      showProgress: true
-    }
-
-    function onStepsComplete(){
-      setStepsEnabled(false)
-      setAppbarStepsEnabled(true)
-    }
-
-    function onStepsExit(){
-      setStepsEnabled(false)
-    }
-
-    function handleReturn(proposalIdentifier){
-      if(proposalIdentifier == 'actionSelect'){
-        setTabTutorialEnabled(true)
-        setAppbarStepsEnabled(false)
-      }
-      else if(proposalIdentifier=='propList'){
-        setTabTutorialEnabled(false)
-      }
-    }
-
     return (
       <>
-            <div className={classes.root}>
-            <WarningConfirmation
-              returnFunction = {handleWarningReturn}
-            /> 
-            <Header state={state} />
             <Grid container style={{padding:'20px'}}>
 
             {initLoad == false ? (
@@ -1159,54 +1225,94 @@ export default function AppFramework(props) {
             
                initialized == 'done' ? (
                 <>
-                  {/* <Steps
-                      enabled={stepsEnabled}
-                      initialStep={0}
-                      onBeforeChange={(index)=> 
-                        {
-                          if(index == 1){onStepsComplete()}
-                        }
-                      }
-                      onComplete={()=>onStepsComplete()}
-                      onExit={()=>onStepsExit()}
-                      steps={steps}
-                      options={options}
-                      /> 
-                  */}
 
                 {matches ? (
                   <>
                   <Grid container justifyContent="space-evenly" alignItems="center" style={{marginBottom:'15px'}} spacing={0}>
-                    <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" style={{marginBottom: '15px'}}>                    
+                    
+                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                      <div style={{width: '100%', 
+                      height: '75px',
+                      backgroundImage: `url(${logo})`, 
+                      backgroundSize: 'contain',
+                      backgroundPosition: 'center', 
+                      backgroundRepeat: 'no-repeat',
+                      backgroundOrigin: 'content-box',
+                      marginBottom: '15px'
+                      }}/>
+                  </Grid>     
+                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                        <Divider variant="middle" />
+                        <div style={{width:'100%', textAlign:'center'}}>
+                          <ActionSelector 
+                            handleTabValueState={handleTabValueState}
+                            fairShare={currentShare}
+                            loaded={loaded}
+                            approvedTokens={approvedTokens}
+                          />
+                          <div style={{float:'right'}}>
+                          <RightSideDrawer
+                            state={state}
+                            currentPeriod={currentPeriod}
+                            accountId={accountId} 
+                            contract={contract}
+                            summoner={summoner}
+                            totalMembers={allMemberInfo.length}
+                            proposalDeposit={proposalDeposit}
+                            tokenName={tokenName}
+                            depositToken={depositToken}
+                          />
+                          </div>
+                        </div>
+                        
+                        <Divider variant="middle" />
+                    </Grid>
+                   
+                  <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" style={{marginTop: '15px', marginBottom: '15px'}}>                    
                       <Chip variant="outlined" label="Member" icon={memberIcon} />
                       <Chip variant="outlined" label={sharesLabel}  />
                       <Chip variant="outlined" label={fairShareLabel}  />
                     </Grid>
-                    <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
-                      <ActionSelector 
-                        enable={appbarStepsEnabled}
-                        returnFunction={handleReturn}
-                        handleTabValueState={handleTabValueState}
-                        fairShare={currentShare}
-                        loaded={loaded}
-                        approvedTokens={approvedTokens}
-                      />
-                    </Grid>
+                   
                   </Grid>
                   </>
                 ) : (
                   <>
                   <Grid container justifyContent="space-evenly" alignItems="center" style={{marginBottom:'15px'}} spacing={0}>
+                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                     
+                        <div style={{width: '100%', 
+                        height: '50px',
+                        backgroundImage: `url(${logo})`, 
+                        backgroundSize: 'contain',
+                        backgroundPosition: 'center', 
+                        backgroundRepeat: 'no-repeat',
+                        backgroundOrigin: 'content-box',
+                        marginBottom: '15px'
+                        }}/>
+                      
+                    </Grid>  
                     <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                     <div style={{marginLeft: '10px'}}>
                       <ActionSelector
-                        enable={appbarStepsEnabled} 
-                        returnFunction={handleReturn}
                         handleTabValueState={handleTabValueState}
                         fairShare={currentShare}
                         loaded={loaded}
                         approvedTokens={approvedTokens}
                       />
+                      <div style={{float:'right'}}>
+                      <RightSideDrawer
+                        state={state}
+                        currentPeriod={currentPeriod}
+                        accountId={accountId} 
+                        contract={contract}
+                        summoner={summoner}
+                        totalMembers={allMemberInfo.length}
+                        proposalDeposit={proposalDeposit}
+                        tokenName={tokenName}
+                        depositToken={depositToken}
+                      />
+                      </div>
                     </div>
                     </Grid>
                     <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="right">                
@@ -1220,19 +1326,7 @@ export default function AppFramework(props) {
                 }
               
                 <Card align="center" style={{width: '100%'}}>
-                <div style={{float:'right', marginBottom: '-30px'}}>
-                  <RightSideDrawer
-                    state={state}
-                    currentPeriod={currentPeriod}
-                    accountId={accountId} 
-                    contract={contract}
-                    summoner={summoner}
-                    totalMembers={allMemberInfo.length}
-                    proposalDeposit={proposalDeposit}
-                    tokenName={tokenName}
-                    depositToken={depositToken}
-                  />
-                </div>
+                
                   <Grid container justifyContent="center" alignItems="center" spacing={1} className={classes.top}>
                 
                     <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
@@ -1254,8 +1348,6 @@ export default function AppFramework(props) {
                 
                 {loaded ?
                   <ProposalList
-                    returnFunction={handleReturn}
-                    enable={tabTutorialEnabled}
                     proposalEvents={allProposals}
                     allMemberInfo={allMemberInfo}
                     currentMemberInfo={memberInfo}
@@ -1277,13 +1369,9 @@ export default function AppFramework(props) {
                 </Grid>
                 </>
               ) : <Initialize summoner={summoner} />
-
-              
           }
         </Grid>
-       
-        </div>
-        <Footer />
+      
         </>
     )
     

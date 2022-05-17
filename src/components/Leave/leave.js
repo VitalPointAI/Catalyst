@@ -155,7 +155,7 @@ console.log('membershare', memberShares[0].amount)
   return (
     <div>
       <Dialog open={open} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Leave Community</DialogTitle>
+        <DialogTitle id="form-dialog-title">Leave Project Community</DialogTitle>
         <DialogContent className={classes.rootForm}>
          
           <Grid container>
@@ -165,7 +165,7 @@ console.log('membershare', memberShares[0].amount)
               <b>{fairShare} yocto</b><br></br>
               (~ {formatNearAmount(fairShare, 3)} Ⓝ)</Typography>
               <Typography variant="body1">That is the maximum you may leave with. If you choose to leave with less, 
-              the difference will be donated to the community on your behalf.</Typography>
+              the difference will be donated to the project on your behalf.</Typography>
             </Grid>       
           ) : (
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
@@ -214,14 +214,14 @@ console.log('membershare', memberShares[0].amount)
               <CardContent>
                 <WarningIcon fontSize='large' className={classes.warning} />
                 {currentMembers > 1 ?(<Typography variant="body1">
-                  You are leaving the community.  This action is not reversible.  If you decide to rejoin the 
-                  community later, you must submit a new member proposal.</Typography>) : (
+                  You are leaving the project community.  This action is not reversible.  If you decide to rejoin the 
+                  project later, you must submit a new member proposal.</Typography>) : (
                   <Typography variant="body1">
-                    Because you are the last member, the community will be set to inactive if you leave.
+                    Because you are the last member, the project will be set to inactive if you leave.
                   </Typography>
                 )}
                 <Grid container className={classes.confirmation} spacing={1}>
-                  <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
+                  <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
                     <Checkbox
                       checked={confirm}
                       onChange={handleConfirmChange}
@@ -235,9 +235,9 @@ console.log('membershare', memberShares[0].amount)
                   </Grid>
                   <Grid item xs={10} sm={10} md={10} lg={10} xl={10} style={{margin:'auto'}}>
                       {currentMembers > 1 ? (<Typography variant="body2" gutterBottom>
-                        You understand this request means you will no longer be a member of the community. You are 
+                        You understand this request means you will no longer be a member of the project community. You are 
                         withdrawing <b>{(share ? share : 0)} yocto (~ {formatNearAmount(share ? share.toString() : 0, 3)} Ⓝ)</b> and you are donating <b>
-                        {share ? (parseFloat(fairShare) - parseFloat(share)) : 0}</b> yocto (~ {formatNearAmount(share ? ((parseFloat(fairShare) - parseFloat(share)).toLocaleString('fullwide', {useGrouping: false})) : '0', 3)} Ⓝ) to the community as you leave.
+                        {share ? (parseFloat(fairShare) - parseFloat(share)) : 0}</b> yocto (~ {formatNearAmount(share ? ((parseFloat(fairShare) - parseFloat(share)).toLocaleString('fullwide', {useGrouping: false})) : '0', 3)} Ⓝ) to the project as you leave.
                         </Typography>) : (
                           <Typography variant="body2" gutterBottom>
                             You understand this action is not reversible.
@@ -253,7 +253,7 @@ console.log('membershare', memberShares[0].amount)
           </Card>
           </DialogContent>
         <DialogActions>
-        {finished ? <><Button onClick={handleSubmit(onSubmit)} color="primary" type="submit">Leave Community</Button></> : <LinearProgress className={classes.progress} />}
+        {finished ? <><Button onClick={handleSubmit(onSubmit)} color="primary" type="submit">Leave</Button></> : <LinearProgress className={classes.progress} />}
         {finished ? <><Button onClick={handleClose} color="primary">Cancel</Button></> : null }
         </DialogActions>
       </Dialog>

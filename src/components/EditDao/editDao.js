@@ -27,6 +27,11 @@ import Divider from '@material-ui/core/Divider'
 import Switch from '@material-ui/core/Switch'
 import Card from '@material-ui/core/Card'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
+import Select from '@material-ui/core/Select'
+import MenuItem from '@material-ui/core/MenuItem'
+import Input from '@material-ui/core/Input'
+import FormControl from '@material-ui/core/FormControl'
+import InputLabel from '@material-ui/core/InputLabel'
 import Accordion from '@material-ui/core/Accordion'
 import { AccordionDetails } from '@material-ui/core'
 import { AccordionSummary } from '@material-ui/core'
@@ -67,6 +72,10 @@ const useStyles = makeStyles((theme) => ({
     id: {
       display: 'none'
     },
+    input: {
+      minWidth: 100,
+      maxWidth: 400,
+    },
     waiting: {
       minWidth: '100%',
       minHeight: '100%',
@@ -75,7 +84,7 @@ const useStyles = makeStyles((theme) => ({
     }
     }));
 
-const imageName = require('../../img/default_logo.png') // default no-image avatar
+const logoName = require('../../img/default_logo.png') // default no-image avatar
 const discordIcon = require('../../img/discord-icon.png')
 
 export default function EditDaoForm(props) {
@@ -85,7 +94,7 @@ export default function EditDaoForm(props) {
     const [date, setDate] = useState('')
     const [name, setName] = useState('')
     const [curDaoIdx, setCurDaoIdx] = useState()
-    const [logo, setLogo] = useState(imageName)
+    const [logo, setLogo] = useState(logoName)
     const [purpose, setPurpose] = useState(EditorState.createEmpty())
     const [category, setCategory] = useState('')
     const [webhook, setWebhook] = useState('')
@@ -104,9 +113,11 @@ export default function EditDaoForm(props) {
     const [telegram, setTelegram] = useState('')
     const [reddit, setReddit] = useState('')
     const [addDisabled, setAddDisabled] = useState(true)
-   
+    const [avatarLoaded, setAvatarLoaded] = useState(false)
+    const [progress, setProgress] = useState(false)
+
     const { register, handleSubmit, watch, errors, control, reset, setValue, getValues } = useForm()
-   
+    const categories = ["Production","Social","Educational","Community","Research","Gaming","Other"];
     
     const {
        fields: skillsFields,
@@ -144,6 +155,16 @@ export default function EditDaoForm(props) {
     } = state
     
     const classes = useStyles()
+
+    useEffect(() => {
+      if(logo != logoName && avatarLoaded){
+        setProgress(false)
+      }
+      if(logo != logoName && !avatarLoaded){
+        setProgress(true)
+      }
+    }, [logo, avatarLoaded]
+    )
    
     useEffect(() => {
         async function fetchData() {
@@ -155,7 +176,7 @@ export default function EditDaoForm(props) {
              let thisCurDaoIdx
              try{
               let daoAccount = new nearAPI.Account(near.connection, contractId)
-              thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
+              thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
               setCurDaoIdx(thisCurDaoIdx)
               console.log('edit curdaoIdx', thisCurDaoIdx)
             } catch (err) {
@@ -190,7 +211,7 @@ export default function EditDaoForm(props) {
                   }
                 result.name ? setName(result.name) : setName('')
                 result.date ? setDate(result.date) : setDate('')
-                result.logo ? setLogo(result.logo) : setLogo(imageName)
+                result.logo ? setLogo(result.logo) : setLogo(logoName)
                 result.skills ? setValue('skills', result.skills) : setValue('skills', {'name': ''})
                 result.specificSkills ? setValue('specificSkills', result.specificSkills) : setValue('specificSkills', {'name': ''})
                 result.category ? setCategory(result.category) : setCategory('')
@@ -291,6 +312,10 @@ export default function EditDaoForm(props) {
       setReddit(value); 
     }
 
+    function handleAvatarLoaded(property){
+      setAvatarLoaded(property)
+    }
+
     const onSubmit = async (values) => {
         event.preventDefault();
         setFinished(false)
@@ -356,47 +381,91 @@ export default function EditDaoForm(props) {
        
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             { loaded ? (<>
-              <DialogTitle id="form-dialog-title">Community Profile Details</DialogTitle>
+              <DialogTitle id="form-dialog-title">Project Community Details</DialogTitle>
               <DialogContent>
                   <DialogContentText style={{marginBottom: 10}}>
                   Provide as much detail as you'd like.
                   </DialogContentText>
-                    
-                      <TextField
-                        autoFocus
-                        margin="dense"
-                        id="profile-name"
-                        variant="outlined"
-                        name="name"
-                        label="Community Name"
-                        placeholder="Super Dao"
-                        value={name}
-                        onChange={handleNameChange}
-                        inputRef={register({
-                            required: false                              
-                        })}
-                      />
-                    {errors.name && <p style={{color: 'red'}}>You must provide a community name.</p>}
+                    <Accordion>
+                      <AccordionSummary
+                        expandIcon={<ExpandMoreIcon />}
+                        aria-controls="panel1bh-content"
+                        id="panel1bh-header"
+                      >
+                        <Typography variant="h6">Basic Project Info</Typography>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <Grid container spacing={2} style={{marginBottom: '5px'}}>
+                          <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                            <TextField
+                              autoFocus
+                              margin="dense"
+                              id="profile-name"
+                              variant="outlined"
+                              name="name"
+                              label="Project Name"
+                              placeholder="Super Project"
+                              value={name}
+                              onChange={handleNameChange}
+                              inputRef={register({
+                                  required: false                              
+                              })}
+                            />
+                          {errors.name && <p style={{color: 'red'}}>You must provide a community name.</p>}
+                          </Grid>
+                          <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                          <FormControl className={classes.input}>
+                              <InputLabel id="category-label">Category</InputLabel>
+                              <Select
+                              className={classes.input}
+                              required
+                              label = "Category"
+                              id = "profile-category"
+                              value = {category}
+                              onChange = {handleCategoryChange}
+                              input={<Input />}
+                              >
+                              {categories.map((category) => (
+                                  <MenuItem key={category} value={category}>
+                                  {category}
+                                  </MenuItem>
+                              ))}
+                              </Select>
+                          </FormControl>
+                          {errors.name && <p style={{color: 'red'}}>You must categorize yoour project so others can find it.</p>}
+                        </Grid>
+                        </Grid>
+                      </AccordionDetails>
+                    </Accordion>
+                    <Accordion>
+                    <AccordionSummary
+                      expandIcon={<ExpandMoreIcon />}
+                      aria-controls="panel1bh-content"
+                      id="panel1bh-header"
+                    >
+                      <Typography variant="h6">Upload a Logo</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <Grid container spacing={2} style={{marginBottom: '5px'}}>
+                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                        <div style={{width: '100%', 
+                          height: '50px',
+                          backgroundImage: `url(${logo})`, 
+                          backgroundSize: 'contain',
+                          backgroundPosition: 'center', 
+                          backgroundRepeat: 'no-repeat',
+                          backgroundOrigin: 'content-box'
+                        }}></div>
+                        </Grid>
+                        <Grid item xs={10} sm={10} md={10} lg={10} xl={10}>
+                          <FileUpload handleFileHash={handleFileHash} handleAvatarLoaded={handleAvatarLoaded}/>
+                        </Grid>
+                      </Grid>
+                    </AccordionDetails>
+                  </Accordion>
 
-                    <TextField
-                      
-                      margin="dense"
-                      id="profile-category"
-                      variant="outlined"
-                      name="category"
-                      label="Category"
-                      placeholder="Social Cause"
-                      value={category}
-                      onChange={handleCategoryChange}
-                      style={{marginLeft: '5px'}}
-                      inputRef={register({
-                          required: false                              
-                      })}
-                    />
-                    {errors.name && <p style={{color: 'red'}}>You must categorize your DAO so others can find it.</p>} 
-               
-                    <Typography variant="h6" style={{marginTop: '10px'}}>Community Purpose</Typography>
-                    <Paper style={{padding: '5px'}}>
+                  <Typography variant="h6" style={{marginTop: '10px'}}>Project Description</Typography>
+                  <Paper style={{padding: '5px'}}>
                     <Editor
                       editorState={purpose}
                       toolbarClassName="toolbarClassName"
@@ -405,28 +474,23 @@ export default function EditDaoForm(props) {
                       onEditorStateChange={handlePurposeChange}
                       editorStyle={{minHeight:'200px'}}
                     />
-                    </Paper>
+                  </Paper>
 
-                    <Paper style={{padding: '5px', marginTop: '20px'}}>
-                    <Grid container spacing={1}>
-                      <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                        <Typography variant="h6">Add a Logo</Typography>
-                      </Grid>
-                      <Grid item xs={4} sm={4} md={4} lg={4} xl={4}>
-                          <Avatar src={logo} variant="square" className={classes.square} />
-                      </Grid>
-                      <Grid item xs={8} sm={8} md={8} lg={8} xl={8}>
-                        <FileUpload handleFileHash={handleFileHash} align="center"/>
-                      </Grid>
-                    </Grid>
-                    </Paper>
-
-                  <Card style={{marginTop: '20px', marginBottom: '20px', padding: '5px'}}>
-                  <Typography variant="h6">Notifications</Typography>
-                      <Grid container justifyContent="flex-start" alignItems="center" spacing={1}>
-                        <Grid item xs={9} sm={9} md={9} lg={9} xl={9}>
+                  <Accordion>
+                    <AccordionSummary
+                      expandIcon={<ExpandMoreIcon />}
+                      aria-controls="panel1bh-content"
+                      id="panel1bh-header"
+                    >
+                      <Typography variant="h6">Notifications</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <Grid container spacing={2} style={{marginBottom: '5px'}}>
+                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="left">
+                          <FormControlLabel control={<Switch checked={discordActivated} onChange={handleDiscordActivation} color="primary"/>} label="Enabled" />
+                        </Grid>
+                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                           <TextField
-                            
                             fullWidth
                             margin="dense"
                             id="discord-webhook"
@@ -441,42 +505,39 @@ export default function EditDaoForm(props) {
                             })}
                           />
                         </Grid>
-                        <Grid item xs={3} sm={3} md={3} lg={3} xl={3}>
-                          <FormControlLabel control={<Switch checked={discordActivated} onChange={handleDiscordActivation} color="primary"/>} label="Enabled" />
-                        </Grid>
                         <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                           <Typography variant="h6">Notify on:</Typography>
                         </Grid>
-                        <Grid item xs={6} sm={6} md={4} lg={4} xl={4}>
+                        <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
                           <FormControlLabel control={<Switch checked={proposalsActivated} onChange={handleProposalActivation} color="primary"/>} label="New Proposal" />
                         </Grid>
-                        <Grid item xs={6} sm={6} md={4} lg={4} xl={4}>
+                        <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
                           <FormControlLabel control={<Switch checked={passedProposalsActivated} onChange={handlePassedProposalActivation} color="primary"/>} label="Processed Proposal" />
                         </Grid>
-                        <Grid item xs={6} sm={6} md={4} lg={4} xl={4}>
+                        <Grid item xs={12} sm={12} md={4} lg={4} xl={4}>
                           <FormControlLabel control={<Switch checked={sponsorActivated} onChange={handleSponsorActivation} color="primary"/>} label="Sponsored Proposal" />
                         </Grid>
                       </Grid>
-                    
-                  </Card>
+                    </AccordionDetails>
+                  </Accordion>
+
                   <Accordion>
                       <AccordionSummary
                         expandIcon={<ExpandMoreIcon />}
                         aria-controls="panel1bh-content"
                         id="panel1bh-header"
                       >
-                      <Typography variant="h6">Community Accounts</Typography>
-                      <Tooltip TransitionComponent={Zoom} title="Here you can add communication channels for your community.">
-                        <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                      <Tooltip TransitionComponent={Zoom} title="Here you can add project specific communication channels.">
+                        <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
                       </Tooltip>
+                      <Typography variant="h6">Project Accounts</Typography>
+                     
                       </AccordionSummary>
                   <AccordionDetails>
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                       <TextField
-                        
                         margin="dense"
-                        id="input-with-icon-grid"
                         id="profile-email"
                         variant="outlined"
                         name="email"
@@ -621,10 +682,11 @@ export default function EditDaoForm(props) {
                         aria-controls="panel1bh-content"
                         id="panel1bh-header"
                       >
-                      <Typography variant="h6">General Skills, Values and Competencies</Typography>
-                      <Tooltip TransitionComponent={Zoom} title="Here you can add the general skills (leadership, management, teamwork, etc...) and values that are relevant to what your community does.">
-                        <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                      <Tooltip TransitionComponent={Zoom} title="Here you can add the general skills (leadership, management, teamwork, etc...) and values that are relevant to what your project needs.">
+                        <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
                       </Tooltip>
+                      <Typography variant="h6">General Attributes Desired</Typography>
+                      
                       </AccordionSummary>
                   <AccordionDetails>
                     <React.Fragment>
@@ -653,7 +715,7 @@ export default function EditDaoForm(props) {
                                 required: true                              
                             })}
                           />
-                          {errors[`skills${index}.name`] && <p style={{color: 'red', fontSize:'80%'}}>You must provide a skill name.</p>}
+                          {errors[`skills${index}.name`] && <p style={{color: 'red', fontSize:'80%'}}>You must provide an attribute name.</p>}
                           
                           <Button type="button" onClick={() => skillsRemove(index)} style={{float: 'right', marginLeft:'10px'}}>
                             <DeleteForeverIcon />
@@ -664,14 +726,14 @@ export default function EditDaoForm(props) {
                       }) 
                       }
                       {!skillsFields || skillsFields.length == 0 ?
-                        <Typography variant="body1" style={{marginLeft: '5px'}}>No general skills defined yet. Add general skills that are relevant to your community.</Typography>
+                        <Typography variant="body1" style={{marginLeft: '5px'}}>No general attributes defined yet. Add general attributes that are relevant to your project community.</Typography>
                       : null }
                       <Button
                         type="button"
                         onClick={() => skillsAppend({name: ''})}
                         startIcon={<AddBoxIcon />}
                       >
-                        Add Skill
+                        Add Attribute
                       </Button>
                     </Grid>
                     </React.Fragment>  
@@ -683,10 +745,11 @@ export default function EditDaoForm(props) {
                         aria-controls="panel1bh-content"
                         id="panel1bh-header"
                       >
-                      <Typography variant="h6">Specific Skills and Certifications</Typography>
-                      <Tooltip TransitionComponent={Zoom} title="Here you can add specific skills such as programming languages, frameworks, certifications, etc... that are relevant to what your community does.">
-                        <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                      <Tooltip TransitionComponent={Zoom} title="Here you can add specific skills and competencies needed such as programming languages, frameworks, certifications, etc... that are relevant to what your project needs.">
+                        <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
                       </Tooltip>
+                      <Typography variant="h6">Skills and Competencies</Typography>
+                      
                       </AccordionSummary>
                   <AccordionDetails>
                     <React.Fragment>
@@ -733,7 +796,7 @@ export default function EditDaoForm(props) {
                         onClick={() => specificSkillsAppend({name: ''})}
                         startIcon={<AddBoxIcon />}
                       >
-                        Add Skill
+                        Add Skill or Competency
                       </Button>
                     </Grid>
                     </React.Fragment>  
@@ -754,7 +817,7 @@ export default function EditDaoForm(props) {
               
               </>) : <><div className={classes.waiting}><div class={flexClass}><CircularProgress/></div><Grid container spacing={1} alignItems="center" justifyContent="center" >
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                <Typography variant="h5" align="center">Loading DAO Details</Typography>
+                <Typography variant="h5" align="center">Loading Project Community Details</Typography>
               </Grid>
               </Grid></div></> }
             </Dialog>

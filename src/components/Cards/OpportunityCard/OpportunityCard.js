@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import { appStore, onAppMount } from '../../state/app'
+import { appStore, onAppMount } from '../../../state/app'
 import { useParams } from 'react-router-dom'
-import { get, set, del } from '../../utils/storage'
-import {OPPORTUNITY_NOTIFICATION, PROPOSAL_NOTIFICATION} from '../../state/near' 
-import { ceramic } from '../../utils/ceramic'
-import FundingProposal from '../FundingProposal/fundingProposal'
-import OpportunityProposalDetails from '../ProposalDetails/opportunityProposalDetails'
-import EditOpportunityProposalForm from '../EditProposal/editOpportunityProposal'
-import MemberProposal from '../MemberProposal/memberProposal'
-import MemberProfileDisplay from '../MemberProfileDisplay/memberProfileDisplay'
-import { getStatus } from '../../state/near'
+import { get, set, del } from '../../../utils/storage'
+import {OPPORTUNITY_NOTIFICATION, PROPOSAL_NOTIFICATION, networkId} from '../../../state/near' 
+import { ceramic } from '../../../utils/ceramic'
+import { dao } from '../../../utils/dao'
+import FundingProposal from '../../FundingProposal/fundingProposal'
+import OpportunityProposalDetails from '../../ProposalDetails/opportunityProposalDetails'
+import EditOpportunityProposalForm from '../../EditProposal/editOpportunityProposal'
+import MemberProposal from '../../MemberProposal/memberProposal'
+import MemberProfileDisplay from '../../MemberProfileDisplay/memberProfileDisplay'
+import { getStatus, daoRootName } from '../../../state/near'
 import { parseNearAmount, formatNearAmount } from 'near-api-js/lib/utils/format'
 
 // Material UI Components
@@ -114,10 +115,25 @@ const useStyles = makeStyles((theme) => ({
     value: PropTypes.number.isRequired,
   }
 
-  const imageName = require('../../img/default-profile.png') // default no-image avatar
-  const defaultImage = require('../../img/default_logo.png')
+  const imageName = require('../../../img/default-profile.png') // default no-image avatar
+  const defaultImage = require('../../../img/default_logo.png')
+  const logoName = require('../../../img/default_logo.png') // default no-logo image
 
 export default function OpportunityCard(props) {
+
+    const [applicantName, setApplicantName] = useState('')
+    const [applicantAvatar, setApplicantAvatar] = useState(imageName)
+    const [pfpApplicantAvatar, setPfpApplicantAvatar] = useState('')
+    const [pfpProposerAvatar, setPfpProposerAvatar] = useState('')
+    const [applicantLogo, setApplicantLogo] = useState(logoName)
+
+    const [proposerLogo, setProposerLogo] = useState(logoName)
+    const [proposerName, setProposerName] = useState('')
+    const [proposerAvatar, setProposerAvatar] = useState(imageName)
+    const [pfpProposerLogo, setPfpProposerLogo] = useState('')
+    const [pfpApplicantLogo, setPfpApplicantLogo] = useState('')
+
+    const [accountType, setAccountType] = useState('')
 
     const [date, setDate] = useState('')
     const [name, setName] = useState('')
@@ -127,7 +143,8 @@ export default function OpportunityCard(props) {
     
     const [communityName, setCommunityName] = useState('')
     const [logo, setLogo] = useState(defaultImage)
-    const [thisContractId, setThisContractId] = useState()
+  
+    const [contract, setContract] = useState()
     const [memberProfileDisplayClicked, setMemberProfileDisplayClicked] = useState(false)
     const [editOpportunityProposalDetailsClicked, setEditOpportunityProposalDetailsClicked] = useState(false)
     const [opportunityProposalDetailsClicked, setOpportunityProposalDetailsClicked] = useState(false)
@@ -141,7 +158,8 @@ export default function OpportunityCard(props) {
     const [hours, setHours] = useState(0)
     const [minutes, setMinutes] = useState(0)
     const [seconds, setSeconds] = useState(0)
-
+    const [memberProposalPresent, setMemberProposalPresent] = useState(false)
+    const [memberStatus, setMemberStatus] = useState(false)
     const { state, dispatch, update } = useContext(appStore)
     const [progress, setProgress] = useState(0)
 
@@ -149,13 +167,15 @@ export default function OpportunityCard(props) {
       didRegistryContract,
       near, 
       appIdx,
+      account,
       accountId,
       wallet,
       deposit,
       daoFactory,
       isUpdated, 
       nearPrice,
-      proposalDeposit
+      proposalDeposit,
+      currentDaosList
     } = state
 
     const classes = useStyles();
@@ -164,8 +184,7 @@ export default function OpportunityCard(props) {
       creator,
       created,
       curDaoIdx,
-      contract,
-      memberStatus,
+      passedProposalDeposit,
       status,
       updated,
       title,
@@ -181,8 +200,10 @@ export default function OpportunityCard(props) {
       passedContractId,
       deadline,
       budget,
-      usd
+      usd,
+      did
     } = props
+
 
     const {
       contractId
@@ -208,6 +229,21 @@ export default function OpportunityCard(props) {
       fetchPrice()
       
     }, [usd, nearPrice]
+    )
+
+    useEffect(() => {
+      async function fetchMemberStatus(){
+        if(contract && accountId){
+          let thisMemberStatus = await contract.getMemberStatus({member: accountId})
+          setMemberStatus(thisMemberStatus)
+        }
+      }
+
+      fetchMemberStatus()
+      .then((res) => {
+
+      })
+    }, [contract, accountId]
     )
 
 
@@ -257,24 +293,55 @@ export default function OpportunityCard(props) {
               del(OPPORTUNITY_NOTIFICATION)
               handleOpportunityProposalDetailsClick()
             }
-          }       
+          }
 
-          if(creator){
-          // Get Persona data
-            let creatorDid = await ceramic.getDid(creator, daoFactory, didRegistryContract)
-            let result = await appIdx.get('profile', creatorDid)
-            if(result){
-              result.date ? setDate(result.date) : setDate('')
-              result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-              result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
-              result.name ? setName(result.name) : setName('')
+           // Get Persona Information           
+           if(creator && appIdx){
+
+            let thisAccountType
+            try{
+                thisAccountType = await didRegistryContract.getType({accountId: accountId})
+                setAccountType(thisAccountType)
+              } catch (err) {
+                thisAccountType = 'none'
+                console.log('account not registered, not type avail', err)
+            }
+            
+            
+            // Proposer
+            let proposerDid = await ceramic.getDid(creator, daoFactory, didRegistryContract)
+            if(thisAccountType != 'guild') {
+              let result = await appIdx.get('profile', proposerDid)
+              console.log('indiv result', result)
+              if(result){
+                  result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
+                  result.name ? setProposerName(result.name) : setProposerName('')
+                  result.profileNft ? setPfpProposerAvatar(result.profileNft) : setPfpProposerAvatar('')
+              }
+            } else {
+                if(thisAccountType == 'guild'){
+                    let result = await appIdx.get('guildProfile', proposerDid)
+                    console.log('guild result', result)
+                    if(result){
+                        result.logo ? setProposerLogo(result.logo) : setProposerLogo(logoName)
+                        result.name ? setProposerName(result.name) : setProposerName('')
+                        result.profileNft ? setPfpProposerLogo(result.profileNft) : setPfpProposerLogo('')
+                    }
+                }
             }
           }
           
-
           // get community information
-          if(contractId){
-            let daoDid = await ceramic.getDid(contractId, daoFactory, didRegistryContract)
+          if(appIdx && currentDaosList){
+            let daoDid
+
+            for(let x = 0; x < currentDaosList.length; x++){
+              if(currentDaosList[x].contractId == passedContractId || currentDaosList[x].contractId == contractId){
+                daoDid = currentDaosList[x].did
+                break
+              }
+            }
+           console.log('daodid', daoDid)
             let daoResult = await appIdx.get('daoProfile', daoDid)
             if(daoResult){
               daoResult.name ? setCommunityName(daoResult.name) : setCommunityName('')
@@ -292,9 +359,29 @@ export default function OpportunityCard(props) {
           })
         return() => mounted = false
         }
-    }, [appIdx, isUpdated]
+    }, [appIdx, currentDaosList, isUpdated]
     )
     
+    useEffect(() => {
+      async function getProposalStatus(){
+        if(contract && accountId){
+          console.log('accountid here', accountId)
+          try{
+            console.log('contract', contract)
+            let proposalPresent = await contract.getMemberProposalPresent({applicant: accountId})
+            setMemberProposalPresent(proposalPresent)
+          } catch (err) {
+            console.log('error getting proposal present', err)
+          }
+        }
+      }
+
+      getProposalStatus()
+      .then((res) => {
+
+      })
+    },[contract, accountId]
+    )
 
     useEffect(() => {
       if(progress < parseInt(suitabilityScore)){
@@ -306,6 +393,27 @@ export default function OpportunityCard(props) {
         }
       }
     }, [])
+
+    useEffect(() => {
+      async function fetchContract(){
+        if(account && (contractId || passedContractId)){
+          let thisContract
+          if(contractId){
+            thisContract = await dao.initDaoContract(account, contractId)
+            setContract(thisContract)
+          }
+          if(passedContractId){
+            thisContract = await dao.initDaoContract(account, passedContractId)
+            setContract(thisContract)
+          }
+        }
+      }
+
+      fetchContract()
+      .then(() => {
+
+      })
+    }, [account, passedContractId, contractId])
     
    
     function formatDate(timestamp) {
@@ -369,64 +477,62 @@ export default function OpportunityCard(props) {
       setAnchorEl(null)
     }
   
+    let daoLink = `localhost:3003/dao/${contractId ? contractId : passedContractId}`
 
     return(
         <>
    
         <Card raised={true} className={classes.card}>
+
           <Grid container alignItems="center" justifyContent="center" spacing={1} style={{padding: '5px'}}>
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-              <Link to={`/dao/${thisContractId}`}>
-                <img src={logo} className={classes.logoImage} /><br></br>
-                {logo ? null : <Typography variant="h6">{communityName ? communityName : contractId}</Typography>}
-              </Link>
+              { status == 'Passed' && dateValid && budget > 0 && opportunityStatus ?
+                <Chip label="Active" style={{marginRight: '10px', backgroundColor: 'green', color:'white'}}/>
+              : <Chip label="Inactive" style={{marginRight: '10px', backgroundColor: 'red', color:'white'}}/>
+              }
+              <div style={{float:'right'}}>
+                <Typography variant="subtitle2">
+                {dateValid ? 
+                  dateLoaded ? 'Expires: ' + days+'d:'+hours+'h:'+minutes+'m:'+seconds
+                : 'Calculating...'
+                : 'Expired'
+                }</Typography>
+              </div>
             </Grid>
-            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
-              <Typography variant="overline">{projectName != '' ? projectName : null}</Typography>
+            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+            <a href={networkId == 'localhost' || networkId == 'testnet' ? 'http://' + daoLink : 'https://'+ daoLink}>
+              <div style={{width: '95%', 
+                height: '50px',
+                backgroundImage: `url(${logo})`, 
+                backgroundSize: 'contain', 
+                backgroundPosition: 'center', 
+                backgroundRepeat: 'no-repeat',
+                backgroundOrigin: 'content-box'
+              }}/>
+              {logo ? null : <Typography variant="h6">{communityName ? communityName : contractId ? contractId : passedContractId}</Typography>}
+            </a>
             </Grid>
           </Grid>
-          <CardHeader
-          title={
-            <>
-            <Button 
-             color="primary"
-             style={{fontWeight: '800', fontSize: '110%', lineHeight: '1.1em'}}
-             onClick={handleOpportunityProposalDetailsClick}
-            >{title}
-            </Button>
-            </>}
-          subheader={ <> <Grid container alignItems="flex-start" justifyContent="space-between">
-          <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
-             <Typography variant="overline">Added: {created ? formatDate(created) : null}</Typography>
-          </Grid>
-          <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '10px'}}>
-          <Typography variant="overline">Proposer:</Typography>
-            <Chip avatar={<Avatar src={avatar} className={classes.small} onClick={handleMemberProfileDisplayClick}/>} label={name != '' ? name : creator}/>
-          </Grid>
-          <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '10px'}}>
-          <Typography variant="subtitle2">
-            {dateValid ? 
-              dateLoaded ? 'Expires: ' + days+'d:'+hours+'h:'+minutes+'m:'+seconds
-            : 'Calculating...'
-            : 'Expired'
-            }</Typography>
 
-          </Grid>
-          <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
-            <Chip label={status == 'Passed' && dateValid && budget > 0 && opportunityStatus ? 'Active' : 'Inactive'} style={{marginRight: '10px'}}/>
-            <Chip color="primary" label={category} style={{width: '100%', marginTop:'5px'}}/>
-          </Grid>
-          </Grid>
-          </>}
-          className={classes.header}
+          <CardHeader
+            title={
+              <>
+              <Button 
+              color="primary"
+              style={{fontWeight: '800', fontSize: '1.25rem', lineHeight: '1.1em'}}
+              onClick={handleOpportunityProposalDetailsClick}
+              >{title}
+              </Button>
+              </>
+            }
           />
- 
           <CardContent>
             <Grid container alignItems="center" style={{marginTop: '-20px', display:'inherit'}}>
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
                 <Typography variant="h6" align="center">Reward</Typography>
-                <Typography variant="h6" align="center">{usd ? usd + ' USD': null}</Typography><br></br>
-                <Typography variant="h6" align="center">{reward} Ⓝ</Typography><br></br>
+                <Typography variant="h6" align="center">{reward} Ⓝ</Typography>
+                <Typography variant="subtitle1" color="textSecondary" align="center">~${usd ? usd + ' USD': null}</Typography><br></br>
+                
                 <div className={classes.root}>
                   <LinearProgressWithLabel value={progress} />
                 </div>
@@ -474,13 +580,18 @@ export default function OpportunityCard(props) {
                 </Button>
                 </>
             ) :
-              <>
-              <Button 
-                color="primary" 
-                onClick={handleMemberProposalClick}>
-                  Join Community
-              </Button>
-              </>
+              !memberProposalPresent ?
+                <>
+                <Button 
+                  color="primary" 
+                  onClick={handleMemberProposalClick}>
+                    Join Community
+                </Button>
+                </>
+              : 
+              <a href={`${daoRootName}/dao/${contractId? contractId: passedContractId}`}> 
+                Membership Pending
+              </a>
           ) : null }
           
             <Button 
@@ -506,25 +617,30 @@ export default function OpportunityCard(props) {
           /> : null }
 
         {fundingProposalClicked ? <FundingProposal
-          contractId={thisContractId}
+          passedContractId={contractId ? contractId : passedContractId}
           handleFundingProposalClickState={handleFundingProposalClickState}
           depositToken={'Ⓝ'}
-          proposalDeposit={proposalDeposit}
+          proposalDeposit={passedProposalDeposit? passedProposalDeposit: proposalDeposit}
           tokenName={'Ⓝ'}
           usd={usd}
           applicant={accountId} 
           reference={opportunityId}
           budget={budget}
           contract={contract}
+          appIdx={appIdx}
+          did={did}
+          state={state}
           /> : null }
 
         {memberProposalClicked ? <MemberProposal
-          contractId={thisContractId}
+          contractId={contractId ? contractId : passedContractId}
           state={state}
           depositToken={'Ⓝ'}
-          proposalDeposit={proposalDeposit}
+          proposalDeposit={passedProposalDeposit? passedProposalDeposit: proposalDeposit}
           handleMemberProposalClickState={handleMemberProposalClickState} 
-          accountId={accountId} 
+          accountId={accountId}
+          appIdx={appIdx}
+          did={did}
     
           /> : null }
 
@@ -534,12 +650,15 @@ export default function OpportunityCard(props) {
           curDaoIdx={curDaoIdx}
           applicant={accountId}
           opportunityId={opportunityId}
-          contractId={contractId}
+          contractId={contractId ? contractId : passedContractId}
           status={status}
           dateValid={dateValid}
           budget={budget}
           deadline={deadline}
           memberStatus={memberStatus}
+          did={did}
+          suitabilityScore={suitabilityScore}
+
           /> : null }
 
           {editOpportunityProposalDetailsClicked ? <EditOpportunityProposalForm
@@ -550,7 +669,7 @@ export default function OpportunityCard(props) {
             proposer={creator}
             accountId={accountId}
             opportunityId={opportunityId}
-            contractId={thisContractId}
+            contractId={contractId ? contractId : passedContractId}
             /> : null }
 
           </>

@@ -83,14 +83,12 @@ export default function EditOpportunityProposalForm(props) {
     curDaoIdx
   } = state
 
-  const {
-    contractId
-  } = useParams()
 
   const {
       handleEditOpportunityProposalDetailsClickState,
       proposer,
       opportunityId,
+      contractId
   } = props
 
     const [open, setOpen] = useState(true)
@@ -154,13 +152,13 @@ export default function EditOpportunityProposalForm(props) {
     useEffect(() => {
         async function fetchData() {
           if(isUpdated){}
-          if(!state){update('')}
+          
           setLoaded(false)
            
             // Get Existing Community Skills
             if(curDaoIdx){
               let daoProfileResult = await curDaoIdx.get('daoProfile', curDaoIdx.id)
-            
+              console.log('daoProfileresult', daoProfileResult)
               let currentSkills = {...desiredSkillSet}
               let currentSpecificSkills = {...desiredDeveloperSkillSet}
               if(daoProfileResult){
@@ -170,15 +168,19 @@ export default function EditOpportunityProposalForm(props) {
                 const specificSkillsResult = daoProfileResult.specificSkills.map((name, value) => {
                   currentSpecificSkills = ({...currentSpecificSkills, [name.name]: false})
                 })
+                console.log('currentSkills', currentSkills)
+                console.log('currentspecificskills', currentSpecificSkills)
               setDesiredSkillSet(currentSkills)
               setDesiredDeveloperSkillSet(currentSpecificSkills)
               }
             }
 
            // Set Existing Proposal Data       
-           if(curDaoIdx){
-              let propResult = await curDaoIdx.get('opportunities', curDaoIdx.id)
-           console.log('propResult', propResult)
+           if(appIdx){
+              let daoDid = await ceramic.getDid(contractId, daoFactory, didRegistryContract)
+              console.log('opp daoDid', daoDid)
+              let propResult = await appIdx.get('opportunities', daoDid)
+              console.log('propResult', propResult)
               if(propResult) {
                 let i = 0
                 while (i < propResult.opportunities.length){
@@ -206,8 +208,8 @@ export default function EditOpportunityProposalForm(props) {
                     propResult.opportunities[i].opportunitySkills ? setValue('opportunitySkills', propResult.opportunities[i].opportunitySkills) : setValue('opportunitySkills', {'name': ''})
                     propResult.opportunities[i].budget ? setBudget(propResult.opportunities[i].budget) : setBudget(0)
                     propResult.opportunities[i].usd ? setUsd(propResult.opportunities[i].usd) : setUsd(0)
-                    propResult.opportunities[i].desiredSkillSet ? setDesiredSkillSet(propResult.opportunities[i].desiredSkillSet): setDesiredSkillSet({})
-                    propResult.opportunities[i].desiredDeveloperSkillSet ? setDesiredDeveloperSkillSet(propResult.opportunities[i].desiredDeveloperSkillSet): setDesiredDeveloperSkillSet({})
+                    Object.keys(propResult.opportunities[i].desiredSkillSet).length > 0 ? setDesiredSkillSet(propResult.opportunities[i].desiredSkillSet): null
+                    Object.keys(propResult.opportunities[i].desiredDeveloperSkillSet).length > 0 ? setDesiredDeveloperSkillSet(propResult.opportunities[i].desiredDeveloperSkillSet): null
                     propResult.opportunities[i].likes ? setCurrentLikes(propResult.opportunities[i].likes) : setCurrentLikes([])
                     propResult.opportunities[i].dislikes ? setCurrentDisLikes(propResult.opportunities[i].dislikes) : setCurrentDisLikes([])
                     propResult.opportunities[i].neutrals ? setCurrentNeutrals(propResult.opportunities[i].neutrals) : setCurrentNeutrals([])
@@ -228,7 +230,7 @@ export default function EditOpportunityProposalForm(props) {
           })
         return () => mounted = false
         }
-    },[curDaoIdx, isUpdated])
+    },[appIdx, isUpdated])
 
     function handleFileHash(hash) {
       setAvatar(IPFS_PROVIDER + hash)
@@ -366,7 +368,6 @@ export default function EditOpportunityProposalForm(props) {
       handleClose()
     }
 
-    
         return (
            
             <div>
@@ -533,6 +534,7 @@ export default function EditOpportunityProposalForm(props) {
                         <FormGroup>
                         {loaded && desiredSkillSet && Object.keys(desiredSkillSet).length > 0 ?
                             Object.keys(desiredSkillSet).map((key) => {
+                             
                               return (
                                 <FormControlLabel
                                   control={<Checkbox checked={desiredSkillSet[key]} onChange={handleDesiredSkillSetChange} name={key} />}
@@ -552,6 +554,7 @@ export default function EditOpportunityProposalForm(props) {
                           <FormGroup>
                           {loaded && desiredDeveloperSkillSet && Object.keys(desiredDeveloperSkillSet).length > 0 ?
                             Object.keys(desiredDeveloperSkillSet).map((key) => {
+                             
                               return (
                                 <FormControlLabel
                                   control={<Checkbox checked={desiredDeveloperSkillSet[key]} onChange={handleDesiredDeveloperSkillSetChange} name={key} />}

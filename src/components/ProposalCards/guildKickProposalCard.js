@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
+import { get, set, del } from '../../utils/storage'
 import { ceramic } from '../../utils/ceramic'
 import FungibleTokens from '../../utils/fungibleTokens'
 import { explorerUrl, signal } from '../../state/near'
-import { PROPOSAL_NOTIFICATION} from '../../state/near'
+import { PROPOSAL_NOTIFICATION, NEW_PROPOSAL_TRIGGER} from '../../state/near'
 
 import EditGuildKickProposalForm from '../EditProposal/editGuildKickProposal'
 import GuildKickProposalDetails from '../ProposalDetails/guildKickProposalDetails'
@@ -32,6 +33,7 @@ import Tooltip from '@material-ui/core/Tooltip'
 import ExploreIcon from '@material-ui/icons/Explore'
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever'
 import EditIcon from '@material-ui/icons/Edit'
+import { Paper } from '@material-ui/core'
 
 
 const useStyles = makeStyles((theme) => ({
@@ -43,7 +45,7 @@ const useStyles = makeStyles((theme) => ({
       marginTop: '10px',
       maxWidth: '250px',
       minWidth: '250px',
-      height: '550px',
+      height: '480px',
       position: 'relative',
       margin: 'auto'
     },
@@ -97,6 +99,7 @@ const useStyles = makeStyles((theme) => ({
   }))(Badge)
 
   const imageName = require('../../img/default-profile.png') // default no-image avatar
+  const logoName = require('../../img/default_logo.png') // default no-logo image
   const likeImage = require('../../img/happy.png')
   const dislikeImage = require('../../img/disgust.png') 
   const neutralImage = require('../../img/neutral.png') 
@@ -111,7 +114,6 @@ export default function GuildKickProposalCard(props) {
     daoFactory,
     appIdx,
     accountId,
-    wallet,
     neededVotes,
     curDaoIdx,
     summoner,
@@ -184,11 +186,20 @@ export default function GuildKickProposalCard(props) {
     contractId
   } = useParams()
 
-    const [applicantName, setApplicantName] = useState('')
-    const [applicantAvatar, setApplicantAvatar] = useState(imageName)
+  const [applicantName, setApplicantName] = useState('')
+  const [applicantAvatar, setApplicantAvatar] = useState(imageName)
+  const [pfpApplicantAvatar, setPfpApplicantAvatar] = useState('')
+  const [pfpProposerAvatar, setPfpProposerAvatar] = useState('')
+  const [applicantLogo, setApplicantLogo] = useState(logoName)
 
-    const [proposerAvatar, setProposerAvatar] = useState(imageName)
-    const [proposerName, setProposerName] = useState('')
+  const [proposerLogo, setProposerLogo] = useState(logoName)
+  const [proposerName, setProposerName] = useState('')
+  const [proposerAvatar, setProposerAvatar] = useState(imageName)
+  const [pfpProposerLogo, setPfpProposerLogo] = useState('')
+  const [pfpApplicantLogo, setPfpApplicantLogo] = useState('')
+
+  const [applicantAccountType, setApplicantAccountType] = useState('')
+  const [proposerAccountType, setProposerAccountType] = useState('')
 
     const [thisTokenName, setThisTokenName] = useState('')
     const [tokenImage, setTokenImage] = useState(defaultToken)
@@ -200,6 +211,7 @@ export default function GuildKickProposalCard(props) {
     const [detailsExist, setDetailsExist] = useState(false)
 
     const [hasVoted, setHasVoted] = useState(false)
+    const [memberVote, setMemberVote] = useState('')
    
     const [editGuildKickProposalDetailsClicked, setEditGuildKickProposalDetailsClicked] = useState(false)
     const [guildKickProposalDetailsClicked, setGuildKickProposalDetailsClicked] = useState(false)
@@ -209,6 +221,7 @@ export default function GuildKickProposalCard(props) {
     const [rageQuitEnding, setRageQuitEnding] = useState('calculating')
 
     const [showSponsorButton, setShowSponsorButton] = useState(false)
+    const [aNewProposal, setANewProposal] = useState(false)
 
     const [anchorEl, setAnchorEl] = useState(null)
 
@@ -233,29 +246,90 @@ export default function GuildKickProposalCard(props) {
     )
 
     useEffect(
+      () => {
+        // check for successfully added new proposal to log it
+        let newProposal = get(NEW_PROPOSAL_TRIGGER, [])
+        let d = 0
+        while(d < newProposal.length){
+          if(newProposal[d].contractId==contractId && newProposal[d].new == true){
+            setNewProposal(true)
+            del(NEW_PROPOSAL_TRIGGER)
+          }
+        d++
+        }
+        
+      }, []
+    )
+
+    useEffect(
         () => {
          
           async function fetchData() {
             if(isUpdated){}
 
             // Get Persona Information           
-            if(applicant && proposer){
+            if(applicant && proposer && appIdx){
+
+              let applicantAccountType
+              try{
+                  applicantAccountType = await didRegistryContract.getType({accountId: applicant})
+                  setApplicantAccountType(applicantAccountType)
+                } catch (err) {
+                  applicantAccountType = 'none'
+                  console.log('account not registered, not type avail', err)
+              }
               
               // Applicant
               let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
-              let result = await appIdx.get('profile', applicantDid)
-                  if(result){
+              if(applicantAccountType != 'guild') {
+                let result = await appIdx.get('profile', applicantDid)
+                console.log('indiv result', result)
+                if(result){
                     result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
                     result.name ? setApplicantName(result.name) : setApplicantName('')
+                    result.profileNft ? setPfpApplicantAvatar(result.profileNft) : setPfpApplicantAvatar('')
+                }
+              } else {
+                  if(applicantAccountType == 'guild'){
+                      let result = await appIdx.get('guildProfile', applicantDid)
+                      console.log('guild result', result)
+                      if(result){
+                          result.logo ? setApplicantLogo(result.logo) : setApplicantLogo(logoName)
+                          result.name ? setApplicantName(result.name) : setApplicantName('')
+                          result.profileNft ? setPfpApplicantLogo(result.profileNft) : setPfpApplicantLogo('')
+                      }
                   }
+              }
               
+              let proposerAccountType
+              try{
+                  proposerAccountType = await didRegistryContract.getType({accountId: proposer})
+                  setProposerAccountType(proposerAccountType)
+                } catch (err) {
+                  proposerAccountType = 'none'
+                  console.log('account not registered, not type avail', err)
+              }
               // Proposer
               let proposerDid = await ceramic.getDid(proposer, daoFactory, didRegistryContract)
-              let resultb = await appIdx.get('profile', proposerDid)
-                if(resultb){
-                  resultb.avatar ? setProposerAvatar(resultb.avatar) : setProposerAvatar(imageName)
-                  resultb.name ? setProposerName(resultb.name) : setProposerName('')
+              if(proposerAccountType != 'guild') {
+                let result = await appIdx.get('profile', proposerDid)
+                console.log('indiv result', result)
+                if(result){
+                    result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
+                    result.name ? setProposerName(result.name) : setProposerName('')
+                    result.profileNft ? setPfpProposerAvatar(result.profileNft) : setPfpProposerAvatar('')
                 }
+              } else {
+                  if(proposerAccountType == 'guild'){
+                      let result = await appIdx.get('guildProfile', proposerDid)
+                      console.log('guild result', result)
+                      if(result){
+                          result.logo ? setProposerLogo(result.logo) : setProposerLogo(logoName)
+                          result.name ? setProposerName(result.name) : setProposerName('')
+                          result.profileNft ? setPfpProposerLogo(result.profileNft) : setPfpProposerLogo('')
+                      }
+                  }
+              }
             }
             
             try{
@@ -263,12 +337,13 @@ export default function GuildKickProposalCard(props) {
               if(result == 'yes'){
                 setHasVoted(true)
               }
+              setMemberVote(result)
             } catch (err) {
               console.log('problem retrieving member proposal vote', err)
             }
             
             if(queueList && queueList.length > 0){
-              setNextToFinalize(queueList[0].requestId)
+              setNextToFinalize(queueList[0][0].requestId)
             }
             
 
@@ -344,7 +419,7 @@ export default function GuildKickProposalCard(props) {
           return () => mounted = false
           }
           
-    }, [isUpdated, funding, queueList, guildBalance, escrowBalance, curDaoIdx, detailsExist, wallet]
+    }, [isUpdated, appIdx, funding, queueList, guildBalance, escrowBalance, curDaoIdx, detailsExist]
     )
 
     // Determine whether to show Sponsor button
@@ -392,6 +467,13 @@ export default function GuildKickProposalCard(props) {
 
     return(
         <>
+        {aNewProposal ? (
+          <EditGuildKickProposalForm
+          handleEditGuildKickProposalDetailsClickState={handleEditGuildKickProposalDetailsClickState}
+          applicant={applicant}
+          proposalId={requestId}
+          />
+        ) : null }
         <Card raised={true} className={classes.card}>          
 
           {status=='Submitted' ? (<>
@@ -439,8 +521,7 @@ export default function GuildKickProposalCard(props) {
             ) : null }
 
           <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px', marginTop: '12px'}} color="textSecondary">{proposalType} Proposal</Typography>
-          <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
-          <div style={{clear: 'both'}}></div>
+          <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '10px', marginTop: '12px'}} color="textSecondary">#{requestId}</Typography>
 
           <Grid container justifyContent="space-evenly" spacing={1} style={{marginTop:'20px'}}>
             <Button
@@ -464,8 +545,12 @@ export default function GuildKickProposalCard(props) {
                     <Typography variant="overline">Proposed: {date}</Typography>
                   </Grid>
                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                  <Typography variant="overline">By:</Typography>
-                  <Chip avatar={<Avatar src={proposerAvatar} className={classes.small}  />} label={proposerName != '' ? proposerName : proposer}/>
+                    by: 
+                    {proposerAccountType != 'guild' ?
+                      <Chip avatar={<Avatar src={pfpProposerAvatar != imageName && pfpProposerAvatar != '' ? pfpProposerAvatar : proposerAvatar} className={classes.small}  />} label={proposerName != '' ? proposerName : proposer}/>
+                    :
+                      <Chip avatar={<Avatar src={pfpProposerLogo != logoName && pfpProposerLogo != '' ? pfpProposerLogo : proposerLogo} className={classes.small}  />} label={proposerName != '' ? proposerName : proposer}/>
+                    }
                   </Grid>
 
                   {status == 'Sponsored' ? (
@@ -484,40 +569,41 @@ export default function GuildKickProposalCard(props) {
               
               </Grid>  
             </Grid>
+            <Divider variant="middle" style={{marginTop: '5px', marginBottom: '15px', border: '1px solid black'}}/>
+            {status == 'Submitted' && detailsExist ?<>
+            <Grid container spacing={1} alignItems="center" justifyContent="space-between" style={{marginTop: '10px', marginBottom: '10px'}}>
+              <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
+                <Badge badgeContent={currentLikes.length} color="primary" max={9999999}>  
+                  <img src={likeImage} className={classes.signals} onClick={(e) => handleSignal('like')}/>
+                </Badge>
+              </Grid>
+              <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
+                <Badge badgeContent={currentNeutrals.length} color="primary" max={9999999}>  
+                  <img src={neutralImage} className={classes.signals} onClick={(e) => handleSignal('neutral')}/>
+                </Badge>
+              </Grid>
+              <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
+                <Badge badgeContent={currentDisLikes.length} color="primary" max={9999999}>  
+                  <img src={dislikeImage} className={classes.signals} onClick={(e) => handleSignal('dislike')}/>
+                </Badge>
+              </Grid>
+            </Grid>
+            <Divider variant="middle" style={{marginTop: '5px', marginBottom: '15px', border: '1px solid black'}}/>
+            </>
+            : null }
+            <div className={classes.infoBox}>
+              {status == 'Submitted' && detailsExist == false ? 
+                  <Typography variant="subtitle2" align="center">Awaiting Details</Typography>
+                  : null
+              } 
+              {status == 'Submitted' && detailsExist == true ? 
+                  <Typography variant="subtitle2" align="center">Awaiting Sponsor</Typography> 
+                  : null
+              }
+            </div>
           </CardContent>
 
           <CardActions className={classes.cardAction}>
-            <div className={classes.infoBox}>
-
-              {status == 'Submitted' && detailsExist ?
-                <Grid container spacing={1} alignItems="center" justifyContent="space-between" style={{marginTop: '10px', marginBottom: '10px'}}>
-                  <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
-                    <Badge badgeContent={currentLikes.length} color="primary" max={9999999}>  
-                      <img src={likeImage} className={classes.signals} onClick={(e) => handleSignal('like')}/>
-                    </Badge>
-                  </Grid>
-                  <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
-                    <Badge badgeContent={currentNeutrals.length} color="primary" max={9999999}>  
-                      <img src={neutralImage} className={classes.signals} onClick={(e) => handleSignal('neutral')}/>
-                    </Badge>
-                  </Grid>
-                  <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
-                    <Badge badgeContent={currentDisLikes.length} color="primary" max={9999999}>  
-                      <img src={dislikeImage} className={classes.signals} onClick={(e) => handleSignal('dislike')}/>
-                    </Badge>
-                  </Grid>
-                </Grid>
-                : null }
-
-              
-              {status == 'Submitted'  && detailsExist == false ? 
-                <Typography variant="subtitle2" display="block" align="center">Awaiting Details</Typography>
-                : status == 'Submitted'  && detailsExist == true ? 
-                <Typography variant="subtitle2" display="block" align="center">Awaiting Sponsor</Typography>
-                : null
-              }
-
-            </div>
 
               {status == 'Sponsored' && isVotingPeriod && !isGracePeriod && !isFinalized ? (
                
@@ -636,8 +722,10 @@ export default function GuildKickProposalCard(props) {
                 </Grid>
               ) : null }
                
-              <div className={classes.bottom}>
+              {status == 'Submitted' || status == 'Awaiting Finalization' ? (
+                <div className={classes.bottom} style={{margin: 0}}>
                 <Divider className={classes.divider}/>
+                <Paper elevation={5}>
                 <Grid container alignItems="center" justifyContent="space-evenly" spacing={1}>
                   <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
               
@@ -654,7 +742,7 @@ export default function GuildKickProposalCard(props) {
                     : null}
                   </Grid>
 
-                  <Grid item xs={8} sm={8} md={8} lg={8} xl={8} align="center">
+                  <Grid item xs={8} sm={8} md={8} lg={8} xl={8} align="right">
                   
                   {nextToFinalize == requestId ?
                     processFinish ? 
@@ -687,7 +775,9 @@ export default function GuildKickProposalCard(props) {
 
                 </Grid>
               </Grid>
+              </Paper>
               </div>
+              ): null }
               </CardActions>
         </Card>
 

@@ -1,4 +1,4 @@
-require('dotenv').config()
+require('dotenv').config({ path: './.env.local' })
 const express = require('express')
 const jwt = require('jsonwebtoken')
 const bodyParser = require('body-parser')
@@ -71,6 +71,6 @@ function verifyToken(req, res, next){
   }
 }
 
-app.listen(3000, () => {
+app.listen(3003, () => {
   console.log('running')
 });

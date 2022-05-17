@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app'
-import { Header } from '../Header/header'
 import Personas from '@aluhning/get-personas-js'
 
 // Material UI components
@@ -55,11 +54,6 @@ export default function Developers(props) {
     )
     
     return (
-        
-        <div className={classes.root}>
-        <Header state={state}/>
-        {result && result.avatar ? <img src={result.avatar}></img> : 'no avatar' }
-        </div>
-        
+       placholder
     )
 }

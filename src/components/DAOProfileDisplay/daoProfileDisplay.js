@@ -60,7 +60,6 @@ export default function DaoProfileDisplay(props) {
     const [loaded, setLoaded] = useState(false)
     const [date, setDate] = useState('')
     const [name, setName] = useState('')
-    const [isUpdated, setIsUpdated] = useState(false)
     const [logo, setLogo] = useState(imageName)
     const [purpose, setPurpose] = useState('')
     const [category, setCategory] = useState('')
@@ -83,33 +82,35 @@ export default function DaoProfileDisplay(props) {
     const { state, dispatch, update } = useContext(appStore)
 
     const {
-        handleUpdate,
         handleDetailsClickedState,
-        contractId
+        contractId,
+        daoDid
     } = props
 
     const {
       near,
       appIdx,
-      didRegistryContract
+      didRegistryContract,
+      daoFactory,
+      isUpdated
     } = state
     
     const classes = useStyles()
 
     useEffect(() => {
         async function fetchData() {
+          if(isUpdated){}
           setLoaded(false)
          
            // Set Card Persona Idx       
-           if(contractId && near){
+           if(contractId && near && appIdx){
              // Set Dao Idx
                                
               let daoAccount = new nearAPI.Account(near.connection, contractId)
             
-              let thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
+              let thisCurDaoIdx = await ceramic.getUserIdx(daoAccount, appIdx, daoFactory, didRegistryContract)
               setCurDaoIdx(thisCurDaoIdx)
-
-              let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
+              console.log('thisIdx', thisCurDaoIdx)
 
               let webhook = await ceramic.downloadKeysSecret(thisCurDaoIdx, 'apiKeys')
               console.log("webhook", webhook)
@@ -119,6 +120,8 @@ export default function DaoProfileDisplay(props) {
               else{
                  setWebhook('')
               }
+
+              let result = await appIdx.get('daoProfile', daoDid)
               if(result) {
                 result.name ? setName(result.name) : setName('')
                 result.date ? setDate(result.date) : setDate('')
@@ -143,7 +146,7 @@ export default function DaoProfileDisplay(props) {
           .then((res) => {
             setLoaded(true)
           })
-    },[near])
+    },[near, appIdx, isUpdated])
 
     function removeTags(string){
       var tmp = string.replace(/<[^>]+>/g, '')
@@ -211,7 +214,7 @@ export default function DaoProfileDisplay(props) {
               </DialogContent> 
               </>) : <><div className={classes.waiting}><div class={flexClass}><CircularProgress/></div><Grid container spacing={1} alignItems="center" justifyContent="center" >
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                <Typography variant="h5" align="center">Loading DAO Details</Typography>
+                <Typography variant="h5" align="center">Retrieving Details</Typography>
               </Grid>
               </Grid></div></> }
             </Dialog>

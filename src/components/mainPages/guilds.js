@@ -3,9 +3,7 @@ import { appStore, onAppMount } from '../../state/app'
 import { utils } from 'near-api-js'
 import Fuse from 'fuse.js'
 import { dao } from '../../utils/dao'
-import Footer from '../common/Footer/footer'
-import DaoCard from '../DAOCard/daoCard'
-import { Header } from '../Header/header'
+import DaoCard from '../Cards/DAOCard/daoCard'
 import SearchBar from '../common/SearchBar/search'
 import RegisterForm from '../Register/register'
 import { GAS, STORAGE, parseNearAmount, REGISTRY_API_URL } from '../../state/near'
@@ -329,8 +327,6 @@ export default function Guilds(props) {
 
     return (
         <>
-        <div className={classes.root}>
-        <Header state={state}/>
         {!matches ? (<>
         <Grid container alignItems="center" justifyContent="center" spacing={0} style={{margin:'auto', width:'98%'}}>
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
@@ -451,9 +447,7 @@ export default function Guilds(props) {
         : null
         }
         </Grid>
-       
-        </div>
-        <Footer />
+    
         {registerClicked ? <RegisterForm
             handleRegisterClickState={handleRegisterClickState}        
             /> : null }

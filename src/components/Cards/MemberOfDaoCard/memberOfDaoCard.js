@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { Link } from 'react-router-dom'
-import { appStore, onAppMount } from '../../state/app'
-import { dao } from '../../utils/dao'
-import { ceramic } from '../../utils/ceramic'
+import { appStore, onAppMount } from '../../../state/app'
+import { dao } from '../../../utils/dao'
+import { ceramic } from '../../../utils/ceramic'
 
 // Material UI Components
 import { makeStyles } from '@material-ui/core/styles'
@@ -27,7 +27,7 @@ const useStyles = makeStyles((theme) => ({
     }
   }));
 
-const imageName = require('../../img/default_logo.png') // default no-image avatar
+const imageName = require('../../../img/default_logo.png') // default no-image avatar
 
 export default function MemberOfDaoCard(props) {
 
@@ -44,14 +44,13 @@ export default function MemberOfDaoCard(props) {
     const {
       wallet,
       isUpdated,
-      appIdx,
-      didRegistryContract,
-      daoFactory
+      appIdx
     } = state
 
     const {
       contractId,
-      status
+      status,
+      daoDid
      } = props
 
 
@@ -70,10 +69,8 @@ export default function MemberOfDaoCard(props) {
              console.log('error retrieving member count', err)
            }
 
-           let did = await ceramic.getDid(contractId, daoFactory, didRegistryContract)
-            if(did){
-            let result = await appIdx.get('daoProfile', did)
-           
+           if(daoDid){
+           let result = await appIdx.get('daoProfile', daoDid)
               if(result){
                       result.name != '' ? setsName(result.name) : setsName('')
                       result.logo !='' ? setsLogo(result.logo) : setsLogo(imageName)
@@ -106,7 +103,7 @@ export default function MemberOfDaoCard(props) {
                 <div style={{width: '100%', 
                 height: '50px',
                 backgroundImage: `url(${slogo})`, 
-                backgroundSize: '180px auto', 
+                backgroundSize: '70px auto', 
                 backgroundPosition: 'center', 
                 backgroundRepeat: 'no-repeat',
                 backgroundOrigin: 'content-box'

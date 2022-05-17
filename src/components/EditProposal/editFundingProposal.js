@@ -133,7 +133,8 @@ export default function EditFundingProposalForm(props) {
       didRegistryContract,
       appIdx,
       curDaoIdx,
-      contract
+      contract,
+      isUpdated
     } = state
     
     const classes = useStyles()
@@ -146,25 +147,24 @@ export default function EditFundingProposalForm(props) {
     useEffect(() => {
         async function fetchData() {
            
-            // Set Existing Persona Data      
-            if(applicant){
-              let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
-              let result = await appIdx.get('profile', applicantDid)
-                  if(result){
-                    result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
-                    result.name ? setName(result.name) : setName('')
-                    result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
-                    result.date ? setDate(result.date) : setDate('')
-                  }
-           }
+          //   // Set Existing Persona Data      
+          //   if(applicant){
+          //     let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
+          //     let result = await appIdx.get('profile', applicantDid)
+          //         if(result){
+          //           result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
+          //           result.name ? setName(result.name) : setName('')
+          //           result.shortBio ? setShortBio(result.shortBio) : setShortBio('')
+          //           result.date ? setDate(result.date) : setDate('')
+          //         }
+          //  }
 
            // Set Existing Proposal Data
            let thisLeft      
            if(curDaoIdx && contract ){
             
               let propResult = await curDaoIdx.get('fundingProposalDetails', curDaoIdx.id)
-           
-              
+  
               if(propResult) {
                 let i = 0
                
@@ -370,7 +370,7 @@ export default function EditFundingProposalForm(props) {
       }
      
       setFinished(true)
-      handleUpdate(true)
+      update('', {isUpdated: !isUpdated})
       setOpen(false)
       handleClose()
     }

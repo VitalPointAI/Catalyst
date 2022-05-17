@@ -111,7 +111,7 @@ export default function PersonaCard(props) {
 
                 let thisCurUserIdx
                 try{
-                  thisCurUserIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, near, didRegistryContract, daoFactory)
+                  thisCurUserIdx = await ceramic.getUserIdx(personaAccount, appIdx, daoFactory, didRegistryContract)
                   console.log('account: ' + personaAccount.accountId + ' did: ' + thisCurUserIdx.id)
                   setCurUserIdx(thisCurUserIdx)
                 } catch (err) {

@@ -4,7 +4,8 @@ import { appStore, onAppMount } from '../../state/app'
 import { ceramic } from '../../utils/ceramic'
 import FungibleTokens from '../../utils/fungibleTokens'
 import { explorerUrl, signal } from '../../state/near'
-import { PROPOSAL_NOTIFICATION} from '../../state/near'
+import { PROPOSAL_NOTIFICATION, NEW_MEMBER_PROPOSAL} from '../../state/near'
+import { get, set, del } from '../../utils/storage'
 import { formatNearAmount } from 'near-api-js/lib/utils/format'
 
 import EditMemberProposalForm from '../EditProposal/editMemberProposal'
@@ -33,6 +34,7 @@ import Tooltip from '@material-ui/core/Tooltip'
 import ExploreIcon from '@material-ui/icons/Explore'
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever'
 import EditIcon from '@material-ui/icons/Edit'
+import { Paper } from '@material-ui/core'
 
 
 const useStyles = makeStyles((theme) => ({
@@ -44,7 +46,7 @@ const useStyles = makeStyles((theme) => ({
       marginTop: '10px',
       maxWidth: '250px',
       minWidth: '250px',
-      height: '550px',
+      height: '480px',
       position: 'relative',
       margin: 'auto'
     },
@@ -98,6 +100,7 @@ const useStyles = makeStyles((theme) => ({
   }))(Badge)
 
   const imageName = require('../../img/default-profile.png') // default no-image avatar
+  const logoName = require('../../img/default_logo.png') // default no-logo image
   const likeImage = require('../../img/happy.png')
   const dislikeImage = require('../../img/disgust.png') 
   const neutralImage = require('../../img/neutral.png') 
@@ -112,7 +115,6 @@ export default function MemberProposalCard(props) {
     daoFactory,
     appIdx,
     accountId,
-    wallet,
     neededVotes,
     curDaoIdx,
     summoner,
@@ -185,11 +187,20 @@ export default function MemberProposalCard(props) {
     contractId
   } = useParams()
 
-    const [applicantName, setApplicantName] = useState('')
-    const [applicantAvatar, setApplicantAvatar] = useState(imageName)
+  const [applicantName, setApplicantName] = useState('')
+  const [applicantAvatar, setApplicantAvatar] = useState(imageName)
+  const [pfpApplicantAvatar, setPfpApplicantAvatar] = useState('')
+  const [pfpProposerAvatar, setPfpProposerAvatar] = useState('')
+  const [applicantLogo, setApplicantLogo] = useState(logoName)
 
-    const [proposerAvatar, setProposerAvatar] = useState(imageName)
-    const [proposerName, setProposerName] = useState('')
+  const [proposerLogo, setProposerLogo] = useState(logoName)
+  const [proposerName, setProposerName] = useState('')
+  const [proposerAvatar, setProposerAvatar] = useState(imageName)
+  const [pfpProposerLogo, setPfpProposerLogo] = useState('')
+  const [pfpApplicantLogo, setPfpApplicantLogo] = useState('')
+
+  const [applicantAccountType, setApplicantAccountType] = useState('')
+  const [proposerAccountType, setProposerAccountType] = useState('')
 
     const [thisTokenName, setThisTokenName] = useState('')
     const [tokenImage, setTokenImage] = useState(defaultToken)
@@ -201,6 +212,7 @@ export default function MemberProposalCard(props) {
     const [detailsExist, setDetailsExist] = useState(false)
 
     const [hasVoted, setHasVoted] = useState(false)
+    const [memberVote, setMemberVote] = useState('')
    
     const [editMemberProposalDetailsClicked, setEditMemberProposalDetailsClicked] = useState(false)
     const [memberProposalDetailsClicked, setMemberProposalDetailsClicked] = useState(false)
@@ -211,6 +223,7 @@ export default function MemberProposalCard(props) {
     const [rageQuitEnding, setRageQuitEnding] = useState('calculating')
 
     const [showSponsorButton, setShowSponsorButton] = useState(false)
+    const [newProposal, setNewProposal] = useState(false)
 
     const [anchorEl, setAnchorEl] = useState(null)
 
@@ -235,29 +248,90 @@ export default function MemberProposalCard(props) {
     )
 
     useEffect(
+      () => {
+        // check for successfully added new proposal to log it
+        let newProposal = get(NEW_MEMBER_PROPOSAL, [])
+        let d = 0
+        while(d < newProposal.length){
+          if(newProposal[d].contractId==contractId && newProposal[d].new == true){
+            setNewProposal(true)
+            del(NEW_MEMBER_PROPOSAL)
+          }
+        d++
+        }
+        
+      }, []
+    )
+
+    useEffect(
         () => {
          
-          async function fetchData() {
+         async function fetchData() {
             if(isUpdated){}
 
             // Get Persona Information           
-            if(applicant && proposer){
+            if(applicant && proposer && appIdx){
+
+              let applicantAccountType
+              try{
+                  applicantAccountType = await didRegistryContract.getType({accountId: applicant})
+                  setApplicantAccountType(applicantAccountType)
+                } catch (err) {
+                  applicantAccountType = 'none'
+                  console.log('account not registered, not type avail', err)
+              }
               
               // Applicant
               let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
-              let result = await appIdx.get('profile', applicantDid)
-                  if(result){
+              if(applicantAccountType != 'guild') {
+                let result = await appIdx.get('profile', applicantDid)
+                console.log('indiv result', result)
+                if(result){
                     result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
                     result.name ? setApplicantName(result.name) : setApplicantName('')
+                    result.profileNft ? setPfpApplicantAvatar(result.profileNft) : setPfpApplicantAvatar('')
+                }
+              } else {
+                  if(applicantAccountType == 'guild'){
+                      let result = await appIdx.get('guildProfile', applicantDid)
+                      console.log('guild result', result)
+                      if(result){
+                          result.logo ? setApplicantLogo(result.logo) : setApplicantLogo(logoName)
+                          result.name ? setApplicantName(result.name) : setApplicantName('')
+                          result.profileNft ? setPfpApplicantLogo(result.profileNft) : setPfpApplicantLogo('')
+                      }
                   }
+              }
               
+              let proposerAccountType
+              try{
+                  proposerAccountType = await didRegistryContract.getType({accountId: proposer})
+                  setProposerAccountType(proposerAccountType)
+                } catch (err) {
+                  proposerAccountType = 'none'
+                  console.log('account not registered, not type avail', err)
+              }
               // Proposer
               let proposerDid = await ceramic.getDid(proposer, daoFactory, didRegistryContract)
-              let resultb = await appIdx.get('profile', proposerDid)
-                if(resultb){
-                  resultb.avatar ? setProposerAvatar(resultb.avatar) : setProposerAvatar(imageName)
-                  resultb.name ? setProposerName(resultb.name) : setProposerName('')
+              if(proposerAccountType != 'guild') {
+                let result = await appIdx.get('profile', proposerDid)
+                console.log('indiv result', result)
+                if(result){
+                    result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
+                    result.name ? setProposerName(result.name) : setProposerName('')
+                    result.profileNft ? setPfpProposerAvatar(result.profileNft) : setPfpProposerAvatar('')
                 }
+              } else {
+                  if(proposerAccountType == 'guild'){
+                      let result = await appIdx.get('guildProfile', proposerDid)
+                      console.log('guild result', result)
+                      if(result){
+                          result.logo ? setProposerLogo(result.logo) : setProposerLogo(logoName)
+                          result.name ? setProposerName(result.name) : setProposerName('')
+                          result.profileNft ? setPfpProposerLogo(result.profileNft) : setPfpProposerLogo('')
+                      }
+                  }
+              }
             }
             
             try{
@@ -270,7 +344,7 @@ export default function MemberProposalCard(props) {
             }
             
             if(queueList && queueList.length > 0){
-              setNextToFinalize(queueList[0].requestId)
+              setNextToFinalize(queueList[0][0].requestId)
             }
             
 
@@ -346,7 +420,7 @@ export default function MemberProposalCard(props) {
           return () => mounted = false
           }
           
-    }, [isUpdated, funding, queueList, guildBalance, escrowBalance, curDaoIdx, detailsExist, wallet]
+    }, [isUpdated, appIdx, funding, queueList, guildBalance, escrowBalance, curDaoIdx, detailsExist]
     )
 
     // Determine whether to show Sponsor button
@@ -392,8 +466,16 @@ export default function MemberProposalCard(props) {
       update('', {isUpdated: !isUpdated})
     }
 
-    return(
-        <>
+    return(<>
+      {newProposal ? (
+        <EditMemberProposalForm
+        handleEditMemberProposalDetailsClickState={handleEditMemberProposalDetailsClickState}
+        applicant={applicant}
+        proposalId={requestId}
+        />
+      )
+      : null}
+        
         <Card raised={true} className={classes.card}>          
 
           {status=='Submitted' ? (<>
@@ -441,8 +523,7 @@ export default function MemberProposalCard(props) {
             ) : null }
 
           <Typography variant="h6" align="left" style={{float: 'left', fontSize: '90%', marginLeft: '5px', marginTop: '12px'}} color="textSecondary">{proposalType} Proposal</Typography>
-          <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '5px'}} color="textSecondary">#{requestId}</Typography>
-          <div style={{clear: 'both'}}></div>
+          <Typography variant="h6" align="right" style={{float: 'right', fontSize: '90%', marginRight: '10px', marginTop: '12px'}} color="textSecondary">#{requestId}</Typography>
 
           <Grid container justifyContent="space-evenly" spacing={1} style={{marginTop:'20px'}}>
             <Button
@@ -466,8 +547,12 @@ export default function MemberProposalCard(props) {
                     <Typography variant="overline">Proposed: {date}</Typography>
                   </Grid>
                   <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                  <Typography variant="overline">By:</Typography>
-                  <Chip avatar={<Avatar src={proposerAvatar} className={classes.small}  />} label={proposerName != '' ? proposerName : proposer}/>
+                    by: 
+                    {proposerAccountType != 'guild' ?
+                      <Chip avatar={<Avatar src={pfpProposerAvatar != imageName && pfpProposerAvatar != '' ? pfpProposerAvatar : proposerAvatar} className={classes.small}  />} label={proposerName != '' ? proposerName : proposer}/>
+                    :
+                      <Chip avatar={<Avatar src={pfpProposerLogo != logoName && pfpProposerLogo != '' ? pfpProposerLogo : proposerLogo} className={classes.small}  />} label={proposerName != '' ? proposerName : proposer}/>
+                    }
                   </Grid>
 
                   {status == 'Sponsored' ? (
@@ -482,13 +567,21 @@ export default function MemberProposalCard(props) {
 
           <CardContent>
             <Grid container alignItems="center" justifyContent="space-evenly" style={{marginBottom:'5px'}}>
-              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '-40px', marginBottom: '40px'}}>
-                <Typography variant="overline">Voting Shares: {shares}</Typography><br></br>
-                <Typography variant="overline">Non-Voting Shares: {loot ? loot : '0'}</Typography><br></br>
-                <Typography variant="overline" style={{fontSize:'100%'}}>
+              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '40px'}}>
+                <Typography variant="body1">
+                  Voting Shares: {shares}<br></br>
+                  Non-Voting Shares: {loot ? loot : '0'}
+                </Typography>
+
+              <Divider variant="middle" style={{marginTop: '5px', marginBottom: '5px', border: '1px solid black'}}/>
+               
+                <Typography variant="body1" style={{fontSize:'100%'}}>
                   Contribution<br></br>
                   {formatNearAmount(tribute, 3)} Ⓝ
                 </Typography>
+
+              <Divider variant="middle" style={{marginTop: '5px', marginBottom: '5px', border: '1px solid black'}}/>
+            
               </Grid>
             </Grid>
           </CardContent>
@@ -513,9 +606,12 @@ export default function MemberProposalCard(props) {
                       <img src={dislikeImage} className={classes.signals} onClick={(e) => handleSignal('dislike')}/>
                     </Badge>
                   </Grid>
+                  <Divider variant="middle" style={{marginTop: '5px', marginBottom: '5px', border: '1px solid black'}}/>
                 </Grid>
+                
                 : null }
-
+            
+          
               
               {status == 'Submitted'  && detailsExist == false ? 
                 <Typography variant="subtitle2" display="block" align="center">Awaiting Details</Typography>
@@ -526,77 +622,82 @@ export default function MemberProposalCard(props) {
 
             </div>
 
-              {status == 'Sponsored' && isVotingPeriod && !isGracePeriod && !isFinalized ? (
+            {status == 'Voting' ? (
                
-                <Grid container alignItems="center" justifyContent="space-between" spacing={0} style={{margin: '0px', position: 'absolute', bottom:'5px', right:'1px'}}>
-                  <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="center">
-                    {voteFinish ? ( <StyledBadge badgeContent={yesVotes} color="primary" max={9999999}>
-                      <IconButton onClick={(e) => handleVotingAction(requestId, 'yes')} disabled={hasVoted}>
-                        <ThumbUpIcon fontSize='small' color="primary" />
+              <Grid container alignItems="center" justifyContent="space-between" spacing={0} style={{margin: '0px', position: 'absolute', bottom:'5px', right:'1px'}}>
+                <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="center">
+                  {voteFinish ? ( <StyledBadge badgeContent={yesVotes} color="primary" max={9999999}>
+                    <IconButton onClick={(e) => handleVotingAction(requestId, 'yes')} disabled={hasVoted}>
+                      <ThumbUpIcon fontSize='small' color="primary" />
+                    </IconButton>
+                  </StyledBadge>
+                  ) : <CircularProgress /> }
+                </Grid>
+                <Grid item xs={2} sm={2} md={2} lg={2} xl={2} align="center">
+                  <Typography variant="body2">
+                    Current Vote
+                  </Typography>
+                </Grid>
+                <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="center" >
+                  {voteFinish ? ( 
+                    <StyledBadge badgeContent={noVotes} color="secondary" max={9999999}>
+                      <IconButton onClick={(e) => handleVotingAction(requestId, 'no')} disabled={hasVoted}>
+                        <ThumbDownIcon fontSize='small' color="secondary" />
                       </IconButton>
                     </StyledBadge>
                     ) : <CircularProgress /> }
-                  </Grid>
-                  <Grid item xs={2} sm={2} md={2} lg={2} xl={2} align="center">
-                    <Typography variant="body2">
-                      Current Vote
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="center" >
-                    {voteFinish ? ( 
-                      <StyledBadge badgeContent={noVotes} color="secondary" max={9999999}>
-                        <IconButton onClick={(e) => handleVotingAction(requestId, 'no')} disabled={hasVoted}>
-                          <ThumbDownIcon fontSize='small' color="secondary" />
-                        </IconButton>
-                      </StyledBadge>
-                      ) : <CircularProgress /> }
-                  </Grid>
-                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
-                    <Typography variant="overline">{neededVotes} votes required to pass</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '10px'}}>
-                    <Typography variant="subtitle2">
-                      Time Remaining: {voteEnding > 0 ? voteEnding + ' seconds' : 'closing vote'}
-                    </Typography>
-                  </Grid>
                 </Grid>
-                ) : null }
-
-              {status == 'Sponsored' && isGracePeriod && (vote == 'no' || vote =='no vote yet') ? (
-                <Grid container alignItems="center" justifyContent="space-evenly" spacing={1}>
-                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      align="center"
-                      startIcon={<PanToolIcon />}
-                      onClick={handleRageQuitClick}
-                    >
-                    Rage Quit
-                    </Button>
-                  </Grid>
-                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} >
-                    <Typography variant="caption" display="block" align="center">Rage Quit Period</Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '10px'}}>
-                    <Typography variant="subtitle2">
-                      Time Remaining: {rageQuitEnding > 0 ? rageQuitEnding + ' seconds' : 'closing rage quit'}
-                    </Typography>
-                  </Grid>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
+                  <Typography variant="overline">{neededVotes} votes required to pass</Typography>
                 </Grid>
-              ) : 
-              status == 'Sponsored' && isGracePeriod && vote == 'yes' ?
-              <>
-              <Typography variant="body1">Rage Quit period</Typography>
-              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '10px'}}>
-                    <Typography variant="subtitle2">
-                      Time Remaining: {rageQuitEnding > 0 ? rageQuitEnding + ' seconds' : 'closing rage quit'} 
-                    </Typography>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '10px'}}>
+                  <Typography variant="subtitle2">
+                    {status == 'Voting' ?
+                      voteEnding > 0 ? 'Time Remaining: ' + voteEnding + ' seconds' : 'vote closing soon...'
+                      : null
+                    }
+                  </Typography>
+                </Grid>
               </Grid>
-              </>
-              : null}
+              ) : null }
 
-              {(status == 'Awaiting Finalization') ? (         
+            {status == 'Grace' && (memberVote == 'no' || memberVote =='no vote yet') ? (
+              <Grid container alignItems="center" justifyContent="space-evenly" spacing={1}>
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    align="center"
+                    startIcon={<PanToolIcon />}
+                    onClick={handleRageQuitClick}
+                  >
+                  Rage Quit
+                  </Button>
+                </Grid>
+               
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '10px'}}>
+                  <Typography variant="subtitle2">
+                    {status == 'Grace' ?
+                      rageQuitEnding > 0 ? 'Time Remaining: ' + rageQuitEnding + ' seconds' : 'Rage Quit closing soon...'
+                    : null }
+                  </Typography>
+                </Grid>
+              </Grid>
+            ) : 
+            status == 'Grace' && memberVote == 'yes' ?
+            <>
+            <Typography variant="h6">Rage Quit Period</Typography>
+            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '10px'}}>
+                  <Typography variant="subtitle2">
+                  {status == 'Grace' ?
+                    rageQuitEnding > 0 ? 'Time Remaining: ' + rageQuitEnding + ' seconds' : 'Rage Quit closing soon...'
+                  : null }
+                  </Typography>
+            </Grid>
+            </>
+            : null}
+
+              {status == 'Awaiting Finalization' ? (         
                 <Grid container alignItems="center" justifyContent="space-between" spacing={0} style={{margin: '0px', position: 'absolute', bottom:'60px', right:'1px'}}>
                   <Grid item xs={5} sm={5} md={5} lg={5} xl={5} align="center" >
                     <StyledBadge badgeContent={yesVotes} color="primary" max={9999999}>
@@ -643,8 +744,10 @@ export default function MemberProposalCard(props) {
                 </Grid>
               ) : null }
                
-              <div className={classes.bottom}>
+              {status == 'Submitted' || status == 'Awaiting Finalization' ? (
+                <div className={classes.bottom} style={{margin: 0}}>
                 <Divider className={classes.divider}/>
+                <Paper elevation={5}>
                 <Grid container alignItems="center" justifyContent="space-evenly" spacing={1}>
                   <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
               
@@ -661,7 +764,7 @@ export default function MemberProposalCard(props) {
                     : null}
                   </Grid>
 
-                  <Grid item xs={8} sm={8} md={8} lg={8} xl={8} align="center">
+                  <Grid item xs={8} sm={8} md={8} lg={8} xl={8} align="right">
                   
                   {nextToFinalize == requestId ?
                     processFinish ? 
@@ -694,7 +797,9 @@ export default function MemberProposalCard(props) {
 
                 </Grid>
               </Grid>
+              </Paper>
               </div>
+              ): null }
               </CardActions>
         </Card>
 

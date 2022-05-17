@@ -3,9 +3,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { appStore, onAppMount } from '../../state/app'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { useParams } from 'react-router-dom'
-import { initDao } from '../../state/near'
-import Aaron from '../../img/aaron.png'
-import Emmitt from '../../img/emmitt.jpg'
+import { initDao, PLATFORM_PERCENT } from '../../state/near'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -34,45 +32,14 @@ import RecentActorsIcon from '@material-ui/icons/RecentActors';
 import VerifiedUserIcon from '@material-ui/icons/VerifiedUser';
 
 const useStyles = makeStyles((theme) => ({
-  root: {
-    marginTop: 50
-  },
-  warning: {
-    float: 'left',
-    paddingRight: '10px',
-    paddingBottom: '10px'
-  },
   heading: {
-    fontSize: theme.typography.pxToRem(15),
-    fontWeight: theme.typography.fontWeightRegular,
-  },
-  paper: {
-    padding: theme.spacing(2),
-    textAlign: 'center',
-    color: theme.palette.text.secondary,
-  },
-  customCard: {
-    maxWidth: 300,
-    minWidth: 275,
-    margin: 'auto',
-    padding: 20
-  },
-  rootForm: {
-    '& > *': {
-      margin: theme.spacing(1),
-    },
+    fontSize: '20px'
   },
   large: {
     width: theme.spacing(7),
     height: theme.spacing(7),
     float: 'left'
-  },
-  progress: {
-    width: '100%',
-    '& > * + *': {
-      marginTop: theme.spacing(2),
-    },
-  },
+  }
   }));
 
 
@@ -99,7 +66,7 @@ export default function Initialize(props) {
   const [voteThreshold, setVoteThreshold] = useState('')
   const [summonerContribution, setSummonerContribution] = useState('')
   const [shares, setShares] = useState('')
-  const [platformPercent, setPlatformPercent] = useState('')
+  const [platformPercent, setPlatformPercent] = useState(PLATFORM_PERCENT)
 
   const [clicked, setClicked] = useState(false)
 
@@ -120,7 +87,7 @@ export default function Initialize(props) {
           voteThreshold: voteThreshold,
           shareAllocation: shares,
           summonerContribution: summonerContribution,
-          platformPercent: platformPercent
+          platformPercent: PLATFORM_PERCENT
       }
   })
 
@@ -243,7 +210,12 @@ export default function Initialize(props) {
 
       const onSubmit = async (values) => {
         try{
-        
+          let platformPercentFinal
+          if(parseFloat(platformPercent) >= parseFloat(PLATFORM_PERCENT)){
+            platformPercentFinal = platformPercent
+          } else {
+            platformPercentFinal = PLATFORM_PERCENT
+          }
           await initDao(
             wallet, 
             contractId,
@@ -255,7 +227,7 @@ export default function Initialize(props) {
             voteThreshold,
             shares,
             summonerContribution,
-            platformPercent
+            platformPercentFinal
             )
         } catch (err) {
           console.log('error initializing dao', err)
@@ -267,21 +239,14 @@ export default function Initialize(props) {
         <>
         {summoner == accountId ? (
         <Grid container className={classes.confirmation} spacing={1}>
-        <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
-          <Typography variant="h3">Choose & Customize Your Community Structure</Typography>
-          <br></br>
-          <Typography variant="subtitle1">Don't worry, you can change this later.</Typography>
-        </Grid>
         <Grid item xs={12} sm={12} md={2} lg={2} xl={2} align="center"></Grid>
         <Grid item xs={12} sm={12} md={4} lg={4} xl={4} align="center">
           <Card>
             <CardContent>
-              <Typography variant="h6">Getting Started</Typography>  
-              <Typography variant="body1">Choose one of the example community structures
-              below and then customize settings as desired.</Typography><br></br>
-              <Typography variant="body1">Catalyst enables your community's governance to evolve to meet its
-              governance needs. Everything can be changed so don't worry about making a mistake now.</Typography><br></br>
-              <Typography variant="body1">When done customizing, click Initialize Community.</Typography>
+              <Typography variant="h6">Choose and Customize Your Community Structure</Typography>  
+              <Typography variant="body1">Pick a community structure
+              and customize as desired.</Typography><br></br>
+              <Typography variant="subtitle1">Don't worry, you can change this later.</Typography>
               </CardContent>
           </Card>
           <Accordion>
@@ -332,8 +297,8 @@ export default function Initialize(props) {
           <Accordion>
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
-              aria-controls="panel1a-content"
-              id="panel1a-header"
+              aria-controls="panel2a-content"
+              id="panel2a-header"
             >
               <Typography className={classes.heading}>Democratic Structure</Typography>
             </AccordionSummary>
@@ -377,8 +342,8 @@ export default function Initialize(props) {
           <Accordion>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel1a-content"
-            id="panel1a-header"
+            aria-controls="panel3a-content"
+            id="panel3a-header"
           >
             <Typography className={classes.heading}>Representative Structure</Typography>
           </AccordionSummary>
@@ -422,8 +387,8 @@ export default function Initialize(props) {
         <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
-          aria-controls="panel1a-content"
-          id="panel1a-header"
+          aria-controls="panel4a-content"
+          id="panel4a-header"
         >
           <Typography className={classes.heading}>Autocratic Structure</Typography>
         </AccordionSummary>
@@ -467,8 +432,8 @@ export default function Initialize(props) {
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
-          aria-controls="panel1a-content"
-          id="panel1a-header"
+          aria-controls="panel5a-content"
+          id="panel5a-header"
         >
           <Typography className={classes.heading}>Plutocratic Structure</Typography>
         </AccordionSummary>
@@ -506,7 +471,7 @@ export default function Initialize(props) {
             setVoteThreshold('51')
             setShares('1')
             setPlatformPercent('0.5')
-          }}>Choose Autocratic Settings</Button>
+          }}>Choose Plutocratic Settings</Button>
         </AccordionDetails>
       </Accordion>
         
@@ -722,19 +687,13 @@ export default function Initialize(props) {
               <Card>
               <CardContent>
                 <Grid container alignItems="center" justifyContent="flex-end" spacing={0}>
-                  <Grid item xs={2} sm={2} md={2} lg={2} xl={2} align="center">
-                    <Avatar src={Aaron} className={classes.large}  /><br></br>
-                    <Typography variant="caption" color="textSecondary">Aaron</Typography>
-                  </Grid>
-                  <Grid item xs={8} sm={8} md={8} lg={8} xl={8} align="center" style={{padding: '5px', lineHeight:'1em'}}>
+                  <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="left" style={{padding: '5px', lineHeight:'1em'}}>
                     <Typography variant="caption" color="textSecondary">
-                    We want to make Catalyst better.<br></br>You can help by designating a small percentage of each successful payout to supporting future development.<br></br>
-                    Thank you.
+                    Fee: 0.5% of each approved payout goes into the Catalyst Treasury.<br></br>
+                    Treasury is currently centrally managed to fund development. It will eventually reward Catalyst token holders for governance work once the Catalyst DAO is in place.<br></br>
+                    Consider increasing the percentage to accelerate development and decentralization.<br></br>
+                    Thank you for your support.
                     </Typography>
-                  </Grid>
-                  <Grid item xs={2} sm={2} md={2} lg={2} xl={2} align="center">
-                      <Avatar src={Emmitt} className={classes.large}  /><br></br>
-                      <Typography variant="caption" color="textSecondary">Emmitt</Typography>
                   </Grid>
                 </Grid>
               </CardContent>

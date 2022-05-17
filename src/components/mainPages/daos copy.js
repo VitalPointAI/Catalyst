@@ -2,9 +2,7 @@ import React, { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
 import { appStore, onAppMount } from '../../state/app'
 import Fuse from 'fuse.js'
-import DaoCard from '../DAOCard/daoCard'
-import { Header } from '../Header/header'
-import Footer from '../../components/common/Footer/footer'
+import DaoCard from '../Cards/DAOCard/daoCard'
 import SearchBar from '../../components/common/SearchBar/search'
 import { dao } from '../../utils/dao'
 
@@ -136,8 +134,6 @@ export default function Daos(props) {
 
     return (
         <>
-        <div className={classes.root}>
-        <Header state={state}/>
        
         <Grid container alignItems="center" justifyContent="space-between" spacing={3} style={{padding: '20px'}} >
        
@@ -170,8 +166,7 @@ export default function Daos(props) {
             : null
             } 
         </Grid>
-        </div>
-        <Footer />
+  
         </>
     )
 }

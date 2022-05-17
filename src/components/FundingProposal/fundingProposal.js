@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { useForm } from 'react-hook-form'
 import { useParams } from 'react-router-dom'
+import { ceramic } from '../../utils/ceramic'
 import { makeStyles } from '@material-ui/core/styles'
 import { appStore, onAppMount } from '../../state/app'
 import { submitProposal, STORAGE } from '../../state/near'
@@ -64,25 +65,30 @@ const useStyles = makeStyles((theme) => ({
   },
   }));
 
+const defaultImage = require('../../img/default_logo.png')
 
 export default function FundingProposal(props) {
 
-  const { state, dispatch, update } = useContext(appStore)
+  const { state, dispatch, update, getState } = useContext(appStore)
 
   const {
-    nearPrice,
-    proposalDeposit,
-    contract
-  } = state
-
-  const { 
+    passedContractId,
+    appIdx,
+    did,
+    didRegistryContract,
+    daoFactory,
     handleFundingProposalClickState,
     tokenName,
     reference,
     budget,
     applicant,
-    usd
+    usd,
+    proposalDeposit
   } = props
+
+  const {
+    contractId
+  } = useParams()
 
   const [open, setOpen] = useState(true)
   const [thisApplicant, setThisApplicant] = useState(props.applicant)
@@ -90,38 +96,67 @@ export default function FundingProposal(props) {
   const [funding, setFunding] = useState('0')
   const [usdConvert, setUsdConvert] = useState('0')
   const [confirm, setConfirm] = useState(false)
+  const [communityName, setCommunityName] = useState('')
+  const [logo, setLogo] = useState(defaultImage)
 
   const classes = useStyles()
 
   const { register, handleSubmit, watch, errors } = useForm()
 
-  const {
-    contractId
-  } = useParams()
-
   useEffect(() => {
-    if(nearPrice){
-      if(usd > 0 && nearPrice > 0){
-        let near = (usd / nearPrice).toFixed(3)
-        let parse = parseNearAmount(near)
-        let formatNear = formatNearAmount(parse, 3)
-        setFunding(formatNear)
-      }
+    async function fetchPrice() {
+        if(usd > 0 && state.nearPrice > 0){
+          let near = (usd / state.nearPrice).toFixed(3)
+          let parse = parseNearAmount(near)
+          let formatNear = formatNearAmount(parse, 3)
+          setFunding(formatNear)
+        } 
+        if(!state.nearPrice){
+          setFunding('Calculating ')
+        }
+        if((!usd || usd == 0) && state.nearPrice) {
+          setFunding('0')
+        }
     }
-  }, [usd, nearPrice]
+
+    fetchPrice()
+    
+  }, [usd, state.nearPrice]
   )
 
-  useEffect(()=> {
-    async function fetchDeposit(){
-      if(!proposalDeposit){
-        let updatedProposalDeposit = await contract.getProposalDeposit()
-        update('', {proposalDeposit: formatNearAmount(updatedProposalDeposit,3)})
+  useEffect(
+    () => {
+      async function fetchData() {
+        // get community information
+        
+        if((contractId || passedContractId) && appIdx){
+          let daoResult
+          let thisContractId
+          contractId ? thisContractId = contractId : thisContractId = passedContractId
+          console.log('this contract id', thisContractId)
+          if(!did){
+            let did = await ceramic.getDid(thisContractId, state.daoFactory, state.didRegistryContract)
+            daoResult = await appIdx.get('daoProfile', did)
+            console.log('did1 dao result', daoResult)
+          } else {
+            daoResult = await appIdx.get('daoProfile', did)
+            console.log('did2 dao result', daoResult)
+          }
+         
+          if(daoResult){
+            daoResult.name ? setCommunityName(daoResult.name) : setCommunityName('')
+            daoResult.logo ? setLogo(daoResult.logo) : setLogo(defaultImage)
+          }
+        }
       }
-    }
 
-    fetchDeposit()
+      fetchData()
+        .then((res) => {
 
-  }, [])
+        })
+
+   }, [contractId, appIdx]
+   )
 
   const handleClose = () => {
     handleFundingProposalClickState(false)
@@ -141,15 +176,15 @@ export default function FundingProposal(props) {
   }
 
   function handleConversion(amount){
-      let us = (parseFloat(amount) * nearPrice).toFixed(2)
+      let us = (parseFloat(amount) * state.nearPrice).toFixed(2)
       setUsdConvert(us)
   }
 
   const onSubmit = async (values) => {
 
-    if(nearPrice){
-      if(budget > 0 && nearPrice > 0){
-        if(parseFloat(funding) * nearPrice > parseFloat(budget)){
+    if(state.nearPrice){
+      if(budget > 0 && state.nearPrice > 0){
+        if(parseFloat(funding) * state.nearPrice > parseFloat(budget)){
           alert("Not enough funds in opportunity budget")
           handleClose()
         return
@@ -166,7 +201,7 @@ export default function FundingProposal(props) {
     try{
       await submitProposal(
         state.wallet,
-        contractId,
+        contractId ? contractId : passedContractId,
         'Commitment',
         applicant,
         '0',
@@ -185,12 +220,28 @@ export default function FundingProposal(props) {
   return (
     <div>
       <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Request Funding</DialogTitle>
+      <Grid container alignItems="center" justifyContent="center" style={{padding: '5px'}}>
+        <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
+          <div style={{
+            height: '100px',
+            backgroundImage: `url(${logo})`, 
+            backgroundSize: 'contain',
+            backgroundPosition: 'center', 
+            backgroundRepeat: 'no-repeat',
+            backgroundOrigin: 'content-box'
+          }}/>
+          <br></br>
+          {logo ? null : <Typography variant="h6">{communityName ? communityName : contractId ? contractId : passedContractId }</Typography>}
+        </Grid>
+      </Grid>
+        <DialogTitle id="form-dialog-title">Funding Request</DialogTitle>
         <DialogContent className={classes.rootForm}>  
-          <div>
+        <Grid container alignItems="center" justifyContent="center" style={{padding: '5px'}}>
+          <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
             <TextField
               autoFocus
               margin="dense"
+              fullWidth
               id="funding-proposal-applicant-receiver"
               variant="outlined"
               name="fundingProposalApplicant"
@@ -204,8 +255,8 @@ export default function FundingProposal(props) {
               placeholder={applicant}
             />
             {errors.fundingProposalApplicant && <p style={{color: 'red'}}>You must provide a valid NEAR account.</p>}
-          </div>
-          <div>
+          </Grid>
+          <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
           {!reference ? (<>
             <TextField
               margin="dense"
@@ -229,18 +280,20 @@ export default function FundingProposal(props) {
               }}
             />
             <Typography variant="h6">{usdConvert ? `~$${usdConvert} USD`: null}</Typography>
-            </>) : <Typography variant="h6">Requested: ${usd} USD (~ {funding} {tokenName})</Typography> }
+            </>) : <>
+              <Typography variant="h6" align="center">{funding} {tokenName}</Typography>
+              <Typography variant="body1" color="textSecondary" align="center">(~ ${usd} USD)</Typography>
+            </> }
          
-          </div>
+          </Grid>
+        </Grid>
         <Card>
         <CardContent>
           <WarningIcon fontSize='large' className={classes.warning} />
-          <Typography variant="body1" gutterBottom>You are requesting that {usdConvert ? `~$${usdConvert} USD (${funding} Ⓝ)` : `~$${usd} (${funding} Ⓝ)`} be reserved for use by <b>{applicant}</b>. After submitting
-          this proposal, you must provide enough supporting detail to help other members vote on and decide whether to approve your proposal or not.</Typography> 
-          <Typography variant="body1">Note: while you can submit a request for any funding amount, you should consider whether your request really warrants 
-          using as much of the community fund as it proposes.</Typography>
+          <Typography variant="body1" gutterBottom>You are requesting that {!reference ? usdConvert ? `$${usdConvert} USD (~${funding} Ⓝ)` : `$${usd} USD (~${funding} Ⓝ)` : `$${usd} USD (~${funding} Ⓝ)`} be reserved for <b>{applicant}</b> for this opportunity or proposal.
+          <br></br><br></br>After submitting this proposal, you must provide enough detail to help other members vote on and decide whether to approve your proposal or not.</Typography> 
           <Grid container className={classes.confirmation} spacing={1}>
-            <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
+            <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
               <Checkbox
                 checked={confirm}
                 onChange={handleConfirmChange}
@@ -252,7 +305,7 @@ export default function FundingProposal(props) {
               />
             </Grid>
             <Grid item xs={10} sm={10} md={10} lg={10} xl={10} style={{margin:'auto'}}>
-              <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{parseFloat(proposalDeposit) + parseFloat(STORAGE)} Ⓝ</b>:</Typography>
+              <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{formatNearAmount((parseFloat(formatNearAmount(proposalDeposit, 3)) + parseFloat(STORAGE)).toLocaleString('fullwide', {useGrouping: false}), 6)} Ⓝ</b>:</Typography>
               <Grid container justifyContent="center" spacing={0}>
                 <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                   <Typography variant="body2"><u>Proposal passes:</u></Typography>
@@ -264,7 +317,7 @@ export default function FundingProposal(props) {
                         <Typography variant="body2">Community fund will decrease by {funding} Ⓝ.</Typography>
                       </li>
                       <li>
-                        <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you</Typography>
+                        <Typography variant="body2">{formatNearAmount(proposalDeposit, 6)} Ⓝ proposal deposit is returned to you</Typography>
                       </li>
                       <li>
                         <Typography variant="body2">{STORAGE} Ⓝ goes to the contract to cover storage cost for this proposal.</Typography>
@@ -281,7 +334,7 @@ export default function FundingProposal(props) {
                         <Typography variant="body2">Community fund does not change.</Typography>
                       </li>
                       <li>
-                        <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you.</Typography>
+                        <Typography variant="body2">{formatNearAmount(proposalDeposit, 6)} Ⓝ proposal deposit is returned to you.</Typography>
                       </li>
                       <li>
                         <Typography variant="body2">{STORAGE} Ⓝ stays in the contract to cover storage cost for this proposal.</Typography>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { submitProposal, STORAGE } from '../../state/near'
@@ -61,6 +61,7 @@ const useStyles = makeStyles((theme) => ({
   },
   }));
 
+const defaultImage = require('../../img/default_logo.png')
 
 export default function PayoutProposal(props) {
   const [open, setOpen] = useState(true)
@@ -68,6 +69,9 @@ export default function PayoutProposal(props) {
   const [applicant, setApplicant] = useState(props.accountId)
   const [payout, setPayout] = useState('')
   const [confirm, setConfirm] = useState(false)
+  const [communityName, setCommunityName] = useState('')
+  const [logo, setLogo] = useState(defaultImage)
+  const [usdConvert, setUsdConvert] = useState('0')
 
   const classes = useStyles()
 
@@ -81,9 +85,51 @@ export default function PayoutProposal(props) {
     depositToken,
     reference,
     contractId,
-    milestonePayout
+    milestonePayout,
+    appIdx,
+    did,
+    passedContractId
      } = props
 
+
+  useEffect(
+    () => {
+      async function fetchData() {
+        // get community information
+        
+        if((contractId || passedContractId) && appIdx){
+          let daoResult
+          let thisContractId
+          contractId ? thisContractId = contractId : thisContractId = passedContractId
+          console.log('this contract id', thisContractId)
+          if(!did){
+            let did = await ceramic.getDid(thisContractId, state.daoFactory, state.didRegistryContract)
+            daoResult = await appIdx.get('daoProfile', did)
+            console.log('did1 dao result', daoResult)
+          } else {
+            daoResult = await appIdx.get('daoProfile', did)
+            console.log('did2 dao result', daoResult)
+          }
+         
+          if(daoResult){
+            daoResult.name ? setCommunityName(daoResult.name) : setCommunityName('')
+            daoResult.logo ? setLogo(daoResult.logo) : setLogo(defaultImage)
+          }
+        }
+      }
+
+      fetchData()
+        .then((res) => {
+
+        })
+
+   }, [contractId, appIdx]
+   )
+
+  function handleConversion(amount){
+    let us = (parseFloat(amount) * state.nearPrice).toFixed(2)
+    setUsdConvert(us)
+  }
 
   const handleClose = () => {
     handlePayoutProposalClickState(false)
@@ -94,7 +140,8 @@ export default function PayoutProposal(props) {
   };
 
   const handlePayoutChange = (event) => {
-    setPayout(event.target.value);
+    handleConversion(event.target.value)
+    setPayout(event.target.value)
   };
 
   const handleConfirmChange = (event) => {
@@ -141,6 +188,20 @@ export default function PayoutProposal(props) {
   return (
     <div>
       <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+      <Grid container alignItems="center" justifyContent="center" style={{padding: '5px'}}>
+        <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
+          <div style={{
+            height: '100px',
+            backgroundImage: `url(${logo})`, 
+            backgroundSize: 'contain',
+            backgroundPosition: 'center', 
+            backgroundRepeat: 'no-repeat',
+            backgroundOrigin: 'content-box'
+          }}/>
+          <br></br>
+          {logo ? null : <Typography variant="h6">{communityName ? communityName : contractId ? contractId : passedContractId }</Typography>}
+        </Grid>
+      </Grid>
         <DialogTitle id="form-dialog-title">Request Payout</DialogTitle>
         <DialogContent className={classes.rootForm}>  
           <div>
@@ -188,6 +249,9 @@ export default function PayoutProposal(props) {
             <Typography variant="h6">Payout Requested: {milestonePayout} {tokenName}</Typography>
             <Typography variant="body1">For proposal: {reference[0].proposal}, milestone: {reference[0].milestone}</Typography>
           </>)}
+
+          <Typography variant="h6">{usdConvert ? `~$${usdConvert} USD`: null}</Typography>
+          
           </div>
         <Card>
         <CardContent>
@@ -195,7 +259,7 @@ export default function PayoutProposal(props) {
           <Typography variant="body1">You are requesting that <b>{applicant}</b> receive {milestonePayout ? milestonePayout : payout} Ⓝ. After submitting
           this proposal, you must provide enough supporting detail and proof of work to help other members evaluate the work done and decide whether to approve your proposal or not.</Typography>
           <Grid container className={classes.confirmation} spacing={1}>
-            <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
+            <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
               <Checkbox
                 checked={confirm}
                 onChange={handleConfirmChange}

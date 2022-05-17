@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react'
 import * as nearAPI from 'near-api-js'
 import { Link } from 'react-router-dom'
-import { appStore, onAppMount } from '../../state/app'
-import { ceramic } from '../../utils/ceramic'
-import { dao } from '../../utils/dao'
-import EditDaoForm from '../EditDao/editDao'
-import DaoProfileDisplay from '../DAOProfileDisplay/daoProfileDisplay'
-import Purpose from '../Purpose/purpose'
+import { appStore, onAppMount } from '../../../state/app'
+import { ceramic } from '../../../utils/ceramic'
+import { dao } from '../../../utils/dao'
+import EditDaoForm from '../../EditDao/editDao'
+import DaoProfileDisplay from '../../DAOProfileDisplay/daoProfileDisplay'
+import Purpose from '../../Purpose/purpose'
 
 
 // Material UI Components
@@ -26,7 +26,7 @@ import PauseCircleFilledIcon from '@material-ui/icons/PauseCircleFilled'
 import PlayCircleFilledIcon from '@material-ui/icons/PlayCircleFilled'
 import VerifiedUserIcon from '@material-ui/icons/VerifiedUser';
 
-import { config } from '../../state/config'
+import { config } from '../../../state/config'
 import { SentimentVerySatisfied } from '@material-ui/icons'
 
 export const {
@@ -55,7 +55,7 @@ const useStyles = makeStyles((theme) => ({
     }
   }));
 
-const imageName = require('../../img/default_logo.png') // default no-image avatar
+const imageName = require('../../../img/default_logo.png') // default no-image avatar
 
 export default function DaoCard(props) {
 
@@ -70,7 +70,6 @@ export default function DaoCard(props) {
     const [editDaoClicked, setEditDaoClicked] = useState(false)
     const [purposeClicked, setPurposeClicked] = useState(false)
     const [claimed, setClaimed] = useState(false)
-    const [curDaoIdx, setCurDaoIdx] = useState()
     const [display, setDisplay] = useState(true)
     const [anchorEl, setAnchorEl] = useState(null)
     const [anchorE2, setAcnhorE2] = useState(null)
@@ -88,6 +87,7 @@ export default function DaoCard(props) {
       summoner,
       contractId,
       status,
+      daoDid,
       makeSearchDaos
    } = props
  
@@ -96,8 +96,8 @@ export default function DaoCard(props) {
      appIdx,
      isUpdated,
      near,
-     didRegistryContract, 
-     admin
+     didRegistryContract,
+     daoFactory
    } = state
 
     useEffect(
@@ -126,18 +126,8 @@ export default function DaoCard(props) {
             } catch (err) {
               console.log('error retrieving verification status', err)
             }
-
-           let thisCurDaoIdx
-           try{
-            let daoAccount = new nearAPI.Account(near.connection, contractId)
-            thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, near, didRegistryContract)
-            setCurDaoIdx(thisCurDaoIdx)
-            } catch (err) {
-              console.log('problem getting curdaoidx', err)
-              return false
-            }
-            console.log('thiscurdaoidx', thisCurDaoIdx)
-           let result = await thisCurDaoIdx.get('daoProfile', thisCurDaoIdx.id)
+          
+           let result = await appIdx.get('daoProfile', daoDid)
            console.log('result', result)
            if(result){
                   result.name != '' ? setsName(result.name) : setsName('')
@@ -278,16 +268,13 @@ export default function DaoCard(props) {
           {editDaoClicked ? <EditDaoForm
             state={state}
             handleEditDaoClickState={handleEditDaoClickState}
-            curDaoIdx={curDaoIdx}
-            handleUpdate={handleUpdate}
             contractId={contractId}
             /> : null }
           
            {detailsClicked ? <DaoProfileDisplay
             state={state}
             handleDetailsClickedState={handleDetailsClickedState}
-            curDaoIdx={curDaoIdx}
-            handleUpdate={handleUpdate}
+            daoDid={daoDid}
             contractId={contractId}
             /> : null }
 

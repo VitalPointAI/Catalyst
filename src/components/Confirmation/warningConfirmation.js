@@ -165,7 +165,7 @@ export default function WarningConfirmation(props) {
                 <Typography variant="h6">Use at own risk.</Typography>
                 
                 <Grid container className={classes.confirmation} spacing={1}>
-                  <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
+                  <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
                     <Checkbox
                       checked={confirm}
                       onChange={handleConfirmChange}

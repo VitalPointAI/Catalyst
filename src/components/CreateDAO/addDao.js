@@ -77,99 +77,100 @@ export default function AddDaoForm(props) {
     }
 
     const onSubmit = async (values) => {
+      setFinished(false)
       try{
         wallet.fundDaoAccount(id, accountId)
       } catch (err) {
-        console.log('error creating dao', err)
+        console.log('error creating community', err)
       }
     }
     
-        return (
-            <div>
-            <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" className={classes.root}>
-              <DialogTitle id="form-dialog-title">Create Community</DialogTitle>
-              <DialogContent>
-                    
-                        <TextField
-                          fullWidth
-                          id="daoName"
-                          required
-                          placeholder=" "
-                          autoFocus
-                          margin="dense"
-                          variant="outlined"
-                          name="id"
-                          label="Community Name"
-                          helperText="2-48 characters, no spaces, no symbols (except -)"
-                          minLength={state.app.accountTaken ? 999999 : 2}
-                          maxLength={48}
-                          pattern="^(([a-z\d]+[\-_])*[a-z\d]+$"
-                          value={id}
+    return (
+        <div>
+        <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" className={classes.root}>
+          <DialogTitle id="form-dialog-title">Create Project Community</DialogTitle>
+          <DialogContent>
+                
+                    <TextField
+                      fullWidth
+                      id="daoName"
+                      required
+                      placeholder=" "
+                      autoFocus
+                      margin="dense"
+                      variant="outlined"
+                      name="id"
+                      label="Project Community Name"
+                      helperText="2-48 characters, no spaces, no symbols (except -)"
+                      minLength={state.app.accountTaken ? 999999 : 2}
+                      maxLength={48}
+                      pattern="^(([a-z\d]+[\-_])*[a-z\d]+$"
+                      value={id}
+                      inputRef={register({
+                          validate: {
+                          notTaken: value => !app.accountTaken
+                          }        
+                      })}
+                      InputProps={{
+                          endAdornment: <><InputAdornment position="end">{factorySuffix}</InputAdornment></>,
+                      }}
+                      onChange={(e) => {
+                          const v = e.target.value.toLowerCase()
+                          setId(v)
+                          wallet.isDaoAccountTaken(v)
+                      }}
+                    />
+                {errors.id && <p style={{color: 'red'}}>You must provide a project community account name.</p>}
+                <div>
+                    {app.accountTaken ? 'Community name is already taken' : null}
+                </div>                
+                
+                <Card>
+                  <CardContent>
+                    <Grid container className={classes.confirmation} spacing={1}>
+                
+                      <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
+                  
+                        <Checkbox
+                          checked={confirm}
+                          onChange={handleConfirmChange}
+                          name="confirmCheck"
+                          color="primary"
                           inputRef={register({
-                              validate: {
-                              notTaken: value => !app.accountTaken
-                              }        
+                            required: true
                           })}
-                          InputProps={{
-                              endAdornment: <><InputAdornment position="end">{factorySuffix}</InputAdornment></>,
-                          }}
-                          onChange={(e) => {
-                              const v = e.target.value.toLowerCase()
-                              setId(v)
-                              wallet.isDaoAccountTaken(v)
-                          }}
                         />
-                    {errors.id && <p style={{color: 'red'}}>You must provide an community account name.</p>}
-                    <div>
-                        {app.accountTaken ? 'Community name is already taken' : null}
-                    </div>                
-                   
-                    <Card>
-                      <CardContent>
-                        <Grid container className={classes.confirmation} spacing={1}>
-                   
-                          <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
-                     
-                            <Checkbox
-                              checked={confirm}
-                              onChange={handleConfirmChange}
-                              name="confirmCheck"
-                              color="primary"
-                              inputRef={register({
-                                required: true
-                              })}
-                            />
-                          </Grid>
+                      </Grid>
+      
+                      <Grid item xs={10} sm={10} md={10} lg={10} xl={10} style={{margin:'auto'}}>
+                          <WarningIcon fontSize='large' className={classes.warning} />
+                          <Typography variant="body2" gutterBottom>Creating a project community requires <b>{parseFloat(FACTORY_DEPOSIT)} Ⓝ</b>.</Typography>
+                          <Typography variant="body2">The <b>{FACTORY_DEPOSIT} Ⓝ</b> you are about to transfer covers storage costs on the NEAR chain.</Typography>     
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+                
+  
+            </DialogContent>
+          {!finished ? <LinearProgress className={classes.progress} style={{marginBottom: '25px' }}/> : (
+          <DialogActions>
+          <Button
+            disabled={app.accountTaken || clicked}
+            variant="contained"
+            color="primary"
+            onClick={handleSubmit(onSubmit)}
+            >
+            CREATE
+          </Button>
           
-                          <Grid item xs={11} sm={11} md={11} lg={11} xl={11} style={{margin:'auto'}}>
-                              <WarningIcon fontSize='large' className={classes.warning} />
-                              <Typography variant="body2" gutterBottom>Creating a community requires <b>{parseFloat(FACTORY_DEPOSIT)} Ⓝ</b>.</Typography>
-                              <Typography variant="body2">The <b>{FACTORY_DEPOSIT} Ⓝ</b> you are about to transfer covers storage costs on the NEAR chain.</Typography>     
-                          </Grid>
-                        </Grid>
-                      </CardContent>
-                    </Card>
-                   
-     
-                </DialogContent>
-              {!finished ? <LinearProgress className={classes.progress} style={{marginBottom: '25px' }}/> : (
-              <DialogActions>
-              <Button
-                disabled={app.accountTaken || clicked}
-                variant="contained"
-                color="primary"
-                onClick={handleSubmit(onSubmit)}
-                >
-                CREATE COMMUNITY
-              </Button>
-              
-                <Button onClick={handleClose} color="primary">
-                  Cancel
-                </Button>
-              </DialogActions>)}
-              <Divider style={{marginBottom: 10}}/>
+            <Button onClick={handleClose} color="primary">
+              Cancel
+            </Button>
+          </DialogActions>)}
+          <Divider style={{marginBottom: 10}}/>
 
-            </Dialog>
-          </div>
-        )
+        </Dialog>
+      </div>
+    )
 }

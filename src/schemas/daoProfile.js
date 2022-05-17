@@ -26,6 +26,12 @@ export const daoProfileSchema = {
         "title": "text",
         "maxLength": 4000,
       },
+      country: {
+        type: 'string'
+      },
+      language: {
+        type: 'array'
+      },
       "email":{
         type: 'string'
       },

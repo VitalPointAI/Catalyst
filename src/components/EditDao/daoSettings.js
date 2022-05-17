@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { appStore, onAppMount } from '../../state/app'
 import { formatNearAmount } from 'near-api-js/lib/utils/format'
+import { PLATFORM_PERCENT } from '../../state/near'
 import ConfigurationProposal from '../ConfigurationProposal/configurationProposal'
 
 // Material UI components
@@ -84,7 +85,6 @@ export default function EditInitSettings(props) {
     const [thisDilutionBound, setDilutionBound] = useState(dilutionBound)
     const [thisVoteThreshold, setVoteThreshold] = useState(voteThreshold)
     const [thisPlatformPercent, setPlatformPercent] = useState(formatNearAmount(platformPercent, 5))
-    const [thisPlatformAccount, setPlatformAccount] = useState(platformAccount)
 
     const [finished, setFinished] = useState(true)
     const [open, setOpen] = useState()
@@ -158,8 +158,7 @@ export default function EditInitSettings(props) {
         initSettings[4] ? setProposalDeposit(proposalDeposit) : setProposalDeposit('')
         initSettings[5] ? setDilutionBound(dilutionBound) : setDilutionBound('')
         initSettings[6] ? setVoteThreshold(voteThreshold) : setVoteThreshold('')
-        initSettings[8] ? setPlatformPercent(formatNearAmount(platformPercent, 5)) : setPlatformPercent('')
-        initSettings[9] ? setPlatformAccount(platformAccount) : setPlatformAccount('')
+        initSettings[8] ? setPlatformPercent(formatNearAmount(PLATFORM_PERCENT, 5)) : setPlatformPercent(formatNearAmount(PLATFORM_PERCENT, 5))
     }
 
     const handlePeriodDurationChange = (event) => {
@@ -191,10 +190,6 @@ export default function EditInitSettings(props) {
       setPlatformPercent(event.target.value)
     }
 
-    const handlePlatformAccountChange = (event) => {
-      setPlatformAccount(event.target.value)
-    }
-
     const handleVoteThresholdChange = (event) => {
       let value = event.target.value;
       setVoteThreshold(value)
@@ -214,7 +209,7 @@ export default function EditInitSettings(props) {
             thisDilutionBound,
             thisVoteThreshold,
             thisPlatformPercent,
-            thisPlatformAccount
+            platformAccount
           )
         } catch (err) {
           console.log('error', err)
@@ -319,7 +314,7 @@ export default function EditInitSettings(props) {
                     variant="outlined"
                     name="dilutionBound"
                     label="Dilution Bound"
-                    value={hisDilutionBound}
+                    value={thisDilutionBound}
                     onChange={handleDilutionBoundChange}  
                     inputRef={register({
                         required: true, 
@@ -356,24 +351,14 @@ export default function EditInitSettings(props) {
                     })}
                     InputProps={{
                       endAdornment: <><InputAdornment position="end">%</InputAdornment>
-                      <Tooltip TransitionComponent={Zoom} title="The percentage amount you are willing to send to the Catalyst development team that comes off each successful proposal payout.">
+                      <Tooltip TransitionComponent={Zoom} title="The percentage amount you are willing to send to the Catalyst development team that comes off each successful proposal payout. Minimum is 0.5%">
                           <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
                       </Tooltip>
                       </>
                     }}
                     />
 
-                    <TextField
-                    id="platform-account"
-                    variant="outlined"
-                    name="platformAccount"
-                    label="Platform Support Account"
-                    value={thisPlatformAccount}
-                    onChange={handlePlatformAccountChange}  
-                    inputRef={register({
-                        required: true, 
-                    })}
-                    />
+                   
 
                   <Button variant="contained" color="primary" type="submit" onClick={handleSubmit(onSubmit)}>
                         Submit

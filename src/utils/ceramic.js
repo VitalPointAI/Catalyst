@@ -54,6 +54,7 @@ import { cancelCommitmentProposalDetailsSchema } from '../schemas/cancelCommitme
 import { ftKeysSchema } from '../schemas/ftKeys'
 import { ftProfileSchema } from '../schemas/ftProfile'
 import { ftSummonSchema } from '../schemas/ftSummonEvent'
+import { guildProfileSchema } from '../schemas/guildProfile'
 
 import { config } from '../state/config'
 
@@ -314,9 +315,6 @@ class Ceramic {
 
   async getAppCeramic(accountId) {
 
-    let existingToken = get(AUTH_TOKEN, [])
-    if(!existingToken.length > 0){
-    
     let token = await axios.post(TOKEN_CALL, 
       {
       accountId: accountId
@@ -324,7 +322,6 @@ class Ceramic {
     )
     
     set(AUTH_TOKEN, token.data.token)
-    }
 
     let authToken = get(AUTH_TOKEN, [])   
     let retrieveSeed = await axios.post(APPSEED_CALL, {
@@ -370,9 +367,7 @@ class Ceramic {
 
   async getLegacyAppCeramic(accountId) {
 
-    let existingToken = get(AUTH_TOKEN, [])
-    if(!existingToken.length > 0){
-    
+   
     let token = await axios.post(TOKEN_CALL, 
       {
       accountId: accountId
@@ -380,7 +375,6 @@ class Ceramic {
     )
     
     set(AUTH_TOKEN, token.data.token)
-    }
 
     let authToken = get(AUTH_TOKEN, [])   
     let retrieveSeed = await axios.post(APPSEED_CALL, {
@@ -425,7 +419,8 @@ class Ceramic {
       //  let didContract = await this.useDidContractFullAccessKey()
           await contract.putDID({
             accountId: accountId,
-            did: ceramic.did.id
+            did: ceramic.did.id,
+            type: 'dao'
           }, GAS)
           return ceramic.did.id
       } catch (err) {
@@ -457,7 +452,8 @@ class Ceramic {
          //   let didContract = await this.useDidContractFullAccessKey()
             did = await contract.putDID({
               accountId: accountId,
-              did: ceramic.did.id
+              did: ceramic.did.id,
+              type: 'dao'
             }, GAS)
           } catch (err) {
             console.log('problem storing DID', err)
@@ -570,23 +566,14 @@ class Ceramic {
   // application IDX - maintains most up to date schemas and definitions ensuring chain always has the most recent commit
   async getAppIdx(contract, account, near){
   
-    const appClient = await this.getAppCeramic(account.accountId)
+  const appClient = await this.getAppCeramic(account.accountId)
 
-    const legacyAppClient = await this.getLegacyAppCeramic(account.accountId)
-    //const nearAuthProvider = new NearAuthProvider(near, accountId, near.connection.networkId)
-    // const thisAccountId = await nearAuthProvider.accountId()
-    // console.log('thisaccountid', thisAccountId)
-    // const thisAccountLink = await Caip10Link.fromAccount(appClient, thisAccountId)
-    // console.log('thisaccountlink 1', thisAccountLink)
-    // await thisAccountLink.setDid(appClient.did.id, nearAuthProvider)
-    
-    // const thisAccountLink2 = await Caip10Link.fromAccount(appClient, thisAccountId)
-    // console.log('thisaccountlink2', thisAccountLink2)
+  const legacyAppClient = await this.getLegacyAppCeramic(account.accountId)
 
-   const appDid = this.associateAppDID(APP_OWNER_ACCOUNT, contract, appClient)
+  const appDid = this.associateAppDID(APP_OWNER_ACCOUNT, contract, appClient)
   
   // Retrieve cached aliases
- let rootAliases = get(ALIASES, [])
+  let rootAliases = get(ALIASES, [])
   if(rootAliases.length > 0){
     const appIdx = new IDX({ ceramic: appClient, aliases: rootAliases[0]})
     return appIdx
@@ -640,6 +627,7 @@ class Ceramic {
       const ftKeys = this.getAlias(APP_OWNER_ACCOUNT, 'ftKeys', appClient, ftKeysSchema, 'ft account info', contract)
       const ftProfile = this.getAlias(APP_OWNER_ACCOUNT, 'ftProfile', appClient, ftProfileSchema, 'ft details', contract)
       const ftSummonEvent = this.getAlias(APP_OWNER_ACCOUNT, 'ftSummonEvent', appClient, ftSummonSchema, 'ft summon events', contract)
+      const guildProfile = this.getAlias(APP_OWNER_ACCOUNT, 'guildProfile', appClient, guildProfileSchema, 'guild profiles', contract)
       const done = await Promise.all([
         appDid, 
         definitions, 
@@ -674,7 +662,8 @@ class Ceramic {
         cancelCommitmentProposalDetails,
         ftKeys,
         ftProfile,
-        ftSummonEvent
+        ftSummonEvent,
+        guildProfile
       ])
       
       let rootAliases = {
@@ -710,7 +699,8 @@ class Ceramic {
         cancelCommitmentProposalDetails: done[30],
         ftKeys: done[31],
         ftProfile: done[32],
-        ftSummonEvent: done[33]
+        ftSummonEvent: done[33],
+        guildProfile: done[34]
       }
 
       // cache aliases
@@ -744,6 +734,146 @@ class Ceramic {
     const appIdx = new IDX({ ceramic: legacyAppClient, aliases: rootAliases})
     return appIdx
   }
+
+  
+  // retrieve user identity
+  async getUserIdx(account, appIdx, factoryContract, registryContract){
+     
+    let seed = false
+    set(KEY_REDIRECT, {action: false, link: ''})
+
+    let newAccountKeys =  await this.downloadKeysSecret(appIdx, 'accountsKeys')
+    console.log('newAccountkeys', newAccountKeys)
+    // add legacy dao keys
+    let legacyAppIdx = await this.getLegacyAppIdx(registryContract, account)
+    let oldAccountKeys =  await this.downloadKeysSecret(legacyAppIdx, 'accountsKeys')
+    console.log('oldaccountkeys', oldAccountKeys)
+
+    let localAccounts = get(ACCOUNT_LINKS, [])
+    
+    if(oldAccountKeys && oldAccountKeys.length > 0){
+      let i = 0
+      while (i < oldAccountKeys.length){
+        
+        if(oldAccountKeys[i].accountId == account.accountId){
+          seed = Buffer.from((oldAccountKeys[i].key).slice(0,32))
+        }
+        i++
+      }
+      try{
+        let oldAccountUserCeramicClient
+        let did = await this.getDid(account.accountId, factoryContract, registryContract)
+        
+        if(did){
+          let part = did.split(':')[1]
+          if(part == '3'){
+            oldAccountUserCeramicClient = await this.getCeramic(account, seed)
+          } else {
+            oldAccountUserCeramicClient = await this.getLegacyCeramic(account, seed)
+          }
+        } else {
+          oldAccountUserCeramicClient = await this.getCeramic(account, seed)
+        }
+        let curUserIdx = new IDX({ ceramic: oldAccountUserCeramicClient, aliases: appIdx._aliases})
+        return curUserIdx
+      } catch (err) {
+        console.log('no did from oldaccounts', err)
+      }
+    }
+
+    if(newAccountKeys && newAccountKeys.length > 0){
+  
+      let i = 0
+      while (i < newAccountKeys.length){
+        if(newAccountKeys[i].accountId == account.accountId){
+          seed = Buffer.from((newAccountKeys[i].key).slice(0,32))
+        }
+        i++
+      }
+      try{
+        let did = await this.getDid(account.accountId, factoryContract, registryContract)
+        
+        let currentUserCeramicClient
+        if(did){
+          let part = did.split(':')[1]
+       
+          if(part == '3'){
+            currentUserCeramicClient = await this.getCeramic(account, seed)
+          } else {
+            currentUserCeramicClient = await this.getLegacyCeramic(account, seed)
+          }
+        } else {
+          currentUserCeramicClient = await this.getCeramic(account, seed)
+        }
+        let curUserIdx = new IDX({ ceramic: currentUserCeramicClient, aliases: appIdx._aliases})
+      
+        return curUserIdx
+      } catch (err) {
+        console.log('no did from newaccounts', err)
+      }
+    }
+
+    if(localAccounts && localAccounts.length > 0){
+      let i = 0
+      while (i < localAccounts.length){
+        if(localAccounts[i].accountId == account.accountId){
+          seed = Buffer.from((localAccounts[i].key).slice(0,32))
+        }
+        i++
+      }
+      try{
+        let did = await this.getDid(account.accountId, factoryContract, registryContract)
+      
+        let localAccountUserCeramicClient
+        if(did){
+          let part = did.split(':')[1]
+          if(part == '3'){
+            localAccountUserCeramicClient = await this.getCeramic(account, seed)
+          } else {
+            localAccountUserCeramicClient = await this.getLegacyCeramic(account, seed)
+          }
+        } else {
+          localAccountUserCeramicClient = await this.getCeramic(account, seed)
+        }
+        let curUserIdx = new IDX({ ceramic: localAccountUserCeramicClient, aliases: appIdx._aliases})
+        return curUserIdx
+      } catch (err) {
+        console.log('no did from localaccount', err)
+      }
+    }
+   
+    if(seed == false){
+      set(KEY_REDIRECT, {action: true, link: '/setup'})
+      return false
+    }
+}
+
+
+async getDid(accountId, factoryContract, registryContract) {
+  let dao
+  let did = false
+  
+  try{
+    did = await registryContract.getDID({accountId: accountId})
+  
+    if(did != 'none'){
+      return did
+    }
+  } catch (err) {
+    console.log('error retrieving did from legacy', err)
+  }
+  
+  if (did == 'none'){
+   try {
+    dao = await factoryContract.getDaoByAccount({accountId: accountId})
+ 
+    did = dao.did
+    } catch (err) {
+      console.log('error retrieving did', err)
+    }
+  }
+  return did
+}
 
 
   // current user IDX (account currently logged in)
@@ -850,16 +980,19 @@ class Ceramic {
   }
 
 
-  async getCurrentDaoIdx(contractAccount, appIdx, near, contract, seedPhrase){
-    
+  async getCurrentDaoIdx(contractAccount, appIdx, contract, secretKey){
+ 
     let seed
     let curDaoIdx
    
     let legacyAppIdx = await this.getLegacyAppIdx(contract, contractAccount)
-    let oldDaoKeys =  await this.downloadKeysSecret(legacyAppIdx, 'daoKeys')
   
+
+    let oldDaoKeys =  await this.downloadKeysSecret(legacyAppIdx, 'daoKeys')
+ 
     if(oldDaoKeys && oldDaoKeys.length > 0){
       let i = 0
+     
       while(i < oldDaoKeys.length){
         if(oldDaoKeys[i].contractId == contractAccount.accountId){
           seed = Buffer.from((oldDaoKeys[i].key).slice(0,32))
@@ -885,10 +1018,12 @@ class Ceramic {
         }
       }
     }
+ 
     if(seed){
     let newDaoCurrentDaoCeramicClient = await this.getCeramic(contractAccount, seed)
-    return curDaoIdx = new IDX({ceramic: newDaoCurrentDaoCeramicClient, aliases: appIdx._aliases})
-    }
+    let curDaoIdx = new IDX({ceramic: newDaoCurrentDaoCeramicClient, aliases: appIdx._aliases})
+    return curDaoIdx
+  }
 
     let localSeeds = get(SEEDS, [])
     if(localSeeds.length > 0){
@@ -903,9 +1038,8 @@ class Ceramic {
       }
     }
 
-    if(seedPhrase){
-      let key = nearSeed.parseSeedPhrase(seedPhrase)
-      let seed = Buffer.from((key.secretKey).slice(0,32))
+    if(secretKey){
+      let seed = Buffer.from((secretKey).slice(0,32))
       let link = {seed: seed, accountId: contractAccount.accountId, keyStored: Date.now() }
       let seeds = []
       seeds.push(link)
@@ -913,7 +1047,7 @@ class Ceramic {
       let seedPhraseDaoCeramicClient = await this.getCeramic(contractAccount, seed)
       return curDaoIdx = new IDX({ceramic: seedPhraseDaoCeramicClient, aliases: appIdx._aliases})
     }
-
+    
     if(seed == undefined){
       return false
     }
@@ -944,29 +1078,29 @@ class Ceramic {
   }
 
 
-  async getDid(accountId, contract, legacyContract) {
-    let dao
-    let did = false
+  // async getDid(accountId, contract, legacyContract) {
+  //   let dao
+  //   let did = false
     
-    try{
-      did = await legacyContract.getDID({accountId: accountId})
-      if(did){
-        return did
-      }
-    } catch (err) {
-      console.log('error retrieving did from legacy', err)
-    }
+  //   try{
+  //     did = await legacyContract.getDID({accountId: accountId})
+  //     if(did){
+  //       return did
+  //     }
+  //   } catch (err) {
+  //     console.log('error retrieving did from legacy', err)
+  //   }
     
-    if (!did){
-     try {
-      dao = await contract.getDaoByAccount({accountId: accountId})
-      did = dao.did
-      } catch (err) {
-        console.log('error retrieving did', err)
-      }
-    }
-    return did
-  }
+  //   if (!did){
+  //    try {
+  //     dao = await contract.getDaoByAccount({accountId: accountId})
+  //     did = dao.did
+  //     } catch (err) {
+  //       console.log('error retrieving did', err)
+  //     }
+  //   }
+  //   return did
+  // }
 
 
   async getCurrentUserIdxNoDid(appIdx, account, keyPair, owner, near) {

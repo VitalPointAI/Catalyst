@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
-import { ceramic } from '../../utils/ceramic'
-import { appStore, onAppMount } from '../../state/app'
-import MemberProfileDisplay from '../MemberProfileDisplay/memberProfileDisplay'
-import Delegation from '../Delegation/delegation'
-import ManageDelegations from '../ManageDelegations/manageDelegations'
+import { ceramic } from '../../../utils/ceramic'
+import { appStore, onAppMount } from '../../../state/app'
+import MemberProfileDisplay from '../../MemberProfileDisplay/memberProfileDisplay'
+import Delegation from '../../Delegation/delegation'
+import ManageDelegations from '../../ManageDelegations/manageDelegations'
 
 // Material UI Components
 import { makeStyles } from '@material-ui/core/styles'
@@ -42,11 +42,11 @@ const useStyles = makeStyles((theme) => ({
     }
   }));
 
-  const imageName = require('../../img/default-profile.png') // default no-image avatar
+  const imageName = require('../../../img/default-profile.png') // default no-image avatar
+  const logoName = require('../../../img/default_logo.png') // default no-logo
 
 export default function MemberCard(props) {
 
-    const [name, setName] = useState('')
     const [avatar, setAvatar] = useState(imageName)
 
     const [allShares, setAllShares] = useState()
@@ -57,6 +57,13 @@ export default function MemberCard(props) {
     const [maxDelegation, setMaxDelegation] = useState()
     const [anchorEl, setAnchorEl] = useState(null)
     const [curUserDelegatedTo, setCurUserDelegatedTo] = useState('0')
+
+    const [logo, setLogo] = useState(logoName)
+    const [pfpLogo, setPfpLogo] = useState('')
+    const [pfpAvatar, setPfpAvatar] = useState('')
+    const [name, setName] = useState('')
+    const [accountType, setAccountType] = useState('')
+    const [thisMemberDid, setThisMemberDid] = useState('')
     
     const { state, dispatch, update } = useContext(appStore)
 
@@ -106,15 +113,38 @@ export default function MemberCard(props) {
             }
           }
 
-          if(accountName && near){
-             let did = await ceramic.getDid(accountName, daoFactory, didRegistryContract)
-              if(did){
-                let result = await appIdx.get('profile', did)
+          let thisAccountType
+          try{
+              thisAccountType = await didRegistryContract.getType({accountId: accountName})
+              setAccountType(thisAccountType)
+              console.log('accountid: '+ accountName + ', account type:', thisAccountType)
+            } catch (err) {
+              accountType = 'none'
+              console.log('account not registered, not type avail', err)
+          }
+
+          if(accountName && appIdx){
+             let memberDid = await ceramic.getDid(accountName, daoFactory, didRegistryContract)
+             setThisMemberDid(memberDid)
+             if(memberDid != 'none' && thisAccountType != 'guild'){
+                let result = await appIdx.get('profile', memberDid)
+                console.log('result member', result)
                 if(result){
                   result.avatar ? setAvatar(result.avatar) : setAvatar(imageName)
                   result.name ? setName(result.name) : setName('')
+                  result.profileNft ? setPfpAvatar(result.profileNft) : setPfpAvatar('')
+                }
+            } else {
+              if(memberDid != 'none' && thisAccountType == 'guild'){
+                let result = await appIdx.get('guildProfile', memberDid)
+                console.log('result member', result)
+                if(result){
+                  result.logo ? setLogo(result.logo) : setLogo(logoName)
+                  result.name ? setName(result.name) : setName('')
+                  result.profileNft ? setPfpLogo(result.profileNft) : setPfpLogo('')
                 }
               }
+            }
           }
 
           let combinedShares
@@ -129,6 +159,10 @@ export default function MemberCard(props) {
           }
 
           let votePower = Math.round(((combinedShares - parseInt(delegatedShares)) / totalShares)*100, 2)
+          console.log('combined shares', combinedShares)
+          console.log('delegated shares', delegatedShares)
+          console.log('total shares', totalShares)
+          console.log('votepower', votePower)
           setVotingPower(votePower)
 
         }
@@ -142,7 +176,7 @@ export default function MemberCard(props) {
       return () => mounted = false
       }
 
-    }, [near, currentMemberInfo, isUpdated]
+    }, [appIdx, currentMemberInfo, isUpdated]
     )
     
     function formatDate(timestamp) {
@@ -186,13 +220,31 @@ export default function MemberCard(props) {
         <>
         <Card raised={true} className={classes.card} >
         <Grid container justifyContent="space-evenly" spacing={1} style={{marginTop:'20px'}}>
-          <Button
-          color="primary"
-          onClick={handleMemberProfileDisplayClick}
-          >
-            <Avatar src={avatar} className={classes.large}  />
-            <center><Chip label={name != '' ? name : accountName} style={{marginBottom: '3px'}}/></center>
-          </Button>
+          
+          <Typography variant="overline"  style={{width: '100%', float: 'right'}}>
+          {accountType == 'guild' ? (
+            <a href={`https://nearguilds.live/guild-profiles/${thisMemberDid}`}>
+              <div style={{ 
+                  height: '40px',
+                  backgroundImage: `url(${pfpLogo != logoName && pfpLogo != '' ? pfpLogo : logo})`, 
+                  backgroundSize: 'contain',
+                  backgroundPosition: 'center', 
+                  backgroundRepeat: 'no-repeat',
+                  backgroundOrigin: 'content-box'
+              }}/>
+              <center><Chip label={name != '' ? name : accountName} style={{marginBottom: '3px'}}/></center>
+              </a>
+              )
+          :  (
+            <a href={`https://nearpersonas.live/indiv-profiles/${thisMemberDid}`}>
+              <Avatar src={pfpAvatar != imageName && pfpAvatar != '' ? pfpAvatar : avatar} style={{marginRight: '5px'}}/>
+              <center><Chip label={name != '' ? name : accountName} style={{marginBottom: '3px'}}/></center>
+              </a>
+              )
+          }
+        </Typography>
+            
+
         </Grid>
          
           <CardHeader

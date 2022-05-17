@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app'
 import Import from '../Import/import'
-import { Header } from '../Header/header'
 
 // Material UI components
 import { makeStyles } from '@material-ui/core/styles'
@@ -48,14 +47,6 @@ export default function NewKey(props) {
     )
     
     return (
-        <>
-        <div className={classes.root}>
-        <Header state={state}/>
         <Import />
-        
-        </div>
-        <Footer />
-        </>
-        
     )
 }

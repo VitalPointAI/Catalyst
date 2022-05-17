@@ -13,7 +13,12 @@ import CommunityRoleProposal from '../CommunityRoleProposal/communityRoleProposa
 import Donation from '../Donation/donation'
 import Invite from '../Invite/invite'
 import Leave from '../Leave/leave'
-import { Steps, Hints } from "intro.js-react";
+import proposal from '../../img/proposal-icon.png'
+import invite from '../../img/invite-icon.png'
+import join from '../../img/join-icon.png'
+import supporters from '../../img/give-icon.png'
+import opportunities from '../../img/opportunity-icon.png'
+import EditDaoForm from '../EditDao/editDao'
 
 // Material UI Components
 import Typography from '@material-ui/core/Typography'
@@ -32,8 +37,11 @@ import EnhancedEncryptionIcon from '@material-ui/icons/EnhancedEncryption'
 import ExitToAppIcon from '@material-ui/icons/ExitToApp'
 import AddAlertIcon from '@material-ui/icons/AddAlert'
 import MoneyIcon from '@material-ui/icons/Money'
+import EditIcon from '@material-ui/icons/Edit'
 import VerifiedUserIcon from '@material-ui/icons/VerifiedUser'
 import { LinearProgress } from '@material-ui/core'
+import IconButton from '@material-ui/core/IconButton'
+import Badge from '@material-ui/core/Badge'
 
 const StyledMenu = withStyles({
   paper: {
@@ -79,6 +87,7 @@ const useStyles = makeStyles((theme) => ({
 export default function ActionSelector(props) {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState(null)
+  const [editDaoClicked, setEditDaoClicked] = useState(false)
   const [memberProposalClicked, setMemberProposalClicked] = useState(false)
   const [inviteClicked, setInviteClicked] = useState(false);
   const [fundingProposalClicked, setFundingProposalClicked] = useState(false)
@@ -90,16 +99,9 @@ export default function ActionSelector(props) {
   const [leaveClicked, setLeaveClicked] = useState(false)
   const [whiteListClicked, setWhiteListClicked] = useState(false)
   const [guildKickClicked, setGuildKickClicked] = useState(false)
-  const [stepsEnabled, setStepsEnabled] = useState(false)
   const [active, setActive] = useState(false)
-  const [options, setOptions] = useState({
-    doneLabel: 'Next',                                
-    showButtons: true,
-    overlayOpacity: 0.5,
-    scrollTo: 'element',
-    skipLabel: "Skip",
-    showProgress: true
-})
+  const [supporterCount, setSupporterCount] = useState(0)
+  const [opportunityCount, setOpportunityCount] = useState(0)
   
   const { state, dispatch, update } = useContext(appStore)
 
@@ -110,12 +112,15 @@ export default function ActionSelector(props) {
     contract,
     currentDaosList,
     accountId,
-    memberStatus
+    memberStatus,
+    daoFactory, 
+    nearPrice,
+    appIdx,
+    curDaoIdx,
+    isUpdated
   } = state
 
   const {
-    enable,
-    returnFunction, 
     handleTabValueState,
     fairShare,
     loaded } = props
@@ -124,37 +129,45 @@ export default function ActionSelector(props) {
     contractId
   } = useParams()
 
-  useEffect(
-    () => {
-      setStepsEnabled(enable)
-      if(currentDaosList && currentDaosList.length > 0){
-        let i = 0
-        while (i < currentDaosList.length){
-          if(currentDaosList[i].contractId == contractId){
-            currentDaosList[i].status == 'active' ? setActive(true) : setActive(false)
-            break
+  useEffect(() => {
+    async function checkStatus(){
+      try{
+        let community = await daoFactory.getDaoByAccount({accountId: contractId})
+        community.status == 'active' ? setActive(true) : setActive(false)
+      } catch (err) {
+        console.log('error getting status', err)
+      }
+    }
+
+    checkStatus()
+  })
+
+  useEffect(() => {
+    if(isUpdated){}
+    async function getStats() {
+      if(appIdx && curDaoIdx){
+        let thisSupporterCount = await appIdx.get('donations', curDaoIdx.id)
+        console.log('supporterCount', thisSupporterCount)
+        thisSupporterCount ? setSupporterCount(thisSupporterCount.donations.length) : setSupporterCount(0)
+      
+        let thisOpportunityCount = await appIdx.get('opportunities', curDaoIdx.id)
+        console.log('opporuntiy count', thisOpportunityCount)
+        let count = 0
+        if(thisOpportunityCount && thisOpportunityCount.opportunities.length > 0){
+          for(let x = 0; x < thisOpportunityCount.opportunities.length; x++){
+            if(thisOpportunityCount.opportunities[x].status){
+              count++
+            }
           }
-          i++
+          setOpportunityCount(count)
+        } else {
+          setOpportunityCount(0)
         }
       }
-    }, [enable]
-  )
+    }
 
-//   let steps = [
-//     { 
-//       element: '.proposalList',
-//       intro: <>
-//              <Typography>Clicking this button will display a list of proposals that you can submit.</Typography>
-//              <br />
-//              <Typography>If you are not a member of this community, you can click the join button, and submit a member proposal to gain access to all proposals types.</Typography>
-//              <br />
-//              <Typography>For more information about the various proposal types, you can find them (here)</Typography>
-//             </>
-//     }, {
-//       element: '.invite',
-//       intro: <Typography>Here you can invite your friends to join a community on a variety of social media platforms.</Typography>
-//     }                       
-// ]
+    getStats()
+  }, [curDaoIdx, appIdx, isUpdated])
 
   const handleDonationProposalClick = () => {
     handleExpanded()
@@ -264,6 +277,15 @@ export default function ActionSelector(props) {
     setCommunityRoleProposalClicked(property)
   }
 
+  function handleEditDaoClickState(property){
+    setEditDaoClicked(property)
+  }
+
+  const handleEditDaoClick = () => {
+    handleExpanded()
+    handleEditDaoClickState(true)
+  }
+
   function handleExpanded() {
     setAnchorEl(null)
   }
@@ -272,69 +294,86 @@ export default function ActionSelector(props) {
     setAnchorEl(event.currentTarget);
   }
 
-  function onStepsComplete() {
-    setStepsEnabled(false)
-    returnFunction('actionSelect') 
-  }
-  function onStepsExit(){
-    setStepsEnabled(false)
-  }
-
   return (
     <>
-      {/* <Steps
-        steps={steps}
-        initialStep={0}
-        onComplete={() => onStepsComplete()}
-        onExit={() => onStepsExit()}
-        enabled={stepsEnabled}
-        options={options}
-      /> */}
 
       {loaded && !memberStatus && active ? (
-        <Button
-
+        <IconButton
           style={{ marginRight: 5 }}
           aria-controls="fade-menu"
           aria-haspopup="true"
-          variant="contained"
-          color="primary"
           onClick={handleMemberProposalClick}
         >
-          Join
-        </Button>
+        <img src={join} style={{width: '25px'}}/>
+        </IconButton>
       ) : null}
 
       {loaded && active ? (
       <>
-      <Button
+      <IconButton
         className='proposalList'
         aria-controls="fade-menu"
         aria-haspopup="true"
-        variant="contained"
-        color="primary"
         onClick={handleClick}
       >
-        Submit Proposals
-      </Button>
+        <img src={proposal} style={{width: '25px'}}/>
+      </IconButton>
 
-      <Button
+      <IconButton
         className='invite'
         style={{ marginLeft: 5 }}
         aria-controls="fade-menu"
         aria-haspopup="true"
-        variant="contained"
-        color="primary"
         onClick={handleInvite}
       >
-        Invite
-      </Button>
+      <img src={invite} style={{width: '25px'}}/>
+      </IconButton>
+
+     
+      <IconButton
+        className='invite'
+        style={{ marginLeft: 5 }}
+        aria-controls="fade-menu"
+        aria-haspopup="true"
+      >
+      <Badge badgeContent={opportunityCount} color="primary">
+        <a href={`/opportunities/${contractId}`}>
+          <img src={opportunities} style={{width: '25px'}}/>
+        </a>
+      </Badge>
+      </IconButton>
+      
+      
+      <IconButton
+        className='invite'
+        style={{ marginLeft: 5 }}
+        aria-controls="fade-menu"
+        aria-haspopup="true"
+      >
+      <Badge badgeContent={supporterCount} color="primary">
+        <a href={`/supporters/${contractId}`}>
+          <img src={supporters} style={{width: '25px'}}/>
+        </a>
+      </Badge>
+      </IconButton>
+     
+
+      <IconButton
+      className='edit'
+      style={{ marginLeft: 5 }}
+      aria-controls="fade-menu"
+      aria-haspopup="true"
+      onClick={handleEditDaoClick}
+      >
+      <EditIcon />
+      </IconButton>
       </>
       ) : 
       loaded ?
         <Typography variant="body1">This community has been inactivated and exists here as an archive of its activity.</Typography>
       : <Typography variant="body1">Setting things up.  Please wait a moment.</Typography>
       }
+      
 
       {loaded && memberStatus && active ? (
         <StyledMenu
@@ -427,6 +466,13 @@ export default function ActionSelector(props) {
     : null
     }
 
+      {editDaoClicked ? <EditDaoForm
+        state={state}
+        handleEditDaoClickState={handleEditDaoClickState}
+        contractId={contractId}
+        appIdx={appIdx}
+        did={curDaoIdx.id}
+        /> : null }
 
       {whiteListClicked ? <WhiteListProposal
         contract={contract}
@@ -435,11 +481,16 @@ export default function ActionSelector(props) {
         contractId={contractId}
         depositToken={depositToken}
         proposalDeposit={proposalDeposit}
+        appIdx={appIdx}
+        did={curDaoIdx.id}
         accountId={accountId} /> : null}
 
       {guildKickClicked ? <GuildKickProposal
         handleGuildKickClickState={handleGuildKickClickState}
+        proposalDeposit={proposalDeposit}
         contractId={contractId}
+        appIdx={appIdx}
+        did={curDaoIdx.id}
         state={state} /> : null}
 
       {inviteClicked ? <Invite
@@ -452,6 +503,8 @@ export default function ActionSelector(props) {
         contractId={contractId}
         contract={contract}
         handleLeaveClickState={handleLeaveClickState}
+        appIdx={appIdx}
+        did={curDaoIdx.id}
       /> : null}
 
       {fundingProposalClicked ? <FundingProposal
@@ -461,6 +514,11 @@ export default function ActionSelector(props) {
         tokenName={tokenName}
         applicant={accountId}
         contract={contract}
+        proposalDeposit={proposalDeposit}
+        nearPrice={nearPrice}
+        appIdx={appIdx}
+        did={curDaoIdx.id}
+        state={state}
       /> : null}
 
       {communityRoleProposalClicked ? <CommunityRoleProposal
@@ -471,6 +529,8 @@ export default function ActionSelector(props) {
         proposalDeposit={proposalDeposit}
         tokenName={tokenName}
         accountId={accountId}
+        appIdx={appIdx}
+        did={curDaoIdx.id}
       /> : null}
 
       {tributeProposalClicked ? <TributeProposal
@@ -481,6 +541,8 @@ export default function ActionSelector(props) {
         proposalDeposit={proposalDeposit}
         tokenName={tokenName}
         accountId={accountId}
+        appIdx={appIdx}
+        did={curDaoIdx.id}
       /> : null}
 
 
@@ -492,6 +554,8 @@ export default function ActionSelector(props) {
         proposalDeposit={proposalDeposit}
         tokenName={tokenName}
         accountId={accountId}
+        appIdx={appIdx}
+        did={curDaoIdx.id}
       /> : null}
 
       {memberProposalClicked ? <MemberProposal
@@ -501,6 +565,8 @@ export default function ActionSelector(props) {
         depositToken={depositToken}
         handleMemberProposalClickState={handleMemberProposalClickState}
         accountId={accountId}
+        appIdx={appIdx}
+        did={curDaoIdx.id}
       /> : null}
 
       {donationProposalClicked ? <Donation
@@ -510,6 +576,8 @@ export default function ActionSelector(props) {
         depositToken={depositToken}
         handleDonationProposalClickState={handleDonationProposalClickState}
         accountId={accountId}
+        appIdx={appIdx}
+        did={curDaoIdx.id}
       /> : null}
 
       {payoutProposalClicked ? <PayoutProposal
@@ -520,6 +588,8 @@ export default function ActionSelector(props) {
         tokenName={tokenName}
         handlePayoutProposalClickState={handlePayoutProposalClickState}
         accountId={accountId}
+        appIdx={appIdx}
+        did={curDaoIdx.id}
       /> : null}
     </>
   )

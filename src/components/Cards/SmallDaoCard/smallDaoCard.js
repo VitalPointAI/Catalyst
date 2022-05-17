@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { Link } from 'react-router-dom'
 import * as nearAPI from 'near-api-js'
-import { appStore, onAppMount } from '../../state/app'
-import { dao } from '../../utils/dao'
-import { ceramic } from '../../utils/ceramic'
-import EditDaoForm from '../EditDao/editDao'
-import DaoProfileDisplay from '../DAOProfileDisplay/daoProfileDisplay'
-import Purpose from '../Purpose/purpose'
+import { appStore, onAppMount } from '../../../state/app'
+import { dao } from '../../../utils/dao'
+import { ceramic } from '../../../utils/ceramic'
+import EditDaoForm from '../../EditDao/editDao'
+import DaoProfileDisplay from '../../DAOProfileDisplay/daoProfileDisplay'
+import Purpose from '../../Purpose/purpose'
 
 
 // Material UI Components
@@ -24,7 +24,7 @@ import Chip from '@material-ui/core/Chip'
 import PauseCircleFilledIcon from '@material-ui/icons/PauseCircleFilled'
 import PlayCircleFilledIcon from '@material-ui/icons/PlayCircleFilled'
 
-import { config } from '../../state/config'
+import { config } from '../../../state/config'
 
 export const {
     DAO_LINKS
@@ -50,7 +50,7 @@ const useStyles = makeStyles((theme) => ({
     }
   }));
 
-const imageName = require('../../img/default_logo.png') // default no-image avatar
+const imageName = require('../../../img/default_logo.png') // default no-image avatar
 
 export default function SmallDaoCard(props) {
 
@@ -69,7 +69,6 @@ export default function SmallDaoCard(props) {
     const [display, setDisplay] = useState(true)
     const [anchorEl, setAnchorEl] = useState(null)
     const [anchorE2, setAcnhorE2] = useState(null)
-    const [did, setDid] = useState()
     const [finished, setFinished] = useState(false)
     const [created, setCreated] = useState()
     const [detailsClicked, setDetailsClicked] = useState(false) 
@@ -77,23 +76,27 @@ export default function SmallDaoCard(props) {
     const [totalMembers, setTotalMembers] = useState()
     const [initialized, setInitialized] = useState(true)
     const [memberIcon, setMemberIcon] = useState(<NotInterestedIcon />)
-    const [status, setStatus] = useState(props.status)
 
     const classes = useStyles();
 
     const { 
       summoner,
-      contractId
+      contractId,
+      daoDid,
+      status
    } = props
  
    const {
      near,
+     account,
      appIdx, 
      accountId,
      wallet,
      isUpdated,
      didRegistryContract,
-     daoFactory
+     daoFactory,
+     did,
+  
    } = state
 
     useEffect(
@@ -101,20 +104,20 @@ export default function SmallDaoCard(props) {
 
       async function fetchData() {
          if(isUpdated){}
-         if(contractId && wallet){
-            
+         if(contractId){
            try{
-            let contract = await dao.initDaoContract(wallet.account(), contractId)
+            let contract = await dao.initDaoContract(account, contractId)
             let allMembers = await contract.getTotalMembers()
-            allMembers == 0 ? setInitialized(false) : setInitialized(true)
+            let init = await contract.getInit()
+            init == 'done' ? setInitialized(true) : setInitialized(false)
             setTotalMembers(allMembers)
            } catch (err) {
-             console.log('error retrieving member status', err)
+             console.log('error retrieving total members', err)
              setInitialized(false)
            }
-           let did = await ceramic.getDid(contractId, daoFactory, didRegistryContract )
-           if(did){
-           let result = await appIdx.get('daoProfile', did)
+
+           if(daoDid && appIdx){
+           let result = await appIdx.get('daoProfile', daoDid)
            console.log('small result', result)
            if(result){
                   result.name != '' ? setsName(result.name) : setsName('')
@@ -131,7 +134,6 @@ export default function SmallDaoCard(props) {
         setFinished(false)
         }
         
-        
       let mounted = true
       if(mounted){
         fetchData()
@@ -141,7 +143,7 @@ export default function SmallDaoCard(props) {
       return () => mounted = false
       }
       
-  }, [isUpdated]
+  }, [appIdx, isUpdated]
   )
 
   const handleEditDaoClick = () => {

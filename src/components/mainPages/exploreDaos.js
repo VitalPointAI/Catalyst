@@ -3,11 +3,8 @@ import { appStore, onAppMount } from '../../state/app'
 import { utils } from 'near-api-js'
 import Fuse from 'fuse.js'
 import { dao } from '../../utils/dao'
-import Footer from '../../components/common/Footer/footer'
-import DaoCard from '../DAOCard/daoCard'
-import { Header } from '../Header/header'
+import DaoCard from '../Cards/DAOCard/daoCard'
 import SearchBar from '../../components/common/SearchBar/search'
-import RegisterForm from '../../components/Register/register'
 import { GAS, STORAGE, parseNearAmount, REGISTRY_API_URL } from '../../state/near'
 import { queries } from '../../utils/graphQueries'
 
@@ -67,11 +64,9 @@ export default function ExploreDaos(props) {
     const [resources, setResources] = useState(0)
     const [searchDaos, setSearchDaos] = useState([])
     const [contract, setContract] = useState()
-    const [registerClicked, setRegisterClicked] = useState(false)
     const [anchorEl, setAnchorEl] = useState(null)
     const [notCatalystCommunities, setNotCatalystCommunities] = useState([])
    
-
     const classes = useStyles()
 
     const { state, dispatch, update } = useContext(appStore)
@@ -247,28 +242,6 @@ export default function ExploreDaos(props) {
         setAnchorEl(null)
     }
 
-    const handleRegisterClick= () => {
-        
-        handleExpanded()
-        handleRegisterClickState(true)
-      }
-    
-    function handleRegisterClickState(property){
-    setRegisterClicked(property)
-    }
-
-    const register = async (values) => {
-        if(did){
-          try{
-            await didRegistryContract.putDID({
-              accountId: accountId,
-              did: did
-            }, GAS, parseNearAmount((parseFloat(STORAGE)).toString()))
-          } catch (err) {
-            console.log('error registering dao', err)
-          }
-        }
-      }
 
     const handleMembersOnlyChange = async (event) => {
         setMembersOnly(event.target.checked)
@@ -386,8 +359,6 @@ export default function ExploreDaos(props) {
 
     return (
         <>
-        <div className={classes.root}>
-        <Header state={state}/>
         {!matches ? (<>
         <Grid container alignItems="center" justifyContent="center" spacing={0} style={{margin:'auto', width:'98%'}}>
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
@@ -452,11 +423,7 @@ export default function ExploreDaos(props) {
         )}
         
         <Grid container alignItems="center" justifyContent="space-between" spacing={0} >
-            <Grid item xs={3} sm={3} md={3} lg={3} xl={3}>
-                <Button color="primary" style={{float: 'left'}} onClick={register}>
-                    Register
-                </Button>
-            </Grid>
+           
             <Grid item xs={6} sm={6} md={6} lg={6} xl={6}>
             <SearchBar
                 placeholder="Search"
@@ -485,16 +452,16 @@ export default function ExploreDaos(props) {
           {daos && daoCount > 0 ? 
             (<>
               
-            {daos.map(({contractId, created, summoner, status}, i) => {
-                
+            {daos.map(({contractId, created, did, summoner, status}, i) => {
+                console.log('explore daos', daos)
                 return ( 
                     <DaoCard
                         key={i}
                         contractId={contractId}
                         created={created}
                         summoner={summoner}
+                        daoDid={did}
                         contract={contract}
-                        link={''}
                         state={state}
                         handleEditDaoClick={handleEditDaoClick}
                         makeSearchDaos={makeSearchDaos}
@@ -508,12 +475,6 @@ export default function ExploreDaos(props) {
         : null
         }
         </Grid>
-       
-        </div>
-        <Footer />
-        {registerClicked ? <RegisterForm
-            handleRegisterClickState={handleRegisterClickState}        
-            /> : null }
         </>
     )
 }

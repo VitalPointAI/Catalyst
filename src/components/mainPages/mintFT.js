@@ -3,9 +3,7 @@ import { appStore, onAppMount } from '../../state/app'
 import { utils } from 'near-api-js'
 import Fuse from 'fuse.js'
 import { dao } from '../../utils/dao'
-import Footer from '../common/Footer/footer'
 import TokenCard from '../TokenCard/tokenCard'
-import { Header } from '../Header/header'
 import SearchBar from '../common/SearchBar/search'
 
 // Material UI components
@@ -280,8 +278,7 @@ export default function MintFT(props) {
 
     return (
         <>
-        <div className={classes.root}>
-        <Header state={state}/>
+
         {!matches ? (<>
         <Grid container alignItems="center" justifyContent="center" spacing={0} style={{margin:'auto', width:'98%'}}>
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
@@ -369,9 +366,7 @@ export default function MintFT(props) {
         : null
         }
         </Grid>
-       
-        </div>
-        <Footer />
+ 
         </>
     )
 }

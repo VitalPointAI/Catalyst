@@ -1,4 +1,3 @@
-import anime from 'animejs/lib/anime.es.js'
 import { generateSeedPhrase } from 'near-seed-phrase'
 import { get, set, del } from '../utils/storage'
 import { State } from '../utils/state'
@@ -9,7 +8,6 @@ import { registry } from '../utils/registry'
 import { ceramic } from '../utils/ceramic'
 
 import { config } from './config'
-import { Caip10Link } from '@ceramicnetwork/stream-caip10-link'
 
 export const {
     FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT, DAO_FIRST_INIT, CURRENT_DAO, REDIRECT,
@@ -29,30 +27,11 @@ const initialState = {
     links: []
 };
 
-export const { appStore, AppProvider } = State(initialState, 'app');
-
-let alertAnimation
-export const onAlert = (message) => async ({update}) => {
-    await update('app.alert', message)
-    if (alertAnimation) {
-        alertAnimation.pause()
-    }
-    alertAnimation = anime({
-        targets: '.alert',
-        easing: 'easeOutElastic',
-        keyframes: [
-            {scaleX: 0, scaleY: 0, duration: 0},
-            {scaleX: 1, scaleY: 1, duration: 500},
-            {duration: 2000},
-            {scaleX: 0, scaleY: 0, duration: 500, easing: 'easeInCubic'},
-        ],
-        complete: function () {
-            update('app.alert', null)
-        }
-    });
-}
+export const { appStore, AppProvider } = State(initialState, 'app')
 
 export const onAppMount = () => async ({ update, getState, dispatch }) => {
+    
+    console.log('here1')
     update('app', { mounted: true });
 
     const url = new URL(window.location.href)
@@ -92,7 +71,7 @@ export const onAppMount = () => async ({ update, getState, dispatch }) => {
             //Initiate App Ceramic Components
     
             const appIdx = await ceramic.getAppIdx(didRegistryContract, account, near)
-            let curUserIdx = await ceramic.getCurrentUserIdx(account, appIdx, near, didRegistryContract, daoFactoryContract)
+            let curUserIdx = await ceramic.getUserIdx(account, appIdx, daoFactoryContract, didRegistryContract)
             update('accountData', { curUserIdx })
            
         }

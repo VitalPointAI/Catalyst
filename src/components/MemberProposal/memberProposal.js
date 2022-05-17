@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
-import { submitProposal, STORAGE } from '../../state/near'
+import { submitProposal, STORAGE, formatNearAmount } from '../../state/near'
 import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
@@ -73,17 +73,26 @@ export default function MemberProposal(props) {
     appIdx,
     didRegistryContract,
     daoFactory,
-    handleMemberProposalClickState
+    handleMemberProposalClickState,
+    did,
+    state
    } = props
 
    useEffect(
     () => {
       async function fetchData() {
         // get community information
-  
-        if(contractId){
-          let did = await ceramic.getDid(contractId, daoFactory, didRegistryContract)
-          let daoResult = await appIdx.get('daoProfile', did)
+        console.log('did', did)
+        if(contractId && appIdx){
+          let daoResult
+          if(!did){
+            let did = await ceramic.getDid(contractId, daoFactory, didRegistryContract)
+            daoResult = await appIdx.get('daoProfile', did)
+            console.log('did1 dao result', daoResult)
+          } else {
+            daoResult = await appIdx.get('daoProfile', did)
+            console.log('did2 dao result', daoResult)
+          }
          
           if(daoResult){
             daoResult.name ? setCommunityName(daoResult.name) : setCommunityName('')
@@ -97,7 +106,7 @@ export default function MemberProposal(props) {
 
         })
 
-   }, [contractId]
+   }, [contractId, appIdx]
    )
 
   const handleClose = () => {
@@ -150,7 +159,15 @@ export default function MemberProposal(props) {
       <Dialog open={open} aria-labelledby="form-dialog-title">
         <Grid container alignItems="center" justifyContent="center" style={{padding: '5px'}}>
           <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
-          <img src={logo} className={classes.logoImage} /><br></br>
+          <div style={{
+            height: '100px',
+            backgroundImage: `url(${logo})`, 
+            backgroundSize: 'contain',
+            backgroundPosition: 'center', 
+            backgroundRepeat: 'no-repeat',
+            backgroundOrigin: 'content-box'
+          }}/>
+          <br></br>
           {logo ? null : <Typography variant="h6">{communityName ? communityName : contractId}</Typography>}
           </Grid>
         </Grid>
@@ -245,7 +262,7 @@ export default function MemberProposal(props) {
                 <Typography variant="body1">You are requesting that <b>{applicant}</b> become a member of <b>{communityName? communityName : contractId}</b>.  After submitting
                 this proposal, you must provide enough supporting detail to help other members vote on and decide whether to approve your proposal or not.</Typography>
                 <Grid container className={classes.confirmation} spacing={1}>
-                  <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
+                  <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
                     <Checkbox
                       checked={confirm}
                       onChange={handleConfirmChange}
@@ -257,7 +274,7 @@ export default function MemberProposal(props) {
                     />
                   </Grid>
                   <Grid item xs={10} sm={10} md={10} lg={10} xl={10} style={{margin:'auto'}}>
-                    <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{(tribute ? parseFloat(tribute) : 0) + parseFloat(proposalDeposit) + parseFloat(STORAGE)} Ⓝ</b>:</Typography>
+                    <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{formatNearAmount(( (tribute ? parseFloat(tribute) : 0) + parseFloat(proposalDeposit) + parseFloat(STORAGE)).toLocaleString('fullwide', {useGrouping: false}),6)} Ⓝ</b>:</Typography>
                     <Grid container justifyContent="center" spacing={0}>
                       <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                         <Typography variant="body2"><u>Proposal passes:</u></Typography>
@@ -272,7 +289,7 @@ export default function MemberProposal(props) {
                               <Typography variant="body2">Contribution of {tribute ? parseFloat(tribute) : 0} Ⓝ goes into the community fund.</Typography>
                             </li>
                             <li>
-                              <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you</Typography>
+                              <Typography variant="body2">{formatNearAmount(proposalDeposit, 6)} Ⓝ proposal deposit is returned to you</Typography>
                             </li>
                             <li>
                               <Typography variant="body2">{STORAGE} Ⓝ goes to the contract to cover storage cost for this proposal.</Typography>
@@ -289,7 +306,7 @@ export default function MemberProposal(props) {
                               <Typography variant="body2">Contribution of {tribute ? parseFloat(tribute) : 0} Ⓝ is returned to you.</Typography>
                             </li>
                             <li>
-                              <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you.</Typography>
+                              <Typography variant="body2">{formatNearAmount(proposalDeposit, 6)} Ⓝ proposal deposit is returned to you.</Typography>
                             </li>
                             <li>
                               <Typography variant="body2">{STORAGE} Ⓝ stays in the contract to cover storage cost for this proposal.</Typography>

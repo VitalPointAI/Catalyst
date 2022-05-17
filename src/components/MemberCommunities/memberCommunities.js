@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore } from '../../state/app'
-import MemberOfDaoCard from '../MemberOfDaoCard/memberOfDaoCard'
-import { dao } from '../../utils/dao'
+import MemberOfDaoCard from '../Cards/MemberOfDaoCard/memberOfDaoCard'
 
 // Material UI components
 import { makeStyles } from '@material-ui/core/styles'
@@ -16,26 +15,6 @@ const useStyles = makeStyles((theme) => ({
       position: 'relative',
       display: 'flex',
       flexDirection: 'column'
-    },
-    featureDAO: {
-        minHeight: '200px',
-        backgroundColor:'#eff3fb',
-        padding: '20px',
-    },
-    paper: {
-        padding: theme.spacing(2),
-        textAlign: 'center',
-        color: theme.palette.text.secondary,
-    },
-    menuButton: {
-      marginRight: theme.spacing(0),
-    },
-    title: {
-      flexGrow: 1,
-      textAlign: 'left'
-    },
-    drawer: {
-        marginTop: '5px'
     }
   }));
   
@@ -63,7 +42,6 @@ export default function MemberCommunities(props) {
     return (
         <>
         <div className={classes.root}>
-        
        
         <Grid container alignItems="center" justifyContent="space-between" spacing={3} style={{padding: '20px'}} >
             { daos && daos.length > 0 ? 
@@ -71,10 +49,11 @@ export default function MemberCommunities(props) {
                   
                 <Grid container alignItems="center" justifyContent="center" spacing={3} style={{padding: '20px'}}>
                 
-                {daos.map(({ contractId, status }, i) =>
+                {daos.map(({ contractId, status, did }, i) =>
                     <MemberOfDaoCard
                         key={i}
                         contractId={contractId}
+                        daoDid={did}
                         status={status}
                     />            
                     )}

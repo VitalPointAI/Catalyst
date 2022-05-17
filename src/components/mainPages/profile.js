@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app'
-import Footer from '../common/Footer/footer'
-import { Header } from '../Header/header'
 import EditPersonaForm from '../EditPersona/editPersona'
 
 // Material UI components
@@ -78,7 +76,6 @@ export default function Profile(props) {
 
     const {
       accountId,
-      curUserIdx,
       did
     } = state
 
@@ -115,9 +112,6 @@ export default function Profile(props) {
     
     return (
         <>
-        <div className={classes.root}>
-        {loaded ? <Header state={state}/> : <LinearProgress />}
-        
         <Grid container spacing={1}>
         <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
           <Typography variant="h4" style={{marginTop:'40px', marginBottom: '40px'}}>Opportunities to earn are waiting.</Typography>
@@ -165,9 +159,6 @@ export default function Profile(props) {
         </Grid>
         <Grid item xs={12} sm={12} md={3} lg={3} xl={3} ></Grid>
       </Grid>
-        
-        </div>
-        <Footer />
 
         {editPersonaClicked ? <EditPersonaForm
           handleEditPersonaClickState={handleEditPersonaClickState}

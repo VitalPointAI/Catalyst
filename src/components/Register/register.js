@@ -96,7 +96,7 @@ export default function RegisterForm(props) {
 
     async function generateDid(accountId){
       let account = new nearAPI.Account(near.connection, accountId)
-      let newIDX = await ceramic.getCurrentDaoIdx(account, appIdx, near, didRegistryContract, seedPhrase)
+      let newIDX = await ceramic.getUserIdx(account, appIdx, daoFactory, didRegistryContract)
       console.log('newIdx', newIDX)
       return newIDX.id
     }

@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app'
-import Footer from '../common/Footer/footer'
-import { Header } from '../Header/header'
 import AddDaoForm from '../CreateDAO/addDao'
 
 // Material UI components
@@ -64,7 +62,6 @@ const useStyles = makeStyles((theme) => ({
 export default function CommunityStreamIntro(props) {
 
     const classes = useStyles()
-    const [editPersonaClicked, setEditPersonaClicked] = useState(false)
     const [anchorEl, setAnchorEl] = useState(null)
     const [profileEdit, setProfileEdit] = useState(false)
     const [loaded, setLoaded] = useState(false)
@@ -107,10 +104,7 @@ export default function CommunityStreamIntro(props) {
     }
     
     return (
-        <>
-        <div className={classes.root}>
-        {loaded ? <Header state={state}/> : <LinearProgress />}
-        
+        <>        
         <Grid container spacing={1}>
         <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
           <Typography variant="h4" style={{marginTop:'40px', marginBottom: '40px'}}>Talent is waiting.</Typography>
@@ -167,9 +161,6 @@ export default function CommunityStreamIntro(props) {
         </Grid>
         <Grid item xs={12} sm={12} md={3} lg={3} xl={3} ></Grid>
       </Grid>
-        
-        </div>
-        <Footer />
 
         {addDaoClicked ? <AddDaoForm
           state={state}

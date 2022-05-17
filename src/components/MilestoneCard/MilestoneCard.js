@@ -101,6 +101,8 @@ export default function MilestoneCard(props) {
       milestone: id
     }]
 
+    console.log('reference ids', referenceIds)
+
     const handlePayoutProposalClick = () => {
       handleExpanded()
       setPayoutProposalClicked(true)

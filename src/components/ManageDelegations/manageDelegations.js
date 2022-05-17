@@ -141,7 +141,7 @@ export default function ManageDelegations(props) {
         <DialogTitle id="form-dialog-title">Manage Your Vote Delegations</DialogTitle>
         <DialogContent className={classes.rootForm} align="center">
         <Typography variant="body1">You have delegated <b>{delegatedShares}</b> of your <b>{shares}</b> votes.</Typography>
-        <Typography variant="body1">You have delegated to <b>{delegationInfo && delegationInfo.length ? delegationInfo.length : '0'} personas</b>.<br></br>
+        <Typography variant="body1">You have delegated to <b>{delegationInfo && delegationInfo.length ? delegationInfo.length : '0'} members</b>.<br></br>
         You have <b>{remainingDelegates}</b> remaining.</Typography>
         <TableContainer component={Paper}>
         <Table className={classes.table} size="small" aria-label="a dense table">

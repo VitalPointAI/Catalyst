@@ -84,63 +84,78 @@ export default function Filter(props){
     }
 
     return (
-        <FormControl component="fieldset" >
-        <FormLabel component="legend">Filter Proposals</FormLabel>
-        <FormGroup>
-          <FormControlLabel
-            control={<Switch checked={onlyYourProposals} onChange={handleOnlyYourProposalChange} name="onlyYourProposals" />}
-            label="Only Your Proposals"
-          />
-          <FormControlLabel
-            control={<Switch checked={onlyMemberProposals} onChange={handleOnlyMemberProposalChange} name="onlyMemberProposals" />}
-            label="Members"
-          />
-          <FormControlLabel
-            control={<Switch checked={onlyFundingCommitmentProposals} onChange={handleOnlyFundingCommitmentProposalChange} name="onlyFundingCommitmentProposals" />}
-            label="Funding Commitments"
-          />
-          <FormControlLabel
-            control={<Switch checked={onlyPayoutProposals} onChange={handleOnlyPayoutProposalChange} name="onlyPayoutProposals" />}
-            label="Payouts"
-          />
-          <FormControlLabel
-            control={<Switch checked={onlyOpportunityProposals} onChange={handleOnlyOpportunityProposalChange} name="onlyOpportunityProposals" />}
-            label="Opportunities"
-          />
-          <FormControlLabel
-            control={<Switch checked={onlyConfigurationProposals} onChange={handleOnlyConfigurationProposalChange} name="onlyConfigurationProposals" />}
-            label="Configuration"
-          />
-          <FormControlLabel
-            control={<Switch checked={onlyTributeProposals} onChange={handleOnlyTributeProposalChange} name="onlyTributeProposals" />}
-            label="Contributions"
-          />
-          <FormControlLabel
-            control={<Switch checked={onlyCommunityRoleProposals} onChange={handleOnlyCommunityRoleProposalChange} name="onlyCommunityRoleProposals" />}
-            label="Community Role"
-          />
-          <FormControlLabel
-            control={<Switch checked={onlyAssignRoleProposals} onChange={handleOnlyAssignRoleProposalChange} name="onlyAssignRoleProposals" />}
-            label="Assign Role"
-          />
-          <FormControlLabel
-            control={<Switch checked={onlyReputationFactorProposals} onChange={handleOnlyReputationFactorProposalChange} name="onlyReputationFactorProposals" />}
-            label="Reputation Factor"
-          />
-          <FormControlLabel
-            control={<Switch checked={onlyWhiteListProposals} onChange={handleOnlyWhitelistProposalChange} name="onlyWhiteListProposals" />}
-            label="Whitelist"
-          />
-          <FormControlLabel
-            control={<Switch checked={onlyGuildKickProposals} onChange={handleOnlyGuildKickProposalChange} name="onlyGuildKickProposals" />}
-            label="GuildKick"
-          /> 
-          <FormControlLabel
-            control={<Switch checked={onlyCancelCommitmentProposals} onChange={handleOnlyCancelCommitmentProposalChange} name="onlyCancelCommitmentProposals" />}
-            label="Cancel Commitments"
-          />
-        </FormGroup>
-        <FormHelperText>Choose the proposal types you want.</FormHelperText>
-      </FormControl>
+      <FormControl component="fieldset" >
+      <Accordion>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="panel1bh-content"
+          id="panel1bh-header"
+        >
+          <Typography variant="h6">Filter Proposals</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Grid container spacing={2} style={{marginBottom: '5px'}}>
+            <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+            <FormGroup>
+              <FormHelperText>Choose the proposal types you want.</FormHelperText>
+              <FormControlLabel
+                control={<Switch checked={onlyYourProposals} onChange={handleOnlyYourProposalChange} name="onlyYourProposals" />}
+                label="Only Your Proposals"
+              />
+              <FormControlLabel
+                control={<Switch checked={onlyMemberProposals} onChange={handleOnlyMemberProposalChange} name="onlyMemberProposals" />}
+                label="Members"
+              />
+              <FormControlLabel
+                control={<Switch checked={onlyFundingCommitmentProposals} onChange={handleOnlyFundingCommitmentProposalChange} name="onlyFundingCommitmentProposals" />}
+                label="Funding Commitments"
+              />
+              <FormControlLabel
+                control={<Switch checked={onlyPayoutProposals} onChange={handleOnlyPayoutProposalChange} name="onlyPayoutProposals" />}
+                label="Payouts"
+              />
+              <FormControlLabel
+                control={<Switch checked={onlyOpportunityProposals} onChange={handleOnlyOpportunityProposalChange} name="onlyOpportunityProposals" />}
+                label="Opportunities"
+              />
+              <FormControlLabel
+                control={<Switch checked={onlyConfigurationProposals} onChange={handleOnlyConfigurationProposalChange} name="onlyConfigurationProposals" />}
+                label="Configuration"
+              />
+              <FormControlLabel
+                control={<Switch checked={onlyTributeProposals} onChange={handleOnlyTributeProposalChange} name="onlyTributeProposals" />}
+                label="Contributions"
+              />
+              <FormControlLabel
+                control={<Switch checked={onlyCommunityRoleProposals} onChange={handleOnlyCommunityRoleProposalChange} name="onlyCommunityRoleProposals" />}
+                label="Community Role"
+              />
+              <FormControlLabel
+                control={<Switch checked={onlyAssignRoleProposals} onChange={handleOnlyAssignRoleProposalChange} name="onlyAssignRoleProposals" />}
+                label="Assign Role"
+              />
+              <FormControlLabel
+                control={<Switch checked={onlyReputationFactorProposals} onChange={handleOnlyReputationFactorProposalChange} name="onlyReputationFactorProposals" />}
+                label="Reputation Factor"
+              />
+              <FormControlLabel
+                control={<Switch checked={onlyWhiteListProposals} onChange={handleOnlyWhitelistProposalChange} name="onlyWhiteListProposals" />}
+                label="Whitelist"
+              />
+              <FormControlLabel
+                control={<Switch checked={onlyGuildKickProposals} onChange={handleOnlyGuildKickProposalChange} name="onlyGuildKickProposals" />}
+                label="GuildKick"
+              /> 
+              <FormControlLabel
+                control={<Switch checked={onlyCancelCommitmentProposals} onChange={handleOnlyCancelCommitmentProposalChange} name="onlyCancelCommitmentProposals" />}
+                label="Cancel Commitments"
+              />
+            </FormGroup>
+            </Grid>
+          </Grid>
+        </AccordionDetails>
+    </Accordion>
+      
+    </FormControl>
     )
 }

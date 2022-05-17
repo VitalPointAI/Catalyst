@@ -6,30 +6,47 @@ const {
   GRAPH_REGISTRY_API_URL,
 } = config
 
-const FACTORY_QUERY=`
-    query{
-        logs(first: 1000, orderBy: created, orderDirection:desc, where: {event_in: ["createDAO"]}) {
-            id
-            standard
-            version
-            event
-            created
-            contractId
-            did
-            status
-            deposit
-            summoner
-        }
-    }
-`
-const REGISTRY_QUERY = `
-query{
-    accounts{
-        id
-        log
+const COMMUNITY_CREATIONS = `
+query {
+    createDAOs(first: 1000)
+    {
+        event
+        blockTime
+        blockHeight
+        contractId
+        did
+        summoner
+        created
+        status
+        deposit
     }
 }
 `
+
+const INACTIVATED_COMMUNITIES = `
+query {
+    inactivateDAOs(first: 1000)
+    {
+        event
+        blockTime
+        blockHeight
+        contractId
+        deactivated
+        status
+    }
+}
+`
+
+const ALL_DONATIONS = `
+query {
+    makeDonations(first: 1000)
+    {
+        event
+        blockTime
+        blockHeight
+        
+    }
+}`
 
 const factoryClient = new ApolloClient({
     uri: GRAPH_FACTORY_API_URL,
@@ -44,9 +61,14 @@ const registryClient = new ApolloClient({
 
 export default class Queries {
 
-    async getCommunities(){
-        const communities = await factoryClient.query({query: gql(FACTORY_QUERY)})
-        return communities
+    async getAllCommunities(){
+        const allCommunities = await factoryClient.query({query: gql(COMMUNITY_CREATIONS)})
+        return allCommunities
+    }
+
+    async getAllInactivatedCommunities(){
+        const allInactivatedCommunities = await factoryClient.query({query: gql(INACTIVATED_COMMUNITIES)})
+        return allInactivatedCommunities
     }
 
 }

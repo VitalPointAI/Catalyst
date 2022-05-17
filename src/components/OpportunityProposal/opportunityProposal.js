@@ -112,10 +112,10 @@ export default function OpportunityProposal(props) {
         <Card>
         <CardContent>
           <WarningIcon fontSize='large' className={classes.warning} />
-          <Typography variant="body1" gutterBottom>You are submitting a proposal to publish an ongoing opportunity to the community. After creating
-          this proposal, you must provide the details of the opportunity so other members can vote on and decide whether to approve the opportunity be added to the community list of opportunities or not.</Typography> 
+          <Typography variant="body1" gutterBottom>You are initiating an opportunity proposal.<br></br>After creating
+          you must provide details so members can vote and decide whether the opportunity should be offered to the community for completion.</Typography> 
           <Grid container className={classes.confirmation} spacing={1}>
-            <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
+            <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
               <Checkbox
                 checked={confirm}
                 onChange={handleConfirmChange}

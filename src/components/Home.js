@@ -1,14 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { get, set, del } from '../utils/storage'
-import { appStore, onAppMount } from '../state/app';
+import { appStore, onAppMount } from '../state/app'
 import { flexClass } from '../App'
-import Footer from '../components/common/Footer/footer'
 import Dashboard from '../components/mainPages/dashboard'
 import Import from './Import/import'
 import { KEY_REDIRECT } from '../state/near'
-import { Header } from './Header/header'
 import RandomPhrase from './common/RandomPhrase/randomPhrase'
-import FrontPage from '../components/LandingSite/home'
+import FrontPage from './mainPages/frontPage'
 
 // Material UI
 import { makeStyles } from '@material-ui/core/styles'
@@ -18,12 +16,6 @@ import '../App.css'
 
 
 const useStyles = makeStyles((theme) => ({
-    root: {
-        flexGrow: 1,
-        position: 'relative',
-        display: 'flex',
-        flexDirection: 'column'
-      },
       centered: {
         width: '200px',
         height: '100px',
@@ -33,28 +25,12 @@ const useStyles = makeStyles((theme) => ({
         left: '50%',
         marginTop: '-100px',
         marginLeft: '-100px'
-      },
-    paper: {
-        padding: theme.spacing(2),
-        textAlign: 'center',
-        color: theme.palette.text.secondary,
-    },
-    menuButton: {
-      marginRight: theme.spacing(0),
-    },
-    title: {
-      flexGrow: 1,
-      textAlign: 'left'
-    },
-    drawer: {
-        marginTop: '5px'
-    }
+      }
   }));
 
 export const Home = ({ children }) => {
-    const { state, update } = useContext(appStore);
-   // const [key, setKey] = useState(false)
-    const classes = useStyles();
+    const { state, update } = useContext(appStore)
+    const classes = useStyles()
    
     const {
         app, wallet, links, claimed, accountId, curInfo, finished, key
@@ -64,7 +40,7 @@ export const Home = ({ children }) => {
         () => {
             let needsKey = get(KEY_REDIRECT, [])
             if(needsKey.action == true){
-                update('', {key: true})
+                update('', {key: false})
             } else (
                 update('', {key: false})
             )
@@ -76,53 +52,23 @@ export const Home = ({ children }) => {
         {finished ? 
            
             wallet && wallet.signedIn ?  
-                key ? (<><div className={classes.root}>
-                        <Header state={state}/>
-                            <Import />
-                        </div>
-                        <Footer />
-                        </>) 
-                    : (<>
-                        <div className={classes.root}>
-                        <Header state={state}/>
-                            <Dashboard />
-                        </div>
-                        <Footer />
-                        </>)
-
-            : window.location.replace('https://vitalpoint.ai/catalyst')
-            //:  (<div className={classes.root}><Header state={state}/><FrontPage /> <Footer /></div>)
-            : state.accountData ? (<>
-                <div className={classes.root}>
-                <Header state={state}/>
-                    {children}
-                </div>
-                <Footer /></>
+                key ? (<Import />) 
+                    : (<Dashboard />)
+            : process.env.ENV == 'prod' ?
+            window.location.replace('https://vitalpoint.ai/catalyst')
+            :  (<FrontPage />)
+            : state.accountData ? (
+                {children}
             ) 
-            : (<><div className={classes.root}>
-                <Header state={state}/>
+            : (<>
                 <div className={classes.centered}>
                     <CircularProgress/><br></br>
                     <Typography variant="h6">Setting Things Up...</Typography><br></br>
                     <RandomPhrase />
                 </div>
-               
-                </div>
-                <Footer />
                 </>)
         }    
-       
-        { state.app.alert &&
-            <div class="container-alert">
-                <div class={flexClass + ' mt-0'}>
-                    <div class="container container-custom mt-0">
-                        <div class="alert alert-primary mt-0" role="alert">
-                            {state.app.alert}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
+
         
     </>
     )

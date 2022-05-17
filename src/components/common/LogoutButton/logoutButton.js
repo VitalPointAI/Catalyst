@@ -1,35 +1,25 @@
 import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
 import { logout } from '../../../state/near'
 
 // Material UI components
+import { makeStyles } from '@material-ui/core/styles'
 import Button from '@material-ui/core/Button'
-import LockTwoToneIcon from '@material-ui/icons/LockTwoTone';
+import LockTwoToneIcon from '@material-ui/icons/LockOpenTwoTone'
 
 const useStyles = makeStyles((theme) => ({
   button: {
-    margin: theme.spacing(0),
+    margin: 0,
     float: 'right',
     borderTopLeftRadius: 0,
     borderBottomLeftRadius: 0
-  },
-  accountButton: {
-    margin: theme.spacing(0),
-    float: 'right',
-    borderTopRightRadius: 0,
-    borderBottomRightRadius: 0
   },
   }));
 
 export default function LogoutButton(props) {
 
     const classes = useStyles()
-    const { accountId } = props
-
-  //  const logout = null
 
     return (
-        <>
             <Button
             variant="contained"
             color="primary"
@@ -37,9 +27,5 @@ export default function LogoutButton(props) {
             startIcon={<LockTwoToneIcon />}
             onClick={logout}
             >Sign Out</Button>
-            <Button variant="outlined" color="primary" className={classes.accountButton} onClick={logout}>
-                {accountId}
-            </Button>
-      </>
     )
 }

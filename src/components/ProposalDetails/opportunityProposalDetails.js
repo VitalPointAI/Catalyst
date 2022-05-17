@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { appStore, onAppMount } from '../../state/app'
+import { Link } from 'react-router-dom'
+import PropTypes from 'prop-types'
 import { useParams } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles'
 import CommentForm from '../common/Comment/commentForm'
@@ -7,7 +9,7 @@ import CommentDetails from '../common/Comment/commentDetails'
 import FundingProposal from '../FundingProposal/fundingProposal'
 import MemberProposal from '../MemberProposal/memberProposal'
 import * as nearAPI from 'near-api-js'
-import { getStatus, formatDate } from '../../state/near'
+import { getStatus, formatDate, daoRootName } from '../../state/near'
 import { dao } from '../../utils/dao'
 import { ceramic } from '../../utils/ceramic'
 import { parseNearAmount, formatNearAmount } from 'near-api-js/lib/utils/format'
@@ -38,6 +40,14 @@ import TableContainer from '@material-ui/core/TableContainer'
 import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
 import Paper from '@material-ui/core/Paper'
+import Box from '@material-ui/core/Box'
+import Tooltip from '@material-ui/core/Tooltip'
+import Zoom from '@material-ui/core/Zoom'
+import InfoIcon from '@material-ui/icons/Info'
+import DoneIcon from '@material-ui/icons/Done'
+import HelpOutlineIcon from '@material-ui/icons/HelpOutline'
+import BlockIcon from '@material-ui/icons/Block'
+import LinearProgress from '@material-ui/core/LinearProgress'
 
 // CSS Styles
 
@@ -79,7 +89,67 @@ const useStyles = makeStyles((theme) => ({
     },
     }));
 
+    function LinearProgressWithLabel(props) {
+      return (<>
+        <Typography variant="overline" align="center">Suitability Score</Typography>  
+        <Tooltip TransitionComponent={Zoom} title="The higher the score, the more skills you have that match the opportunity requirements.">
+          <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+        </Tooltip>
+       
+        <Box alignItems="center">
+          <Box maxWidth={75}>
+            <Typography variant="body2" color="textSecondary">
+            {`${props.value} % `}
+              {
+                props.value >= 75 ? (
+                  <Tooltip TransitionComponent={Zoom} title="Go for it!">
+                    <DoneIcon fontSize="small" style={{marginRight:'10px', marginTop:'-3px'}} />
+                  </Tooltip>
+                )
+                : props.value > 50 && props.value <= 74 ? (
+                  <Tooltip TransitionComponent={Zoom} title="Doable with some learning.">
+                    <HelpOutlineIcon fontSize="small" style={{marginRight:'10px', marginTop:'-3px'}} />
+                  </Tooltip>
+                )
+                : props.value <= 50 ? (
+                  <Tooltip TransitionComponent={Zoom} title="Not Recommended.">
+                    <BlockIcon fontSize="small" style={{marginRight:'10px', marginTop:'-3px'}} />
+                  </Tooltip>
+                )
+                : (
+                  <Tooltip TransitionComponent={Zoom} title="Not Recommended.">
+                    <BlockIcon fontSize="small" style={{marginRight:'10px', marginTop:'-3px'}} />
+                  </Tooltip>
+                )
+              }
+              </Typography>
+          </Box>
+        </Box>
+        <Box display="flex" alignItems="center">
+          <Box minWidth={35}>
+            <Typography variant="body2" color="textSecondary">0</Typography>
+          </Box>
+          <Box width="100%" mr={1}>
+            <LinearProgress variant="determinate" {...props} />
+          </Box>
+          <Box minWidth={35}>
+            <Typography variant="body2" color="textSecondary">100</Typography>
+          </Box>
+        </Box>
+        </>
+      )
+    }
+  
+    LinearProgressWithLabel.propTypes = {
+      /**
+       * The value of the progress indicator for the determinate and buffer variants.
+       * Value between 0 and 100.
+       */
+      value: PropTypes.number.isRequired,
+    }
+
 const imageName = require('../../img/default-profile.png') // default no-image avatar
+const logoName = require('../../img/default_logo.png')
 
 export default function OpportunityProposalDetails(props) {
 
@@ -88,7 +158,6 @@ export default function OpportunityProposalDetails(props) {
     const {
       accountId,
       near,
-      wallet,
       appIdx,
       didRegistryContract,
       currentDaosList,
@@ -109,10 +178,10 @@ export default function OpportunityProposalDetails(props) {
         proposer,
         sponsor,
         contractId,
-        budget
+        budget,
+        suitabilityScore,
+        did
     } = props
-
-   
 
     const [open, setOpen] = useState(true)
 
@@ -125,6 +194,9 @@ export default function OpportunityProposalDetails(props) {
     const [curUserAvatar, setCurUserAvatar] = useState()
     const [curUserName, setCurUserName] = useState()
     const [memberStatus, setMemberStatus] = useState(props.memberStatus)
+
+    const [logo, setLogo] = useState(logoName)
+    const [name, setName] = useState('')
    
     const [title, setTitle] = useState('')
     const [details, setDetails] = useState()
@@ -146,9 +218,11 @@ export default function OpportunityProposalDetails(props) {
     const [desiredSkillSet, setDesiredSkillSet] = useState([])
     const [desiredDeveloperSkillSet, setDesiredDeveloperSkillSet] = useState([])
     const [opportunitySkillSet, setOpportunitySkillSet] = useState([])
+    const [progress, setProgress] = useState(0)
     
     const [active, setActive] = useState(false)
     const [usd, setUsd] = useState()
+    const [oppDid, setOppDid] = useState('')
     
     const [memberProposalClicked, setMemberProposalClicked] = useState(false)
     const [fundingProposalClicked, setFundingProposalClicked] = useState(false)
@@ -162,16 +236,36 @@ export default function OpportunityProposalDetails(props) {
 
 
     useEffect(() => {
-      if(nearPrice && usd){
-        if(usd > 0 && nearPrice > 0){
-          let near = (usd / nearPrice).toFixed(3)
-          let parse = parseNearAmount(near)
-          let formatNear = formatNearAmount(parse, 3)
-          setReward(formatNear)
-        }
+      async function fetchPrice() {
+          if(usd > 0 && nearPrice > 0 ){
+            let near = (usd / nearPrice).toFixed(3)
+            let parse = parseNearAmount(near)
+            let formatNear = formatNearAmount(parse, 3)
+            setReward(formatNear)
+          } 
+          if(!nearPrice){
+            setReward('Calculating ')
+          }
+          if((!usd || usd == 0) && nearPrice) {
+            setReward('0')
+          }
       }
+
+      fetchPrice()
+      
     }, [usd, nearPrice]
     )
+
+    useEffect(() => {
+      if(progress < parseInt(suitabilityScore)){
+        const timer = setInterval(() => {
+          setProgress((prevProgress) => (prevProgress < parseInt(suitabilityScore) ? prevProgress + 1 : prevProgress))
+        }, 25)
+        return () => {
+          clearInterval(timer)
+        }
+      }
+    }, [])
 
     useEffect(() => {
       async function getCurrentStatus(){
@@ -251,7 +345,7 @@ export default function OpportunityProposalDetails(props) {
           async function fetchData() {
            
              // Get Applicant Persona Information
-           if(proposer){                    
+           if(proposer && appIdx){                    
             let proposerDid = await ceramic.getDid(proposer, daoFactory, didRegistryContract)
             let result = await appIdx.get('profile', proposerDid)
                 if(result){
@@ -264,7 +358,7 @@ export default function OpportunityProposalDetails(props) {
           }
 
           // Get Current User Persona Information
-          if(accountId){                    
+          if(accountId && appIdx){                    
               let accountDid = await ceramic.getDid(accountId, daoFactory, didRegistryContract)
               let result = await appIdx.get('profile', accountDid)
                 if(result){
@@ -276,7 +370,7 @@ export default function OpportunityProposalDetails(props) {
                 } 
           }
          
-          if(applicant){                           
+          if(applicant && appIdx){                           
             let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
             let result = await appIdx.get('profile', applicantDid)
                     if(result){
@@ -286,12 +380,26 @@ export default function OpportunityProposalDetails(props) {
                       setApplicantAvatar(imageName)
                       setApplicantName(applicant)
                     } 
-          }     
+          }
 
+          let thisDid
           if(appIdx){
-            let daoDid = await ceramic.getDid(contractId, daoFactory, didRegistryContract)
-            let propResult = await appIdx.get('opportunities', daoDid)
-           
+            // let daoDid = await ceramic.getDid(contractId, daoFactory, didRegistryContract)
+            // console.log('opp daoDid', daoDid)
+            
+            curDaoIdx ? thisDid = curDaoIdx.id : thisDid = did
+            console.log('opp details did', thisDid)
+            setOppDid(thisDid)
+
+            let daoResult = await appIdx.get('daoProfile', thisDid)
+            if(daoResult){
+              daoResult.logo ? setLogo(daoResult.logo) : setLogo(logoName)
+              daoResult.name ? setName(daoResult.name) : setName('')
+            }
+
+            let propResult = await appIdx.get('opportunities', thisDid)
+            console.log('opp prop details dao did', thisDid)
+            console.log('propresult', propResult)
             if(propResult) {
               let i = 0
               while (i < propResult.opportunities.length){
@@ -324,7 +432,7 @@ export default function OpportunityProposalDetails(props) {
 
             // Set Existing Proposal Comments      
           
-            let commentResult = await appIdx.get('comments', daoDid)
+            let commentResult = await appIdx.get('comments', thisDid)
             if(!commentResult){
               commentResult = { comments: [] }
             }
@@ -352,7 +460,7 @@ export default function OpportunityProposalDetails(props) {
               setFinished(true)
             })
           
-    }, [wallet, appIdx, isUpdated]
+    }, [appIdx, curDaoIdx, isUpdated]
     )
 
     const handleClose = () => {
@@ -435,134 +543,165 @@ export default function OpportunityProposalDetails(props) {
          
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             {finished ? (<>
-              <DialogTitle id="form-dialog-title">Opportunity Proposal Details</DialogTitle>
-              {status == 'Passed' && dateValid && budget > 0 && opportunityStatus ?
-              <Chip label="Active" style={{float:'right', backgroundColor: 'palegreen', marginBottom: '10px', marginRight: '10px', marginTop:'5px'}}/>
-              : <Chip label="InActive" style={{float:'right', backgroundColor: 'palevioletred', marginBottom: '10px', marginRight: '10px', marginTop:'5px'}}/>
-              }
-              <Grid container justifyContent="center" alignItems="center" spacing={1}>
-                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '10px'}}>
-                <Typography variant="subtitle2">
-                  {dateValid ? 
-                    dateLoaded ? 'Expires: ' + days+'d:'+hours+'h:'+minutes+'m:'+seconds
-                  : 'Calculating...'
-                  : 'Expired'
-                  }</Typography>
-                </Grid>
+              <DialogTitle id="form-dialog-title">Opportunity Details</DialogTitle>
+              <Grid container spacing={1} justifyContent="space-between" alignItems="center">
+                <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{marginTop: '15px'}}>
+                <Link to={daoRootName + `/dao/${contractId}`}>
+                  <div style={{width: '95%', 
+                    height: '50px',
+                    backgroundImage: `url(${logo})`, 
+                    backgroundSize: 'contain', 
+                    backgroundPosition: 'center', 
+                    backgroundRepeat: 'no-repeat',
+                    backgroundOrigin: 'content-box'
+                  }}/>
+                  {logo ? null : <Typography variant="h6">{name ? name : contractId}</Typography>}
+                </Link>
               </Grid>
+              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop: '15px', marginBottom: '15px'}}>
+                {status == 'Passed' && dateValid && budget > 0 && opportunityStatus ?
+                <Chip label="Active" style={{float:'left', backgroundColor: 'palegreen', marginBottom: '10px', marginLeft: '10px', marginTop:'5px'}}/>
+                : <Chip label="InActive" style={{float:'left', backgroundColor: 'palevioletred', marginBottom: '10px', marginLeft: '10px', marginTop:'5px'}}/>
+                }
+                {dateValid ? 
+                  dateLoaded ? 
+                  <Chip label={`Expires: ${days} d: ${hours} h: ${minutes} m: ${seconds} s`} variant="outlined" style={{float:'right', backgroundColor: 'white', marginBottom: '10px', marginRight: '10px', marginTop:'5px'}}/>
+                : <Chip label="Calculating..." variant="outlined" style={{float:'right', backgroundColor: 'white', marginBottom: '10px', marginRight: '10px', marginTop:'5px'}}/>
+                : <Chip label="Expired" variant="outlined" style={{float:'right', backgroundColor: 'white', marginBottom: '10px', marginRight: '10px', marginTop:'5px'}}/>
+                }
+              </Grid>
+            </Grid>
+              
+             
                 <DialogContent>
                 {!details ? (
                   <DialogContentText style={{marginBottom: 10}}>
                   This proposal has no details yet.
                   </DialogContentText>) 
                   : (<>
-                      <Grid container alignItems="flex-start" justifyContent="space-between" style={{marginBottom: '30px'}}>
-                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
+                      <Grid container alignItems="center" justifyContent="space-between" style={{marginBottom: '30px'}}>
+                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginBottom: '20px'}}>
                            <Typography variant="h4">{title}</Typography>
                         </Grid>
-                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
-                           <Typography variant="h6" style={{marginBottom: '10px'}}>{projectName}</Typography><br></br>
-                           <Chip color="primary" label={category} style={{marginBottom: '10px'}}/>
+                       
+                       
+                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
+                          <Typography variant="h6" align="center">Reward</Typography>
+                          <Typography variant="h6" align="center">{reward} Ⓝ</Typography>
+                          <Typography variant="subtitle1" color="textSecondary" align="center">~${usd ? usd + ' USD': null}</Typography><br></br>
+                          
+                          <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" style={{marginTop:'20px', marginBottom: '20px'}}>
+                            <LinearProgressWithLabel value={progress} />
+                          </Grid>
+                          <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{marginBottom: '20px'}}>
+                            <Accordion style={{marginBottom: '20px'}}>
+                            <AccordionSummary
+                              expandIcon={<ExpandMoreIcon />}
+                              aria-controls="panel1bh-content"
+                              id="panel1bh-header"
+                            >
+                            <Typography variant="h6" style={{marginBottom:'10px', marginTop:'10px'}}>Required Competencies</Typography>
+                            </AccordionSummary>
+                              <AccordionDetails>
+                              <Grid container justifyContent="space-evenly" spacing={1} style={{marginTop:'20px', marginBottom: '20px'}}>
+                      
+                              <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                              
+                              <TableContainer component={Paper}>
+                                <Table className={classes.table} size="small" aria-label="a dense table">
+                                  <TableHead>
+                                  
+                                  </TableHead>
+                                  <TableBody>
+                                  {desiredSkillSet? <Typography variant="h6">General Skills</Typography> : null}
+                                  {desiredSkillSet ?
+                                    Object.entries(desiredSkillSet).map(([key, value]) => {
+                                      console.log('value', value)
+                                        if(value){
+                                          return(
+                                            <TableRow key={key}>
+                                            <TableCell>{key}</TableCell>
+                                            </TableRow>
+                                          ) 
+                                        } else {
+                                          return(
+                                            <TableRow key={key}>
+                                              <TableCell>None Required</TableCell>
+                                            </TableRow>
+                                          )
+                                        }
+                                    })
+                                    : null
+                                  }
+                                  
+                                  </TableBody>
+                                </Table>
+                              </TableContainer>
+                              </Grid>
+                              <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
+                              <TableContainer component={Paper}>
+                                <Table className={classes.table} size="small" aria-label="a dense table">
+                                  <TableHead>
+                                  
+                                  </TableHead>
+                                  <TableBody>
+                                  {desiredDeveloperSkillSet || opportunitySkillSet ? <Typography variant="h6">Specific Skills</Typography> : null }
+                                  {desiredDeveloperSkillSet ?
+                                    Object.entries(desiredDeveloperSkillSet).map(([key, value]) => {
+                                        if(value){
+                                          return(
+                                            
+                                            <TableRow key={key}>
+                                              <TableCell>{key}</TableCell>
+                                            </TableRow>
+                                            
+                                          )
+                                        }
+                                    })
+                                    : null
+                                  }
+                                  {opportunitySkillSet && opportunitySkillSet.length > 0 ?
+                                  
+                                      opportunitySkillSet.map((values, index) => {
+                                        
+                                          return (
+                                            <TableRow key={values.name}>
+                                              <TableCell>{values.name}</TableCell>
+                                            </TableRow>
+                                          )
+                                      
+                                    })
+                                    : null
+                                  }
+                                  
+                                  </TableBody>
+                                </Table>
+                              </TableContainer>
+                              </Grid>
+                              <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                                <Typography variant="overline">Level of crypto/blockchain familiarity: <Rating readOnly value={parseInt(familiarity)} /> </Typography>
+                              </Grid>
+                              </Grid>
+                            </AccordionDetails>
+                          </Accordion>
                         </Grid>
-                        <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" >
-                           <Typography variant="overline" style={{marginBottom:'5px'}}>Proposed: {created ? formatDate(created) : formatDate(submitDate)}</Typography>
+                      </Grid>
+                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{marginTop: '20px', marginBottom:'20px'}}>
+                          <Typography variant="h6">Details</Typography>
+                          <Card className={classes.card}>
+                            <div dangerouslySetInnerHTML={{ __html: details }} />
+                          </Card>
                         </Grid>
                         <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
-                        <Typography variant="overline" >Proposer:</Typography>
+                          <Typography variant="overline" >Proposer:</Typography>
                           <Chip avatar={<Avatar src={proposerAvatar} className={classes.small} />} label={proposerName != '' ? proposerName : proposer} style={{marginBottom:'5px'}} />
                         </Grid>
                         <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center">
                           <Typography variant="overline">Deadline:</Typography>
                           <Chip label={deadline}/>
                         </Grid>
-                        <Grid item xs={12} sm={12} md={6} lg={6} xl={6} style={{marginBottom: '30px'}}>
-                        <Typography variant="overline">Reward:</Typography>
-                          <Chip label={usd ? usd + ' USD' + '= ~' + reward + ' Ⓝ' : reward * nearPrice + ' USD' + '= ~' + reward + ' Ⓝ'}/>
-                        </Grid>
-                        {opportunityStatus == 'Sponsored' ? (
-                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{marginBottom: '30px'}}>
-                          <Typography variant="overline" color="textSecondary">Sponsor: {sponsor}</Typography>
-                        </Grid>
-                        ) : null }
-                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{marginTop: '20px'}}>
-                          <Card className={classes.card}>
-                          <div dangerouslySetInnerHTML={{ __html: details }} />
-                          </Card>
-                          
-                        </Grid>
                       </Grid>
-                      <Grid container justifyContent="space-evenly" spacing={1} style={{marginTop:'20px', marginBottom: '20px'}}>
                      
-                      <Grid item xs={12} sm={12} md={6} lg={6} xl={6} className={classes.centered}>
-                      <Typography variant="h6">General Skills Required</Typography>
-                      <TableContainer component={Paper}>
-                        <Table className={classes.table} size="small" aria-label="a dense table">
-                          <TableHead>
-                          
-                          </TableHead>
-                          <TableBody>
-                          {desiredSkillSet ?
-                            Object.entries(desiredSkillSet).map(([key, value]) => {
-                                if(value){
-                                  return(
-                                    <TableRow key={key}>
-                                    <TableCell>{key}</TableCell>
-                                    </TableRow>
-                                  )
-                                }
-                            })
-                            : null
-                          }
-                          
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                      </Grid>
-                      <Grid item xs={12} sm={12} md={6} lg={6} xl={6} className={classes.centered}>
-                      <Typography variant="h6">Specific Skills</Typography>
-                      <TableContainer component={Paper}>
-                        <Table className={classes.table} size="small" aria-label="a dense table">
-                          <TableHead>
-                          
-                          </TableHead>
-                          <TableBody>
-                          
-                          {desiredDeveloperSkillSet ?
-                            Object.entries(desiredDeveloperSkillSet).map(([key, value]) => {
-                                if(value){
-                                  return(
-                                    
-                                    <TableRow key={key}>
-                                      <TableCell>{key}</TableCell>
-                                    </TableRow>
-                                    
-                                  )
-                                }
-                            })
-                            : null
-                          }
-                          {opportunitySkillSet && opportunitySkillSet.length > 0 ?
-                          
-                              opportunitySkillSet.map((values, index) => {
-                                
-                                  return (
-                                    <TableRow key={values.name}>
-                                      <TableCell>{values.name}</TableCell>
-                                    </TableRow>
-                                  )
-                              
-                            })
-                            : null
-                          }
-                          
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                      </Grid>
-                      <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                        <Typography variant="overline">Level of crypto/blockchain familiarity: <Rating readOnly value={parseInt(familiarity)} /> </Typography>
-                      </Grid>
-                      </Grid>
                   </>)}
                 </DialogContent>
               <DialogActions>
@@ -599,7 +738,7 @@ export default function OpportunityProposalDetails(props) {
                   <Button 
                     color="primary" 
                     onClick={handleMemberProposalClick}>
-                      Join Community
+                      Interested? Join Project
                   </Button>
                   </>
               ) : null }
@@ -650,7 +789,7 @@ export default function OpportunityProposalDetails(props) {
               {fundingProposalClicked ? <FundingProposal
                 handleFundingProposalClickState={handleFundingProposalClickState}
                 depositToken={'Ⓝ'}
-                reference={reference}
+                reference={opportunityId}
                 budget={budget}
                 applicant={applicant}
                 usd={usd}
@@ -659,6 +798,9 @@ export default function OpportunityProposalDetails(props) {
       
               {memberProposalClicked ? <MemberProposal
                 contractId={contractId}
+                accountId={accountId}
+                did={oppDid}
+                state={state}
                 depositToken={'Ⓝ'}
                 proposalDeposit={proposalDeposit}
                 appIdx={appIdx}

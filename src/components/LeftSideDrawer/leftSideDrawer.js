@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useContext} from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { get, set, del } from '../../utils/storage'
-import { Steps, Hints } from "intro.js-react";
 import clsx from 'clsx'
 import { appStore, onAppMount } from '../../state/app';
 import AddPersonaForm from '../AddPersona/addPersona'
 import AddDaoForm from '../CreateDAO/addDao'
+import EditDaoForm from '../EditDao/editDao'
 import AddFTForm from '../CreateFT/createFT'
-import { DASHBOARD_DEPARTURE, NEW_NOTIFICATIONS} from '../../state/near'
 import NotificationCard from '../Notifications/notifications'
 import {ceramic} from '../../utils/ceramic'
 
@@ -35,6 +34,7 @@ import PieChartIcon from '@material-ui/icons/PieChart'
 import NotificationsIcon from '@material-ui/icons/Notifications'
 import Badge from '@material-ui/core/Badge'
 import LocalHospitalIcon from '@material-ui/icons/LocalHospital'
+import EditIcon from '@material-ui/icons/Edit'
 
 const useStyles = makeStyles((theme) => ({
     list: {
@@ -62,20 +62,12 @@ export default function LeftSideDrawer(props) {
 
 const classes = useStyles()
 const matches = useMediaQuery('(max-width:500px)')
-const [options, setOptions] = useState({
-  doneLabel: 'Continue!',
-  showButtons: true,
-  overlayOpacity: 0.5,
-  scrollTo: 'element',
-  skipLabel: "Skip",
-  showProgress: true
-})
 const [anchorEl, setAnchorEl] = useState(null);
 const [addPersonaClicked, setAddPersonaClicked] = useState(false)
 const [addDaoClicked, setAddDaoClicked] = useState(false)
+const [editDaoClicked, setEditDaoClicked] = useState(false)
 const [addFTClicked, setAddFTClicked] = useState(false)
 const [notificationsClicked, setNotificationsClicked] = useState(false)
-const [stepsEnabled, setStepsEnabled] = useState(false)
 const [newNotifications, setNewNotifications] = useState(0)
 
 const { state, update } = useContext(appStore);
@@ -91,45 +83,13 @@ const {
   wallet,
   appIdx,
   accountId,
-  isUpdated
+  isUpdated,
+  accountType
 } = state
 
-const steps = [
-  {
-    element: '.toolbar',
-    intro: <Typography>This is the toolbar, and is where you can access all of the pages on Catalyst, along with some important actions.</Typography>
-  },
-  {
-    element: '.managePersona',
-    intro: <Typography>Here is the portal to the ‘My Personas’ page mentioned earlier, where you can edit your current Persona details, or any others created from this account.</Typography>,
-    position: "right"
-  },
-  {
-    element: '.createPersona',
-    intro: <Typography>This function will bring you through the flow of creating a new Persona</Typography>,
-    position: "right"
-  },
-  {
-    element: '.exploreCommunities',
-    intro: <Typography>This page lets you explore, search, and visit all of the communities on Catalyst.</Typography>,
-    position: 'right'
-  },
-  {
-    element: '.createCommunity',
-    intro:<> 
-            <Typography>If you want to establish a new community on Catalyst, this is the button for you. </Typography>
-            <br />
-            <Typography> Here you can follow the instructions to create a community of your own.</Typography>,
-          </>,
-    position: 'right'
-  },
-  {
-    intro: <Typography>That’s all for now. With that you’re ready to explore! </Typography>,
-    position: "top"
-  }
-] 
-
-
+const {
+  contractId
+} = useParams()
 
 useEffect(
   () => {
@@ -166,21 +126,6 @@ useEffect(
       }
     }
 
-    let intervalController = setInterval(checkDash, 500)
-    function checkDash(){
-      let newVisit = get(DASHBOARD_DEPARTURE, [])
-      if(newVisit[0]){
-         
-          if(newVisit[0].status=="true" && !newVisit[1]){
-          setStepsEnabled(true)
-          setDrawerState({ ...drawerState, ['left']: true})
-          newVisit.push({arrived: 'true'})
-          set(DASHBOARD_DEPARTURE, newVisit)
-        }
-        clearInterval(intervalController)
-      }
-    }
-
     fetchData()
     .then((res) => {
   
@@ -205,6 +150,10 @@ function handleAddDaoClick(property){
     setAddDaoClicked(property)
 }
 
+function handleEditDaoClick(property){
+  setEditDaoClicked(property)
+}
+
 function handleAddFTClick(property){
     setAddFTClicked(property)
 }
@@ -217,6 +166,11 @@ function handleNotificationClick(property){
 const addDaoClick = (event) => {
     setAddDaoClicked(true)
     handleClick(event)
+}
+
+const editDaoClick = (event) => {
+  setEditDaoClicked(true)
+  handleClick(event)
 }
 
 const addFTClick = (event) => {
@@ -236,10 +190,7 @@ if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) 
 
 setDrawerState({ ...drawerState, [anchor]: open });
 }
-function onStepsExit(){
-  setStepsEnabled(false)
-  setDrawerState({ ...drawerState, ['left']: false})
-}
+
 const list = (anchor) => (
 <div
     className={clsx(classes.list, {
@@ -251,13 +202,7 @@ const list = (anchor) => (
 >
 {!matches ? (
   <>
-    <Steps 
-      enabled= {stepsEnabled}
-      steps={steps}
-      initialStep={0}
-      onExit={()=>{onStepsExit()}}
-      options={options}
-    />
+   
     <div className='toolbar'>
     <List>
       <Link to='/'>
@@ -266,8 +211,7 @@ const list = (anchor) => (
           <ListItemText primary='Dashboard'/>
         </ListItem>
       </Link>
-      <ListItem button key={7}>
-       
+      <ListItem button key={2}>
         <ListItemIcon>
           <Badge badgeContent={newNotifications} color='primary'>   
           <NotificationsIcon />
@@ -278,24 +222,23 @@ const list = (anchor) => (
       </ListItem>
     </List>
     <Divider />
-    <Typography variant='h6'>Personas</Typography>
+    <Typography variant='h6'>Account</Typography>
     <List>
-      <Link to='/personas'>
-        <ListItem className='managePersona' button key={2}>
-          <ListItemIcon><Avatar src={imageName} className={classes.small}/></ListItemIcon>
-          <ListItemText primary='My Personas'/>
-        </ListItem>
-      </Link>
-      <ListItem className='createPersona' button key={3} onClick={(e) => addPersonaClick(e)}>
-        <ListItemIcon><AddBoxIcon /></ListItemIcon>
-        <ListItemText primary='Create Persona'/>
-      </ListItem>
-      <Link to='/newkey'>
-        <ListItem className='recoverKey' button key={4}>
-        <ListItemIcon><LocalHospitalIcon /></ListItemIcon>
-        <ListItemText primary='Recover Persona'/>
-      </ListItem>
-    </Link>
+      {accountType == 'guild' ? (
+        <a href="https://nearguilds.live">
+          <ListItem className='managePersona' button key={3}>
+            <ListItemIcon><Avatar src={imageName} className={classes.small}/></ListItemIcon>
+            <ListItemText primary='Manage Guild'/>
+          </ListItem>
+        </a>)
+        :(
+          <a href="https://nearpersonas.live">
+            <ListItem className='managePersona' button key={3}>
+              <ListItemIcon><Avatar src={imageName} className={classes.small}/></ListItemIcon>
+              <ListItemText primary='Manage Persona'/>
+            </ListItem>
+          </a>
+        )}
     </List>
     <Divider />
     <Typography variant='h6'>Communities</Typography>
@@ -306,7 +249,11 @@ const list = (anchor) => (
         <ListItemText primary='Explore Communities'/>
       </ListItem>
     </Link>
-    <ListItem className='createCommunity' button key={7} onClick={(e) => addDaoClick(e)}>
+    <ListItem button key={7} onClick={(e) => editDaoClick(e)}>
+      <ListItemIcon><EditIcon /></ListItemIcon>
+      <ListItemText primary='Edit Community Info'/>
+    </ListItem>
+    <ListItem className='createCommunity' button key={8} onClick={(e) => addDaoClick(e)}>
         <ListItemIcon><AddBoxIcon /></ListItemIcon>
         <ListItemText primary='Create Community'/>
       </ListItem>
@@ -315,12 +262,12 @@ const list = (anchor) => (
     <Typography variant='h6'>Fungible Tokens</Typography>
     <List>
       <Link to='/fts'>
-        <ListItem className='exploreTokens' button key={8}>
+        <ListItem className='exploreTokens' button key={9}>
           <ListItemIcon><ExploreIcon /></ListItemIcon>
           <ListItemText primary='Explore Tokens'/>
         </ListItem>
       </Link>
-      <ListItem className='createFT' button key={9} onClick={(e) => addFTClick(e)}>
+      <ListItem className='createFT' button key={10} onClick={(e) => addFTClick(e)}>
         <ListItemIcon><AddBoxIcon /></ListItemIcon>
         <ListItemText primary='Create Token'/>
       </ListItem>
@@ -340,18 +287,23 @@ const list = (anchor) => (
       </Link>
     </List>
     <Divider />
-    <Typography variant='h6'>Personas</Typography>
+    <Typography variant='h6'>Account</Typography>
     <List>
-      <Link to='/personas'>
-        <ListItem button key={2}>
-          <ListItemIcon><Avatar src={imageName} className={classes.small}/></ListItemIcon>
-          <ListItemText primary='My Personas'/>
-        </ListItem>
-      </Link>
-      <ListItem button key={3} onClick={(e) => addPersonaClick(e)}>
-        <ListItemIcon><AddBoxIcon /></ListItemIcon>
-        <ListItemText primary='Create Persona'/>
-      </ListItem>
+      {accountType == 'guild' ? (
+        <a href="https://nearguilds.live">
+          <ListItem className='managePersona' button key={2}>
+            <ListItemIcon><Avatar src={imageName} className={classes.small}/></ListItemIcon>
+            <ListItemText primary='Manage Guild'/>
+          </ListItem>
+        </a>)
+        :(
+          <a href="https://nearpersonas.live">
+            <ListItem className='managePersona' button key={2}>
+              <ListItemIcon><Avatar src={imageName} className={classes.small}/></ListItemIcon>
+              <ListItemText primary='Manage Persona'/>
+            </ListItem>
+          </a>
+        )}
     </List>
     <Divider />
     <Typography variant='h6'>Communities</Typography>
@@ -362,21 +314,25 @@ const list = (anchor) => (
         <ListItemText primary='Explore Communities'/>
       </ListItem>
     </Link>
-    <ListItem button key={6} onClick={(e) => addDaoClick(e)}>
+    <ListItem button key={6} onClick={(e) => editDaoClick(e)}>
+        <ListItemIcon><EditIcon /></ListItemIcon>
+        <ListItemText primary='Edit Community Info'/>
+    </ListItem>
+    <ListItem button key={7} onClick={(e) => addDaoClick(e)}>
         <ListItemIcon><AddBoxIcon /></ListItemIcon>
-        <ListItemText primary='Create Community'/>
+        <ListItemText primary='Create New Community'/>
       </ListItem>
     </List>
     <Divider />
     <Typography variant='h6'>Fungible Tokens</Typography>
     <List>
       <Link to='/fts'>
-        <ListItem className='exploreTokens' button key={7}>
+        <ListItem className='exploreTokens' button key={8}>
           <ListItemIcon><ExploreIcon /></ListItemIcon>
           <ListItemText primary='Explore Tokens'/>
         </ListItem>
       </Link>
-      <ListItem className='createFT' button key={8} onClick={(e) => addFTClick(e)}>
+      <ListItem className='createFT' button key={9} onClick={(e) => addFTClick(e)}>
         <ListItemIcon><AddBoxIcon /></ListItemIcon>
         <ListItemText primary='Create Token'/>
       </ListItem>
@@ -418,7 +374,7 @@ const list = (anchor) => (
 return (
     <React.Fragment key={'left'}>
         <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu" onClick={toggleDrawer('left', true)}>
-        <MenuIcon />
+        <MenuIcon style={{color: 'white'}}/>
         </IconButton>
         
         <Drawer anchor={'left'} open={drawerState['left']} onClose={toggleDrawer('left', false)}>
@@ -434,7 +390,13 @@ return (
             state={state}
             handleAddDaoClick={handleAddDaoClick}
         /> : null }
-
+        
+        {editDaoClicked ? <EditDaoForm
+          state={state}
+          handleEditDaoClickState={handleEditDaoClick}
+          contractId={contractId}
+        /> : null }
+        
         {addFTClicked ? <AddFTForm
           state={state}
           handleAddFTClick={handleAddFTClick}

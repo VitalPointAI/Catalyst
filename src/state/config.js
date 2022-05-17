@@ -12,10 +12,12 @@ let config = {
     CURRENT_DAO: '__CURRENT_DAO',
     REDIRECT: '__REDIRECT',
     NEW_PROPOSAL: '__NEW_PROPOSAL',
+    NEW_PROPOSAL_TRIGGER: '__NEW_PROPOSAL_TRIGGER',
     NEW_SPONSOR: '__NEW_SPONSOR',
     NEW_PROCESS: '__NEW_PROCESS',
     NEW_CANCEL: '__NEW_CANCEL',
     NEW_VOTE: '__NEW_VOTE',
+    NEW_MEMBER_PROPOSAL: '__NEW_MEMBER_PROPOSAL',
     DASHBOARD_ARRIVAL: '__DASHBOARD_ARRIVAL',
     DASHBOARD_DEPARTURE: '__DASHBOARD_DEPARTURE',
     WARNING_FLAG: '__WARNING_FLAG',
@@ -37,18 +39,13 @@ let config = {
     NEW_INACTIVATION: '__NEW_INACTIVATION',
     AUTH_TOKEN: '__AUTH_TOKEN',
     GAS: '200000000000000',
+    PLATFORM_PERCENT: '0.5',
     STORAGE: '0.0025',
     FACTORY_DEPOSIT: '2',
     TOKEN_FACTORY_DEPOSIT: '1',
     APP_OWNER_ACCOUNT: 'vitalpointai.testnet',
-   // CERAMIC_API_URL: 'https://ceramic-clay.3boxlabs.com',
-  //  CERAMIC_API_URL: 'http://20.151.200.193:7007',
     CERAMIC_API_URL: 'https://ceramic-node.vitalpointai.com',
-    IPFS_PROVIDER: 'https://ipfs.io/ipfs/',
-  //  IPFS_PROVIDER: 'https://ceramic-node.vitalpointai.com:5011/ipfs/',
-  //  APPSEED_CALL: 'https://vpbackend-apim.azure-api.net/appseed',
-    // TOKEN_CALL: 'https://catalystdao.com/token',
-    // APPSEED_CALL: 'https://catalystdao.com/appseed',
+    IPFS_PROVIDER: 'https://cloudflare-ipfs.com/ipfs/',
     TOKEN_CALL: 'https://cdao.app/token',
     APPSEED_CALL: 'https://cdao.app/appseed',
     networkId: 'testnet',
@@ -56,25 +53,36 @@ let config = {
     walletUrl: 'https://wallet.testnet.near.org',
     explorerUrl: 'https://explorer.testnet.near.org',
     nameSuffix: '.testnet',
-    factorySuffix: '.factory1.vitalpointai.testnet',
+    factorySuffix: '.factory3.vitalpointai.testnet',
     tokenFactorySuffix: '.ft.vitalpointai.testnet',
     nftFactorySuffix: '.nft.vitalpointai.testnet',
     contractName: 'testnet',
     PLATFORM_SUPPORT_ACCOUNT: 'vitalpointai.testnet',
-    didRegistryContractName: 'dids1.vitalpointai.testnet',
-    factoryContractName: 'factory1.vitalpointai.testnet',
+    didRegistryContractName: 'dids2.vitalpointai.testnet',
+    factoryContractName: 'factory3.vitalpointai.testnet',
     tokenFactoryContractName: 'ft.vitalpointai.testnet',
     nftFactoryContractName: 'nft.vitalpointai.testnet',
+    daoRootName: 'https://cdao.app',
     ACCOUNT_HELPER_URL: 'https://near-contract-helper.onrender.com',
-    GRAPH_FACTORY_API_URL: 'https://api.thegraph.com/subgraphs/name/aluhning/catalyst-factory-tnet',
-    GRAPH_REGISTRY_API_URL: 'https://api.thegraph.com/subgraphs/name/aluhning/did-registry'
+    GRAPH_FACTORY_API_URL: 'https://api.thegraph.com/subgraphs/name/vitalpointai/catalyst-factory-tnet',
+  //  GRAPH_FACTORY_API_URL: 'https://api.thegraph.com/subgraphs/id/QmUk5EWnv8BSe58ZkgAqdV62W9aRypRFQYzJueURfa1iNU',
+    GRAPH_REGISTRY_API_URL: 'https://api.thegraph.com/subgraphs/name/vitalpointai/registry-near-tnet'
 }
 
 if(process.env.ENV === 'localhost') {
   config = {
     ...config,
-    TOKEN_CALL: 'http://localhost:3000/token',
-    APPSEED_CALL: 'http://localhost:3000/appseed',
+    daoRootName: 'http:/localhost:3003',
+    TOKEN_CALL: 'http://localhost:3003/token',
+    APPSEED_CALL: 'http://localhost:3003/appseed',
+  }
+}
+
+if(process.env.ENV === 'test') {
+  config = {
+    ...config,
+    TOKEN_CALL: 'http://localhost:3003/token',
+    APPSEED_CALL: 'http://localhost:3003/appseed',
   }
 }
 
@@ -100,7 +108,8 @@ if (process.env.ENV === 'prod') {
         APP_OWNER_ACCOUNT: 'aaron.near',
         PLATFORM_SUPPORT_ACCOUNT: 'catalystsp.near',
         CERAMIC_API_URL: 'https://ceramic-node.vitalpointai.com',
-        GRAPH_FACTORY_API_URL: 'https://api.thegraph.com/subgraphs/name/aluhning/catalyst-factory'
+        GRAPH_FACTORY_API_URL: 'https://api.thegraph.com/subgraphs/name/vitalpointai/catalyst-factory-mnet',
+        GRAPH_REGISTRY_API_URL: 'https://api.thegraph.com/subgraphs/name/vitalpointai/registry-near-mnet'
       }
 }
 

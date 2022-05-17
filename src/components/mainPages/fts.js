@@ -3,9 +3,7 @@ import { appStore, onAppMount } from '../../state/app'
 import { utils } from 'near-api-js'
 import Fuse from 'fuse.js'
 import { dao } from '../../utils/dao'
-import Footer from '../common/Footer/footer'
 import TokenCard from '../TokenCard/tokenCard'
-import { Header } from '../Header/header'
 import FTInitialize from '../Initialize/ftInitialize'
 import SearchBar from '../common/SearchBar/search'
 import Persona from '@aluhning/get-personas-js'
@@ -283,13 +281,6 @@ export default function FTs(props) {
   
 
     return (
-        <>
-        <div className={classes.root}>
-        <Header state={state}/>
         <FTInitialize state={state} />
-       
-        </div>
-        <Footer />
-        </>
     )
 }

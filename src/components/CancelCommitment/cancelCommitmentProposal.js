@@ -195,7 +195,7 @@ export default function CancelCommitmentProposal(props) {
           <Typography variant="body1">You are requesting to cancel the {milestonePayout ? milestonePayout : payout} Ⓝ reserved for this milestone. After submitting
           this proposal, you must provide enough supporting detail help other members consider whether to approve your proposal or not.</Typography>
           <Grid container className={classes.confirmation} spacing={1}>
-            <Grid item xs={1} sm={1} md={1} lg={1} xl={1}>
+            <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
               <Checkbox
                 checked={confirm}
                 onChange={handleConfirmChange}

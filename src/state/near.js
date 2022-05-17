@@ -6,23 +6,21 @@ import { tokenFactory } from '../utils/tokenFactory'
 import { ft } from '../utils/ft'
 import { dao } from '../utils/dao'
 import { registry } from '../utils/registry'
-import Big from 'big.js'
 import { config } from './config'
 import { queries } from '../utils/graphQueries'
-import { Action } from 'near-api-js/lib/transaction'
-import  { Caip10Link } from '@ceramicnetwork/stream-caip10-link'
-import { EthereumAuthProvider, NearAuthProvider } from '@ceramicnetwork/blockchain-utils-linking'
+
+const axios = require('axios').default
 
 export const {
     FUNDING_DATA, FUNDING_DATA_BACKUP, ACCOUNT_LINKS, DAO_LINKS, GAS, SEED_PHRASE_LOCAL_COPY, FACTORY_DEPOSIT, DAO_FIRST_INIT, 
-    CURRENT_DAO, REDIRECT, FT_FIRST_INIT, NEW_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, OPPORTUNITY_REDIRECT, NEW_PROCESS, NEW_VOTE, 
+    CURRENT_DAO, REDIRECT, FT_FIRST_INIT, NEW_PROPOSAL, NEW_PROPOSAL_TRIGGER, NEW_MEMBER_PROPOSAL, NEW_SPONSOR, NEW_CANCEL, KEY_REDIRECT, OPPORTUNITY_REDIRECT, NEW_PROCESS, NEW_VOTE, 
     DASHBOARD_ARRIVAL, DASHBOARD_DEPARTURE, WARNING_FLAG, PERSONAS_ARRIVAL, EDIT_ARRIVAL, COMMUNITY_ARRIVAL, 
     NEW_DONATION, NEW_EXIT, NEW_RAGE, NEW_DELEGATION, OPPORTUNITY_NOTIFICATION, PROPOSAL_NOTIFICATION, TOKEN_FACTORY_DEPOSIT,
     NEW_NOTIFICATIONS, IPFS_PROVIDER, PLATFORM_SUPPORT_ACCOUNT, STORAGE,
     NEW_REVOCATION, INACTIVATE_COMMUNITY, NEW_INACTIVATION, NEW_CHANGE_PROPOSAL,
     networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix, tokenFactorySuffix, nftFactorySuffix, explorerUrl,
     contractName, didRegistryContractName, factoryContractName, tokenFactoryContractName,
-    REGISTRY_API_URL, FIRST_TIME
+    REGISTRY_API_URL, FIRST_TIME, PLATFORM_PERCENT, daoRootName
 } = config
 
 export const {
@@ -39,9 +37,20 @@ export const {
     }
 } = nearAPI
 
+let url = window.location.pathname
+let pathArray = url.split('/')
+let contractId
+for(let x = 0; x < pathArray.length; x++){
+    if(pathArray[x].includes(factorySuffix)){
+        contractId = pathArray[x]
+    }
+}
+
 export const initNear = () => async ({ update, getState, dispatch }) => {
-   
+    console.log('here')
     let finished = false
+
+  
 
     const near = await nearAPI.connect({
         networkId, nodeUrl, walletUrl, deps: { keyStore: new nearAPI.keyStores.BrowserLocalStorageKeyStore() },
@@ -77,6 +86,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     wallet.signedIn = wallet.isSignedIn()
     if (wallet.signedIn) {
         wallet.balance = formatNearAmount((await wallet.account().getAccountBalance()).available, 2)
+        update('',{balance: wallet.balance})
     }
 
     const contract = new nearAPI.Contract(wallet.account(), contractName, {
@@ -87,7 +97,6 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     const daoFactory = await factory.initFactoryContract(wallet.account())
     const ftFactory = await tokenFactory.initTokenFactoryContract(wallet.account())
     const didRegistryContract = await registry.initiateDidRegistryContract(wallet.account())
-   
 
     wallet.isAccountTaken = async (accountId) => {
         const accountTaken = await isAccountTaken(accountId + nameSuffix)
@@ -168,8 +177,10 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
                 i++
             }
             if(!exists){
+                
                 let contractAccount = new nearAPI.Account(state.near.connection, accountId)
-                let curDaoIdx = await ceramic.getCurrentDaoIdx(contractAccount, state.appIdx, state.near, state.didRegistryContract)
+                let curDaoIdx = await ceramic.getCurrentDaoIdx(contractAccount, state.appIdx, state.didRegistryContract, keyPair.secretKey)
+               
                 upLinks.push({ 
                     key: keyPair.secretKey, 
                     publicKey: publicKey, 
@@ -184,6 +195,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
                 set(REDIRECT, {action: true, link: link})
 
                 if(result){
+                    console.log('did', curDaoIdx.id)
                     await daoFactory.createDAO({ accountId: accountId, did: curDaoIdx.id, deposit: FACTORY_DEPOSIT}, GAS, parseNearAmount(FACTORY_DEPOSIT))
                 }
                 
@@ -213,7 +225,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
             let state = getState()
 
             let upLinks = await ceramic.downloadKeysSecret(state.appIdx, 'ftKeys')
-           console.log('upLinks', upLinks)
+          
             const ftInit = get(FT_FIRST_INIT, [])
 
             try{
@@ -273,22 +285,66 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     const account = wallet.account()
     const accountId = account.accountId
 
-    
-    // ********* Get Registry Admin ****************
-    let admin = await didRegistryContract.getAdmin()
-
-    
-     // ******** IDX Initialization *********
+    // // ********* Get Registry Admin ****************
+    // let superAdmin = await didRegistryContract.getSuperAdmin()
+    // let admins = await didRegistryContract.getAdmins()
 
     //Initiate App Ceramic Components
 
-    const appIdx = await ceramic.getAppIdx(didRegistryContract, account, near)
+    const appIdx = await ceramic.getAppIdx(didRegistryContract, account)
+    console.log('appidx', appIdx)
+
+    // let curUserIdx = await ceramic.getUserIdx(account, appIdx, daoFactory, didRegistryContract)
+    // console.log('curuseridx', curUserIdx)
+
+    // ********* All Announcements ****************
+    try{
+        let announcements = await ceramic.downloadKeysSecret(appIdx, 'announcementList')
+        update('', {announcements: announcements})
+        console.log('announcements', announcements)
+    } catch (err) {
+        console.log('problem getting all announcements', err)
+    }
+
+    let did
+    // if (curUserIdx) {
+    //     did = curUserIdx.id
+    // }
+
+    did = await didRegistryContract.getDID({accountId: accountId})
+
+    console.log('near did', did)
+
+    let accountType
+    try{
+        accountType = await didRegistryContract.getType({accountId: accountId})
+    } catch (err) {
+        accountType = 'none'
+        console.log('account not registered, not type avail', err)
+    }
+    console.log('accounttype', accountType)
+
+    let verificationStatus
+    try{
+        verificationStatus = await didRegistryContract.getVerificationStatus({accountId: accountId})
+    } catch (err) {
+        verificationStatus = false
+        console.log('problem getting verification status', err)
+    }
+
+    // ******** IDX Initialization *********
+
+    //Initiate App Ceramic Components
+
+    //const appIdx = await ceramic.getAppIdx(didRegistryContract, account, near)
    
+    // Create Current Arrays of Current and Inactive Communities
     let t = 0
     let start = 0
     let end = 0
     let interval = 20
     let currentDaosList = []
+    let inactiveDaosList = []
 
     let legacyDaos = []
     legacyDaos.push({
@@ -314,24 +370,40 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     })
 
     try {
-        let communities = await queries.getCommunities()
+        let communities = await queries.getAllCommunities()
+        console.log('all communities', communities)
+      //let currentDaosList = await updateCurrentCommunities()
         if(networkId == 'mainnet'){
-            currentDaosList = legacyDaos.concat(communities.data.logs)
-        } else {
-            currentDaosList = communities.data.logs
+           currentDaosList = legacyDaos.concat(communities.data.createDAOs)
+         //currentDaosList = legacyDaos.concat(currentDaosList)
+        } 
+        else {
+            for(let x = 0; x < communities.data.createDAOs.length; x++){
+                if(communities.data.createDAOs[x].status == 'active'){
+                    currentDaosList.push(communities.data.createDAOs[x])
+                }
+                if(communities.data.createDAOs[x].status == 'inactive'){
+                    inactiveDaosList.push(communities.data.createDAOs[x])
+                }
+            }
         }
     } catch (err) {
         console.log('error creating currentDaosList', err)
         // backup in event graph is down
         let currentDaosLength = await daoFactory.getDaoListLength() 
-    
+       
         while(t < currentDaosLength){
             if(currentDaosLength < interval){
                 end = currentDaosLength
             }
             let newDaoList = await daoFactory.getDaoList({start: start, end: end})
             for(let i = 0; i < newDaoList.length; i++){
-                currentDaosList.push(newDaoList[i])
+                if(newDaoList[i].status == 'active'){
+                    currentDaosList.push(newDaoList[i])
+                }
+                if(newDaoList[i].status == 'inactive'){
+                    inactiveDaosList.push(newDaoList[i])
+                }
             }
             start = end
             if(end + interval > currentDaosLength){
@@ -342,8 +414,13 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
             t++   
         }
     }
-    
+    console.log('currentdaoslist', currentDaosList)
+    console.log('inactivedaoslist', inactiveDaosList)
 
+    let currentActiveDaos = await updateCurrentCommunities()
+    console.log('active daos', currentActiveDaos)
+
+    // Get List of Current Fungible Tokens
     let v = 0
     let ftStart = 0
     let ftEnd = 0
@@ -372,169 +449,85 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         console.log('error creating currentTokensList', err)
     }
 
-    let curUserIdx = await ceramic.getCurrentUserIdx(account, appIdx, near, didRegistryContract, daoFactory)
-    let did
-    if (curUserIdx) {
-        did = curUserIdx.id
-    }
+    // let curUserIdx = await ceramic.getCurrentUserIdx(account, appIdx, near, didRegistryContract, daoFactory)
+    // let did
+    // if (curUserIdx) {
+    //     did = curUserIdx.id
+    // }
     
-    let registeredDid = await ceramic.getDid(account.accountId, daoFactory, didRegistryContract )
-    if(registeredDid){
-        did = registeredDid
-    }
+    // let registeredDid = await ceramic.getDid(account.accountId, daoFactory, didRegistryContract )
+    // if(registeredDid){
+    //     did = registeredDid
+    // }
 
-    update('', { admin, did, registeredDid, ftFactory, currentTokensList, didRegistryContract, appIdx, account, accountId, curUserIdx, daoFactory, currentDaosList })
-    
-    if(curUserIdx){
-        // check localLinks, see if they're still valid
-        let state = getState()
+    if(didRegistryContract && near && wallet){
 
-         //synch local links with what's stored for the account in ceramic
-        let allAccounts = await ceramic.downloadKeysSecret(curUserIdx, 'accountsKeys')
-      
-        let storageLinks = get(ACCOUNT_LINKS, [])
-       
-      //  if(allAccounts.length != storageLinks.length){
-        
-        //    if(allAccounts.length <= storageLinks.length){
-           
-                let k = 0
-                let didMakeChange = false
-                while(k < allAccounts.length){
-                    // ensure all the existing online accounts and offline accounts match
-                    let j = 0
-                    while (j < storageLinks.length){
-                        if(allAccounts[k].accountId == storageLinks[j].accountId){
-                            if(allAccounts[k].key != storageLinks[j].key){
-                                allAccounts[k].key = storageLinks[j].key
-                                didMakeChange = true
-                            }
-                            if(allAccounts[k].owner != storageLinks[j].owner){
-                                allAccounts[k].owner = storageLinks[j].owner
-                                didMakeChange = true
-                            }
-                            if(allAccounts[k].keyStored != storageLinks[j].keyStored){
-                                allAccounts[k].keyStored = storageLinks[j].keyStored
-                                didMakeChange = true
-                            }
-                            if(allAccounts[k].publicKey != storageLinks[j].publicKey){
-                                allAccounts[k].publicKey = storageLinks[j].publicKey
-                                didMakeChange = true
-                            }
-                        }
-                        j++
-                    }
-                k++
-                }
-                
-                // add any accounts that are missing
-                let p = 0
-                let wasMissing = false
-                while(p < storageLinks.length){
-                    let q = 0
-                    let exists = false
-                    while (q < allAccounts.length){
-                        if(storageLinks[p].accountId == allAccounts[q].accountId){
-                            exists = true
-                        } 
-                    q++
-                    }
-                    if(!exists){
-                        allAccounts.push(storageLinks[p])
-                        wasMissing = true
-                    }
-                    p++
-                }
-                
-            //    }
-            // remove duplicates
-            let copyArray = allAccounts
-            let z = 0
-            let wasDuplicate = false
-            while(z < allAccounts.length){
-                let r = 0
-                let count = 0
-                while(r < copyArray.length){
-                    if(copyArray[r].accountId == allAccounts[z].accountId){
-                        count++
-                        if(count > 1) copyArray.splice(r,1)
-                        wasDuplicate = true
-                    }
-                    r++
-                }
-                z++
-            }
-
-            if(didMakeChange || wasMissing || wasDuplicate){
-                await ceramic.storeKeysSecret(curUserIdx, allAccounts, 'accountsKeys')
-                set(ACCOUNT_LINKS, allAccounts)
-            }
-            
-            // if(allAccounts.length > storageLinks.length){
-                
-            // }
-     //   }
-        
-        const localLinks = get(ACCOUNT_LINKS, []).sort((a) => a.claimed ? 1 : -1)
-        let changed = false
-        for (let i = 0; i < localLinks.length; i++) {
-            const { key, accountId, keyStored = 0, claimed, owner } = localLinks[i]
-            const exists = await isAccountTaken(accountId)
-            if (!exists) {
-                localLinks.splice(i, 1)
-                changed = true
-                continue
-            }
+        if(contractId){
+          let thisCurDaoIdx
+          let daoAccount
+          let contract
+          console.log('contractId', contractId)
+          try{
+            daoAccount = new nearAPI.Account(near.connection, contractId)
+          } catch (err) {
+            console.log('no account', err)
+            return false
+          }
           
-            if (!!claimed || Date.now() - keyStored < 5000) {
-                continue
-            }
-            const keyExists = await hasKey(key, accountId, near)
-            if (!keyExists) {
-                localLinks[i].claimed = true
-                changed = true
-            }
+          try{
+            thisCurDaoIdx = await ceramic.getCurrentDaoIdx(daoAccount, appIdx, didRegistryContract)
+            console.log('this appcurdaoidx', thisCurDaoIdx)
+          } catch (err) {
+            console.log('problem getting curdaoidx', err)
+            return false
+          }
+          
+          try{
+            contract = await dao.initDaoContract(wallet.account(), contractId)
+          } catch (err) {
+            console.log('problem initializing dao contract', err)
+            return false
+          }
+          console.log('contract', contract)
+          update('', {
+            curDaoIdx: thisCurDaoIdx,
+            daoAccount: daoAccount,
+            contract: contract
+          })
+          
         }
-        if(changed){
-            set(ACCOUNT_LINKS, localLinks)
-            await ceramic.storeKeysSecret(curUserIdx, localLinks, 'accountsKeys')
-        }
+    }
 
-        const daoLinks = await ceramic.downloadKeysSecret(state.appIdx, 'daoKeys')
-        let linksChanged = false
-        for (let i = 0; i < daoLinks.length; i++) {
-            const { contractId } = daoLinks[i]
-            let k = 0
-            let inList = false
-            while (k < currentDaosList.length){
-                if(contractId == currentDaosList[k].contractId){
-                    inList = true
-                    break
-                }
-                k++
-            }
-            const exists = await isAccountTaken(contractId)
-            if(!exists || !inList){
-                daoLinks.splice(i, 1)
-                linksChanged = true   
-            }
-        }
-        if(linksChanged){
-            try{
-                await ceramic.storeKeysSecret(state.appIdx, daoLinks, 'daoKeys')
-            } catch (err) {
-                console.log('error removing missing dao account', err)
-            }
-        }
-            
-
-        const claimed = localLinks.filter(({claimed}) => !!claimed)
-        const links = localLinks.filter(({claimed}) => !claimed)
+    // let timer
     
-        update('', { links, claimed })
-    }
-    }
+    // let getNearPrice = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd')
+    // update('', {nearPrice:getNearPrice.data.near.usd})
+    
+    // timer = setInterval(getPrice(getNearPrice.data.near.usd), 5000)
+   
 
+    update('', { 
+        did,
+        accountType,
+        ftFactory, 
+        currentTokensList, 
+        didRegistryContract, 
+        appIdx, 
+        account, 
+        accountId, 
+      //  curUserIdx, 
+        daoFactory, 
+        currentDaosList,
+        currentActiveDaos,
+        inactiveDaosList })
+
+    //curUserIdx ? await synchAccountLinks(curUserIdx) : null
+
+    finished = true
+
+    update('', { near, wallet, finished })
+
+    }
     
     finished = true
 
@@ -547,7 +540,7 @@ export async function login() {
         networkId, nodeUrl, walletUrl, deps: { keyStore: new nearAPI.keyStores.BrowserLocalStorageKeyStore() },
     });
     const connection = new nearAPI.WalletConnection(near)
-    connection.requestSignIn(contractName, 'Near Personas')
+    connection.requestSignIn(contractName, 'Catalyst')
 }
 
 export async function logout() {
@@ -556,7 +549,7 @@ export async function logout() {
     })
     const connection = new nearAPI.WalletConnection(near)
     connection.signOut()
-    window.location.replace('https://vitalpoint.ai/catalyst')
+    window.location.replace('/')
 }
 
 export async function logoutToWallet() {
@@ -807,7 +800,7 @@ export async function submitProposal(
 
     // set trigger for to log new proposal
     let newProposal = get(NEW_PROPOSAL, [])
-    newProposal.push({contractId: contractId, proposalId: proposalId, new: true})
+    newProposal.push({contractId: contractId, proposalId: proposalId, new: true, type: proposalType})
     set(NEW_PROPOSAL, newProposal)
 
     switch(proposalType){
@@ -1201,35 +1194,60 @@ export async function synchDaos(state){
         let i = 0
         let exists = false
         let change = false
-
+        let newArray = []
         while (i < state.currentDaosList.length){
+            // let k = 0
+            // let count = 0
+            // while(k < upLinks.length){
+        //         let filtered = upLinks.filter(function(value, index, arr){
+        //             return value.contractId == state.currentDaosList[i].contractId
+        //         })
+        //         console.log('filtered', filtered)
+        //         newArray.push(filtered[0])
+        //         change = true
+        //         // if(state.currentDaosList[i].contractId == upLinks[k].contractId){
+                    
+        //         //     if(count > 0){
+        //         //         upLinks.splice(k,1)
+        //         //         change = true
+        //         //         count = 0
+        //         //     }
+        //         //     count++
+        //         //     console.log('count', count)
+        //         // }
+        //    // k++
+        //    // }
+        //     console.log('newArray', newArray)
+        //     upLinks = newArray
             let j = 0
             while(j < upLinks.length){
                 if(state.currentDaosList[i].contractId == upLinks[j].contractId){
                     exists = true
+                    console.log('exists', exists)
                     break
                 }
-                let summoner = state.currentDaosList[i].summoner
-                let created = state.currentDaosList[i].created
-                let did = state.currentDaosList[i].did
-                let contractId = state.currentDaosList[i].contractId
-                let status = state.currentDaosList[i].status
-
-                if(!exists){
-                    let keyPair = KeyPair.fromRandom('ed25519')
-                    let publicKey = keyPair.getPublicKey().toString().split(':')[1]
-                    upLinks.push({ 
-                        key: keyPair.secretKey, 
-                        publicKey: publicKey, 
-                        contractId: contractId, 
-                        summoner: summoner, 
-                        created: created,
-                        did: did,
-                        status: status
-                    })
-                    change = true
-                }
             j++
+            }
+            let summoner = state.currentDaosList[i].summoner
+            let created = state.currentDaosList[i].created
+            let did = state.currentDaosList[i].did
+            let contractId = state.currentDaosList[i].contractId
+            let status = state.currentDaosList[i].status
+
+            if(!exists){
+                console.log('ok')
+                let keyPair = KeyPair.fromRandom('ed25519')
+                let publicKey = keyPair.getPublicKey().toString().split(':')[1]
+                upLinks.push({ 
+                    key: keyPair.secretKey, 
+                    publicKey: publicKey, 
+                    contractId: contractId, 
+                    summoner: summoner, 
+                    created: created,
+                    did: did,
+                    status: status
+                })
+                change = true
             }
         i++
         }
@@ -1260,7 +1278,7 @@ export async function synchBudgets(curDaoIdx, allProposals) {
             while (i < allProposals.length){
                 if(allProposals[i].flags[7]){
                     let status = getStatus(allProposals[i].flags)
-                    if(status == 'Passed' || status == 'Sponsored'){
+                    if(status == 'Passed' || status == 'Voting'){
                         let k = 0
                         while (k < allProposals[i].referenceIds.length){
                             if(allProposals[i].referenceIds[k].keyName=='proposal'
@@ -2481,7 +2499,7 @@ export async function logProcessEvent(near, appIdx, didRegistryContract, curDaoI
             let thisCurPersonaIdx
             try{
             let personaAccount = new nearAPI.Account(near.connection, proposal.applicant)
-            thisCurPersonaIdx = await ceramic.getCurrentUserIdx(personaAccount, appIdx, near, didRegistryContract, daoFactory)
+            thisCurPersonaIdx = await ceramic.getUserIdx(personaAccount, appIdx, daoFactory, didRegistryContract)
             let result = await thisCurPersonaIdx.set('profile', record)    
             } catch (err) {
                 console.log('error retrieving idx', err)
@@ -3053,6 +3071,7 @@ export async function logDonationEvent (curDaoIdx, daoContract, donationId, cont
 
      // Log Proposal Data
      let proposalDataRecord = await curDaoIdx.get('proposalData', curDaoIdx.id)
+     console.log('proposaldata', proposalDataRecord)
      if(!proposalDataRecord){
          proposalDataRecord = { data: [] }
      }
@@ -3060,7 +3079,9 @@ export async function logDonationEvent (curDaoIdx, daoContract, donationId, cont
     if(donation && curDaoIdx) {
        
         // Log New donation Event
+        console.log('don curdaoidx', curDaoIdx)
         let donationEventRecord = await curDaoIdx.get('donations', curDaoIdx.id)
+        console.log('donation event record', donationEventRecord)
         if(!donationEventRecord){
             donationEventRecord = { donations: [] }
         }
@@ -3079,6 +3100,7 @@ export async function logDonationEvent (curDaoIdx, daoContract, donationId, cont
             try {
                 await curDaoIdx.set('donations', donationEventRecord)
                 logged = true
+                console.log('logged', logged)
             } catch (err) {
                 console.log('error logging donation', err)
             }
@@ -3106,6 +3128,7 @@ export async function logDonationEvent (curDaoIdx, daoContract, donationId, cont
             try {
                 await curDaoIdx.set('proposalData', proposalDataRecord)
                 donationDataLogged = true
+                console.log('donationdatalogged', donationDataLogged)
             } catch (err) {
                 console.log('error logging donation proposal data', err)
             }
@@ -3144,7 +3167,14 @@ export const hasKey = async (key, accountId, near) => {
     return false
 }
 
-export function getStatus(flags) {
+
+export function getStatus(flags, finalized, votingPeriod, gracePeriod, afterVoting) {
+    console.log('flags', flags)
+    console.log('voting period', votingPeriod)
+    console.log('grace period', gracePeriod)
+    console.log('after voting', afterVoting)
+    console.log('finalized', finalized)
+    
    /* flags [
         0: sponsored, 
         1: processed, 
@@ -3152,25 +3182,39 @@ export function getStatus(flags) {
         3: cancelled,
     ]
     */
-    let status
-    
-    if(!flags[0] && !flags[1] && !flags[2] && !flags[3]) {
-        status = 'Submitted'
-    } else
-        if(flags[0] && !flags[1] && !flags[3]) {
-        status = 'Sponsored'
-    } else
-        if(flags[0] && flags[1] && flags[2] && !flags[3]) {
-        status = 'Passed'
-    } else
-        if(flags[0] && flags[1] && !flags[2] && !flags[3]) {
-        status = 'Not Passed'
-    } else
-        if(flags[3]) {
-        status = 'Cancelled'
+    let sponsored = flags[0]
+    console.log('sponsored', sponsored)
+    let processed = flags[1]
+    console.log('processed', processed)
+    let passed = flags[2]
+    console.log('passed', passed)
+    let cancelled = flags[3]
+    console.log('cancelled', cancelled)
+
+    if(cancelled){
+        return 'Cancelled'
     }
-    
-    return status
+    if(!sponsored && !processed && !passed && !cancelled){
+        return 'Submitted'
+    }
+    // if(sponsored && !processed && !passed && !cancelled && !afterVoting){
+    //     return 'Sponsored'
+    // }
+    if(sponsored && !processed && !cancelled && !finalized && votingPeriod && !gracePeriod){
+        return 'Voting'
+    }
+    if(sponsored && !processed && !cancelled && !finalized && !votingPeriod && gracePeriod){
+        return 'Grace'
+    }
+    if(sponsored && !processed && (afterVoting || finalized)){
+        return 'Awaiting Finalization'
+    }
+    if(sponsored && processed && passed){
+        return 'Passed'
+    }
+    if(sponsored && processed && !passed){
+        return 'Not Passed'
+    }    
   }
 
 export function getProposalType(flags) {
@@ -3550,4 +3594,190 @@ export async function signal(proposalId, signalType, curDaoIdx, accountId, propo
 }
 
 
+}
+
+export async function synchAccountLinks(curUserIdx){
+
+    //synch local links with what's stored for the account in ceramic
+    let allAccounts = await ceramic.downloadKeysSecret(curUserIdx, 'accountsKeys')
+
+    let storageLinks = get(ACCOUNT_LINKS, [])
+    
+    let k = 0
+    let didMakeChange = false
+    while(k < allAccounts.length){
+        // ensure all the existing online accounts and offline accounts match
+        let j = 0
+        while (j < storageLinks.length){
+            if(allAccounts[k].accountId == storageLinks[j].accountId){
+                if(allAccounts[k].key != storageLinks[j].key){
+                    allAccounts[k].key = storageLinks[j].key
+                    didMakeChange = true
+                }
+                if(allAccounts[k].owner != storageLinks[j].owner){
+                    allAccounts[k].owner = storageLinks[j].owner
+                    didMakeChange = true
+                }
+                if(allAccounts[k].keyStored != storageLinks[j].keyStored){
+                    allAccounts[k].keyStored = storageLinks[j].keyStored
+                    didMakeChange = true
+                }
+                if(allAccounts[k].publicKey != storageLinks[j].publicKey){
+                    allAccounts[k].publicKey = storageLinks[j].publicKey
+                    didMakeChange = true
+                }
+            }
+            j++
+        }
+    k++
+    }
+            
+    // add any accounts that are missing
+    let p = 0
+    let wasMissing = false
+    while(p < storageLinks.length){
+        let q = 0
+        let exists = false
+        while (q < allAccounts.length){
+            if(storageLinks[p].accountId == allAccounts[q].accountId){
+                exists = true
+            } 
+        q++
+        }
+        if(!exists){
+            allAccounts.push(storageLinks[p])
+            wasMissing = true
+        }
+        p++
+    }
+    
+    // remove duplicates
+    let copyArray = allAccounts
+    let z = 0
+    let wasDuplicate = false
+    while(z < allAccounts.length){
+        let r = 0
+        let count = 0
+        while(r < copyArray.length){
+            if(copyArray[r].accountId == allAccounts[z].accountId){
+                count++
+                console.log('count', count)
+                if(count > 1) {
+                    copyArray.splice(r,1)
+                    wasDuplicate = true
+                }
+            }
+            r++
+        }
+        z++
+    }
+    allAccounts = copyArray
+    console.log('copy array', copyArray)
+    console.log('didMakeChange', didMakeChange)
+    console.log('wasMissing', wasMissing)
+    console.log('wasDuplicate', wasDuplicate)
+    console.log('all accounts', allAccounts)
+
+    if(didMakeChange || wasMissing || wasDuplicate){
+        await ceramic.storeKeysSecret(curUserIdx, allAccounts, 'accountsKeys')
+        set(ACCOUNT_LINKS, allAccounts)
+    }
+}
+
+export async function updateCurrentCommunities() {
+    let currentCommunitiesList = await queries.getAllCommunities()
+    let sortedCommunities = _.sortBy(currentCommunitiesList.data.createDAOs, 'created')
+    console.log('currentCommunitieslist', currentCommunitiesList)
+    console.log('sortedCommunities', sortedCommunities)
+    let inactivatedCommunitiesList = await queries.getAllInactivatedCommunities()
+    let sortedInactivatedCommunities = _.sortBy(inactivatedCommunitiesList.data.inactivateDAOs, 'deactivated')
+    console.log('inactivatedCommunitieslist', inactivatedCommunitiesList)
+    console.log('sorted inactivatedCommunities', sortedInactivatedCommunities)
+
+    let currentCommunities = []
+    let lastIndexAdd
+    let lastIndexDelete
+
+    // first - start the loop to look through every one of the community entries
+    for(let k = 0; k < sortedCommunities.length; k++){
+        console.log('account', sortedCommunities[k].contractId)
+        // make sure it hasn't already been added to the current communities list
+        if(currentCommunities.filter(e => e.contractId == sortedCommunities[k].contractId).length == 0){
+                for(let n = 0; n < sortedCommunities.length; n++){
+                    if(sortedCommunities[k].contractId == sortedCommunities[n].contractId){
+                        lastIndexAdd = n
+                    }
+                }
+            console.log('lastIndexAdd', lastIndexAdd)
+            // step 2 - get index of the last time the contractId was deleted
+            for(let x = 0; x < sortedInactivatedCommunities.length; x++){
+                if(sortedCommunities[lastIndexAdd].contractId == sortedInactivatedCommunities[x].contractId){
+                    lastIndexDelete = x
+                }
+            }
+            console.log('lastIndexDelete', lastIndexDelete)
+            //  step 3 - if there is a last index added, compare last added with 
+            //  last deleted to see if it is still an active guild.  Push it to the
+            //  list of current guilds.
+            if(lastIndexAdd > 0 ){
+                console.log('comparison', parseFloat(sortedCommunities[lastIndexAdd].created) > parseFloat(sortedInactivatedCommunities[lastIndexDelete].deactivated))
+                if(parseFloat(sortedCommunities[lastIndexAdd].created) > parseFloat(sortedInactivatedCommunities[lastIndexDelete].deactivated)) {
+                    currentCommunities.push(sortedCommunities[lastIndexAdd])
+                }
+            }
+        }
+    }
+
+console.log('currentCommunities', currentCommunities)
+return currentCommunities
+}
+
+export function getProposalStatus(flags) {
+    console.log('flags', flags)
+    
+   /* flags [
+        0: sponsored, 
+        1: processed, 
+        2: didPass, 
+        3: cancelled,
+    ]
+    */
+    let sponsored = flags[0]
+    console.log('sponsored', sponsored)
+    let processed = flags[1]
+    console.log('processed', processed)
+    let passed = flags[2]
+    console.log('passed', passed)
+    let cancelled = flags[3]
+    console.log('cancelled', cancelled)
+
+    if(cancelled){
+        return 'Cancelled'
+    }
+    if(!sponsored && !processed && !passed && !cancelled){
+        return 'Submitted'
+    }
+    if(sponsored && !processed && !passed && !cancelled){
+         return 'Sponsored'
+    }
+    if(sponsored && processed && passed){
+        return 'Passed'
+    }
+    if(sponsored && processed && !passed){
+        return 'Not Passed'
+    }    
+}
+
+async function getPrice(currentNearPrice){
+    let getNearPrice = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd')
+    if(getNearPrice.data.near.usd != currentNearPrice){
+        update('', {nearPrice:getNearPrice.data.near.usd})
+    }
+    }
+
+function stop(timer) {
+if (timer) {
+    clearInterval(timer)
+    timer = 0
+}
 }
