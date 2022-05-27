@@ -60,7 +60,21 @@ const useStyles = makeStyles((theme) => ({
       minHeight: '100%',
       overflow: 'hidden',
       padding: '20px'
-    }
+    },
+    choose: {
+      webkitFileUploadButton: {
+      color: 'white',
+      display: 'inline-block',
+      background: '#1CB6E0',
+      border: 'none',
+      padding: '7px 15px',
+      fontWeight: '700',
+      borderRadius: '3px',
+      whiteSpace: 'nowrap',
+      cursor: 'pointer',
+      fontSize: '10pt'
+      }
+    },
     }));
 
 const imageName = require('../../img/default-profile.png') // default no-image avatar
@@ -404,7 +418,7 @@ export default function EditPayoutProposalForm(props) {
        
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             { loaded ? (<>
-              <DialogTitle id="form-dialog-title">Payout Proposal Details</DialogTitle>
+              <DialogTitle id="form-dialog-title">Request Payout</DialogTitle>
               <DialogContent>
                  
                   {referenceIds && referenceIds.length > 0 ?
@@ -430,7 +444,7 @@ export default function EditPayoutProposalForm(props) {
                   />
                   ) : null }
                   {errors.payoutProposalTitle && <p style={{color: 'red'}}>You must provide a payout proposal title.</p>}
-                 
+                  <Typography variant="h6" style={{marginTop: '20px', marginBottom:'10px'}}>Details</Typography>
                   <Typography variant="body1">Please provide detail for your payout request including proof of work completion if applicable:</Typography>
                   <Paper style={{padding: '5px'}}>
                   <Editor
@@ -446,52 +460,50 @@ export default function EditPayoutProposalForm(props) {
                   {errors.details && <p style={{color: 'red'}}>You must provide the details showing proof of project completion.</p>}
                   
                   <Grid container justifyContent="space-between" alignItems="flex-end" spacing={1}>
-                    <Typography variant="body1" style={{marginTop: '10px', marginBottom:'10px'}}>Attach Files</Typography>
-     
-                            <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
-                               
-                            </Grid>
-                            {
-                              fileFields.map((field, index) => {
-                              
-                                return(
-                                  <Grid container spacing={1} style={{marginBottom: '5px'}} key={field.id}>
-                                    <Grid item xs={10} sm={10} md={10} lg={10} xl={10} >
-                                     
-                                      <TextField
-                                        fullWidth
-                                        type="file"
-                                        margin="normal"
-                                        className={classes.textField}
-                                        id="fileName"
-                                        variant="outlined"
-                                        name={`files[${index}].hash`}
-                                        label={field.name}
-                                      
-                                        onChange={() => captureFile(index, event)}
-                                        InputProps={{
-                                          endAdornment: <div>
-                                          <Tooltip TransitionComponent={Zoom} title="Select file to attach.">
-                                              <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
-                                          </Tooltip>
-                                          </div>
-                                        }}
-                                        inputRef={register({
-                                          required: false                            
-                                        })}
-                                      />
-                                    
+                    <Typography variant="h6" style={{marginTop: '20px', marginBottom:'10px'}}>Attach Files</Typography>
+                      
+                        {fileFields.map((field, index) => {
+                        console.log('field', field)
+                          return(
+                            <Paper elevation={3} style={{padding: '5px', marginBottom: '5px'}}>
+                            <Grid container spacing={1} style={{marginBottom: '5px'}} key={field.id}>
+                              <Grid item xs={10} sm={10} md={10} lg={10} xl={10} >
+                                {field.name ? <Typography variant="body1">{field.name}</Typography>
+                                :
+                                <TextField
+                                  fullWidth
+                                  type="file"
+                                  margin="normal"
+                                  className={classes.choose}
+                                  id="fileName"
+                                  variant="outlined"
+                                  name={`files[${index}].hash`}
+                                  label={field.name}
                                 
-                                   
-                                    </Grid>
-                        
-                                    <Button type="button" onClick={() => fileFieldsRemove(index)} style={{float: 'right', marginLeft:'10px'}}>
-                                      <DeleteForeverIcon />
-                                    </Button>
-                                  </Grid>
-                                )
-                              }) 
-                            }
+                                  onChange={() => captureFile(index, event)}
+                                  InputProps={{
+                                    endAdornment: <div>
+                                    <Tooltip TransitionComponent={Zoom} title="Select file to attach.">
+                                        <InfoIcon fontSize="small" style={{marginLeft:'5px', marginTop:'-3px'}} />
+                                    </Tooltip>
+                                    </div>
+                                  }}
+                                  inputRef={register({
+                                    required: false                            
+                                  })}
+                                />
+                                }
+                              </Grid>
+                              <Grid item xs={2} sm={2} md={2} lg={2} xl={2} >
+                                <Button type="button" onClick={() => fileFieldsRemove(index)} style={{float: 'right', marginLeft:'10px'}}>
+                                  <DeleteForeverIcon />
+                                </Button>
+                              </Grid>
+                            </Grid>
+                            </Paper>
+                          )
+                        }) 
+                      }
                     {!fileFields || fileFields.length == 0 ?
                       <Typography variant="body1" style={{marginLeft: '5px'}}>No attached files.</Typography>
                     : null }
@@ -502,28 +514,30 @@ export default function EditPayoutProposalForm(props) {
                       >
                         Add File
                       </Button>
+                    
                     </Grid>
-                </DialogContent>
+                    </DialogContent>
                
-              {!finished ? <LinearProgress className={classes.progress} style={{marginBottom: '25px' }}/> : (
-              <DialogActions>
-              <Button onClick={handleSubmit(onSubmit)} color="primary" type="submit">
-                  Submit Details
-                </Button>
-                <Button onClick={handleClose} color="primary">
-                  Cancel
-                </Button>
-              </DialogActions>)}
-              <Divider style={{marginBottom: 10}}/>
-              
+                    {!finished ? <LinearProgress className={classes.progress} style={{marginBottom: '25px' }}/> 
+                    : (
+                    <Paper elevation={5} >
+                    <DialogActions>
+                    <Button onClick={handleSubmit(onSubmit)} color="primary" type="submit">
+                        Submit Details
+                      </Button>
+                      <Button onClick={handleClose} color="primary">
+                        Cancel
+                      </Button>
+                    </DialogActions>
+                    </Paper>
+                    )}
+             
               </>) : <><div className={classes.waiting}><div class={flexClass}><CircularProgress/></div><Grid container spacing={1} alignItems="center" justifyContent="center" >
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                 <Typography variant="h5" align="center">Loading Proposal Data</Typography>
               </Grid>
               </Grid></div></> }
             </Dialog>
-           
           </div>
-        
         )
 }

@@ -25,7 +25,8 @@ const useStyles = makeStyles((theme) => ({
       margin: 'auto',
       width: '100%',
       minWidth: '100%',
-      marginBottom: '10px'
+      marginBottom: '10px',
+      paddingLeft: '2px'
     },
     avatar: {
       backgroundColor: red[500],
@@ -66,29 +67,17 @@ export default function MilestoneCard(props) {
       applicant,
       paid,
       cancelled,
-      editForm
+      editForm,
+      form
     } = props
 
     const {
       contractId
     } = useParams()
 
+console.log('id:', id)
+console.log('cancelled', cancelled)
     const classes = useStyles()
-
-
-    useEffect(
-        () => {
-         
-        async function fetchData() {
-        }
-        
-        fetchData()
-          .then((res) => {
-           
-          })
-
-    }, []
-    )
     
     function formatDate(timestamp) {
       let stringDate = timestamp.toString()
@@ -97,8 +86,9 @@ export default function MilestoneCard(props) {
     }
     
     let referenceIds = [{
-      proposal: proposalId,
-      milestone: id
+      proposal: proposalId.toString(), 
+      milestone: id,
+      title: name
     }]
 
     console.log('reference ids', referenceIds)
@@ -121,7 +111,6 @@ export default function MilestoneCard(props) {
       setCancelCommitmentProposalClicked(property)
     }
 
-
     function handleExpanded() {
       setAnchorEl(null)
     }
@@ -130,60 +119,44 @@ export default function MilestoneCard(props) {
         <>
         <Card raised={true} className={classes.card} >
           <Grid container justifyContent="flex-start" alignItems="center" spacing={1}>
-            <Grid item xs={1} sm={1} md={1} lg={1} xl={1} align="center">
-              <Typography variant="body2" noWrap="true">{id}</Typography>
-            </Grid>
             <Grid item xs={3} sm={3} md={3} lg={3} xl={3} align="left" >
               <Typography variant="body2">{name}</Typography>
             </Grid>
-            <Grid item xs={3} sm={3} md={3} lg={3} xl={3} align="left" >
+            <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="left" >
               <Typography variant="body2">{description}</Typography>
             </Grid>
             <Grid item xs={2} sm={2} md={2} lg={2} xl={2} align="left" >
               <Typography variant="body2">{deadline}</Typography>
             </Grid>
-            <Grid item xs={1} sm={1} md={1} lg={1} xl={1} align="left">
-              <Typography variant="body2" align="center">{payout} Ⓝ</Typography>
+            <Grid item xs={3} sm={3} md={3} lg={3} xl={3} align="left">
+              <Typography variant="body2" align="center">{parseFloat(payout).toFixed(2)} Ⓝ</Typography>
             </Grid>
-            <Grid item xs={2} sm={2} md={2} lg={2} xl={2} align="center">
-            {!editForm ? 
-              paid ? <Typography variant="overline">Paid</Typography> 
-                  :
-                  !cancelled ? 
-                    proposalStatus == 'Passed' && accountId == applicant ? 
-                    (
-                      <IconButton onClick={handlePayoutProposalClick}>
-                        <Tooltip title="Request Payout" placement="top" >
-                          <MonetizationOnIcon />
-                        </Tooltip>
-                      </IconButton>
-                    ) : 
-                      Date.now() < new Date(deadline) ? 
+            {proposalStatus == 'Passed' ?
+              <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="right">
+              {!editForm ? 
+                paid ? 
+                    <Typography variant="body1">Paid</Typography> 
+                    :
+                    !cancelled ? 
+                      proposalStatus == 'Passed' && accountId == applicant ? 
                       (<>
-                      <IconButton onClick={handlePayoutProposalClick}>
-                        <Tooltip title="Request Payout" placement="top" >
-                          <MonetizationOnIcon />
-                        </Tooltip>
-                      </IconButton>
-                      </>)
-                      : 
-                      (<>
-                        <IconButton onClick={handlePayoutProposalClick}>
-                          <Tooltip title="Request Payout" placement="top" >
-                            <MonetizationOnIcon />
-                          </Tooltip>
+                        <IconButton variant="outlined" onClick={handlePayoutProposalClick}>
+                          <MonetizationOnIcon/>
                         </IconButton>
-                        <IconButton onClick={handleCancelCommitmentProposalClick}>
-                          <Tooltip title="Propose Cancellation" placement="top" >
+                        <IconButton variant="outlined" onClick={handleCancelCommitmentProposalClick}>
+                          <RestoreFromTrashIcon />
+                        </IconButton>
+                      </>
+                      ) : 
+                        proposalStatus == 'Passed' && Date.now() > new Date(deadline) ? 
+                          <IconButton variant="outlined" onClick={handleCancelCommitmentProposalClick}>
                             <RestoreFromTrashIcon />
-                          </Tooltip>
-                        </IconButton>
-                        </>)
-                  : <Typography variant="overline">Cancelled</Typography>
-              : null
-            }
-           
-            </Grid>
+                          </IconButton>
+                        : null
+                    : <Typography variant="overline">Cancelled</Typography>
+              : null }
+              </Grid>
+            : null }
           </Grid>
         </Card>
 

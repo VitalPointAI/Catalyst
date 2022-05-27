@@ -113,7 +113,8 @@ export default function EditCancelCommitmentProposalForm(props) {
       didRegistryContract,
       appIdx,
       curDaoIdx,
-      contract
+      contract,
+      isUpdated
     } = state
 
     const {
@@ -391,7 +392,7 @@ export default function EditCancelCommitmentProposalForm(props) {
       }
      
       setFinished(true)
-      handleUpdate(true)
+      update('', {isUpdated: !isUpdated})
       setOpen(false)
       handleClose()
     }

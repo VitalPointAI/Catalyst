@@ -223,7 +223,7 @@ export default function MemberProposalCard(props) {
     const [rageQuitEnding, setRageQuitEnding] = useState('calculating')
 
     const [showSponsorButton, setShowSponsorButton] = useState(false)
-    const [newProposal, setNewProposal] = useState(false)
+    const [aNewProposal, setANewProposal] = useState(false)
 
     const [anchorEl, setAnchorEl] = useState(null)
 
@@ -254,7 +254,7 @@ export default function MemberProposalCard(props) {
         let d = 0
         while(d < newProposal.length){
           if(newProposal[d].contractId==contractId && newProposal[d].new == true){
-            setNewProposal(true)
+            setANewProposal(true)
             del(NEW_MEMBER_PROPOSAL)
           }
         d++
@@ -467,7 +467,7 @@ export default function MemberProposalCard(props) {
     }
 
     return(<>
-      {newProposal ? (
+      {aNewProposal ? (
         <EditMemberProposalForm
         handleEditMemberProposalDetailsClickState={handleEditMemberProposalDetailsClickState}
         applicant={applicant}
@@ -531,9 +531,17 @@ export default function MemberProposalCard(props) {
             onClick={handleMemberProposalDetailsClick}
             className={classes.btnTitle}
             >
-              <Avatar src={applicantAvatar} className={classes.large}  />
+            {proposerAccountType != 'guild' ?<>
+              <Avatar src={pfpApplicantAvatar != imageName && pfpApplicantAvatar != '' ? pfpApplicantAvatar : applicantAvatar} className={classes.large} /> 
               <center><Chip label={applicantName != '' ? applicantName : applicant} style={{marginBottom: '3px'}}/><br></br>
               <Chip variant="outlined" label={applicant} style={{fontSize: '60%'}}/></center>
+              </>
+              :<>
+              <Avatar src={pfpApplicantLogo != logoName && pfpApplicantLogo != '' ? pfpApplicantLogo : applicantLogo} className={classes.large}  />
+              <center><Chip label={applicantName != '' ? applicantName : applicant} style={{marginBottom: '3px'}}/><br></br>
+              <Chip variant="outlined" label={applicant} style={{fontSize: '60%'}}/></center>
+              </>
+            } 
             </Button>
           </Grid>
 

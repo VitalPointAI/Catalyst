@@ -255,7 +255,7 @@ export default function OpportunityProposalCard(props) {
         let d = 0
         while(d < newProposal.length){
           if(newProposal[d].contractId==contractId && newProposal[d].new == true){
-            setNewProposal(true)
+            setANewProposal(true)
             del(NEW_PROPOSAL_TRIGGER)
           }
         d++
@@ -629,7 +629,7 @@ export default function OpportunityProposalCard(props) {
           </CardContent>
 
           <CardActions className={classes.cardAction}>
-
+          
             {status == 'Voting' ? (
                
               <Grid container alignItems="center" justifyContent="space-between" spacing={0} style={{margin: '0px', position: 'absolute', bottom:'5px', right:'1px'}}>
@@ -751,7 +751,7 @@ export default function OpportunityProposalCard(props) {
                   </Grid>
                 </Grid>
               ) : null }
-               
+              
               {status == 'Submitted' || status == 'Awaiting Finalization' ? (
                 <div className={classes.bottom} style={{margin: 0}}>
                 <Divider className={classes.divider}/>

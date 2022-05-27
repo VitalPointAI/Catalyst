@@ -61,6 +61,7 @@ class DAO {
                 'submitAssignRoleProposal',
                 'submitReputationFactorProposal',
                 'submitPayoutProposal',
+                'submitCancelCommit',
                 'sponsorProposal',
                 'submitVote',
                 'processProposal',

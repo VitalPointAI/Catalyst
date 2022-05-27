@@ -174,7 +174,7 @@ export default function ProposalList(props) {
       if(curDaoIdx && currentPeriod){
       
         let newLists = await resolveStatus(proposalEvents)
-      
+        console.log('proposalevents', proposalEvents)
         setProposalList(newLists.allProposals)
         setVotingList(newLists.votingProposals)
         setQueueList(newLists.queueProposals)

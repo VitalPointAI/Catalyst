@@ -256,7 +256,7 @@ export default function FundingProposalCard(props) {
         let d = 0
         while(d < newProposal.length){
           if(newProposal[d].contractId==contractId && newProposal[d].new == true){
-            setNewProposal(true)
+            setANewProposal(true)
             del(NEW_PROPOSAL_TRIGGER)
           }
         d++
@@ -781,7 +781,6 @@ export default function FundingProposalCard(props) {
                       (
                         <><Button 
                             color="primary"
-                            variant="outlined"
                             onClick={(e) => handleSponsorConfirmationClick(requestId, proposalType, funding)}
                           >
                           Sponsor

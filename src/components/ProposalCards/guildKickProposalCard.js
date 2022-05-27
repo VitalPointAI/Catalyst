@@ -252,7 +252,7 @@ export default function GuildKickProposalCard(props) {
         let d = 0
         while(d < newProposal.length){
           if(newProposal[d].contractId==contractId && newProposal[d].new == true){
-            setNewProposal(true)
+            setANewProposal(true)
             del(NEW_PROPOSAL_TRIGGER)
           }
         d++

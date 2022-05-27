@@ -223,6 +223,10 @@ const list = (anchor) => (
     </List>
     <Divider />
     <Typography variant='h6'>Account</Typography>
+    <Typography variant='body1' style={{fontSize: '60%'}}>
+      {accountId.length <= 30 ? accountId : accountId.substring(0,28) + "..."}<br></br>
+      {accountType}
+    </Typography>
     <List>
       {accountType == 'guild' ? (
         <a href="https://nearguilds.live">
@@ -241,22 +245,18 @@ const list = (anchor) => (
         )}
     </List>
     <Divider />
-    <Typography variant='h6'>Communities</Typography>
-    <List>      
+    <Typography variant='h6'>Project Communities</Typography>
+    <List>
+      <ListItem className='createCommunity' button key={8} onClick={(e) => addDaoClick(e)}>
+      <ListItemIcon><AddBoxIcon /></ListItemIcon>
+      <ListItemText primary='Create New'/>
+    </ListItem>
     <Link to='/explore'>
       <ListItem className='exploreCommunities' button key={6}>
         <ListItemIcon><ExploreIcon /></ListItemIcon>
-        <ListItemText primary='Explore Communities'/>
+        <ListItemText primary='Explore'/>
       </ListItem>
     </Link>
-    <ListItem button key={7} onClick={(e) => editDaoClick(e)}>
-      <ListItemIcon><EditIcon /></ListItemIcon>
-      <ListItemText primary='Edit Community Info'/>
-    </ListItem>
-    <ListItem className='createCommunity' button key={8} onClick={(e) => addDaoClick(e)}>
-        <ListItemIcon><AddBoxIcon /></ListItemIcon>
-        <ListItemText primary='Create Community'/>
-      </ListItem>
     </List>
     <Divider />
     <Typography variant='h6'>Fungible Tokens</Typography>
@@ -288,40 +288,40 @@ const list = (anchor) => (
     </List>
     <Divider />
     <Typography variant='h6'>Account</Typography>
+    <Typography variant='body1' style={{fontSize: '60%'}}>
+      {accountId.length <= 30 ? accountId : accountId.substring(0,28) + "..."}<br></br>
+      ({accountType})
+    </Typography>
     <List>
       {accountType == 'guild' ? (
         <a href="https://nearguilds.live">
           <ListItem className='managePersona' button key={2}>
             <ListItemIcon><Avatar src={imageName} className={classes.small}/></ListItemIcon>
-            <ListItemText primary='Manage Guild'/>
+            <ListItemText primary='Manage'/>
           </ListItem>
         </a>)
         :(
           <a href="https://nearpersonas.live">
             <ListItem className='managePersona' button key={2}>
               <ListItemIcon><Avatar src={imageName} className={classes.small}/></ListItemIcon>
-              <ListItemText primary='Manage Persona'/>
+              <ListItemText primary='Manage'/>
             </ListItem>
           </a>
         )}
     </List>
     <Divider />
-    <Typography variant='h6'>Communities</Typography>
-    <List>      
+    <Typography variant='h6'>Project Communities</Typography>
+    <List>
+    <ListItem button key={7} onClick={(e) => addDaoClick(e)}>
+      <ListItemIcon><AddBoxIcon /></ListItemIcon>
+      <ListItemText primary='Create New'/>
+    </ListItem>     
     <Link to='/explore'>
       <ListItem button key={5}>
         <ListItemIcon><ExploreIcon /></ListItemIcon>
-        <ListItemText primary='Explore Communities'/>
-      </ListItem>
-    </Link>
-    <ListItem button key={6} onClick={(e) => editDaoClick(e)}>
-        <ListItemIcon><EditIcon /></ListItemIcon>
-        <ListItemText primary='Edit Community Info'/>
+        <ListItemText primary='Explore'/>
     </ListItem>
-    <ListItem button key={7} onClick={(e) => addDaoClick(e)}>
-        <ListItemIcon><AddBoxIcon /></ListItemIcon>
-        <ListItemText primary='Create New Community'/>
-      </ListItem>
+    </Link>
     </List>
     <Divider />
     <Typography variant='h6'>Fungible Tokens</Typography>

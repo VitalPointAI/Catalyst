@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { submitProposal, STORAGE } from '../../state/near'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -61,6 +62,7 @@ const useStyles = makeStyles((theme) => ({
   },
   }));
 
+const defaultImage = require('../../img/default_logo.png')
 
 export default function CancelCommitmentProposal(props) {
   const [open, setOpen] = useState(true)
@@ -68,6 +70,9 @@ export default function CancelCommitmentProposal(props) {
   const [applicant, setApplicant] = useState(props.accountId)
   const [payout, setPayout] = useState('')
   const [confirm, setConfirm] = useState(false)
+  const [communityName, setCommunityName] = useState('')
+  const [logo, setLogo] = useState(defaultImage)
+  const [usdConvert, setUsdConvert] = useState('0')
 
   const classes = useStyles()
 
@@ -75,18 +80,64 @@ export default function CancelCommitmentProposal(props) {
 
   const { 
     state,
-    handlePayoutProposalClickState,
+    handleCancelCommitmentProposalClickState,
     proposalDeposit,
     tokenName,
     depositToken,
     reference,
     contractId,
-    milestonePayout
+    milestonePayout,
+    appIdx,
+    did,
+    passedContractId
      } = props
 
+    useEffect(
+    () => {
+      async function fetchData() {
+        // get community information
+        
+        if((contractId || passedContractId) && state.appIdx){
+          let daoResult
+          let thisContractId
+          contractId ? thisContractId = contractId : thisContractId = passedContractId
+          if(!did){
+            let thisDid = await ceramic.getDid(thisContractId, state.daoFactory, state.didRegistryContract)
+            daoResult = await state.appIdx.get('daoProfile', thisDid)
+          } else {
+            daoResult = await state.appIdx.get('daoProfile', did)
+          }
+          
+          if(daoResult){
+            daoResult.name ? setCommunityName(daoResult.name) : setCommunityName('')
+            daoResult.logo ? setLogo(daoResult.logo) : setLogo(defaultImage)
+          }
+        }
+      }
+
+      fetchData()
+        .then((res) => {
+
+        })
+  
+     }, [contractId, passedContractId, state.appIdx]
+     )
+    
+     useEffect(
+       () => {
+        if(state.nearPrice && milestonePayout){
+          handleConversion(milestonePayout)
+        }
+       }, [state, milestonePayout]
+     )
+  
+  function handleConversion(amount){
+    let us = (parseFloat(amount) * state.nearPrice).toFixed(2)
+    setUsdConvert(us)
+  }
 
   const handleClose = () => {
-    handlePayoutProposalClickState(false)
+    handleCancelCommitmentProposalClickState(false)
   };
   
   const handleApplicantChange = (event) => {
@@ -100,22 +151,23 @@ export default function CancelCommitmentProposal(props) {
   const handleConfirmChange = (event) => {
     setConfirm(event.target.checked);
   }
-
+  console.log('reference', reference)
   const onSubmit = async (values) => {
     event.preventDefault()
     setFinished(false)
 
-    let references = []
+    // let references = []
 
-    if(reference){
-      Object.entries(reference[0]).map(([key, value]) => {
+    // if(reference){
+     
+    //   reference.map((ref) => {
         
-        references.push({
-          'keyName': key,
-          'valueSetting': value.toString()
-        })
-      })
-    }
+    //     references.push({
+    //       'keyName': ref.,
+    //       'valueSetting': value.toString()
+    //     })
+    //   })
+    // }
    
     let actualPayout
     milestonePayout ? actualPayout = milestonePayout : actualPayout = payout
@@ -124,14 +176,14 @@ export default function CancelCommitmentProposal(props) {
       await submitProposal(
         state.wallet,
         contractId,
-        'Payout',
+        'CancelCommit',
         applicant,
         '0',
         '0',
         '0',
         actualPayout.toString(),
         [''],
-        references
+        reference
         )
       } catch (err) {
         console.log('problem submitting cancel commit proposal', err)
@@ -141,59 +193,32 @@ export default function CancelCommitmentProposal(props) {
   return (
     <div>
       <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Cancel Commitment Payout</DialogTitle>
-        <DialogContent className={classes.rootForm}>  
+        <Grid container alignItems="center" justifyContent="center" style={{padding: '5px'}}>
+          <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
+            <div style={{
+              height: '50px',
+              backgroundImage: `url(${logo})`, 
+              backgroundSize: 'contain',
+              backgroundPosition: 'center', 
+              backgroundRepeat: 'no-repeat',
+              backgroundOrigin: 'content-box'
+            }}/>
+            {logo ? null : <Typography variant="h6">{communityName ? communityName : contractId ? contractId : passedContractId }</Typography>}
+          </Grid>
+        </Grid>
+         
+        <DialogTitle id="form-dialog-title">Cancel Commitment</DialogTitle>
+        <DialogContent className={classes.rootForm}>
           <div>
-            <TextField
-              autoFocus
-              margin="dense"
-              id="payout-proposal-applicant-receiver"
-              variant="outlined"
-              name="payoutProposalApplicant"
-              label="Applicant Account"
-              value={applicant}
-              onChange={handleApplicantChange}
-              inputRef={register({
-                  required: true,
-                  validate: value => value != '' || <p style={{color:'red'}}>You must specify the account requesting the cancellation.</p>
-              })}
-              placeholder={applicant}
-            />
-            {errors.payoutProposalApplicant && <p style={{color: 'red'}}>You must provide a valid NEAR account.</p>}
-          </div>
-          <div>
-          {!milestonePayout ? (
-            <TextField
-              margin="dense"
-              id="payout-proposal-funds-requested"
-              variant="outlined"
-              name="payout"
-              label="Payout Requested"
-              placeholder="e.g. 100000"
-              value={milestonePayout ? milestonePayout : payout}
-              onChange={handlePayoutChange}
-              inputRef={register({
-                  required: true,
-                  validate: value => value != '' || <p style={{color:'red'}}>You must specify the amount of the payout.</p>
-              })}
-              InputProps={{
-                endAdornment: <><InputAdornment position="end">{tokenName}</InputAdornment>
-                <Tooltip TransitionComponent={Zoom} title="The amount of NEAR the applicant is requesting to receive. The payout must be an amount already committed for this project.">
-                    <InfoIcon fontSize="small" style={{marginRight:'5px', marginTop:'-3px'}} />
-                </Tooltip>
-                </>
-              }}
-            />
-          ) : (<>
-            <Typography variant="h6">Payout Requested: {milestonePayout} {tokenName}</Typography>
-            <Typography variant="body1">For proposal: {reference[0].proposal}, milestone: {reference[0].milestone}</Typography>
-          </>)}
+            <Typography variant="h6">Cancel: {milestonePayout} {tokenName}</Typography>
+            <Typography variant="caption" color="textSecondary">{usdConvert ? `~$${usdConvert} USD`: null}</Typography>
+            <Typography variant="body1">Proposal: {reference[0].proposal}, Milestone: {reference[0].title}</Typography>
           </div>
         <Card>
         <CardContent>
           <WarningIcon fontSize='large' className={classes.warning} />
-          <Typography variant="body1">You are requesting to cancel the {milestonePayout ? milestonePayout : payout} Ⓝ reserved for this milestone. After submitting
-          this proposal, you must provide enough supporting detail help other members consider whether to approve your proposal or not.</Typography>
+          <Typography variant="body1">You propose to cancel the {milestonePayout ? milestonePayout : payout} Ⓝ reserved for this milestone. After submitting,
+          you must provide supporting detail and justification for the proposal.</Typography>
           <Grid container className={classes.confirmation} spacing={1}>
             <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
               <Checkbox
@@ -207,13 +232,16 @@ export default function CancelCommitmentProposal(props) {
               />
             </Grid>
             <Grid item xs={10} sm={10} md={10} lg={10} xl={10} style={{margin:'auto'}}>
-              <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{parseFloat(proposalDeposit) + parseFloat(STORAGE)} Ⓝ</b>:</Typography>
+              <Typography variant="body2" gutterBottom>You understand this proposal requires you to transfer <b>{parseFloat(proposalDeposit) + parseFloat(STORAGE)} Ⓝ</b>:</Typography>
               <Grid container justifyContent="center" spacing={0}>
                 <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                   <Typography variant="body2"><u>Proposal passes:</u></Typography>
                     <ul style={{paddingInlineStart:'10px', paddingInlineEnd:'10px'}}>
                       <li>
-                        <Typography variant="body2">Community escrow fund will decrease by {milestonePayout ? milestonePayout : payout} Ⓝ.</Typography>
+                        <Typography variant="body2">Escrow decreases by {milestonePayout ? milestonePayout : payout} Ⓝ.</Typography>
+                      </li>
+                      <li>
+                        <Typography variant="body2">Treasury increases by {milestonePayout ? milestonePayout : payout} Ⓝ.</Typography>
                       </li>
                       <li>
                         <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you</Typography>
@@ -227,7 +255,7 @@ export default function CancelCommitmentProposal(props) {
                   <Typography variant="body2"><u>Proposal fails or is cancelled:</u></Typography>
                     <ul style={{paddingInlineStart:'10px', paddingInlineEnd:'10px'}}>
                       <li>
-                        <Typography variant="body2">Community escrow fund does not change.</Typography>
+                        <Typography variant="body2">Escrow and treasury do not change.</Typography>
                       </li>
                       <li>
                         <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you.</Typography>

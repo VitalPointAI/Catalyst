@@ -72,6 +72,7 @@ export default function CommentForm(props) {
       originalContent, 
       proposalId,
       avatar,
+      logo,
       name
   } = props
 

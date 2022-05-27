@@ -294,6 +294,43 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     const appIdx = await ceramic.getAppIdx(didRegistryContract, account)
     console.log('appidx', appIdx)
 
+    const updateCurUserPersonaState = async (didRegistryContract, daoFactory, appIdx) => {
+        const imageName = require('../img/default-profile.png') // default no-image avatar
+        const logoName = require('../img/default_logo.png') // default no-logo image
+        let accountType
+        try{
+            accountType = await didRegistryContract.getType({accountId: proposer})
+            update('', {accountType})
+            } catch (err) {
+            accountType = 'none'
+            update('', {accountType})
+            console.log('account not registered, not type avail', err)
+        }
+        // Current User
+        let curUserDid = await ceramic.getDid(accountId, daoFactory, didRegistryContract)
+        if(accountType != 'guild') {
+            let result = await appIdx.get('profile', curUserDid)
+            console.log('indiv result', result)
+            if(result){
+                result.avatar ? update('', {curUserAvatar: result.avatar}) : update('', {curUserAvatar: imageName})
+                result.name ? update('', {curUserName: result.name}) : update('', {curUserName: ''})
+                result.profileNft ? update('', {pfpCurUserAvatar: result.profileNftavatar}) : update('', {pfpCurUserAvatar: ''})
+            }
+        } else {
+            if(accountType == 'guild'){
+                let result = await appIdx.get('guildProfile', curUserDid)
+                console.log('guild result', result)
+                if(result){
+                    result.logo ? update('', {curUserLogo: result.logo}) : update('', {curUserLogo: logoName})
+                    result.name ? update('', {curUserName: result.name}) : update('', {curUserName: ''})
+                    result.profileNft ? update('', {pfpCurUserLogo: result.profileNft}) : update('', {pfpCurUserLogo: ''})
+                }
+            }
+        }
+    }
+    
+    await updateCurUserPersonaState(didRegistryContract, daoFactory, appIdx)
+
     // let curUserIdx = await ceramic.getUserIdx(account, appIdx, daoFactory, didRegistryContract)
     // console.log('curuseridx', curUserIdx)
 
@@ -306,23 +343,9 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         console.log('problem getting all announcements', err)
     }
 
-    let did
-    // if (curUserIdx) {
-    //     did = curUserIdx.id
-    // }
+    let did = await didRegistryContract.getDID({accountId: accountId})
 
-    did = await didRegistryContract.getDID({accountId: accountId})
-
-    console.log('near did', did)
-
-    let accountType
-    try{
-        accountType = await didRegistryContract.getType({accountId: accountId})
-    } catch (err) {
-        accountType = 'none'
-        console.log('account not registered, not type avail', err)
-    }
-    console.log('accounttype', accountType)
+    
 
     let verificationStatus
     try{
@@ -498,24 +521,14 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         }
     }
 
-    // let timer
-    
-    // let getNearPrice = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd')
-    // update('', {nearPrice:getNearPrice.data.near.usd})
-    
-    // timer = setInterval(getPrice(getNearPrice.data.near.usd), 5000)
-   
-
     update('', { 
         did,
-        accountType,
         ftFactory, 
         currentTokensList, 
         didRegistryContract, 
         appIdx, 
         account, 
         accountId, 
-      //  curUserIdx, 
         daoFactory, 
         currentDaosList,
         currentActiveDaos,
@@ -904,6 +917,20 @@ export async function submitProposal(
         case 'Payout':
             try{
                 await daoContract.submitPayoutProposal({
+                    applicant: applicant,
+                    paymentRequested: parseNearAmount(paymentRequested),
+                    paymentToken: depositToken,
+                    referenceIds: references,
+                    contractId: contractId
+                    }, GAS, parseNearAmount((parseFloat(proposalDeposit) + parseFloat(STORAGE)).toString()))
+                } catch (err) {
+                    console.log('submit payout proposal failed', err)
+                    return false
+                }
+                break
+        case 'CancelCommit':
+            try{
+                await daoContract.submitCancelCommit({
                     applicant: applicant,
                     paymentRequested: parseNearAmount(paymentRequested),
                     paymentToken: depositToken,

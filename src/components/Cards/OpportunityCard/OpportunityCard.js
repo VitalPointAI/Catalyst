@@ -209,6 +209,9 @@ export default function OpportunityCard(props) {
       contractId
     } = useParams()
 
+    console.log('opp card proposal deposit', proposalDeposit)
+    console.log('opp card passed prop deposit', passedProposalDeposit)
+
 
     useEffect(() => {
       async function fetchPrice() {
@@ -620,7 +623,7 @@ export default function OpportunityCard(props) {
           passedContractId={contractId ? contractId : passedContractId}
           handleFundingProposalClickState={handleFundingProposalClickState}
           depositToken={'Ⓝ'}
-          proposalDeposit={passedProposalDeposit? passedProposalDeposit: proposalDeposit}
+          passedProposalDeposit={passedProposalDeposit? formatNearAmount(passedProposalDeposit): proposalDeposit}
           tokenName={'Ⓝ'}
           usd={usd}
           applicant={accountId} 
@@ -636,7 +639,7 @@ export default function OpportunityCard(props) {
           contractId={contractId ? contractId : passedContractId}
           state={state}
           depositToken={'Ⓝ'}
-          proposalDeposit={passedProposalDeposit? passedProposalDeposit: proposalDeposit}
+          passedProposalDeposit={passedProposalDeposit? formatNearAmount(passedProposalDeposit): proposalDeposit}
           handleMemberProposalClickState={handleMemberProposalClickState} 
           accountId={accountId}
           appIdx={appIdx}

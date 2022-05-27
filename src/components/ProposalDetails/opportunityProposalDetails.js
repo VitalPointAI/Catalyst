@@ -756,7 +756,7 @@ export default function OpportunityProposalDetails(props) {
                 aria-controls="panel1a-content"
                 id="panel1a-header"
               >
-              <Typography className={classes.heading}>Comments and Questions</Typography>
+              <Typography className={classes.heading}>Comments</Typography>
               </AccordionSummary>
               <AccordionDetails>
               <Grid container spacing={1}>
@@ -765,7 +765,7 @@ export default function OpportunityProposalDetails(props) {
               </Grid>
             
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-              <Typography variant="h5" style={{marginLeft: '10px'}}>Leave a Comment/Ask a Question</Typography>
+              <Typography variant="h5" style={{marginLeft: '10px'}}>New Comment</Typography>
                   <CommentForm
                     reply={false}
                     proposalApplicant={applicant}

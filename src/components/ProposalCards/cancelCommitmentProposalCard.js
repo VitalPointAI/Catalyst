@@ -248,6 +248,7 @@ export default function CancelCommitmentProposalCard(props) {
         }
       },[tributeToken]
     )
+    console.log('cancel card ref ids', referenceIds)
 
     useEffect(
       () => {
@@ -358,7 +359,7 @@ export default function CancelCommitmentProposalCard(props) {
                   let i = 0
                   while (i < propResult.proposals.length){
                     if(parseInt(propResult.proposals[i].proposalId) == requestId){
-                      propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('Details Required')
+                      propResult.proposals[i].title ? setTitle(propResult.proposals[i].title) : setTitle('Liberate Funds')
                       propResult.proposals[i].likes ? setCurrentLikes(propResult.proposals[i].likes) : setCurrentLikes([])
                       propResult.proposals[i].dislikes ? setCurrentDisLikes(propResult.proposals[i].dislikes) : setCurrentDisLikes([])
                       propResult.proposals[i].neutrals ? setCurrentNeutrals(propResult.proposals[i].neutrals) : setCurrentNeutrals([])
@@ -606,7 +607,7 @@ export default function CancelCommitmentProposalCard(props) {
             <Grid container alignItems="center" justifyContent="space-evenly" style={{marginTop: '-20px'}}>   
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
                 <Typography variant="body1" align="center" style={{marginBottom: '10px'}}>
-                  Liberation Request<br></br>
+                  Liberate<br></br>
                   {formatNearAmount(funding, 3)} Ⓝ
                 </Typography>
               </Grid>
@@ -650,38 +651,7 @@ export default function CancelCommitmentProposalCard(props) {
           </CardContent>
 
           <CardActions className={classes.cardAction}>
-            <div className={classes.infoBox}>
-
-              {status == 'Submitted' && detailsExist ?
-                <Grid container spacing={1} alignItems="center" justifyContent="space-between" style={{marginTop: '10px', marginBottom: '10px'}}>
-                  <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
-                    <Badge badgeContent={currentLikes.length} color="primary" max={9999999}>  
-                      <img src={likeImage} className={classes.signals} onClick={(e) => handleSignal('like')}/>
-                    </Badge>
-                  </Grid>
-                  <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
-                    <Badge badgeContent={currentNeutrals.length} color="primary" max={9999999}>  
-                      <img src={neutralImage} className={classes.signals} onClick={(e) => handleSignal('neutral')}/>
-                    </Badge>
-                  </Grid>
-                  <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="center">
-                    <Badge badgeContent={currentDisLikes.length} color="primary" max={9999999}>  
-                      <img src={dislikeImage} className={classes.signals} onClick={(e) => handleSignal('dislike')}/>
-                    </Badge>
-                  </Grid>
-                </Grid>
-                : null }
-
-               
-              {status == 'Submitted'  && detailsExist == false ? 
-              <Typography variant="subtitle2" display="block" align="center">Awaiting Details</Typography>
-              : status == 'Submitted'  && detailsExist == true ? 
-              <Typography variant="subtitle2" display="block" align="center">Awaiting Sponsor</Typography>
-              : null
-              }
-
-            </div>
-
+            
             {status == 'Voting' ? (
                
               <Grid container alignItems="center" justifyContent="space-between" spacing={0} style={{margin: '0px', position: 'absolute', bottom:'5px', right:'1px'}}>

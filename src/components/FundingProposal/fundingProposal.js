@@ -82,9 +82,13 @@ export default function FundingProposal(props) {
     reference,
     budget,
     applicant,
-    usd,
-    proposalDeposit
+    passedProposalDeposit,
+    usd
   } = props
+
+  const {
+    proposalDeposit
+  } = state
 
   const {
     contractId
@@ -98,6 +102,7 @@ export default function FundingProposal(props) {
   const [confirm, setConfirm] = useState(false)
   const [communityName, setCommunityName] = useState('')
   const [logo, setLogo] = useState(defaultImage)
+  const [propDeposit, setPropDeposit] = useState(props.passedProposalDeposit ? props.passedProposalDeposit : proposalDeposit)
 
   const classes = useStyles()
 
@@ -305,7 +310,7 @@ export default function FundingProposal(props) {
               />
             </Grid>
             <Grid item xs={10} sm={10} md={10} lg={10} xl={10} style={{margin:'auto'}}>
-              <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{formatNearAmount((parseFloat(formatNearAmount(proposalDeposit, 3)) + parseFloat(STORAGE)).toLocaleString('fullwide', {useGrouping: false}), 6)} Ⓝ</b>:</Typography>
+              <Typography variant="body2" gutterBottom>You understand this request requires you to transfer <b>{parseFloat(propDeposit, 3) + parseFloat(STORAGE)} Ⓝ</b>:</Typography>
               <Grid container justifyContent="center" spacing={0}>
                 <Grid item xs={12} sm={12} md={6} lg={6} xl={6}>
                   <Typography variant="body2"><u>Proposal passes:</u></Typography>
@@ -317,7 +322,7 @@ export default function FundingProposal(props) {
                         <Typography variant="body2">Community fund will decrease by {funding} Ⓝ.</Typography>
                       </li>
                       <li>
-                        <Typography variant="body2">{formatNearAmount(proposalDeposit, 6)} Ⓝ proposal deposit is returned to you</Typography>
+                        <Typography variant="body2">{propDeposit} Ⓝ proposal deposit is returned to you</Typography>
                       </li>
                       <li>
                         <Typography variant="body2">{STORAGE} Ⓝ goes to the contract to cover storage cost for this proposal.</Typography>
@@ -334,7 +339,7 @@ export default function FundingProposal(props) {
                         <Typography variant="body2">Community fund does not change.</Typography>
                       </li>
                       <li>
-                        <Typography variant="body2">{formatNearAmount(proposalDeposit, 6)} Ⓝ proposal deposit is returned to you.</Typography>
+                        <Typography variant="body2">{propDeposit} Ⓝ proposal deposit is returned to you.</Typography>
                       </li>
                       <li>
                         <Typography variant="body2">{STORAGE} Ⓝ stays in the contract to cover storage cost for this proposal.</Typography>

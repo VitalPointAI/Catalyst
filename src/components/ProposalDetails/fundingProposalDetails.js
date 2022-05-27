@@ -4,7 +4,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import CommentForm from '../common/Comment/commentForm'
 import CommentDetails from '../common/Comment/commentDetails'
 import MilestoneCard from '../MilestoneCard/MilestoneCard'
-import { getStatus, formatDate } from '../../state/near'
+import { getProposalStatus, formatDate } from '../../state/near'
 import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
@@ -86,6 +86,7 @@ const useStyles = makeStyles((theme) => ({
     }));
 
     const imageName = require('../../img/default-profile.png') // default no-image avatar
+    const logoName = require('../../img/default_logo.png') // default no-logo image
 
 export default function FundingProposalDetails(props) {
     const [open, setOpen] = useState(true)
@@ -97,14 +98,21 @@ export default function FundingProposalDetails(props) {
     const [likes, setLikes] = useState([])
     const [dislikes, setDisLikes] = useState([])
     const [neutrals, setNeutrals] = useState([])
-    const [applicantAvatar, setApplicantAvatar] = useState()
-    const [applicantName, setApplicantName] = useState()
 
-    const [proposerAvatar, setProposerAvatar] = useState()
-    const [proposerName, setProposerName] = useState()
+    const [applicantName, setApplicantName] = useState('')
+    const [applicantAvatar, setApplicantAvatar] = useState(imageName)
+    const [pfpApplicantAvatar, setPfpApplicantAvatar] = useState('')
+    const [pfpApplicantLogo, setPfpApplicantLogo] = useState('')
+    const [applicantLogo, setApplicantLogo] = useState(logoName)
 
-    const [curUserAvatar, setCurUserAvatar] = useState()
-    const [curUserName, setCurUserName] = useState()
+    const [proposerName, setProposerName] = useState('')
+    const [proposerAvatar, setProposerAvatar] = useState(imageName)
+    const [pfpProposerLogo, setPfpProposerLogo] = useState('')
+    const [pfpProposerAvatar, setPfpProposerAvatar] = useState('')
+    const [proposerLogo, setProposerLogo] = useState(logoName)
+
+    const [applicantAccountType, setApplicantAccountType] = useState('')
+    const [proposerAccountType, setProposerAccountType] = useState('')
 
     const [attachedFiles, setAttachedFiles] = useState()
 
@@ -113,7 +121,6 @@ export default function FundingProposalDetails(props) {
 
     // const [proposalStatus, setProposalStatus] = useState()
   
-    const [isUpdated, setIsUpdated] = useState(false)
     const [proposalComments, setProposalComments] = useState([])
     const [finished, setFinished] = useState(false)
   
@@ -123,14 +130,18 @@ export default function FundingProposalDetails(props) {
 
     const {
       accountId,
-      curUserIdx, 
-      wallet,
+      curUserName,
+      curUserAvatar,
+      pfpCurUserLogo,
+      pfpCurUserAvatar,
+      curUserLogo,
       appIdx,
       daoFactory,
       didRegistryContract,
       curDaoIdx,
       contract,
-      memberStatus      
+      memberStatus,
+      isUpdated
     } = state
     
     const {
@@ -145,52 +156,91 @@ export default function FundingProposalDetails(props) {
 
     useEffect(
       () => {
-        async function fetchProfileData() {
+       
+        async function fetchData() {
+          if(isUpdated){}
 
-          // Get Persona Information
-          if(proposer && accountId && applicant) {                    
-              let proposerDid = await ceramic.getDid(proposer, daoFactory, didRegistryContract)
-              let propResult = await appIdx.get('profile', proposerDid)
-              if(propResult){
-                propResult.avatar ? setProposerAvatar(propResult.avatar) : setProposerAvatar(imageName)
-                propResult.name ? setProposerName(propResult.name) : setProposerName(proposer)
-              } else {
-                setProposerAvatar(imageName)
-                setProposerName(proposer)
-              } 
-                           
-              let accountDid = await ceramic.getDid(accountId, daoFactory, didRegistryContract)
-              let accResult = await appIdx.get('profile', accountDid)
-              if(accResult){
-                accResult.avatar ? setCurUserAvatar(accResult.avatar) : setCurUserAvatar(imageName)
-                accResult.name ? setCurUserName(accResult.name) : setCurUserName(accountId)
-              } else {
-                setCurUserAvatar(imageName)
-                setCurUserName(accountId)
-              } 
-                         
-              let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
-              let appResult = await appIdx.get('profile', applicantDid)
-    
-              if(appResult){
-                appResult.avatar ? setApplicantAvatar(appResult.avatar) : setApplicantAvatar(imageName)
-                appResult.name ? setApplicantName(appResult.name) : setApplicantName(applicant)
-              } else {
-                setApplicantAvatar(imageName)
-                setApplicantName(applicant)
+          // Get Persona Information           
+          if(applicant && proposer && appIdx){
+
+            let applicantAccountType
+            try{
+                applicantAccountType = await didRegistryContract.getType({accountId: applicant})
+                setApplicantAccountType(applicantAccountType)
+              } catch (err) {
+                applicantAccountType = 'none'
+                console.log('account not registered, not type avail', err)
+            }
+            
+            // Applicant
+            let applicantDid = await ceramic.getDid(applicant, daoFactory, didRegistryContract)
+            if(applicantAccountType != 'guild') {
+              let result = await appIdx.get('profile', applicantDid)
+              console.log('indiv result', result)
+              if(result){
+                  result.avatar ? setApplicantAvatar(result.avatar) : setApplicantAvatar(imageName)
+                  result.name ? setApplicantName(result.name) : setApplicantName('')
+                  result.profileNft ? setPfpApplicantAvatar(result.profileNft) : setPfpApplicantAvatar('')
               }
+            } else {
+                if(applicantAccountType == 'guild'){
+                    let result = await appIdx.get('guildProfile', applicantDid)
+                    console.log('guild result', result)
+                    if(result){
+                        result.logo ? setApplicantLogo(result.logo) : setApplicantLogo(logoName)
+                        result.name ? setApplicantName(result.name) : setApplicantName('')
+                        result.profileNft ? setPfpApplicantLogo(result.profileNft) : setPfpApplicantLogo('')
+                    }
+                }
+            }
+            
+            let proposerAccountType
+            try{
+                proposerAccountType = await didRegistryContract.getType({accountId: proposer})
+                setProposerAccountType(proposerAccountType)
+              } catch (err) {
+                proposerAccountType = 'none'
+                console.log('account not registered, not type avail', err)
+            }
+            // Proposer
+            let proposerDid = await ceramic.getDid(proposer, daoFactory, didRegistryContract)
+            if(proposerAccountType != 'guild') {
+              let result = await appIdx.get('profile', proposerDid)
+              console.log('indiv result', result)
+              if(result){
+                  result.avatar ? setProposerAvatar(result.avatar) : setProposerAvatar(imageName)
+                  result.name ? setProposerName(result.name) : setProposerName('')
+                  result.profileNft ? setPfpProposerAvatar(result.profileNft) : setPfpProposerAvatar('')
+              }
+            } else {
+                if(proposerAccountType == 'guild'){
+                    let result = await appIdx.get('guildProfile', proposerDid)
+                    console.log('guild result', result)
+                    if(result){
+                        result.logo ? setProposerLogo(result.logo) : setProposerLogo(logoName)
+                        result.name ? setProposerName(result.name) : setProposerName('')
+                        result.profileNft ? setPfpProposerLogo(result.profileNft) : setPfpProposerLogo('')
+                    }
+                }
+            }
           }
         }
 
-        fetchProfileData()
-
-      }, [proposer, accountId, applicant]
-    )
+        let mounted = true
+        if(mounted){
+          fetchData()
+              .then((res) => {
+              
+              })
+        return () => mounted = false
+        }
+        
+  }, [isUpdated, proposer, applicant, appIdx]
+  )
 
     useEffect(
         () => {
-         
-
+  
           async function fetchData() {
 
             // Set Existing Proposal Data       
@@ -243,7 +293,7 @@ export default function FundingProposalDetails(props) {
               }
               try{
                 let oppResult = await curDaoIdx.get('cancelCommitmentProposalDetails', curDaoIdx.id)
-                console.log('oppResult', oppResult)
+                console.log('cancel oppResult', oppResult)
                 let confirmedMilestoneCancellations = []
                 let t = 0
                 while (t < oppResult.proposals.length){
@@ -252,7 +302,7 @@ export default function FundingProposalDetails(props) {
                       if(oppResult.proposals[t].referenceIds[0].keyName == 'proposal' && oppResult.proposals[t].referenceIds[0].valueSetting == proposalId ){
                         let cancelledProposalId = oppResult.proposals[t].proposalId
                         let currentProposal = await contract.getProposal({proposalId: parseInt(cancelledProposalId)})
-                        let status = getStatus(currentProposal.flags)                    
+                        let status = getProposalStatus(currentProposal.flags)                    
                         if (status == 'Passed'){
                           confirmedMilestoneCancellations.push(oppResult.proposals[t].referenceIds[1].valueSetting)
                           setMilestoneCancellations(confirmedMilestoneCancellations)                     
@@ -263,10 +313,10 @@ export default function FundingProposalDetails(props) {
                 t++
                 }
               } catch (err) {
-                console.log('problem retrieving payout details', err)
+                console.log('problem retrieving cancel commitment details', err)
               }
             }
-            
+            console.log('milestone cancellations', milestoneCancellations)
 
             // Set Existing Proposal Comments      
             if(curDaoIdx){
@@ -303,10 +353,6 @@ export default function FundingProposalDetails(props) {
     const handleClose = () => {
         handleFundingProposalDetailsClickState(false)
         setOpen(false)
-    }
-
-    function handleUpdate(property){
-      setIsUpdated(property)
     }
 
     let Milestones
@@ -350,6 +396,7 @@ export default function FundingProposalDetails(props) {
             applicant={applicant}
             paid={paid}
             cancelled={cancelled}
+            form={'details'}
           />
         )
         }
@@ -434,20 +481,27 @@ export default function FundingProposalDetails(props) {
      
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             {finished ? (<>
-              <DialogTitle id="form-dialog-title">Funding Commitment Proposal Details</DialogTitle>
+              <DialogTitle id="form-dialog-title">Funding Commitment Details</DialogTitle>
                 <DialogContent>
                 {details == '' ? (
                   <DialogContentText style={{marginBottom: 10}}>
                   This proposal has no details yet.
-                  </DialogContentText>) : (<>
+                  </DialogContentText>
+                ):(<>
                   <Grid container alignItems="flex-start" justifyContent="space-between" style={{marginBottom: '30px'}}>
                     <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
-                       <Typography variant="h4">{title}</Typography>
+                       <Typography variant="h4" style={{marginBottom: '10px'}}>{title}</Typography>
                     </Grid>
                     <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center" >
-                      <Typography variant="overline">Proposer:</Typography>
-                      <Chip avatar={<Avatar src={proposerAvatar} className={classes.small}  />} label={proposerName != '' ? proposerName : proposer}/>
-                      <Typography variant="overline" style={{marginLeft:'10px'}}>Proposed: {created ? formatDate(created) : null}</Typography>
+                      <Typography variant="overline">Proposed: {created ? formatDate(created) : null}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
+                      by: 
+                      {proposerAccountType != 'guild' ?
+                        <Chip avatar={<Avatar src={pfpProposerAvatar != imageName && pfpProposerAvatar != '' ? pfpProposerAvatar : proposerAvatar} className={classes.small}  />} label={proposerName != '' ? proposerName : proposer}/>
+                      :
+                        <Chip avatar={<Avatar src={pfpProposerLogo != logoName && pfpProposerLogo != '' ? pfpProposerLogo : proposerLogo} className={classes.small}  />} label={proposerName != '' ? proposerName : proposer}/>
+                      }
                     </Grid>
                    
                     {status == 'Sponsored' ? (
@@ -455,59 +509,50 @@ export default function FundingProposalDetails(props) {
                       <Typography variant="overline" color="textSecondary">{sponsor ? 'Sponsor:' + sponsor : null}</Typography>
                     </Grid>
                     ) : null }
+
                     <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
                       <Card className={classes.detailsCard}>
-                      <div dangerouslySetInnerHTML={{ __html: details }} />
-                      </Card>
-                      
+                        <div dangerouslySetInnerHTML={{ __html: details }} />
+                      </Card> 
                     </Grid>
                   </Grid>
+
                     <Grid container spacing={1} style={{width: '100%'}}>
                     <Typography variant="h6" style={{marginBottom: '10px'}}>Completion Plan</Typography>
                       <Paper className={classes.paper} >
                       <Grid container justifyContent="flex-start" alignItems="center" spacing={1}>
-                        <Grid item xs={1} sm={1} md={1} lg={1} xl={1} align="center">
-                          <Typography variant="body2">Id</Typography>
-                        </Grid>
                         <Grid item xs={3} sm={3} md={3} lg={3} xl={3} align="left" >
                           <Typography variant="body2">Milestone</Typography>
                         </Grid>
-                        <Grid item xs={3} sm={3} md={3} lg={3} xl={3} align="left" >
-                          <Typography variant="body2">Description</Typography>
+                        <Grid item xs={4} sm={4} md={4} lg={4} xl={4} align="left" >
+                          <Typography variant="body2">Desc</Typography>
                         </Grid>
                         <Grid item xs={2} sm={2} md={2} lg={2} xl={2} align="left" >
-                          <Typography variant="body2">Est Completion</Typography>
+                          <Typography variant="body2">Deadline</Typography>
                         </Grid>
-                        <Grid item xs={1} sm={1} md={1} lg={1} xl={1} align="left">
+                        <Grid item xs={3} sm={3} md={3} lg={3} xl={3} align="left">
                           <Typography variant="body2" align="center">Payout</Typography>
-                        </Grid>
-                        <Grid item xs={2} sm={2} md={2} lg={2} xl={2} align="left">
-                         
                         </Grid>
                       </Grid>
                     
-
-                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                            {Milestones}
-                        </Grid>
-                        </Paper>
+                      <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                          {Milestones}
+                      </Grid>
+                      </Paper>
                     </Grid>
-                  
                   
                     {attachedFiles && attachedFiles.length > 0 ? (
                       <Grid container spacing={1} style={{width: '100%'}}>
-                      <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-                      <Paper style={{marginTop:'20px', padding: '10px'}}>
-                        <Typography variant="h6" style={{marginTop: '20px', marginBottom: '20px'}}>Attached Files</Typography>
-                        <List>
-                        {Files}
-                        </List>
-                      </Paper>
+                        <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
+                          <Paper style={{marginTop:'20px', padding: '10px'}}>
+                            <Typography variant="h6" style={{marginTop: '20px', marginBottom: '20px'}}>Attached Files</Typography>
+                            <List>
+                              {Files}
+                            </List>
+                          </Paper>
+                        </Grid>
                       </Grid>
-                      </Grid>
-                      
-                      )
-                    :null }
+                    ): null }
                     </>)}
                 </DialogContent>
               <DialogActions>
@@ -523,7 +568,7 @@ export default function FundingProposalDetails(props) {
                 aria-controls="panel1a-content"
                 id="panel1a-header"
               >
-              <Typography className={classes.heading}>Comments and Questions</Typography>
+              <Typography className={classes.heading}>Comments</Typography>
               </AccordionSummary>
               <AccordionDetails>
               <Grid container spacing={1}>
@@ -532,11 +577,12 @@ export default function FundingProposalDetails(props) {
               </Grid>
               {status != 'Passed' && status != 'Not Passed' && memberStatus ? (
               <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-              <Typography variant="h5" style={{marginLeft: '10px'}}>Leave a Comment/Ask a Question</Typography>
+              <Typography variant="h5" style={{marginLeft: '10px'}}>New Comment</Typography>
                   <CommentForm
                     reply={false}
                     proposalApplicant={applicant}
-                    avatar={curUserAvatar}
+                    avatar={pfpCurUserAvatar ? pfpCurUserAvatar : curUserAvatar}
+                    logo={pfpCurUserLogo ? pfpCurUserLogo : curUserLogo}
                     name={curUserName}
                     proposalId={proposalId}
                   />
@@ -547,9 +593,9 @@ export default function FundingProposalDetails(props) {
             </Accordion>
               </>)
               : (
-                    <div className={classes.progress}>
-                        <CircularProgress size={100} color="primary"  />
-                   </div>
+                <div className={classes.progress}>
+                    <CircularProgress size={100} color="primary"  />
+                </div>
               )}
             </Dialog>
           </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { makeStyles } from '@material-ui/core/styles'
 import { submitProposal, STORAGE } from '../../state/near'
+import { ceramic } from '../../utils/ceramic'
 
 // Material UI components
 import Button from '@material-ui/core/Button'
@@ -91,24 +92,20 @@ export default function PayoutProposal(props) {
     passedContractId
      } = props
 
-
   useEffect(
     () => {
       async function fetchData() {
         // get community information
         
-        if((contractId || passedContractId) && appIdx){
+        if((contractId || passedContractId) && state.appIdx){
           let daoResult
           let thisContractId
           contractId ? thisContractId = contractId : thisContractId = passedContractId
-          console.log('this contract id', thisContractId)
           if(!did){
-            let did = await ceramic.getDid(thisContractId, state.daoFactory, state.didRegistryContract)
-            daoResult = await appIdx.get('daoProfile', did)
-            console.log('did1 dao result', daoResult)
+            let thisDid = await ceramic.getDid(thisContractId, state.daoFactory, state.didRegistryContract)
+            daoResult = await state.appIdx.get('daoProfile', thisDid)
           } else {
-            daoResult = await appIdx.get('daoProfile', did)
-            console.log('did2 dao result', daoResult)
+            daoResult = await state.appIdx.get('daoProfile', did)
           }
          
           if(daoResult){
@@ -123,7 +120,15 @@ export default function PayoutProposal(props) {
 
         })
 
-   }, [contractId, appIdx]
+   }, [contractId, passedContractId, state.appIdx]
+   )
+  
+   useEffect(
+     () => {
+      if(state.nearPrice && milestonePayout){
+        handleConversion(milestonePayout)
+      }
+     }, [state, milestonePayout]
    )
 
   function handleConversion(amount){
@@ -152,17 +157,17 @@ export default function PayoutProposal(props) {
     event.preventDefault()
     setFinished(false)
 
-    let references = []
+    // let references = []
 
-    if(reference){
-      Object.entries(reference[0]).map(([key, value]) => {
+    // if(reference){
+    //   Object.entries(reference[0]).map(([key, value]) => {
         
-        references.push({
-          'keyName': key,
-          'valueSetting': value.toString()
-        })
-      })
-    }
+    //     references.push({
+    //       'keyName': key,
+    //       'valueSetting': value.toString()
+    //     })
+    //   })
+    // }
    
     let actualPayout
     milestonePayout ? actualPayout = milestonePayout : actualPayout = payout
@@ -178,7 +183,7 @@ export default function PayoutProposal(props) {
         '0',
         actualPayout.toString(),
         [''],
-        references
+        reference
         )
       } catch (err) {
         console.log('problem submitting payout proposal', err)
@@ -191,37 +196,20 @@ export default function PayoutProposal(props) {
       <Grid container alignItems="center" justifyContent="center" style={{padding: '5px'}}>
         <Grid item xs={12} sm={12} md={12} lg={12} xl={12} align="center">
           <div style={{
-            height: '100px',
+            height: '50px',
             backgroundImage: `url(${logo})`, 
             backgroundSize: 'contain',
             backgroundPosition: 'center', 
             backgroundRepeat: 'no-repeat',
             backgroundOrigin: 'content-box'
           }}/>
-          <br></br>
           {logo ? null : <Typography variant="h6">{communityName ? communityName : contractId ? contractId : passedContractId }</Typography>}
         </Grid>
       </Grid>
+      {!milestonePayout || milestonePayout == '0' ?
         <DialogTitle id="form-dialog-title">Request Payout</DialogTitle>
-        <DialogContent className={classes.rootForm}>  
-          <div>
-            <TextField
-              autoFocus
-              margin="dense"
-              id="payout-proposal-applicant-receiver"
-              variant="outlined"
-              name="payoutProposalApplicant"
-              label="Applicant Account"
-              value={applicant}
-              onChange={handleApplicantChange}
-              inputRef={register({
-                  required: true,
-                  validate: value => value != '' || <p style={{color:'red'}}>You must specify an account that will receive the payout.</p>
-              })}
-              placeholder={applicant}
-            />
-            {errors.payoutProposalApplicant && <p style={{color: 'red'}}>You must provide a valid NEAR account.</p>}
-          </div>
+      : null }
+        <DialogContent className={classes.rootForm}>
           <div>
           {!milestonePayout ? (
             <TextField
@@ -246,18 +234,35 @@ export default function PayoutProposal(props) {
               }}
             />
           ) : (<>
-            <Typography variant="h6">Payout Requested: {milestonePayout} {tokenName}</Typography>
-            <Typography variant="body1">For proposal: {reference[0].proposal}, milestone: {reference[0].milestone}</Typography>
-          </>)}
-
-          <Typography variant="h6">{usdConvert ? `~$${usdConvert} USD`: null}</Typography>
-          
+            <Typography variant="h6">Request: {milestonePayout} {tokenName}</Typography>
+            <Typography variant="caption" color="textSecondary">{usdConvert ? `~$${usdConvert} USD`: null}</Typography>
+            <Typography variant="body1">Proposal: {reference[0].proposal}, Milestone: {reference[0].title}</Typography>
+          </>)}          
           </div>
+          <div>
+            <TextField
+              autoFocus
+              margin="dense"
+              id="payout-proposal-applicant-receiver"
+              variant="outlined"
+              name="payoutProposalApplicant"
+              label="Send To"
+              value={applicant}
+              onChange={handleApplicantChange}
+              inputRef={register({
+                  required: true,
+                  validate: value => value != '' || <p style={{color:'red'}}>You must specify an account that will receive the payout.</p>
+              })}
+              placeholder={applicant}
+            />
+            {errors.payoutProposalApplicant && <p style={{color: 'red'}}>You must provide a valid NEAR account.</p>}
+          </div>
+          
         <Card>
         <CardContent>
           <WarningIcon fontSize='large' className={classes.warning} />
-          <Typography variant="body1">You are requesting that <b>{applicant}</b> receive {milestonePayout ? milestonePayout : payout} Ⓝ. After submitting
-          this proposal, you must provide enough supporting detail and proof of work to help other members evaluate the work done and decide whether to approve your proposal or not.</Typography>
+          <Typography variant="body1">You are requesting that <b>{applicant}</b> receive {milestonePayout ? milestonePayout : payout} Ⓝ. After submitting, 
+          you will be asked to provide supporting detail and proof of work.</Typography>
           <Grid container className={classes.confirmation} spacing={1}>
             <Grid item xs={2} sm={2} md={2} lg={2} xl={2}>
               <Checkbox
@@ -280,7 +285,7 @@ export default function PayoutProposal(props) {
                         <Typography variant="body2">Applicant receives {milestonePayout ? milestonePayout : payout} Ⓝ.</Typography>
                       </li>
                       <li>
-                        <Typography variant="body2">Community escrow fund will decrease by {milestonePayout ? milestonePayout : payout} Ⓝ.</Typography>
+                        <Typography variant="body2">Escrow will decrease by {milestonePayout ? milestonePayout : payout} Ⓝ.</Typography>
                       </li>
                       <li>
                         <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you</Typography>
@@ -297,7 +302,7 @@ export default function PayoutProposal(props) {
                         <Typography variant="body2">Applicant receives no payout.</Typography>
                       </li>
                       <li>
-                        <Typography variant="body2">Community escrow fund does not change.</Typography>
+                        <Typography variant="body2">Escrow does not change.</Typography>
                       </li>
                       <li>
                         <Typography variant="body2">{proposalDeposit} Ⓝ proposal deposit is returned to you.</Typography>
