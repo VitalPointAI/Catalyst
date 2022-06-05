@@ -56,6 +56,8 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         networkId, nodeUrl, walletUrl, deps: { keyStore: new nearAPI.keyStores.BrowserLocalStorageKeyStore() },
     });
 
+    console.log('near', near)
+
     const isAccountTaken = async (accountId) => {
        
         const account = new nearAPI.Account(near.connection, accountId);
@@ -258,6 +260,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
 
     if(wallet.signedIn){
    
+        console.log('made it here')
     // ********* Check and action redirects after DAO and proposal creation *************
     let urlVariables = window.location.search
     const urlParameters = new URLSearchParams(urlVariables)
@@ -284,7 +287,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
 
     const account = wallet.account()
     const accountId = account.accountId
-
+    console.log('accountid', accountId)
     // // ********* Get Registry Admin ****************
     // let superAdmin = await didRegistryContract.getSuperAdmin()
     // let admins = await didRegistryContract.getAdmins()
