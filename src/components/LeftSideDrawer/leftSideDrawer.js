@@ -224,7 +224,7 @@ const list = (anchor) => (
     <Divider />
     <Typography variant='h6'>Account</Typography>
     <Typography variant='body1' style={{fontSize: '60%'}}>
-      {accountId.length <= 30 ? accountId : accountId.substring(0,28) + "..."}<br></br>
+      {accountId && accountId.length <= 30 ? accountId : accountId ? accountId.substring(0,28) + "..." : null}<br></br>
       {accountType}
     </Typography>
     <List>
