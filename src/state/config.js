@@ -83,7 +83,7 @@ if(process.env.ENV === 'test') {
     ...config,
     TOKEN_CALL: 'http://localhost:3003/token',
     //APPSEED_CALL: 'http://localhost:3003/appseed',
-    APPSEED_CALL: 'https://https://ashy-ocean-0757c3a0f.1.azurestaticapps.net/api/seed',
+    APPSEED_CALL: 'https://ashy-ocean-0757c3a0f.1.azurestaticapps.net/api/appSeed',
   }
 }
 
@@ -92,7 +92,7 @@ if (process.env.ENV === 'prod') {
         ...config,
         TOKEN_CALL: 'https://cdao.app/token',
       //  APPSEED_CALL: 'https://cdao.app/appseed',
-        APPSEED_CALL: 'https://https://ashy-ocean-0757c3a0f.1.azurestaticapps.net/api/seed',
+        APPSEED_CALL: 'https://ashy-ocean-0757c3a0f.1.azurestaticapps.net/api/appSseed',
         networkId: 'mainnet',
         //nodeUrl: 'https://rpc.mainnet.near.org',
         nodeUrl: 'https://mainnet-rpc.openshards.io',
