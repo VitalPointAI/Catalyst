@@ -47,7 +47,7 @@ let config = {
     CERAMIC_API_URL: 'https://ceramic-node.vitalpointai.com',
     IPFS_PROVIDER: 'https://cloudflare-ipfs.com/ipfs/',
     TOKEN_CALL: 'https://cdao.app/token',
-    APPSEED_CALL: 'https://cdao.app/appseed',
+    APPSEED_CALL: 'https://vp-functions.azurewebsites.net/api/appSeed',
     networkId: 'testnet',
     nodeUrl: 'https://rpc.testnet.near.org',
     walletUrl: 'https://wallet.testnet.near.org',
@@ -83,7 +83,7 @@ if(process.env.ENV === 'test') {
     ...config,
     TOKEN_CALL: 'http://localhost:3003/token',
     //APPSEED_CALL: 'http://localhost:3003/appseed',
-    APPSEED_CALL: 'https://ashy-ocean-0757c3a0f.1.azurestaticapps.net/api/appSeed',
+    APPSEED_CALL: 'https://vp-functions.azurewebsites.net/api/appSeed',
   }
 }
 
@@ -92,7 +92,7 @@ if (process.env.ENV === 'prod') {
         ...config,
         TOKEN_CALL: 'https://cdao.app/token',
       //  APPSEED_CALL: 'https://cdao.app/appseed',
-        APPSEED_CALL: 'https://ashy-ocean-0757c3a0f.1.azurestaticapps.net/api/appSseed',
+        APPSEED_CALL: 'https://vp-functions.azurewebsites.net/api/appSeed',
         networkId: 'mainnet',
         //nodeUrl: 'https://rpc.mainnet.near.org',
         nodeUrl: 'https://mainnet-rpc.openshards.io',

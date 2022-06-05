@@ -335,7 +335,6 @@ class Ceramic {
       // }
     // }
     )
-    console.log('retrieveseed', retrieveSeed)
  
     const ceramic = new CeramicClient(CERAMIC_API_URL)
   
@@ -391,8 +390,6 @@ class Ceramic {
     //   }
     // }
     )
-
-    console.log('retrieveseed', retrieveSeed)
  
     const ceramic = new CeramicClient(CERAMIC_API_URL)
     const provider = new Ed25519Provider(retrieveSeed.data.seed)
