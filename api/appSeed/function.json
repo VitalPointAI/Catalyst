@@ -8,8 +8,7 @@
       "methods": [
         "get",
         "post"
-      ],
-      "route": "seed"
+      ]
     },
     {
       "type": "http",
