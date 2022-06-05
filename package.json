@@ -101,7 +101,7 @@
         "deploy:testnet": "npm run build && gh-pages -d dist",
         "deploy": "REACT_APP_ENV=\"prod\" yarn build && cp -a static/* dist && gh-pages -d dist",
         "prebuild": "npm run clean",
-        "build": "npm run clean && env-cmd -f ./.env node ./node_modules/.bin/parcel build src/index.html --no-scope-hoist",
+        "build": "node ./node_modules/.bin/parcel build src/index.html --no-scope-hoist",
         "build:local": "npm run clean && env-cmd -f ./.env.local node ./node_modules/.bin/parcel build src/index.html --no-scope-hoist --no-optimize",
         "build:main": "node ./node_modules/.bin/parcel build src/index.html --no-scope-hoist",
         "clean": "rimraf ./dist && rimraf .parcel-cache",
