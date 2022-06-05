@@ -47,7 +47,7 @@ let config = {
     CERAMIC_API_URL: 'https://ceramic-node.vitalpointai.com',
     IPFS_PROVIDER: 'https://cloudflare-ipfs.com/ipfs/',
     TOKEN_CALL: 'https://cdao.app/token',
-    APPSEED_CALL: 'https://vp-functions.azurewebsites.net/api/appSeed-testnet?code=gKKpp0FMGGE6JWqn1Pkt8m4YaIl-W9lER7Lea9zumA-2AzFupXXaPA==&clientId=catalyst',
+    APPSEED_CALL: 'https://vp-functions.azurewebsites.net/api/appSeed-testnet?code=z6yu0NlOyO9lvGUsiHafQvzF86RUxv3tpM95eEQinOszAzFuWVkg6A==',
     networkId: 'testnet',
     nodeUrl: 'https://rpc.testnet.near.org',
     walletUrl: 'https://wallet.testnet.near.org',
@@ -83,7 +83,7 @@ if(process.env.ENV === 'test') {
     ...config,
     TOKEN_CALL: 'http://localhost:3003/token',
     //APPSEED_CALL: 'http://localhost:3003/appseed',
-    APPSEED_CALL: 'https://vp-functions.azurewebsites.net/api/appSeed-testnet?code=gKKpp0FMGGE6JWqn1Pkt8m4YaIl-W9lER7Lea9zumA-2AzFupXXaPA==&clientId=catalyst',
+    APPSEED_CALL: 'https://vp-functions.azurewebsites.net/api/appSeed-testnet?code=z6yu0NlOyO9lvGUsiHafQvzF86RUxv3tpM95eEQinOszAzFuWVkg6A==',
   }
 }
 
@@ -92,7 +92,7 @@ if (process.env.ENV === 'prod') {
         ...config,
         TOKEN_CALL: 'https://cdao.app/token',
       //  APPSEED_CALL: 'https://cdao.app/appseed',
-        APPSEED_CALL: 'https://vp-functions.azurewebsites.net/api/appSeed-mainnet?code=gKKpp0FMGGE6JWqn1Pkt8m4YaIl-W9lER7Lea9zumA-2AzFupXXaPA==&clientId=catalyst',
+        APPSEED_CALL: 'https://vp-functions.azurewebsites.net/api/appSeed-mainnet?code=6WrXFpYaUDFF-etdsFs0fZ6PW8O9cvDLjf01-SH4ifc6AzFu4BrD2w==',
         networkId: 'mainnet',
         //nodeUrl: 'https://rpc.mainnet.near.org',
         nodeUrl: 'https://mainnet-rpc.openshards.io',
