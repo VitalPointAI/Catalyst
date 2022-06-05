@@ -90,7 +90,8 @@ if (process.env.ENV === 'prod') {
     config = {
         ...config,
         TOKEN_CALL: 'https://cdao.app/token',
-        APPSEED_CALL: 'https://cdao.app/appseed',
+      //  APPSEED_CALL: 'https://cdao.app/appseed',
+        APPSEED_CALL: 'https://cdao.app/api/seed',
         networkId: 'mainnet',
         //nodeUrl: 'https://rpc.mainnet.near.org',
         nodeUrl: 'https://mainnet-rpc.openshards.io',

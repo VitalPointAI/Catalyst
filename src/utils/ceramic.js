@@ -315,22 +315,27 @@ class Ceramic {
 
   async getAppCeramic(accountId) {
 
-    let token = await axios.post(TOKEN_CALL, 
-      {
-      accountId: accountId
-      }    
-    )
+    // let token = await axios.post(TOKEN_CALL, 
+    //   {
+    //   accountId: accountId
+    //   }    
+    // )
     
-    set(AUTH_TOKEN, token.data.token)
+    // set(AUTH_TOKEN, token.data.token)
 
-    let authToken = get(AUTH_TOKEN, [])   
+    // let authToken = get(AUTH_TOKEN, [])   
     let retrieveSeed = await axios.post(APPSEED_CALL, {
       // ...data
-    },{
-      headers: {
-        'Authorization': `Basic ${authToken}`
-      }
-    })
+    }
+   
+    // ,
+    // {
+      // headers: {
+      //   'Authorization': `Basic ${authToken}`
+      // }
+    // }
+    )
+    console.log('retrieveseed', retrieveSeed)
  
     const ceramic = new CeramicClient(CERAMIC_API_URL)
   
@@ -368,22 +373,26 @@ class Ceramic {
   async getLegacyAppCeramic(accountId) {
 
    
-    let token = await axios.post(TOKEN_CALL, 
-      {
-      accountId: accountId
-      }    
-    )
+    // let token = await axios.post(TOKEN_CALL, 
+    //   {
+    //   accountId: accountId
+    //   }    
+    // )
     
-    set(AUTH_TOKEN, token.data.token)
+    // set(AUTH_TOKEN, token.data.token)
 
-    let authToken = get(AUTH_TOKEN, [])   
+   // let authToken = get(AUTH_TOKEN, [])   
     let retrieveSeed = await axios.post(APPSEED_CALL, {
       // ...data
-    },{
-      headers: {
-        'Authorization': `Basic ${authToken}`
-      }
-    })
+    }
+    // ,{
+    //   headers: {
+    //     'Authorization': `Basic ${authToken}`
+    //   }
+    // }
+    )
+
+    console.log('retrieveseed', retrieveSeed)
  
     const ceramic = new CeramicClient(CERAMIC_API_URL)
     const provider = new Ed25519Provider(retrieveSeed.data.seed)
