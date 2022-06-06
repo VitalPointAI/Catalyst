@@ -46,8 +46,8 @@ let config = {
     APP_OWNER_ACCOUNT: 'vitalpointai.testnet',
     CERAMIC_API_URL: 'https://ceramic-node.vitalpointai.com',
     IPFS_PROVIDER: 'https://cloudflare-ipfs.com/ipfs/',
-    TOKEN_CALL: 'https://cdao.app/token',
-    APPSEED_CALL: 'https://vp-functions.azurewebsites.net/api/appSeed-testnet?code=z6yu0NlOyO9lvGUsiHafQvzF86RUxv3tpM95eEQinOszAzFuWVkg6A==',
+    TOKEN_CALL: 'https://vp-functions.azurewebsites.net/api/token-testnet',
+    APPSEED_CALL: 'https://vp-functions.azurewebsites.net/api/appSeed-testnet',
     networkId: 'testnet',
     nodeUrl: 'https://rpc.testnet.near.org',
     walletUrl: 'https://wallet.testnet.near.org',
@@ -65,7 +65,6 @@ let config = {
     daoRootName: 'https://cdao.app',
     ACCOUNT_HELPER_URL: 'https://near-contract-helper.onrender.com',
     GRAPH_FACTORY_API_URL: 'https://api.thegraph.com/subgraphs/name/vitalpointai/catalyst-factory-tnet',
-  //  GRAPH_FACTORY_API_URL: 'https://api.thegraph.com/subgraphs/id/QmUk5EWnv8BSe58ZkgAqdV62W9aRypRFQYzJueURfa1iNU',
     GRAPH_REGISTRY_API_URL: 'https://api.thegraph.com/subgraphs/name/vitalpointai/registry-near-tnet'
 }
 
@@ -81,18 +80,17 @@ if(process.env.ENV === 'localhost') {
 if(process.env.ENV === 'test') {
   config = {
     ...config,
-    TOKEN_CALL: 'http://localhost:3003/token',
+    //TOKEN_CALL: 'http://localhost:3003/token',
     //APPSEED_CALL: 'http://localhost:3003/appseed',
-    APPSEED_CALL: 'https://vp-functions.azurewebsites.net/api/appSeed-testnet?code=z6yu0NlOyO9lvGUsiHafQvzF86RUxv3tpM95eEQinOszAzFuWVkg6A==',
+    //APPSEED_CALL: 'https://vp-functions.azurewebsites.net/api/appSeed-testnet',
   }
 }
 
 if (process.env.ENV === 'prod') {
     config = {
         ...config,
-        TOKEN_CALL: 'https://cdao.app/token',
-      //  APPSEED_CALL: 'https://cdao.app/appseed',
-        APPSEED_CALL: 'https://vp-functions.azurewebsites.net/api/appSeed-mainnet?code=6WrXFpYaUDFF-etdsFs0fZ6PW8O9cvDLjf01-SH4ifc6AzFu4BrD2w==',
+        TOKEN_CALL: 'https://vp-functions.azurewebsites.net/api/token-mainnet',
+        APPSEED_CALL: 'https://vp-functions.azurewebsites.net/api/appSeed-mainnet',
         networkId: 'mainnet',
         //nodeUrl: 'https://rpc.mainnet.near.org',
         nodeUrl: 'https://mainnet-rpc.openshards.io',
