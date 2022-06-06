@@ -46,7 +46,7 @@ let config = {
     APP_OWNER_ACCOUNT: 'vitalpointai.testnet',
     CERAMIC_API_URL: 'https://ceramic-node.vitalpointai.com',
     IPFS_PROVIDER: 'https://cloudflare-ipfs.com/ipfs/',
-    TOKEN_CALL: 'https://vp-functions.azurewebsites.net/api/token-testnet',
+    TOKEN_CALL: 'https://vp-functions.azurewebsites.net/api/token-testnet?',
     APPSEED_CALL: 'https://vp-functions.azurewebsites.net/api/appSeed-testnet',
     networkId: 'testnet',
     nodeUrl: 'https://rpc.testnet.near.org',
@@ -89,7 +89,7 @@ if(process.env.ENV === 'test') {
 if (process.env.ENV === 'prod') {
     config = {
         ...config,
-        TOKEN_CALL: 'https://vp-functions.azurewebsites.net/api/token-mainnet',
+        TOKEN_CALL: 'https://vp-functions.azurewebsites.net/api/token-mainnet?',
         APPSEED_CALL: 'https://vp-functions.azurewebsites.net/api/appSeed-mainnet',
         networkId: 'mainnet',
         //nodeUrl: 'https://rpc.mainnet.near.org',
