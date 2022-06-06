@@ -315,15 +315,17 @@ class Ceramic {
 
   async getAppCeramic(accountId) {
 
-    // let token = await axios.post(TOKEN_CALL, 
-    //   {
-    //   accountId: accountId
-    //   }    
-    // )
-    
-    // set(AUTH_TOKEN, token.data.token)
+    let token = await axios.post(TOKEN_CALL, 
+      {
+      accountId: accountId
+      }    
+    )
 
-    // let authToken = get(AUTH_TOKEN, [])   
+    console.log('token', token)
+    
+    set(AUTH_TOKEN, token.data.token)
+
+    let authToken = get(AUTH_TOKEN, [])   
     let retrieveSeed = await axios.post(APPSEED_CALL, {
       // ...data
     }
@@ -372,15 +374,18 @@ class Ceramic {
   async getLegacyAppCeramic(accountId) {
 
    
-    // let token = await axios.post(TOKEN_CALL, 
-    //   {
-    //   accountId: accountId
-    //   }    
-    // )
-    
-    // set(AUTH_TOKEN, token.data.token)
+    let token = await axios.post(TOKEN_CALL, 
+      {
+      accountId: accountId
+      }    
+    )
 
-   // let authToken = get(AUTH_TOKEN, [])   
+    console.log('token', token)
+    
+    set(AUTH_TOKEN, token.data.token)
+
+    let authToken = get(AUTH_TOKEN, [])
+
     let retrieveSeed = await axios.post(APPSEED_CALL, {
       // ...data
     }

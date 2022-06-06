@@ -6,6 +6,8 @@
     "start": "func start",
     "test": "echo \"No tests yet...\""
   },
-  "dependencies": {},
+  "dependencies": {
+    "jsonwebtoken": "^8.5.1"
+  },
   "devDependencies": {}
 }
