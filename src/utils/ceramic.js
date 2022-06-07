@@ -328,14 +328,12 @@ class Ceramic {
     let authToken = get(AUTH_TOKEN, [])   
     let retrieveSeed = await axios.post(APPSEED_CALL, {
       // ...data
+    },
+    {
+      headers: {
+        'Authorization': `Basic ${authToken}`
+      }
     }
-   
-    // ,
-    // {
-      // headers: {
-      //   'Authorization': `Basic ${authToken}`
-      // }
-    // }
     )
  
     const ceramic = new CeramicClient(CERAMIC_API_URL)
@@ -388,12 +386,12 @@ class Ceramic {
 
     let retrieveSeed = await axios.post(APPSEED_CALL, {
       // ...data
+    },
+    {
+      headers: {
+        'Authorization': `Basic ${authToken}`
+      }
     }
-    // ,{
-    //   headers: {
-    //     'Authorization': `Basic ${authToken}`
-    //   }
-    // }
     )
  
     const ceramic = new CeramicClient(CERAMIC_API_URL)
