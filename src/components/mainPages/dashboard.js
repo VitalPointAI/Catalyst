@@ -69,7 +69,7 @@ export default function Dashboard(props) {
             async function fetchMemberData() {
                 let contract
                 let memberDaos = []
-                
+              if(currentDaosList){
                 let j = 0
                 while (j < currentDaosList.length){
                     try{
@@ -105,6 +105,7 @@ export default function Dashboard(props) {
                     i++
                     }
                 }
+              }
             }
             
             fetchMemberData()

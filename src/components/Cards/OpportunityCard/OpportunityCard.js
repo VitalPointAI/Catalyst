@@ -209,9 +209,6 @@ export default function OpportunityCard(props) {
       contractId
     } = useParams()
 
-    console.log('opp card proposal deposit', proposalDeposit)
-    console.log('opp card passed prop deposit', passedProposalDeposit)
-
 
     useEffect(() => {
       async function fetchPrice() {
