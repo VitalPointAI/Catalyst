@@ -480,7 +480,7 @@ export default function OpportunityCard(props) {
       setAnchorEl(null)
     }
   
-    let daoLink = `localhost:3003/dao/${contractId ? contractId : passedContractId}`
+    let daoLink = `${daoRootName}/dao/${contractId ? contractId : passedContractId}`
 
     return(
         <>
@@ -503,7 +503,7 @@ export default function OpportunityCard(props) {
               </div>
             </Grid>
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12}>
-            <a href={networkId == 'localhost' || networkId == 'testnet' ? 'http://' + daoLink : 'https://'+ daoLink}>
+            <a href={daoLink}>
               <div style={{width: '95%', 
                 height: '50px',
                 backgroundImage: `url(${logo})`, 

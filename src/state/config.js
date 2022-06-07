@@ -62,7 +62,7 @@ let config = {
     factoryContractName: 'factory3.vitalpointai.testnet',
     tokenFactoryContractName: 'ft.vitalpointai.testnet',
     nftFactoryContractName: 'nft.vitalpointai.testnet',
-    daoRootName: 'https://cdao.app',
+    daoRootName: 'https://testnet.cdao.app',
     ACCOUNT_HELPER_URL: 'https://near-contract-helper.onrender.com',
     GRAPH_FACTORY_API_URL: 'https://api.thegraph.com/subgraphs/name/vitalpointai/catalyst-factory-tnet',
     GRAPH_REGISTRY_API_URL: 'https://api.thegraph.com/subgraphs/name/vitalpointai/registry-near-tnet'
@@ -107,6 +107,7 @@ if (process.env.ENV === 'prod') {
         nftFactoryContractName: 'isnft.near',
         APP_OWNER_ACCOUNT: 'aaron.near',
         PLATFORM_SUPPORT_ACCOUNT: 'catalystsp.near',
+        daoRootName: 'https://mainnet.cdao.app',
         CERAMIC_API_URL: 'https://ceramic-node.vitalpointai.com',
         GRAPH_FACTORY_API_URL: 'https://api.thegraph.com/subgraphs/name/vitalpointai/catalyst-factory-mnet',
         GRAPH_REGISTRY_API_URL: 'https://api.thegraph.com/subgraphs/name/vitalpointai/registry-near-mnet'
