@@ -288,6 +288,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     const account = wallet.account()
     const accountId = account.accountId
     console.log('accountid', accountId)
+    console.log('account', account)
     // // ********* Get Registry Admin ****************
     // let superAdmin = await didRegistryContract.getSuperAdmin()
     // let admins = await didRegistryContract.getAdmins()
