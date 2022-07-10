@@ -24,6 +24,7 @@ import Header from './components/common/Header/header'
 import Footer from './components/common/Footer/footer'
 import ActiveProjectsByAccount from './components/mainPages/accountActiveProjects'
 import OpportunityDetails from './components/mainPages/opportunityDetails'
+import Choice from './components/mainPages/choice'
 
 // Material-UI Components
 import { CircularProgress } from '@material-ui/core'
@@ -186,9 +187,11 @@ const App = () => {
                         state={state}
                     />
                 </Route>
-               
                 <Route path="/register">
                     <Register />
+                </Route>
+                <Route path="/choice">
+                    <Choice />
                 </Route>
                 <Route path="/community-stream">
                     <CommunityStreamIntro />

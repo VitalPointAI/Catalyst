@@ -20,7 +20,7 @@ export const {
     NEW_REVOCATION, INACTIVATE_COMMUNITY, NEW_INACTIVATION, NEW_CHANGE_PROPOSAL,
     networkId, nodeUrl, walletUrl, nameSuffix, factorySuffix, tokenFactorySuffix, nftFactorySuffix, explorerUrl,
     contractName, didRegistryContractName, factoryContractName, tokenFactoryContractName,
-    REGISTRY_API_URL, FIRST_TIME, PLATFORM_PERCENT, daoRootName
+    REGISTRY_API_URL, FIRST_TIME, PLATFORM_PERCENT, daoRootName, guildsRootName, personasRootName
 } = config
 
 export const {
@@ -287,8 +287,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
 
     const account = wallet.account()
     const accountId = account.accountId
-    console.log('accountid', accountId)
-    console.log('account', account)
+    
     // // ********* Get Registry Admin ****************
     // let superAdmin = await didRegistryContract.getSuperAdmin()
     // let admins = await didRegistryContract.getAdmins()
@@ -308,8 +307,11 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
             } catch (err) {
             accountType = 'none'
             update('', {accountType})
-            console.log('account not registered, not type avail', err)
+            console.log('account not registered, no type avail', err)
         }
+    
+        accountType == 'none' ? window.location.assign('/choice') : null
+    
         // Current User
         let curUserDid = await ceramic.getDid(accountId, daoFactory, didRegistryContract)
         if(accountType != 'guild') {
