@@ -96,6 +96,9 @@
         "last 1 Chrome versions"
     ],
     "context": "node",
+    "engines" : {
+        "node" : ">=16.0.0"
+    },
     "scripts": {
         "test": "jest --coverage",
         "deploy:testnet": "npm run build && gh-pages -d dist",
