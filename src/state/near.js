@@ -303,11 +303,11 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         let accountType
         try{
             accountType = await didRegistryContract.getType({accountId: accountId})
-            console.log('accounttype', accountType)
             update('', {accountType})
-            } catch (err) {
-            // finished = true
-            // update('', {finished})
+            if(accountType == 'none' || !accountType){
+                window.location.assign('/choice')
+            }
+        } catch (err) {
             window.location.assign('/choice')
             console.log('account not registered, no type avail', err)
         }
