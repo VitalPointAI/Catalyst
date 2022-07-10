@@ -5,8 +5,8 @@ import { IDX } from '@ceramicstudio/idx'
 import { TileDocument } from '@ceramicnetwork/stream-tile'
 import { createDefinition, publishSchema } from '@ceramicstudio/idx-tools'
 import { Ed25519Provider } from 'key-did-provider-ed25519'
-import { getResolver as KeyDidResolver } from 'key-did-resolver'
-import { getResolver as ThreeIdResolver } from '@ceramicnetwork/3id-did-resolver'
+import { getResolver as getKeyResolver } from 'key-did-resolver'
+import { getResolver as get3idResolver } from '@ceramicnetwork/3id-did-resolver'
 import { ThreeIdProvider } from '@3id/did-provider'
 import { DID } from 'dids'
 // import * as nearSeed from 'near-seed-phrase'
@@ -247,7 +247,7 @@ class Ceramic {
    
     const provider = threeId.getDidProvider()
    
-    const resolver = {...KeyDidResolver.getResolver(), ...ThreeIdResolver.getResolver(ceramic)}
+    const resolver = {...getKeyResolver(), ...get3idResolver(ceramic)}
     const did = new DID({ resolver })
     ceramic.setDID(did)
     ceramic.did.setProvider(provider)
@@ -268,7 +268,7 @@ class Ceramic {
    
     const provider = new Ed25519Provider(seed)
 
-    const resolver = {...KeyDidResolver.getResolver()}
+    const resolver = {...getKeyResolver()}
   
     const did = new DID({ resolver })
     
@@ -356,8 +356,8 @@ class Ceramic {
     const provider = threeId.getDidProvider()
    
     const resolver = {
-      ...KeyDidResolver.getResolver(),
-      ...ThreeIdResolver.getResolver(ceramic)
+      ...getKeyResolver(),
+      ...get3IdResolver(ceramic)
     }
     const did = new DID({ resolver })
     
@@ -397,7 +397,7 @@ class Ceramic {
     const ceramic = new CeramicClient(CERAMIC_API_URL)
     const provider = new Ed25519Provider(retrieveSeed.data.seed)
 
-    const resolver = {...KeyDidResolver.getResolver()}
+    const resolver = {...getKeyResolver()}
   
     const did = new DID({ resolver })
     
