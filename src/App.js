@@ -190,8 +190,12 @@ const App = () => {
                 <Route path="/register">
                     <Register />
                 </Route>
-                <Route path="/choice">
-                    <Choice />
+                <Route exact path="/choice">
+                    <Choice
+                        state={state}
+                    >
+                        { children }
+                    </Choice>
                 </Route>
                 <Route path="/community-stream">
                     <CommunityStreamIntro />
