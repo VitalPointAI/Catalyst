@@ -6,6 +6,7 @@
     "author": "Aaron Luhning",
     "license": "ISC",
     "dependencies": {
+        "3id-did-provider": "^1.1.1",
         "@3id/connect": "^0.2.5",
         "@aluhning/get-personas-js": "^1.43.0",
         "@apollo/client": "^3.4.17",
@@ -21,9 +22,8 @@
         "@ceramicstudio/idx-tools": "^0.11.0",
         "@material-ui/core": "^4.12.3",
         "@material-ui/icons": "^4.11.2",
-        "@material-ui/lab": "*",
+        "@material-ui/lab": "^4.0.0-alpha.61",
         "@stablelib/sha256": "^1.0.1",
-        "3id-did-provider": "^1.1.1",
         "airtable": "^0.11.1",
         "animejs": "^3.2.1",
         "axios": "^0.24.0",
