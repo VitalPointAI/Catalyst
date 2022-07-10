@@ -303,16 +303,17 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         let accountType
         try{
             accountType = await didRegistryContract.getType({accountId: accountId})
-            if(accountType == 'none' || !accountType){
-                finished = true
-                update('', {finished, accountType})
-                window.location.assign('/choice')
-            }
-            update('', {accountType})
         } catch (err) {
             window.location.assign('/choice')
             console.log('account not registered, no type avail', err)
         }
+
+        if(accountType == 'none' || !accountType){
+            finished = true
+            update('', {finished, accountType})
+            window.location.assign('/choice')
+        }
+        update('', {accountType})
     
         // Current User
         let curUserDid = await ceramic.getDid(accountId, daoFactory, didRegistryContract)
