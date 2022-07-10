@@ -38,7 +38,7 @@ const Choice = () => {
     <>
    {!matches ?
         <Grid container justifyContent="center" alignItems="center" spacing={3} >
-            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{marginTop: '50px', marginBottom:'40px'}}>
+            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{marginTop: '25px', marginBottom:'40px'}}>
                 <Typography variant="h4" align="center">
                    You must be new here.<br></br>
                    Welcome.
@@ -79,7 +79,7 @@ const Choice = () => {
         </Grid>
     :
         <Grid container justifyContent="center" alignItems="center" spacing={3} >
-            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{marginTop: '100px', marginBottom:'40px'}}>
+            <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{marginTop: '50px', marginBottom:'40px'}}>
                 <Typography variant="h4" align="center">
                 You must be new here.<br></br>
                 Welcome.
