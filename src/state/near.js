@@ -50,8 +50,14 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     console.log('here')
     let finished = false
 
+    let thisState = getState()
+    console.log('thisState', thisState)
+    if(thisState.accountType && thisState.accountType == 'none'){
+        finished = true
+        update('', {finished})
+        window.location.assign('/choice')
+    }
   
-
     const near = await nearAPI.connect({
         networkId, nodeUrl, walletUrl, deps: { keyStore: new nearAPI.keyStores.BrowserLocalStorageKeyStore() },
     });
@@ -300,21 +306,15 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     const updateCurUserPersonaState = async (didRegistryContract, daoFactory, appIdx, accountId) => {
         const imageName = require('../img/default-profile.png') // default no-image avatar
         const logoName = require('../img/default_logo.png') // default no-logo image
-        let accountType
+        
         try{
             accountType = await didRegistryContract.getType({accountId: accountId})
+            update('', {accountType})
         } catch (err) {
             window.location.assign('/choice')
             console.log('account not registered, no type avail', err)
         }
-
-        if(accountType == 'none' || !accountType){
-            finished = true
-            update('', {finished, accountType})
-            window.location.assign('/choice')
-        }
-        update('', {accountType})
-    
+ 
         // Current User
         let curUserDid = await ceramic.getDid(accountId, daoFactory, didRegistryContract)
         if(accountType != 'guild') {
