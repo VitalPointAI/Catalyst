@@ -40,13 +40,13 @@ const Choice = () => {
         <Grid container justifyContent="center" alignItems="center" spacing={3} >
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{marginTop: '50px', marginBottom:'40px'}}>
                 <Typography variant="h4" align="center">
-                   You arrive at a<br></br>
-                   fork in the road.
+                   You must be new here.<br></br>
+                   Welcome.
                 </Typography>
             </Grid>
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{marginBottom:'20px'}}>
                 <Typography variant="h5" align="center">
-                Which path will you take?<br></br>
+                    Pick an account type to get setup.<br></br>
                 </Typography>
             </Grid>
             <Grid item xs={6} sm={6} md={6} lg={6} xl={6} align="center">
@@ -81,13 +81,13 @@ const Choice = () => {
         <Grid container justifyContent="center" alignItems="center" spacing={3} >
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{marginTop: '100px', marginBottom:'40px'}}>
                 <Typography variant="h4" align="center">
-                You arrive at a<br></br>
-                fork in the road.
+                You must be new here.<br></br>
+                Welcome.
                 </Typography>
             </Grid>
             <Grid item xs={12} sm={12} md={12} lg={12} xl={12} style={{marginBottom:'20px'}}>
                 <Typography variant="h5" align="center">
-                Which path will you take?<br></br>
+                    Pick an account type to get setup.<br></br>
                 </Typography>
             </Grid>
             <Grid item xs={6} sm={6} md={6} lg={6} xl={6} align="center">
