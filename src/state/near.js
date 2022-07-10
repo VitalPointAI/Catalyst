@@ -52,7 +52,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
 
     let thisState = getState()
     console.log('thisState', thisState)
-    if(thisState.accountType && thisState.accountType == 'none'){
+    if(!thisState.accountType && thisState.accountType == 'none'){
         finished = true
         update('', {finished})
         window.location.assign('/choice')
