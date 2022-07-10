@@ -6131,6 +6131,16 @@ key-did-provider-ed25519@^2.0.0:
     rpc-utils "^0.6.2"
     uint8arrays "^3.0.0"
 
+key-did-provider-ed25519@aluhning/key-did-provider-ed25519:
+  version "2.0.0"
+  resolved "https://codeload.github.com/aluhning/key-did-provider-ed25519/tar.gz/214d7284c737885c18dd2ef507ecb5456082df48"
+  dependencies:
+    "@stablelib/ed25519" "^1.0.2"
+    did-jwt "^6.0.0"
+    fast-json-stable-stringify "^2.1.0"
+    rpc-utils "^0.6.2"
+    uint8arrays "^3.0.0"
+
 key-did-resolver@^1.4.4:
   version "1.4.4"
   resolved "https://registry.yarnpkg.com/key-did-resolver/-/key-did-resolver-1.4.4.tgz#0195ae6993de340ceb3429054c9b0b03b32fbab2"
@@ -6863,7 +6873,7 @@ param-case@^3.0.4:
     dot-case "^3.0.4"
     tslib "^2.0.3"
 
-parcel@^2.0.0-beta.2:
+parcel@latest:
   version "2.6.2"
   resolved "https://registry.yarnpkg.com/parcel/-/parcel-2.6.2.tgz#4585208880f42b24935c7d3ad167dcd42f8174eb"
   integrity sha512-q6hrD3rm9M4S/VBVTcOs3pl55cnRwWfco7n8hZoAqnInWjWB+Khu92LRBMerMBTdE15Y+lJhWrXNdimDYstfhQ==
