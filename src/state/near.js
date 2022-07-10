@@ -298,12 +298,12 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     const appIdx = await ceramic.getAppIdx(didRegistryContract, account)
     console.log('appidx', appIdx)
 
-    const updateCurUserPersonaState = async (didRegistryContract, daoFactory, appIdx) => {
+    const updateCurUserPersonaState = async (didRegistryContract, daoFactory, appIdx, accountId) => {
         const imageName = require('../img/default-profile.png') // default no-image avatar
         const logoName = require('../img/default_logo.png') // default no-logo image
         let accountType
         try{
-            accountType = await didRegistryContract.getType({accountId: proposer})
+            accountType = await didRegistryContract.getType({accountId: accountId})
             update('', {accountType})
             } catch (err) {
             accountType = 'none'
@@ -333,7 +333,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         }
     }
     
-    await updateCurUserPersonaState(didRegistryContract, daoFactory, appIdx)
+    await updateCurUserPersonaState(didRegistryContract, daoFactory, appIdx, accountId)
 
     // let curUserIdx = await ceramic.getUserIdx(account, appIdx, daoFactory, didRegistryContract)
     // console.log('curuseridx', curUserIdx)
