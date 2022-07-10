@@ -304,6 +304,8 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         try{
             accountType = await didRegistryContract.getType({accountId: accountId})
             if(accountType == 'none' || !accountType){
+                finished = true
+                update('', {finished, accountType})
                 window.location.assign('/choice')
             }
             update('', {accountType})
