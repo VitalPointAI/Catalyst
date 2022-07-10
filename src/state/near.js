@@ -333,7 +333,11 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         }
     }
     
-    await updateCurUserPersonaState(didRegistryContract, daoFactory, appIdx, accountId)
+    try{
+        await updateCurUserPersonaState(didRegistryContract, daoFactory, appIdx, accountId)
+    } catch (err){
+        console.log('error updating cur user persona', err)
+    }
 
     // let curUserIdx = await ceramic.getUserIdx(account, appIdx, daoFactory, didRegistryContract)
     // console.log('curuseridx', curUserIdx)
@@ -347,9 +351,13 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         console.log('problem getting all announcements', err)
     }
 
-    let did = await didRegistryContract.getDID({accountId: accountId})
+    let did
+    try{
+        did = await didRegistryContract.getDID({accountId: accountId})
+    } catch (err) {
+        console.log('error getting did', err)
+    }
 
-    
 
     let verificationStatus
     try{
