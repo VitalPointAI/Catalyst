@@ -357,7 +357,7 @@ class Ceramic {
    
     const resolver = {
       ...getKeyResolver(),
-      ...get3IdResolver(ceramic)
+      ...get3idResolver(ceramic)
     }
     const did = new DID({ resolver })
     
