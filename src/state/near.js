@@ -49,14 +49,6 @@ for(let x = 0; x < pathArray.length; x++){
 export const initNear = () => async ({ update, getState, dispatch }) => {
     console.log('here')
     let finished = false
-
-    let thisState = getState()
-    console.log('thisState', thisState)
-    if(!thisState.accountType && thisState.accountType == 'none'){
-        finished = true
-        update('', {finished})
-        window.location.assign('/choice')
-    }
   
     const near = await nearAPI.connect({
         networkId, nodeUrl, walletUrl, deps: { keyStore: new nearAPI.keyStores.BrowserLocalStorageKeyStore() },

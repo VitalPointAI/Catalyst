@@ -878,6 +878,7 @@ async getDid(accountId, factoryContract, registryContract) {
  
     did = dao.did
     } catch (err) {
+      window.location.assign('/choice')
       console.log('error retrieving did', err)
     }
   }
