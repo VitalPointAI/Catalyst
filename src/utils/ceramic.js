@@ -9,9 +9,9 @@ import KeyDidResolver from 'key-did-resolver'
 import ThreeIdResolver from '@ceramicnetwork/3id-did-resolver'
 import ThreeIdProvider from '3id-did-provider'
 import { DID } from 'dids'
-import * as nearSeed from 'near-seed-phrase'
-import crypto from 'crypto'
-import nacl from 'tweetnacl'
+// import * as nearSeed from 'near-seed-phrase'
+// import crypto from 'crypto'
+// import nacl from 'tweetnacl'
 
 import * as uint8arrays from 'uint8arrays'
 
@@ -287,30 +287,30 @@ class Ceramic {
   }
 
 
-  getSignature = async (signer, accountId, message) => {
+  // getSignature = async (signer, accountId, message) => {
     
-    const hash = crypto.createHash('sha256').update(message).digest()
+  //   const hash = crypto.createHash('sha256').update(message).digest()
 
-    const hashString = uint8arrays.toString(hash, 'base64')
+  //   const hashString = uint8arrays.toString(hash, 'base64')
 
-    const signed = await signer.signMessage(message, accountId, networkId)
+  //   const signed = await signer.signMessage(message, accountId, networkId)
 
-    const messageSignature = uint8arrays.toString(signed.signature, 'base64')
+  //   const messageSignature = uint8arrays.toString(signed.signature, 'base64')
 
-    return { message, messageSignature }    
-  }
+  //   return { message, messageSignature }    
+  // }
 
 
-  verifySignature = async (publicKey, message, signature) => {
+  // verifySignature = async (publicKey, message, signature) => {
 
-      const hash = crypto.createHash('sha256').update(message).digest()
+  //     const hash = crypto.createHash('sha256').update(message).digest()
 
-      const hashString = uint8arrays.toString(hash, 'base64')
+  //     const hashString = uint8arrays.toString(hash, 'base64')
       
-      const verified = nacl.sign.detached.verify(uint8arrays.fromString(hashString, 'base64'), signature, publicKey.data);
+  //     const verified = nacl.sign.detached.verify(uint8arrays.fromString(hashString, 'base64'), signature, publicKey.data);
       
-      return verified
-  };
+  //     return verified
+  // };
 
 
   async getAppCeramic(accountId) {
