@@ -258,7 +258,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         
     }
 
-    if(wallet.signedIn && !finished){
+    if(wallet.signedIn){
    
         console.log('made it here')
     // ********* Check and action redirects after DAO and proposal creation *************
@@ -304,8 +304,11 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         try{
             accountType = await didRegistryContract.getType({accountId: accountId})
             if(accountType == 'none'){
+                console.log('here')
                 finished = true
                 update('', {finished})
+                
+                console.log('finished', finished)
                 window.location.assign('/choice')
             }
             update('', {accountType})
@@ -336,8 +339,10 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
             }
         }
     }
-    
-    if(!finished){
+    console.log('finished 2', finished)
+    let thisState = getState()
+
+    if(!thisState.finished){
         try{
             await updateCurUserPersonaState(didRegistryContract, daoFactory, appIdx, accountId)
         } catch (err){
