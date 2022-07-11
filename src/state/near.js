@@ -341,7 +341,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     }
     console.log('finished 2', finished)
     let thisState = getState()
-
+    console.log('thisstate finished', thisState.finished)
     if(!thisState.finished){
         try{
             await updateCurUserPersonaState(didRegistryContract, daoFactory, appIdx, accountId)
