@@ -48,13 +48,7 @@ for(let x = 0; x < pathArray.length; x++){
 
 export const initNear = () => async ({ update, getState, dispatch }) => {
     console.log('here')
-    let thisState = getState()
-    let finished
-    if(thisState.finished){
-        finished = thisState.finished
-    } else {
-        finished = false
-    }
+    let finished = false
   
     const near = await nearAPI.connect({
         networkId, nodeUrl, walletUrl, deps: { keyStore: new nearAPI.keyStores.BrowserLocalStorageKeyStore() },
@@ -93,6 +87,8 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     if (wallet.signedIn) {
         wallet.balance = formatNearAmount((await wallet.account().getAccountBalance()).available, 2)
         update('',{balance: wallet.balance})
+
+
     }
 
     const contract = new nearAPI.Contract(wallet.account(), contractName, {
@@ -307,12 +303,10 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         
         try{
             accountType = await didRegistryContract.getType({accountId: accountId})
-            update('', {accountType})
             if(accountType == 'none'){
-                finished = true
-                update('', {finished})
                 window.location.assign('/choice')
             }
+            update('', {accountType})
         } catch (err) {
             window.location.assign('/choice')
             console.log('account not registered, no type avail', err)
