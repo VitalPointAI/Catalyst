@@ -341,10 +341,12 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         }
     }
     
-    try{
-        await updateCurUserPersonaState(didRegistryContract, daoFactory, appIdx, accountId)
-    } catch (err){
-        console.log('error updating cur user persona', err)
+    if(!finished){
+        try{
+            await updateCurUserPersonaState(didRegistryContract, daoFactory, appIdx, accountId)
+        } catch (err){
+            console.log('error updating cur user persona', err)
+        }
     }
 
     // let curUserIdx = await ceramic.getUserIdx(account, appIdx, daoFactory, didRegistryContract)
