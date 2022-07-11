@@ -49,6 +49,8 @@ for(let x = 0; x < pathArray.length; x++){
 export const initNear = () => async ({ update, getState, dispatch }) => {
     console.log('here')
     let finished = false
+    let thisState = getState()
+    console.log('thisstate finished', thisState.finished)
   
     const near = await nearAPI.connect({
         networkId, nodeUrl, walletUrl, deps: { keyStore: new nearAPI.keyStores.BrowserLocalStorageKeyStore() },
@@ -340,8 +342,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         }
     }
     console.log('finished 2', finished)
-    let thisState = getState()
-    console.log('thisstate finished', thisState.finished)
+    
     if(!thisState.finished){
         try{
             await updateCurUserPersonaState(didRegistryContract, daoFactory, appIdx, accountId)
