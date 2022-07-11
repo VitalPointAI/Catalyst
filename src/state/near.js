@@ -304,6 +304,8 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         try{
             accountType = await didRegistryContract.getType({accountId: accountId})
             if(accountType == 'none'){
+                finished = true
+                update('', {finished})
                 window.location.assign('/choice')
             }
             update('', {accountType})
@@ -341,7 +343,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
         } catch (err){
             console.log('error updating cur user persona', err)
         }
-    }
+    
 
     // let curUserIdx = await ceramic.getUserIdx(account, appIdx, daoFactory, didRegistryContract)
     // console.log('curuseridx', curUserIdx)
@@ -536,6 +538,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
           
         }
     }
+    
 
     update('', { 
         did,
@@ -561,6 +564,7 @@ export const initNear = () => async ({ update, getState, dispatch }) => {
     finished = true
 
     update('', { near, wallet, finished })
+}
 }
 
 
